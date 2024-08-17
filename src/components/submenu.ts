@@ -81,6 +81,7 @@ export class FrigateCardSubmenu extends LitElement {
     if (!this.submenu) {
       return html``;
     }
+    const items = this.submenu.items as MenuSubmenuItem[];
     return html`
       <ha-button-menu
         corner=${'BOTTOM_LEFT'}
@@ -109,7 +110,7 @@ export class FrigateCardSubmenu extends LitElement {
         >
           <ha-icon icon="${this.submenu.icon}"></ha-icon>
         </ha-icon-button>
-        ${this.submenu.items.map(this._renderItem.bind(this))}
+        ${items.map(this._renderItem.bind(this))}
       </ha-button-menu>
     `;
   }
@@ -217,9 +218,11 @@ export class FrigateCardSubmenuSelect extends LitElement {
     // the items correctly (below).
     delete submenu['options'];
 
+    const items = submenu.items as MenuSubmenuItem[];
+
     for (const option of options) {
       const title = this._optionTitles?.[option] ?? option;
-      submenu.items.push({
+      items.push({
         state_color: true,
         selected: stateObj.state === option,
         enabled: true,

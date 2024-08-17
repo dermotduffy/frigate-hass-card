@@ -1,8 +1,9 @@
-import { Task } from '@lit-labs/task';
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { Task } from '@lit-labs/task';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { getTechnologyForVideoRTC } from '../../components-lib/live/utils/get-technology-for-video-rtc.js';
 import { CameraConfig, CardWideConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
 import liveWebRTCCardStyle from '../../scss/live-webrtc-card.scss';
@@ -22,6 +23,7 @@ import {
 import { screenshotMedia } from '../../utils/screenshot.js';
 import { renderTask } from '../../utils/task.js';
 import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
+import { VideoRTC } from './go2rtc/video-rtc.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
@@ -104,15 +106,16 @@ export class FrigateCardLiveWebRTCCard
     this.requestUpdate();
   }
 
+  protected _getVideoRTC(): VideoRTC | null {
+    return (this.renderRoot?.querySelector('#webrtc') ?? null) as VideoRTC | null;
+  }
+
   /**
    * Get the underlying video player.
    * @returns The player or `null` if not found.
    */
   protected _getPlayer(): HTMLVideoElement | null {
-    const root = this.renderRoot?.querySelector('#webrtc') as
-      | (HTMLElement & { video?: HTMLVideoElement })
-      | null;
-    return root?.video ?? null;
+    return this._getVideoRTC()?.video ?? null;
   }
 
   protected async _getWebRTCCardElement(): Promise<
@@ -192,6 +195,7 @@ export class FrigateCardLiveWebRTCCard
     // Extract the video component after it has been rendered and generate the
     // media load event.
     this.updateComplete.then(() => {
+      const videoRTC = this._getVideoRTC();
       const video = this._getPlayer();
       if (video) {
         setControlsOnVideo(video, this.controls);
@@ -205,6 +209,7 @@ export class FrigateCardLiveWebRTCCard
               supportsPause: true,
               hasAudio: mayHaveAudio(video),
             },
+            ...(videoRTC && { technology: getTechnologyForVideoRTC(videoRTC) }),
           });
         };
         video.onplay = () => dispatchMediaPlayEvent(this);

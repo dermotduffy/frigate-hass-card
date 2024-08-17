@@ -450,14 +450,24 @@ action: custom:frigate-card-action
 frigate_card_action: snapshot
 ```
 
-## `snapshots`
+## `status_bar`
 
-Change to the `snapshots` view.
+Add or remove items from the status bar.
 
 ```yaml
 action: custom:frigate-card-action
-frigate_card_action: snapshots
+frigate_card_action: status_bar
+# [...]
 ```
+
+| Parameter           | Default | Description                                                                                                                                             |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status_bar_action` |         | If `add` adds `items` to the status bar, if `remove` removes items and if `reset` resets the status bar entirely (removes all dynamically added items). |
+| `items`             |         | The items to `add` or `remove`. See below.                                                                                                              |
+
+### `items`
+
+The items parameter is a list of items to `add` or `remove`. See [`custom:frigate-card-status-bar-icon`](../../elements/custom/README.md?id=status-bar-icon), [`custom:frigate-card-status-bar-image`](../../elements/custom/README.md?id=status-bar-image), [`custom:frigate-card-status-bar-string`](../../elements/custom/README.md?id=status-bar-string) for the allowable items and their parameters. See the [fully expanded reference](./README.md?fully-expanded-reference) below for a complete example.
 
 ## `timeline`
 
@@ -732,4 +742,69 @@ elements:
     tap_action:
       action: custom:frigate-card-action
       frigate_card_action: unmute
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:alpha-h-circle-outline
+    title: Add status bar contents
+    tap_action:
+      - action: custom:frigate-card-action
+        frigate_card_action: status_bar
+        status_bar_action: add
+        items:
+          - type: custom:frigate-card-status-bar-string
+            enabled: true
+            exclusive: false
+            expand: false
+            string: 'Intruder alert!'
+            priority: 50
+            sufficient: false
+          - type: custom:frigate-card-status-bar-icon
+            enabled: true
+            exclusive: false
+            expand: false
+            icon: 'mdi:cow'
+            priority: 50
+            sufficient: false
+          - type: custom:frigate-card-status-bar-image
+            enabled: true
+            exclusive: false
+            expand: false
+            image: https://my.site.com/status.png
+            priority: 50
+            sufficient: false
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:alpha-i-circle-outline
+    title: Remove status bar contents
+    tap_action:
+      - action: custom:frigate-card-action
+        frigate_card_action: status_bar
+        status_bar_action: remove
+        items:
+          - type: custom:frigate-card-status-bar-string
+            enabled: true
+            exclusive: false
+            expand: false
+            string: 'Intruder alert!'
+            priority: 50
+            sufficient: false
+          - type: custom:frigate-card-status-bar-icon
+            enabled: true
+            exclusive: false
+            expand: false
+            icon: 'mdi:cow'
+            priority: 50
+            sufficient: false
+          - type: custom:frigate-card-status-bar-image
+            enabled: true
+            exclusive: false
+            expand: false
+            image: https://my.site.com/status.png
+            priority: 50
+            sufficient: false
+  - type: custom:frigate-card-menu-icon
+    icon: mdi:alpha-i-circle-outline
+    title: Reset status bar contents
+    tap_action:
+      - action: custom:frigate-card-action
+        frigate_card_action: status_bar
+        status_bar_action: reset
 ```

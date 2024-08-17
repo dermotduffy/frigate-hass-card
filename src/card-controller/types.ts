@@ -1,29 +1,30 @@
 import type { CameraManager } from '../camera-manager/manager';
-import type { ConditionsManager } from './conditions-manager';
+import type { Automation } from '../config/types';
 import type { EntityRegistryManager } from '../utils/ha/entity-registry';
 import type { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import type { ActionsManager } from './actions/actions-manager';
-import type { DefaultManager } from './default-manager';
 import type { AutomationsManager } from './automations-manager';
 import type { CameraURLManager } from './camera-url-manager';
 import type { CardElementManager } from './card-element-manager';
+import type { ConditionsManager } from './conditions-manager';
 import type { ConfigManager } from './config/config-manager';
+import type { DefaultManager } from './default-manager';
 import type { DownloadManager } from './download-manager';
 import type { ExpandManager } from './expand-manager';
 import type { FullscreenManager } from './fullscreen-manager';
 import type { HASSManager } from './hass-manager';
 import type { InitializationManager } from './initialization-manager';
 import type { InteractionManager } from './interaction-manager';
+import type { KeyboardStateManager } from './keyboard-state-manager';
 import type { MediaLoadedInfoManager } from './media-info-manager';
 import type { MediaPlayerManager } from './media-player-manager';
 import type { MessageManager } from './message-manager';
 import type { MicrophoneManager } from './microphone-manager';
+import type { QueryStringManager } from './query-string-manager';
+import type { StatusBarItemManager } from './status-bar-item-manager';
 import type { StyleManager } from './style-manager';
 import type { TriggersManager } from './triggers-manager';
 import type { ViewManager } from './view/view-manager';
-import type { QueryStringManager } from './query-string-manager';
-import { KeyboardStateManager } from './keyboard-state-manager';
-import { Automation } from '../config/types';
 
 // *************************************************************************
 //                             Manager APIs
@@ -47,6 +48,7 @@ export interface CardActionsAPI {
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
   getMicrophoneManager(): MicrophoneManager;
+  getStatusBarItemManager(): StatusBarItemManager;
   getTriggersManager(): TriggersManager;
   getViewManager(): ViewManager;
 }
@@ -89,6 +91,7 @@ export interface CardConfigAPI {
   getInitializationManager(): InitializationManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMessageManager(): MessageManager;
+  getStatusBarItemManager(): StatusBarItemManager;
   getStyleManager(): StyleManager;
   getViewManager(): ViewManager;
 }
@@ -216,6 +219,10 @@ export interface CardQueryStringAPI {
   getActionsManager(): ActionsManager;
   getCardElementManager(): CardElementManager;
   getViewManager(): ViewManager;
+}
+
+export interface CardStatusBarAPI {
+  getCardElementManager(): CardElementManager;
 }
 
 export interface CardStyleAPI {

@@ -28,6 +28,7 @@ import { MediaPlayerManager } from './media-player-manager';
 import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
 import { QueryStringManager } from './query-string-manager';
+import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
 import { TriggersManager } from './triggers-manager';
 import {
@@ -110,6 +111,7 @@ export class CardController
   protected _messageManager = new MessageManager(this);
   protected _microphoneManager = new MicrophoneManager(this);
   protected _queryStringManager = new QueryStringManager(this);
+  protected _statusBarItemManager = new StatusBarItemManager(this);
   protected _styleManager = new StyleManager(this);
   protected _triggersManager = new TriggersManager(this);
   protected _viewManager = new ViewManager(this);
@@ -226,6 +228,10 @@ export class CardController
 
   public getResolvedMediaCache(): ResolvedMediaCache {
     return this._resolvedMediaCache;
+  }
+
+  public getStatusBarItemManager(): StatusBarItemManager {
+    return this._statusBarItemManager;
   }
 
   public static getStubConfig(entities: string[]): FrigateCardConfig {

@@ -210,18 +210,6 @@
             "seek-in-camera": "Pan seeks within selected camera only",
             "seek-in-media": "Pan seeks within selected media item only"
           }
-        },
-        "title": {
-          "duration_seconds": "Seconds to display popup title (0=forever)",
-          "editor_label": "Popup Title Controls",
-          "mode": "Popup title display mode",
-          "modes": {
-            "none": "No title display",
-            "popup-bottom-left": "Popup on the bottom left",
-            "popup-bottom-right": "Popup on the bottom right",
-            "popup-top-left": "Popup on the top left",
-            "popup-top-right": "Popup on the top right"
-          }
         }
       },
       "display": {
@@ -427,6 +415,33 @@
       "low-performance": "Low performance",
       "scrubbing": "Video scrubbing"
     },
+    "status_bar": {
+      "height": "Status bar height in pixels",
+      "items": {
+        "enabled": "Item enabled",
+        "engine": "Camera engine",
+        "live_provider": "Live provider",
+        "priority": "Item priority",
+        "resolution": "Resolution",
+        "technology": "Technology",
+        "title": "Title"
+      },
+      "popup_seconds": "Status bar popup seconds",
+      "position": "Status bar position",
+      "positions": {
+        "bottom": "Positioned on the bottom",
+        "top": "Positioned on the top"
+      },
+      "style": "Status bar style",
+      "styles": {
+        "hover": "Hover status bar",
+        "hover-card": "Hover status bar (card-wide)",
+        "none": "No status bar",
+        "outside": "Outside status bar",
+        "overlay": "Overlay status bar",
+        "popup": "Popup status bar"
+      }
+    },
     "view": {
       "camera_select": "View for newly selected cameras",
       "dark_mode": "Dark mode",
@@ -533,6 +548,8 @@
     "performance_secondary": "Card performance options",
     "profiles": "Configuration profiles",
     "profiles_secondary": "Choose pre-configured sets of defaults",
+    "status_bar": "Status bar",
+    "status_bar_secondary": "Status bar look & feel options",
     "timeline": "Timeline",
     "timeline_secondary": "Event timeline options",
     "upgrade": "Upgrade",

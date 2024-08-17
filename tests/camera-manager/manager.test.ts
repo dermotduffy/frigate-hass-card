@@ -11,7 +11,6 @@ import {
   QueryClassifier,
   QueryResultClassifier,
 } from '../../src/camera-manager/manager';
-import { CameraManagerStore } from '../../src/camera-manager/store';
 import {
   CameraEndpoint,
   CameraEndpoints,

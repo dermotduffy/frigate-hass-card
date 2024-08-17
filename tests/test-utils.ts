@@ -1,4 +1,8 @@
-import { CurrentUser, HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import {
+  CurrentUser,
+  HASSDomEvent,
+  HomeAssistant,
+} from '@dermotduffy/custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { LitElement } from 'lit';
 import { expect, vi } from 'vitest';
@@ -15,28 +19,31 @@ import {
   CameraManagerMediaCapabilities,
 } from '../src/camera-manager/types';
 import { ActionsManager } from '../src/card-controller/actions/actions-manager';
-import { DefaultManager } from '../src/card-controller/default-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import { CardElementManager } from '../src/card-controller/card-element-manager';
 import { ConditionsManager } from '../src/card-controller/conditions-manager';
 import { ConfigManager } from '../src/card-controller/config/config-manager';
 import { CardController } from '../src/card-controller/controller';
+import { DefaultManager } from '../src/card-controller/default-manager';
 import { DownloadManager } from '../src/card-controller/download-manager';
 import { ExpandManager } from '../src/card-controller/expand-manager';
 import { FullscreenManager } from '../src/card-controller/fullscreen-manager';
 import { HASSManager } from '../src/card-controller/hass-manager';
 import { InitializationManager } from '../src/card-controller/initialization-manager';
 import { InteractionManager } from '../src/card-controller/interaction-manager';
+import { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
 import { MediaLoadedInfoManager } from '../src/card-controller/media-info-manager';
 import { MediaPlayerManager } from '../src/card-controller/media-player-manager';
 import { MessageManager } from '../src/card-controller/message-manager';
 import { MicrophoneManager } from '../src/card-controller/microphone-manager';
 import { QueryStringManager } from '../src/card-controller/query-string-manager';
+import { StatusBarItemManager } from '../src/card-controller/status-bar-item-manager';
 import { StyleManager } from '../src/card-controller/style-manager';
 import { TriggersManager } from '../src/card-controller/triggers-manager';
 import { ViewManager } from '../src/card-controller/view/view-manager';
 import {
+  ActionsConfig,
   CameraConfig,
   FrigateCardCondition,
   FrigateCardConfig,
@@ -55,7 +62,6 @@ import { Entity } from '../src/utils/ha/entity-registry/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
 import { MediaQueriesResults } from '../src/view/media-queries-results';
 import { View, ViewParameters } from '../src/view/view';
-import { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
 
 export const createAction = (
   action: Record<string, unknown>,
@@ -450,6 +456,7 @@ export const createCardAPI = (): CardController => {
   api.getMessageManager.mockReturnValue(mock<MessageManager>());
   api.getMicrophoneManager.mockReturnValue(mock<MicrophoneManager>());
   api.getQueryStringManager.mockReturnValue(mock<QueryStringManager>());
+  api.getStatusBarItemManager.mockReturnValue(mock<StatusBarItemManager>());
   api.getStyleManager.mockReturnValue(mock<StyleManager>());
   api.getTriggersManager.mockReturnValue(mock<TriggersManager>());
   api.getViewManager.mockReturnValue(mock<ViewManager>());
@@ -472,4 +479,16 @@ export const callHASubscribeMessageHandler = (
  */
 export const flushPromises = async (): Promise<void> => {
   await new Promise(process.nextTick);
+};
+
+export const createInteractionEvent = (
+  action: string,
+  config?: ActionsConfig,
+): HASSDomEvent<{ action: string; config?: ActionsConfig }> => {
+  return new CustomEvent<{ action: string; config?: ActionsConfig }>('@action', {
+    detail: {
+      action: action,
+      config: config,
+    },
+  });
 };

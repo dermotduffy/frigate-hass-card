@@ -73,11 +73,6 @@ import type { EmblaCarouselPlugins } from './carousel.js';
 import './next-prev-control.js';
 import './ptz';
 import './surround.js';
-import './title-control.js';
-import {
-  FrigateCardTitleControl,
-  getDefaultTitleConfigForView,
-} from './title-control.js';
 
 export interface MediaViewerViewContext {
   seek?: Date;
@@ -194,7 +189,6 @@ export class FrigateCardViewerCarousel extends LitElement {
   protected _selected = 0;
 
   protected _media: ViewMedia[] | null = null;
-  protected _refTitleControl: Ref<FrigateCardTitleControl> = createRef();
   protected _player: FrigateCardMediaPlayer | null = null;
 
   /**
@@ -407,15 +401,7 @@ export class FrigateCardViewerCarousel extends LitElement {
       }
     };
 
-    const cameraMetadata = this.cameraManager.getCameraMetadata(
-      selectedMedia.getCameraID(),
-    );
-
     const view = this.viewManagerEpoch?.manager.getView();
-    const titleConfig = getDefaultTitleConfigForView(
-      view,
-      this.viewerConfig?.controls.title,
-    );
 
     return html`
       <frigate-card-carousel
@@ -427,9 +413,6 @@ export class FrigateCardViewerCarousel extends LitElement {
           this._setViewSelectedIndex(ev.detail.index);
         }}
         @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
-          if (this._refTitleControl.value) {
-            this._refTitleControl.value.show();
-          }
           this._player = ev.detail.player ?? null;
           this._seekHandler();
         }}
@@ -480,16 +463,6 @@ export class FrigateCardViewerCarousel extends LitElement {
         <ha-icon title="${localize('media_viewer.unseekable')}" icon="mdi:clock-remove">
         </ha-icon>
       </div>
-      ${cameraMetadata && titleConfig
-        ? html`<frigate-card-title-control
-            ${ref(this._refTitleControl)}
-            .config=${titleConfig}
-            .text="${selectedMedia.getTitle() ?? undefined}"
-            .logo="${cameraMetadata?.engineLogo}"
-            .fitInto=${this as HTMLElement}
-          >
-          </frigate-card-title-control> `
-        : ``}
     `;
   }
 
@@ -919,6 +892,7 @@ export class FrigateCardViewerProvider
                       supportsPause: true,
                       hasAudio: mayHaveAudio(ev.target as HTMLVideoElement),
                     },
+                    technology: ['hls'],
                   });
                 }}
                 @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
@@ -942,7 +916,7 @@ export class FrigateCardViewerProvider
               }
             }}
             @load=${(ev: Event) => {
-              dispatchMediaLoadedEvent(this, ev, { player: this });
+              dispatchMediaLoadedEvent(this, ev, { player: this, technology: ['jpg'] });
             }}
           />`}
     `);

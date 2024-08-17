@@ -4,11 +4,6 @@ import isEqual from 'lodash-es/isEqual';
 import set from 'lodash-es/set';
 import unset from 'lodash-es/unset';
 import {
-  FrigateCardCondition,
-  RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
-} from './types';
-import {
   CONF_AUTOMATIONS,
   CONF_CAMERAS,
   CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT,
@@ -24,18 +19,24 @@ import {
   CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_OVERRIDES,
   CONF_PROFILES,
+  CONF_STATUS_BAR,
   CONF_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
-  CONF_VIEW_INTERACTION_SECONDS,
-  CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
+  CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
   CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+  CONF_VIEW_INTERACTION_SECONDS,
   CONF_VIEW_TRIGGERS,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
 } from '../const';
 import { arrayify } from '../utils/basic';
+import {
+  FrigateCardCondition,
+  RawFrigateCardConfig,
+  RawFrigateCardConfigArray,
+} from './types';
 
 // *************************************************************************
 //                  General Config Management Functions
@@ -660,6 +661,27 @@ const ptzControlSettingsTransform = (data: unknown): unknown => {
     }, {});
 };
 
+const titleControlTransform = (data: unknown): unknown => {
+  if (typeof data !== 'object' || !data || typeof data['mode'] !== 'string') {
+    return null;
+  }
+  if (data['mode'] === 'none') {
+    return {
+      style: 'none',
+    };
+  }
+  if (data['mode'].includes('bottom')) {
+    return {
+      position: 'bottom',
+    };
+  } else if (data['mode'].includes('top')) {
+    return {
+      position: 'top',
+    };
+  }
+  return null;
+};
+
 const UPGRADES = [
   // v4.0.0 -> v4.1.0
   upgradeArrayOfObjects(
@@ -822,4 +844,9 @@ const UPGRADES = [
     CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
   ),
   upgradeMoveToWithOverrides('view.update_entities', CONF_VIEW_DEFAULT_RESET_ENTITIES),
+  upgradeMoveTo('live.controls.title', CONF_STATUS_BAR, {
+    transform: titleControlTransform,
+  }),
+  deleteWithOverrides('live.controls.title'),
+  deleteWithOverrides('media_viewer.controls.title'),
 ];

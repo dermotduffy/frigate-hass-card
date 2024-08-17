@@ -80,23 +80,6 @@ div.main.curve-bottom {
   border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
 
-/* The 'hover' menu mode is styled applied outside of the menu itself */
-frigate-card-menu[data-style*='hover'] {
-  z-index: 1;
-  transition: opacity 0.5s ease;
-}
-
-.main + frigate-card-menu[data-style*='hover'] {
-  opacity: 0;
-}
-frigate-card-menu[data-style='hover']:hover {
-  opacity: 1;
-}
-.main:hover + frigate-card-menu[data-style='hover-card'],
-frigate-card-menu[data-style='hover-card']:hover {
-  opacity: 1;
-}
-
 ha-card {
   display: flex;
   flex-direction: column;
@@ -180,4 +163,53 @@ web-dialog::part(dialog) {
   // Fixes to render the dialog correctly in Safari.
   border-radius: 0px;
   background: transparent;
+}
+
+/*************************************
+ * "Outside" style for menu/status bar
+ *************************************/
+
+.outerlay[data-position='top'] {
+  border-top-left-radius: var(--ha-card-border-radius, 4px);
+  border-top-right-radius: var(--ha-card-border-radius, 4px);
+}
+
+.outerlay[data-position='bottom'] {
+  border-bottom-left-radius: var(--ha-card-border-radius, 4px);
+  border-bottom-right-radius: var(--ha-card-border-radius, 4px);
+}
+
+/****************
+ * Overlay styles
+ ****************/
+frigate-card-overlay {
+  z-index: 1;
+}
+
+/*******************
+ * Menu hover styles
+ *******************/
+
+frigate-card-menu[data-style*='hover'] {
+  z-index: 4;
+  transition: opacity 0.5s ease;
+  opacity: 0;
+}
+frigate-card-menu[data-style*='hover']:hover,
+.main:hover > frigate-card-overlay > frigate-card-menu[data-style='hover-card'] {
+  opacity: 1;
+}
+
+/*************************
+ * Status bar hover styles
+ *************************/
+
+frigate-card-status-bar[data-style*='hover'] {
+  z-index: 3;
+  transition: opacity 0.5s ease;
+  opacity: 0;
+}
+frigate-card-status-bar[data-style*='hover']:hover,
+.main:hover > frigate-card-overlay > frigate-card-status-bar[data-style='hover-card'] {
+  opacity: 1;
 }

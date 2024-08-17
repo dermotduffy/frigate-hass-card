@@ -5,6 +5,7 @@ import {
   customSchema,
   dimensionsConfigSchema,
   frigateCardCustomActionsBaseSchema,
+  frigateCardCustomActionSchema,
 } from '../../src/config/types';
 import { createConfig } from '../test-utils';
 
@@ -273,6 +274,30 @@ describe('config defaults', () => {
           box_shadow: true,
         },
       },
+      status_bar: {
+        height: 46,
+        items: {
+          engine: {
+            enabled: true,
+            priority: 50,
+          },
+          resolution: {
+            enabled: true,
+            priority: 50,
+          },
+          technology: {
+            enabled: true,
+            priority: 50,
+          },
+          title: {
+            enabled: true,
+            priority: 50,
+          },
+        },
+        popup_seconds: 3,
+        position: 'bottom',
+        style: 'popup',
+      },
       timeline: {
         clustering_threshold: 3,
         controls: {
@@ -507,7 +532,7 @@ describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
   });
 });
 
-describe('should lazy evaluate', () => {
+describe('should lazy evaluate schemas', () => {
   it('conditional picture element', () => {
     expect(
       conditionalSchema.parse({
@@ -554,6 +579,21 @@ describe('should lazy evaluate', () => {
       ],
       type: 'conditional',
     });
+  });
+
+  it('status bar actions', () => {
+    const input = {
+      action: 'fire-dom-event',
+      frigate_card_action: 'status_bar',
+      status_bar_action: 'reset',
+      items: [
+        {
+          type: 'custom:frigate-card-status-bar-string',
+          string: 'Item',
+        },
+      ],
+    };
+    expect(frigateCardCustomActionSchema.parse(input)).toEqual(input);
   });
 });
 
@@ -620,4 +660,42 @@ it('media viewer should not support microphone based conditions', () => {
       },
     }),
   ).toThrowError();
+});
+
+describe('automations should require at least one action', () => {
+  it('no action', () => {
+    expect(() =>
+      createConfig({
+        cameras: [{}],
+        automations: [{ conditions: [] }],
+      }),
+    ).toThrowError(/Automations must include at least one action/);
+  });
+
+  it('empty actions', () => {
+    expect(() =>
+      createConfig({
+        cameras: [{}],
+        automations: [{ conditions: [], actions: [], actions_not: [] }],
+      }),
+    ).toThrowError(/Automations must include at least one action/);
+  });
+
+  it('at least one action', () => {
+    expect(() =>
+      createConfig({
+        cameras: [{}],
+        automations: [
+          {
+            conditions: [],
+            actions: [
+              {
+                action: 'fire-dom-event',
+              },
+            ],
+          },
+        ],
+      }),
+    ).not.toThrowError();
+  });
 });

@@ -31,9 +31,13 @@ export interface MediaLoadedCapabilities {
   hasAudio?: boolean;
 }
 
+const MEDIA_TECHNOLOGY = ['hls', 'jpg', 'jsmpeg', 'mjpeg', 'mp4', 'mse', 'webrtc'];
+export type MediaTechnology = (typeof MEDIA_TECHNOLOGY)[number];
+
 export interface MediaLoadedInfo {
   width: number;
   height: number;
+  technology?: MediaTechnology[];
   player?: FrigateCardMediaPlayer;
   capabilities?: MediaLoadedCapabilities;
 }

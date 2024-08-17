@@ -29,6 +29,7 @@ import { ViewManager } from '../../src/card-controller/view/view-manager';
 import { FrigateCardEditor } from '../../src/editor';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
+import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-manager';
 
 vi.mock('../../src/camera-manager/manager');
 vi.mock('../../src/card-controller/actions/actions-manager');
@@ -50,6 +51,7 @@ vi.mock('../../src/card-controller/media-player-manager');
 vi.mock('../../src/card-controller/message-manager');
 vi.mock('../../src/card-controller/microphone-manager');
 vi.mock('../../src/card-controller/query-string-manager');
+vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
 vi.mock('../../src/card-controller/triggers-manager');
 vi.mock('../../src/card-controller/view/view-manager');
@@ -244,6 +246,12 @@ describe('CardController', () => {
     it('getQueryStringManager', () => {
       expect(createController().getQueryStringManager()).toBe(
         vi.mocked(QueryStringManager).mock.instances[0],
+      );
+    });
+
+    it('getStatusBarItemManager', () => {
+      expect(createController().getStatusBarItemManager()).toBe(
+        vi.mocked(StatusBarItemManager).mock.instances[0],
       );
     });
 

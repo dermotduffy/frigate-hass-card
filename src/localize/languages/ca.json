@@ -210,18 +210,6 @@
             "seek-in-camera": "Cerca d'escombratge només a la càmera seleccionada",
             "seek-in-media": "Cerca d'escombratge només dins de l'element multimèdia seleccionat"
           }
-        },
-        "title": {
-          "duration_seconds": "Segons per mostrar el títol emergent (0=per sempre)",
-          "editor_label": "Controls del títol emergent",
-          "mode": "Mode de visualització del títol emergent",
-          "modes": {
-            "none": "No es mostra el títol",
-            "popup-bottom-left": "Popup a la part inferior esquerra",
-            "popup-bottom-right": "Popup a la part inferior dreta",
-            "popup-top-left": "Popup a la part superior esquerra",
-            "popup-top-right": "Popup a la part superior dreta"
-          }
         }
       },
       "display": {
@@ -427,6 +415,33 @@
       "low-performance": "",
       "scrubbing": ""
     },
+    "status_bar": {
+      "height": "",
+      "items": {
+        "enabled": "",
+        "engine": "",
+        "live_provider": "",
+        "priority": "",
+        "resolution": "",
+        "technology": "",
+        "title": ""
+      },
+      "popup_seconds": "",
+      "position": "",
+      "positions": {
+        "bottom": "",
+        "top": ""
+      },
+      "style": "",
+      "styles": {
+        "hover": "",
+        "hover-card": "",
+        "none": "",
+        "outside": "",
+        "overlay": "",
+        "popup": ""
+      }
+    },
     "view": {
       "camera_select": "Visualitza les càmeres seleccionades recentment",
       "dark_mode": "Mode fosc",
@@ -533,6 +548,8 @@
     "performance_secondary": "Opcions de rendiment de la targeta",
     "profiles": "",
     "profiles_secondary": "",
+    "status_bar": "",
+    "status_bar_secondary": "",
     "timeline": "Cronologia",
     "timeline_secondary": "Opcions de la cronologia d'esdeveniments",
     "upgrade": "Upgrade",

@@ -216,11 +216,6 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.window_seconds` as const;
 export const CONF_MEDIA_VIEWER_ZOOMABLE = `${CONF_MEDIA_VIEWER}.zoomable` as const;
 
-export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE =
-  `${CONF_MEDIA_VIEWER}.controls.title.mode` as const;
-export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS =
-  `${CONF_MEDIA_VIEWER}.controls.title.duration_seconds` as const;
-
 const CONF_LIVE = 'live' as const;
 export const CONF_LIVE_AUTO_PLAY = `${CONF_LIVE}.auto_play` as const;
 export const CONF_LIVE_AUTO_PAUSE = `${CONF_LIVE}.auto_pause` as const;
@@ -272,9 +267,6 @@ export const CONF_LIVE_CONTROLS_TIMELINE_STYLE =
   `${CONF_LIVE}.controls.timeline.style` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_LIVE}.controls.timeline.window_seconds` as const;
-export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
-export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
-  `${CONF_LIVE}.controls.title.duration_seconds` as const;
 export const CONF_LIVE_DISPLAY_MODE = `${CONF_LIVE}.display.mode` as const;
 export const CONF_LIVE_DISPLAY_GRID_COLUMNS =
   `${CONF_LIVE}.display.grid_columns` as const;
@@ -335,6 +327,14 @@ export const CONF_MENU_BUTTONS_CAMERA_UI = `${CONF_MENU}.buttons.camera_ui` as c
 export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
   `${CONF_MENU}.buttons.media_player` as const;
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU}.buttons.timeline` as const;
+
+export const CONF_STATUS_BAR = 'status_bar' as const;
+export const CONF_STATUS_BAR_POSITION = `${CONF_STATUS_BAR}.position` as const;
+export const CONF_STATUS_BAR_STYLE = `${CONF_STATUS_BAR}.style` as const;
+export const CONF_STATUS_BAR_POPUP_SECONDS = `${CONF_STATUS_BAR}.popup_seconds` as const;
+export const CONF_STATUS_BAR_HEIGHT = `${CONF_STATUS_BAR}.height` as const;
+
+export const CONF_STATUS_BAR_ITEMS = `${CONF_STATUS_BAR}.items` as const;
 
 const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;

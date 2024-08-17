@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { CameraSelectAction } from '../../../src/card-controller/actions/actions/camera-select';
 import { CameraUIAction } from '../../../src/card-controller/actions/actions/camera-ui';
 import { DefaultAction } from '../../../src/card-controller/actions/actions/default';
@@ -21,6 +21,7 @@ import { PTZDigitalAction } from '../../../src/card-controller/actions/actions/p
 import { PTZMultiAction } from '../../../src/card-controller/actions/actions/ptz-multi';
 import { ScreenshotAction } from '../../../src/card-controller/actions/actions/screenshot';
 import { SleepAction } from '../../../src/card-controller/actions/actions/sleep';
+import { StatusBarAction } from '../../../src/card-controller/actions/actions/status-bar';
 import { SubstreamOffAction } from '../../../src/card-controller/actions/actions/substream-off';
 import { SubstreamOnAction } from '../../../src/card-controller/actions/actions/substream-on';
 import { SubstreamSelectAction } from '../../../src/card-controller/actions/actions/substream-select';
@@ -125,6 +126,10 @@ describe('ActionFactory', () => {
       [{ frigate_card_action: 'snapshots' as const }, ViewAction],
       [{ frigate_card_action: 'timeline' as const }, ViewAction],
       [{ frigate_card_action: 'unmute' as const }, UnmuteAction],
+      [
+        { frigate_card_action: 'status_bar' as const, status_bar_action: 'reset' },
+        StatusBarAction,
+      ],
     ])(
       'frigate_card_action: $frigate_card_action',
       (action: Partial<FrigateCardCustomAction>, classObject: object) => {

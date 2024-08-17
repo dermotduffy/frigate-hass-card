@@ -78,8 +78,8 @@ The Android video player swallows `double_tap` interactions in order to
 rewind or fast-forward. Workarounds:
 
 - Use `hold` instead of `double_tap` for your card-wide action.
-- Use a [Frigate Card Element](configuration/elements.md) or menu icon to trigger
-  the action instead.
+- Use a [Frigate Card Element](configuration/elements/README.md) or menu icon to
+  trigger the action instead.
 
 ### Dragging in carousels broken in Firefox
 
@@ -180,20 +180,13 @@ image to specifically allow `crossorigin` requests (which is typically not the
 case for an image served from a camera, for example). The stock Home Assistant
 Picture Glance card has the same limitation, for the same reasons.
 
-### Title "Popups" continually popping up
+### Status "popup" continually popping up
 
-Title popups can be disabled for live or media viewer views with this
-configuration:
+Status popup can be disabled with this configuration:
 
 ```yaml
-live:
-  controls:
-    title:
-      mode: none
-media_viewer:
-  controls:
-    title:
-      mode: none
+status_bar:
+  style: none
 ```
 
 ### Watermark shown on livestream

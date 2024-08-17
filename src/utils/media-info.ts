@@ -2,6 +2,7 @@ import {
   FrigateCardMediaPlayer,
   MediaLoadedCapabilities,
   MediaLoadedInfo,
+  MediaTechnology,
 } from '../types.js';
 import { dispatchFrigateCardEvent } from './basic.js';
 
@@ -18,6 +19,7 @@ export function createMediaLoadedInfo(
   options?: {
     player?: FrigateCardMediaPlayer;
     capabilities?: MediaLoadedCapabilities;
+    technology?: MediaTechnology[];
   },
 ): MediaLoadedInfo | null {
   let target: HTMLElement | EventTarget;
@@ -61,6 +63,7 @@ export function dispatchMediaLoadedEvent(
   options?: {
     player?: FrigateCardMediaPlayer;
     capabilities?: MediaLoadedCapabilities;
+    technology?: MediaTechnology[];
   },
 ): void {
   const mediaLoadedInfo = createMediaLoadedInfo(source, options);

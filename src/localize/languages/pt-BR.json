@@ -210,18 +210,6 @@
             "seek-in-camera": "",
             "seek-in-media": ""
           }
-        },
-        "title": {
-          "duration_seconds": "Segundos para exibir o pop-up (0 = para sempre)",
-          "editor_label": "Controles do pop-up de título",
-          "mode": "Modo de exibição de título de mídia",
-          "modes": {
-            "none": "Sem exibição de título",
-            "popup-bottom-left": "Pop-up no canto inferior esquerdo",
-            "popup-bottom-right": "Pop-up no canto inferior direito",
-            "popup-top-left": "Pop-up no canto superior esquerdo",
-            "popup-top-right": "Pop-up no canto superior direito"
-          }
         }
       },
       "display": {
@@ -427,6 +415,33 @@
       "low-performance": "",
       "scrubbing": ""
     },
+    "status_bar": {
+      "height": "",
+      "items": {
+        "enabled": "",
+        "engine": "",
+        "live_provider": "",
+        "priority": "",
+        "resolution": "",
+        "technology": "",
+        "title": ""
+      },
+      "popup_seconds": "",
+      "position": "",
+      "positions": {
+        "bottom": "",
+        "top": ""
+      },
+      "style": "",
+      "styles": {
+        "hover": "",
+        "hover-card": "",
+        "none": "",
+        "outside": "",
+        "overlay": "",
+        "popup": ""
+      }
+    },
     "view": {
       "camera_select": "Visualização de câmeras recém-selecionadas",
       "dark_mode": "Modo escuro",
@@ -533,6 +548,8 @@
     "performance_secondary": "Opções de desempenho do cartão",
     "profiles": "",
     "profiles_secondary": "",
+    "status_bar": "",
+    "status_bar_secondary": "",
     "timeline": "Linha do tempo",
     "timeline_secondary": "Opções do evento da linha do tempo",
     "upgrade": "Upgrade",

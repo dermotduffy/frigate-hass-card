@@ -695,6 +695,52 @@ image:
   refresh_seconds: 10
 ```
 
+## Status bar
+
+### Disable status bar
+
+This example disables the status bar.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.office
+status_bar:
+  style: none
+```
+
+### Dynamic status bar contents
+
+This example shows an icon and a message on the status bar when a camera is triggered, replacing the existing contents of the status bar through the use of `exclusive`.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.office
+automations:
+  - conditions:
+      - condition: triggered
+        triggered:
+          - camera.office
+    actions:
+      - action: custom:frigate-card-action
+        frigate_card_action: status_bar
+        status_bar_action: add
+        items:
+          - type: custom:frigate-card-status-bar-icon
+            icon: mdi:alarm-light
+            exclusive: true
+          - type: custom:frigate-card-status-bar-string
+            string: Intruder detected!
+            expand: true
+            exclusive: true
+            sufficient: true
+    actions_not:
+      - action: custom:frigate-card-action
+        frigate_card_action: status_bar
+        status_bar_action: reset
+```
+
 ## Submenus
 
 You can add submenus to the menu -- buttons that when pressed reveal a dropdown submenu of configurable options.
