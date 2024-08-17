@@ -211,9 +211,12 @@ class FrigateCard extends LitElement {
       // If there's nothing to render...
       (menuStyle === 'none' && statusBarStyle === 'none') ||
       // ... or the position I'm rendering does not contain the menu/status bar
+      (position === 'overlay' &&
+        menuStyle === 'outside' &&
+        statusBarStyle === 'outside') ||
       (position !== 'overlay' &&
-        menuPosition !== position &&
-        statusBarPosition !== position)
+        (menuStyle !== 'outside' || menuPosition !== position) &&
+        (statusBarStyle !== 'outside' || statusBarPosition !== position))
     ) {
       // ... then there's nothing to do.
       return;
@@ -230,16 +233,18 @@ class FrigateCard extends LitElement {
         ((statusBarStyle === 'outside' && kind === 'outerlay') ||
           (statusBarStyle !== 'outside' && kind === 'overlay'));
 
-      // As an exception, to improve the visual flow, if the menu is being
-      // rendered on the bottom, render the status bar first.
+
+      // Complex logic to try to always put the menu in the right-looking place.
+      const renderMenuFirst =
+        menuPosition === 'left' ||
+        menuPosition === 'right' ||
+        (menuPosition === 'bottom' && menuStyle === 'hidden' && statusBarStyle !== 'popup') ||
+        (menuPosition === 'top' && (menuStyle !== 'hidden' || statusBarStyle === 'popup'));
+
       return html`
-        ${shouldRenderMenu && menuPosition !== 'bottom'
-          ? this._renderMenu(menuPosition)
-          : ''}
+        ${shouldRenderMenu && renderMenuFirst ? this._renderMenu(menuPosition) : ''}
         ${shouldRenderStatusBar ? this._renderStatusBar(statusBarPosition) : ''}
-        ${shouldRenderMenu && menuPosition === 'bottom'
-          ? this._renderMenu(menuPosition)
-          : ''}
+        ${shouldRenderMenu && !renderMenuFirst ? this._renderMenu(menuPosition) : ''}
       `;
     };
 

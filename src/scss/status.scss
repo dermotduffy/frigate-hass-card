@@ -13,6 +13,14 @@
   transition: opacity 1s;
 }
 
+/*******************************************************
+ * Non-hover styles should not interact with the pointer
+ *******************************************************/
+ 
+:host(:not([data-style*='hover'])) {
+  pointer-events: none;
+}
+
 /***************
  * Outside style
  ***************/
@@ -32,7 +40,6 @@
 }
 :host([data-style='popup'][hide]) {
   opacity: 0;
-  pointer-events: none;
 }
 
 /*********************

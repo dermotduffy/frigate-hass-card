@@ -505,7 +505,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     return html` <div class="embla__slide">
       <frigate-card-viewer-provider
         .hass=${this.hass}
-        .view=${view}
+        .viewManagerEpoch=${this.viewManagerEpoch}
         .media=${media}
         .viewerConfig=${this.viewerConfig}
         .resolvedMediaCache=${this.resolvedMediaCache}
@@ -724,10 +724,7 @@ export class FrigateCardViewerProvider
     return null;
   }
 
-  /**
-   * Dispatch a clip view that matches the current (snapshot) query.
-   */
-  protected async _dispatchRelatedClipView(): Promise<void> {
+  protected async _switchToRelatedClipView(): Promise<void> {
     const view = this.viewManagerEpoch?.manager.getView();
     if (
       !this.hass ||
@@ -912,7 +909,7 @@ export class FrigateCardViewerProvider
             title="${this.media.getTitle() ?? ''}"
             @click=${() => {
               if (this.viewerConfig?.snapshot_click_plays_clip) {
-                this._dispatchRelatedClipView();
+                this._switchToRelatedClipView();
               }
             }}
             @load=${(ev: Event) => {
