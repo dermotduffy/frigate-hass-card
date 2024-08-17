@@ -16,7 +16,7 @@
 /*******************************************************
  * Non-hover styles should not interact with the pointer
  *******************************************************/
- 
+
 :host(:not([data-style*='hover'])) {
   pointer-events: none;
 }

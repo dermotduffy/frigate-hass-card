@@ -233,13 +233,15 @@ class FrigateCard extends LitElement {
         ((statusBarStyle === 'outside' && kind === 'outerlay') ||
           (statusBarStyle !== 'outside' && kind === 'overlay'));
 
-
       // Complex logic to try to always put the menu in the right-looking place.
       const renderMenuFirst =
         menuPosition === 'left' ||
         menuPosition === 'right' ||
-        (menuPosition === 'bottom' && menuStyle === 'hidden' && statusBarStyle !== 'popup') ||
-        (menuPosition === 'top' && (menuStyle !== 'hidden' || statusBarStyle === 'popup'));
+        (menuPosition === 'bottom' &&
+          menuStyle === 'hidden' &&
+          statusBarStyle !== 'popup') ||
+        (menuPosition === 'top' &&
+          (menuStyle !== 'hidden' || statusBarStyle === 'popup'));
 
       return html`
         ${shouldRenderMenu && renderMenuFirst ? this._renderMenu(menuPosition) : ''}
