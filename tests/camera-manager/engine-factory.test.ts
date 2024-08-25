@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
 import { FrigateCameraManagerEngine } from '../../src/camera-manager/frigate/engine-frigate';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic';
 import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye/engine-motioneye';
 import { Engine } from '../../src/camera-manager/types.js';
+import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { CardWideConfig } from '../../src/config/types.js';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import { EntityCache } from '../../src/utils/ha/entity-registry/cache';
@@ -20,12 +22,10 @@ vi.mock('../../src/utils/ha/entity-registry/cache');
 
 const createFactory = (options?: {
   entityRegistryManager?: EntityRegistryManager;
-  resolvedMediaCache?: ResolvedMediaCache;
   cardWideConfig?: CardWideConfig;
 }): CameraManagerEngineFactory => {
   return new CameraManagerEngineFactory(
     options?.entityRegistryManager ?? new EntityRegistryManager(new EntityCache()),
-    options?.resolvedMediaCache ?? new ResolvedMediaCache(),
   );
 };
 
@@ -181,18 +181,27 @@ describe('getEngineForCamera()', () => {
 
 describe('createEngine()', () => {
   it('should create generic engine', async () => {
-    expect(await createFactory().createEngine(Engine.Generic)).toBeInstanceOf(
-      GenericCameraManagerEngine,
-    );
+    expect(
+      await createFactory().createEngine(Engine.Generic, {
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        resolvedMediaCache: mock<ResolvedMediaCache>(),
+      }),
+    ).toBeInstanceOf(GenericCameraManagerEngine);
   });
   it('should create frigate engine', async () => {
-    expect(await createFactory().createEngine(Engine.Frigate)).toBeInstanceOf(
-      FrigateCameraManagerEngine,
-    );
+    expect(
+      await createFactory().createEngine(Engine.Frigate, {
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        resolvedMediaCache: mock<ResolvedMediaCache>(),
+      }),
+    ).toBeInstanceOf(FrigateCameraManagerEngine);
   });
   it('should create motioneye engine', async () => {
-    expect(await createFactory().createEngine(Engine.MotionEye)).toBeInstanceOf(
-      MotionEyeCameraManagerEngine,
-    );
+    expect(
+      await createFactory().createEngine(Engine.MotionEye, {
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        resolvedMediaCache: mock<ResolvedMediaCache>(),
+      }),
+    ).toBeInstanceOf(MotionEyeCameraManagerEngine);
   });
 });

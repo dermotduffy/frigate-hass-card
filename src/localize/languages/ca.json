@@ -570,6 +570,7 @@
   },
   "error": {
     "awaiting_live": "S'està esperant que es carregui la transmissió en directe ...",
+    "camera_initialization": "",
     "could_not_render_elements": "No s'han pogut representar els elements de la imatge",
     "could_not_resolve": "No s'ha pogut resoldre l'URL multimèdia",
     "diagnostics": "Diagnòstic de targetes. Reviseu la informació confidencial abans de compartir-la",

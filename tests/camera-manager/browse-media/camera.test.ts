@@ -5,6 +5,7 @@ import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { EntityRegistryManager } from '../../../src/utils/ha/entity-registry';
 import { Entity } from '../../../src/utils/ha/entity-registry/types';
 import { createCameraConfig, createHASS } from '../../test-utils';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 
 describe('BrowseMediaCamera', () => {
   describe('should initialize', () => {
@@ -15,7 +16,12 @@ describe('BrowseMediaCamera', () => {
       );
 
       expect(
-        async () => await camera.initialize(createHASS(), mock<EntityRegistryManager>()),
+        async () =>
+          await camera.initialize({
+            hass: createHASS(),
+            stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+            entityRegistryManager: mock<EntityRegistryManager>(),
+          }),
       ).rejects.toThrowError(/Could not find camera entity/);
     });
 
@@ -30,7 +36,13 @@ describe('BrowseMediaCamera', () => {
       const entity = mock<Entity>();
       entityRegistryManager.getEntity.mockResolvedValue(entity);
 
-      expect(await camera.initialize(createHASS(), entityRegistryManager)).toBe(camera);
+      expect(
+        await camera.initialize({
+          hass: createHASS(),
+          stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+          entityRegistryManager: entityRegistryManager,
+        }),
+      ).toBe(camera);
       expect(camera.getEntity()).toBe(entity);
     });
   });

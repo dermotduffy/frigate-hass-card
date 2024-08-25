@@ -570,6 +570,7 @@
   },
   "error": {
     "awaiting_live": "",
+    "camera_initialization": "",
     "could_not_render_elements": "Impossible de restituer les éléments de l'image",
     "could_not_resolve": "",
     "diagnostics": "Diagnostic de la carte. Veuillez enlever les informations confidentielles avant de les partager",

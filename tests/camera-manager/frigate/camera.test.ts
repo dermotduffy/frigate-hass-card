@@ -2,40 +2,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
 import { FrigateCamera } from '../../../src/camera-manager/frigate/camera';
+import { FrigateEventWatcher } from '../../../src/camera-manager/frigate/event-watcher';
 import { getPTZInfo } from '../../../src/camera-manager/frigate/requests';
-import {
-  FrigateEventChange,
-  FrigateEventChangeTriggerResponse,
-  FrigateEventChangeType,
-} from '../../../src/camera-manager/frigate/types';
+import { FrigateEventChange } from '../../../src/camera-manager/frigate/types';
+import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { CameraTriggerEventType } from '../../../src/config/types';
 import { EntityRegistryManager } from '../../../src/utils/ha/entity-registry';
 import { Entity } from '../../../src/utils/ha/entity-registry/types';
-import {
-  callHASubscribeMessageHandler,
-  createCameraConfig,
-  createHASS,
-  createRegistryEntity,
-} from '../../test-utils';
+import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
 
-const createFrigateEventChangeTrigger = (
-  type: FrigateEventChangeType,
-  before: FrigateEventChange,
-  after: FrigateEventChange,
-): FrigateEventChangeTriggerResponse => {
-  return {
-    variables: {
-      trigger: {
-        payload_json: {
-          before: before,
-          after: after,
-          type: type,
-        },
-      },
-    },
-  };
+const callEventWatcherCallback = (
+  eventWatcher: FrigateEventWatcher,
+  event: FrigateEventChange,
+  n = 0,
+): void => {
+  const mock = vi.mocked(eventWatcher.subscribe).mock;
+  expect(mock.calls.length).greaterThan(n);
+  mock.calls[n][1].callback(event);
 };
 
 describe('FrigateCamera', () => {
@@ -51,7 +36,12 @@ describe('FrigateCamera', () => {
         const camera = new FrigateCamera(config, mock<CameraManagerEngine>());
         const beforeConfig = { ...config };
 
-        await camera.initialize(createHASS(), mock<EntityRegistryManager>());
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(beforeConfig).toEqual(camera.getConfig());
       });
@@ -67,7 +57,13 @@ describe('FrigateCamera', () => {
         entityRegistryManager.getEntity.mockRejectedValue(null);
 
         expect(
-          async () => await camera.initialize(createHASS(), entityRegistryManager),
+          async () =>
+            await camera.initialize({
+              hass: createHASS(),
+              entityRegistryManager: entityRegistryManager,
+              stateWatcher: mock<StateWatcher>(),
+              frigateEventWatcher: mock<FrigateEventWatcher>(),
+            }),
         ).rejects.toThrowError(/Could not find camera entity/);
       });
 
@@ -85,9 +81,13 @@ describe('FrigateCamera', () => {
         });
         entityRegistryManager.getEntity.mockResolvedValue(entity);
 
-        await camera.initialize(createHASS(), entityRegistryManager);
-
-        expect(camera.getConfig().frigate.camera_name).toBe('fnt_dr');
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        }),
+          expect(camera.getConfig().frigate.camera_name).toBe('fnt_dr');
       });
 
       it('with a camera_entity without camera_name match', async () => {
@@ -104,9 +104,13 @@ describe('FrigateCamera', () => {
         });
         entityRegistryManager.getEntity.mockResolvedValue(entity);
 
-        await camera.initialize(createHASS(), entityRegistryManager);
-
-        expect(camera.getConfig().frigate.camera_name).toBeUndefined();
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        }),
+          expect(camera.getConfig().frigate.camera_name).toBeUndefined();
       });
 
       it('with a camera_entity without platform match', async () => {
@@ -123,9 +127,13 @@ describe('FrigateCamera', () => {
         });
         entityRegistryManager.getEntity.mockResolvedValue(entity);
 
-        await camera.initialize(createHASS(), entityRegistryManager);
-
-        expect(camera.getConfig().frigate.camera_name).toBeUndefined();
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        }),
+          expect(camera.getConfig().frigate.camera_name).toBeUndefined();
       });
     });
   });
@@ -141,9 +149,13 @@ describe('FrigateCamera', () => {
         mock<CameraManagerEngine>(),
       );
 
-      await camera.initialize(createHASS(), mock<EntityRegistryManager>());
-
-      expect(camera.getCapabilities()?.has('favorite-events')).toBeTruthy();
+      await camera.initialize({
+        hass: createHASS(),
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        stateWatcher: mock<StateWatcher>(),
+        frigateEventWatcher: mock<FrigateEventWatcher>(),
+      }),
+        expect(camera.getCapabilities()?.has('favorite-events')).toBeTruthy();
       expect(camera.getCapabilities()?.has('favorite-recordings')).toBeFalsy();
       expect(camera.getCapabilities()?.has('seek')).toBeTruthy();
       expect(camera.getCapabilities()?.has('clips')).toBeTruthy();
@@ -163,9 +175,13 @@ describe('FrigateCamera', () => {
         mock<CameraManagerEngine>(),
       );
 
-      await camera.initialize(createHASS(), mock<EntityRegistryManager>());
-
-      expect(camera.getCapabilities()?.has('favorite-events')).toBeFalsy();
+      await camera.initialize({
+        hass: createHASS(),
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        stateWatcher: mock<StateWatcher>(),
+        frigateEventWatcher: mock<FrigateEventWatcher>(),
+      }),
+        expect(camera.getCapabilities()?.has('favorite-events')).toBeFalsy();
       expect(camera.getCapabilities()?.has('favorite-recordings')).toBeFalsy();
       expect(camera.getCapabilities()?.has('seek')).toBeFalsy();
       expect(camera.getCapabilities()?.has('clips')).toBeFalsy();
@@ -188,9 +204,14 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         vi.mocked(getPTZInfo).mockRejectedValue(new Error());
-        await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
-        expect(camera.getCapabilities()?.has('ptz')).toBeFalsy();
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        }),
+          expect(camera.getCapabilities()?.has('ptz')).toBeFalsy();
         expect(camera.getCapabilities()?.hasPTZCapability()).toBeFalsy();
         expect(consoleSpy).toBeCalled();
       });
@@ -211,9 +232,14 @@ describe('FrigateCamera', () => {
           name: 'front_door',
           presets: ['preset01'],
         });
-        await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
-        expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        }),
+          expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: ['continuous'],
           right: ['continuous'],
@@ -242,9 +268,14 @@ describe('FrigateCamera', () => {
           name: 'front_door',
           presets: ['preset01'],
         });
-        await camera.initialize(createHASS(), mock<EntityRegistryManager>());
 
-        expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
+        await camera.initialize({
+          hass: createHASS(),
+          entityRegistryManager: mock<EntityRegistryManager>(),
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        }),
+          expect(camera.getCapabilities()?.has('ptz')).toBeTruthy();
         expect(camera.getCapabilities()?.getPTZCapabilities()).toEqual({
           left: [],
           right: [],
@@ -272,17 +303,19 @@ describe('FrigateCamera', () => {
       );
       const hass = createHASS();
 
-      await camera.initialize(hass, mock<EntityRegistryManager>());
-
-      expect(hass.connection.subscribeMessage).toBeCalledWith(expect.anything(), {
-        type: 'subscribe_trigger',
-        trigger: {
-          platform: 'mqtt',
-          topic: `CLIENT_ID/events`,
-          payload: 'CAMERA',
-          value_template: '{{ value_json.after.camera }}',
-        },
-      });
+      const eventWatcher = mock<FrigateEventWatcher>();
+      await camera.initialize({
+        hass: hass,
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        stateWatcher: mock<StateWatcher>(),
+        frigateEventWatcher: eventWatcher,
+      }),
+        expect(eventWatcher.subscribe).toBeCalledWith(
+          hass,
+          expect.objectContaining({
+            instanceID: 'CLIENT_ID',
+          }),
+        );
     });
 
     it('should not subscribe with no trigger events', async () => {
@@ -300,9 +333,14 @@ describe('FrigateCamera', () => {
       );
       const hass = createHASS();
 
-      await camera.initialize(hass, mock<EntityRegistryManager>());
-
-      expect(hass.connection.subscribeMessage).not.toBeCalled();
+      const eventWatcher = mock<FrigateEventWatcher>();
+      await camera.initialize({
+        hass: hass,
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        stateWatcher: mock<StateWatcher>(),
+        frigateEventWatcher: eventWatcher,
+      }),
+        expect(eventWatcher.subscribe).not.toBeCalled();
     });
 
     it('should not subscribe with no camera name', async () => {
@@ -316,9 +354,14 @@ describe('FrigateCamera', () => {
       );
       const hass = createHASS();
 
-      await camera.initialize(hass, mock<EntityRegistryManager>());
-
-      expect(hass.connection.subscribeMessage).not.toBeCalled();
+      const eventWatcher = mock<FrigateEventWatcher>();
+      await camera.initialize({
+        hass: hass,
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        stateWatcher: mock<StateWatcher>(),
+        frigateEventWatcher: eventWatcher,
+      }),
+        expect(eventWatcher.subscribe).not.toBeCalled();
     });
 
     it('should unsubscribe on destroy', async () => {
@@ -332,79 +375,20 @@ describe('FrigateCamera', () => {
       const unsubscribeCallback = vi.fn();
       vi.mocked(hass.connection.subscribeMessage).mockResolvedValue(unsubscribeCallback);
 
-      await camera.initialize(hass, mock<EntityRegistryManager>());
-      expect(unsubscribeCallback).not.toBeCalled();
+      const eventWatcher = mock<FrigateEventWatcher>();
+      await camera.initialize({
+        hass: hass,
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        stateWatcher: mock<StateWatcher>(),
+        frigateEventWatcher: eventWatcher,
+      }),
+        expect(eventWatcher.unsubscribe).not.toBeCalled();
 
       await camera.destroy();
-      expect(unsubscribeCallback).toBeCalled();
+      expect(eventWatcher.unsubscribe).toBeCalled();
     });
 
     describe('should call handler correctly', () => {
-      it('with malformed Frigate event', async () => {
-        const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
-
-        const camera = new FrigateCamera(
-          createCameraConfig({
-            frigate: { camera_name: 'front_door' },
-          }),
-          mock<CameraManagerEngine>(),
-        );
-
-        const hass = createHASS();
-        await camera.initialize(hass, mock<EntityRegistryManager>());
-
-        callHASubscribeMessageHandler(hass, 'GARBAGE');
-
-        expect(consoleSpy).toBeCalledWith(
-          'Ignoring unparseable Frigate event',
-          'GARBAGE',
-        );
-      });
-
-      it('with wrong camera', async () => {
-        const eventCallback = vi.fn();
-        const camera = new FrigateCamera(
-          createCameraConfig({
-            id: 'CAMERA_1',
-            frigate: {
-              camera_name: 'camera.front_door',
-            },
-          }),
-          mock<CameraManagerEngine>(),
-          {
-            eventCallback: eventCallback,
-          },
-        );
-
-        const hass = createHASS();
-        await camera.initialize(hass, mock<EntityRegistryManager>());
-
-        callHASubscribeMessageHandler(
-          hass,
-          createFrigateEventChangeTrigger(
-            'new',
-            {
-              camera: 'camera.back_door',
-              snapshot: null,
-              has_clip: false,
-              has_snapshot: false,
-              label: 'person',
-              current_zones: [],
-            },
-            {
-              camera: 'camera.back_door',
-              snapshot: null,
-              has_clip: false,
-              has_snapshot: true,
-              label: 'person',
-              current_zones: [],
-            },
-          ),
-        );
-
-        expect(eventCallback).not.toBeCalled();
-      });
-
       describe('should handle event type correctly', () => {
         it.each([
           [
@@ -487,30 +471,33 @@ describe('FrigateCamera', () => {
             );
 
             const hass = createHASS();
-            await camera.initialize(hass, mock<EntityRegistryManager>());
+            const eventWatcher = mock<FrigateEventWatcher>();
+            await camera.initialize({
+              hass: hass,
+              entityRegistryManager: mock<EntityRegistryManager>(),
+              stateWatcher: mock<StateWatcher>(),
+              frigateEventWatcher: eventWatcher,
+            });
 
-            callHASubscribeMessageHandler(
-              hass,
-              createFrigateEventChangeTrigger(
-                'new',
-                {
-                  camera: 'camera.front_door',
-                  snapshot: null,
-                  has_clip: false,
-                  has_snapshot: false,
-                  label: 'person',
-                  current_zones: [],
-                },
-                {
-                  camera: 'camera.front_door',
-                  snapshot: null,
-                  has_clip: hasClip,
-                  has_snapshot: hasSnapshot,
-                  label: 'person',
-                  current_zones: [],
-                },
-              ),
-            );
+            callEventWatcherCallback(eventWatcher, {
+              type: 'new',
+              before: {
+                camera: 'camera.front_door',
+                snapshot: null,
+                has_clip: false,
+                has_snapshot: false,
+                label: 'person',
+                current_zones: [],
+              },
+              after: {
+                camera: 'camera.front_door',
+                snapshot: null,
+                has_clip: hasClip,
+                has_snapshot: hasSnapshot,
+                label: 'person',
+                current_zones: [],
+              },
+            });
 
             if (call) {
               expect(eventCallback).toBeCalledWith({
@@ -549,30 +536,33 @@ describe('FrigateCamera', () => {
           );
 
           const hass = createHASS();
-          await camera.initialize(hass, mock<EntityRegistryManager>());
+          const eventWatcher = mock<FrigateEventWatcher>();
+          await camera.initialize({
+            hass: hass,
+            entityRegistryManager: mock<EntityRegistryManager>(),
+            stateWatcher: mock<StateWatcher>(),
+            frigateEventWatcher: eventWatcher,
+          });
 
-          callHASubscribeMessageHandler(
-            hass,
-            createFrigateEventChangeTrigger(
-              'new',
-              {
-                camera: 'camera.front_door',
-                snapshot: null,
-                has_clip: false,
-                has_snapshot: false,
-                label: 'person',
-                current_zones: [],
-              },
-              {
-                camera: 'camera.front_door',
-                snapshot: null,
-                has_clip: false,
-                has_snapshot: true,
-                label: 'person',
-                current_zones: zones,
-              },
-            ),
-          );
+          callEventWatcherCallback(eventWatcher, {
+            type: 'new',
+            before: {
+              camera: 'camera.front_door',
+              snapshot: null,
+              has_clip: false,
+              has_snapshot: false,
+              label: 'person',
+              current_zones: [],
+            },
+            after: {
+              camera: 'camera.front_door',
+              snapshot: null,
+              has_clip: false,
+              has_snapshot: true,
+              label: 'person',
+              current_zones: zones,
+            },
+          });
 
           expect(eventCallback).toHaveBeenCalledTimes(call ? 1 : 0);
         });
@@ -599,32 +589,35 @@ describe('FrigateCamera', () => {
           );
 
           const hass = createHASS();
-          await camera.initialize(hass, mock<EntityRegistryManager>());
+          const eventWatcher = mock<FrigateEventWatcher>();
+          await camera.initialize({
+            hass: hass,
+            entityRegistryManager: mock<EntityRegistryManager>(),
+            stateWatcher: mock<StateWatcher>(),
+            frigateEventWatcher: eventWatcher,
+          });
 
-          callHASubscribeMessageHandler(
-            hass,
-            createFrigateEventChangeTrigger(
-              'new',
-              {
-                camera: 'camera.front_door',
-                snapshot: null,
-                has_clip: false,
-                has_snapshot: false,
-                // Even new events appear to have the event label in the
-                // 'before' dictionary.
-                label: label,
-                current_zones: [],
-              },
-              {
-                camera: 'camera.front_door',
-                snapshot: null,
-                has_clip: false,
-                has_snapshot: true,
-                label: label,
-                current_zones: [],
-              },
-            ),
-          );
+          callEventWatcherCallback(eventWatcher, {
+            type: 'new',
+            before: {
+              camera: 'camera.front_door',
+              snapshot: null,
+              has_clip: false,
+              has_snapshot: false,
+              // Even new events appear to have the event label in the
+              // 'before' dictionary.
+              label: label,
+              current_zones: [],
+            },
+            after: {
+              camera: 'camera.front_door',
+              snapshot: null,
+              has_clip: false,
+              has_snapshot: true,
+              label: label,
+              current_zones: [],
+            },
+          });
 
           expect(eventCallback).toHaveBeenCalledTimes(call ? 1 : 0);
         });
@@ -668,8 +661,14 @@ describe('FrigateCamera', () => {
           }),
           mock<CameraManagerEngine>(),
         );
+
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual([]);
       });
@@ -694,8 +693,14 @@ describe('FrigateCamera', () => {
           }),
           mock<CameraManagerEngine>(),
         );
+
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual(['binary_sensor.foo']);
       });
@@ -719,8 +724,14 @@ describe('FrigateCamera', () => {
           }),
           mock<CameraManagerEngine>(),
         );
+
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual(['binary_sensor.foo']);
       });
@@ -743,7 +754,12 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual([]);
       });
@@ -767,7 +783,12 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual([]);
       });
@@ -789,7 +810,12 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual([]);
       });
@@ -814,7 +840,12 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual(['binary_sensor.foo']);
       });
@@ -837,7 +868,12 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual([]);
       });
@@ -866,7 +902,12 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual(['binary_sensor.foo']);
       });
@@ -896,7 +937,12 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         const hass = createHASS();
-        await camera.initialize(hass, entityRegistryManager);
+        await camera.initialize({
+          hass: hass,
+          entityRegistryManager: entityRegistryManager,
+          stateWatcher: mock<StateWatcher>(),
+          frigateEventWatcher: mock<FrigateEventWatcher>(),
+        });
 
         expect(camera.getConfig().triggers.entities).toEqual(['binary_sensor.foo']);
       });
@@ -922,7 +968,12 @@ describe('FrigateCamera', () => {
         mock<CameraManagerEngine>(),
       );
       const hass = createHASS();
-      await camera.initialize(hass, entityRegistryManager);
+      await camera.initialize({
+        hass: hass,
+        entityRegistryManager: entityRegistryManager,
+        stateWatcher: mock<StateWatcher>(),
+        frigateEventWatcher: mock<FrigateEventWatcher>(),
+      });
 
       const filterFunc = entityRegistryManager.getMatchingEntities.mock.calls[0][1];
 

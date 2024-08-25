@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CardElementManager } from '../../src/card-controller/card-element-manager';
-import { createCardAPI, createLitElement } from '../test-utils';
+import { StateWatcher } from '../../src/card-controller/hass/state-watcher';
+import {
+  callStateWatcherCallback,
+  createCardAPI,
+  createConfig,
+  createLitElement,
+  createStateEntity,
+} from '../test-utils';
 
 // @vitest-environment jsdom
 describe('CardElementManager', () => {
@@ -190,5 +197,67 @@ describe('CardElementManager', () => {
     expect(api.getKeyboardStateManager().uninitialize).toBeCalled();
     expect(api.getActionsManager().uninitialize).toBeCalled();
     expect(api.getInitializationManager().uninitialize).toBeCalledWith('cameras');
+  });
+
+  describe('should update card when', () => {
+    it('render entity changes', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          view: {
+            render_entities: ['sensor.force_update'],
+          },
+        }),
+      );
+
+      const stateWatcher = mock<StateWatcher>();
+      vi.mocked(api.getHASSManager().getStateWatcher).mockReturnValue(stateWatcher);
+
+      const element = createLitElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      manager.elementConnected();
+
+      const diff = {
+        entityID: 'sensor.force_update',
+        newState: createStateEntity({ state: 'off' }),
+      };
+      callStateWatcherCallback(stateWatcher, diff);
+
+      expect(element.requestUpdate).toBeCalled();
+    });
+
+    it('media player entity changes', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getMediaPlayerManager().getMediaPlayers).mockReturnValue([
+        'media_player.foo',
+      ]);
+
+      const stateWatcher = mock<StateWatcher>();
+      vi.mocked(api.getHASSManager().getStateWatcher).mockReturnValue(stateWatcher);
+
+      const element = createLitElement();
+      const manager = new CardElementManager(
+        api,
+        element,
+        () => undefined,
+        () => undefined,
+      );
+
+      manager.elementConnected();
+
+      const diff = {
+        entityID: 'sensor.force_update',
+        newState: createStateEntity({ state: 'off' }),
+      };
+      callStateWatcherCallback(stateWatcher, diff);
+
+      expect(element.requestUpdate).toBeCalled();
+    });
   });
 });

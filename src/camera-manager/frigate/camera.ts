@@ -1,5 +1,6 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import uniq from 'lodash-es/uniq';
+import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
@@ -7,32 +8,52 @@ import {
   errorToConsole,
   recursivelyMergeObjectsConcatenatingArraysUniquely,
 } from '../../utils/basic';
-import { subscribeToTrigger } from '../../utils/ha';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { Entity } from '../../utils/ha/entity-registry/types';
-import { Camera } from '../camera';
+import { Camera, CameraInitializationOptions } from '../camera';
 import { Capabilities } from '../capabilities';
+import { CameraManagerEngine } from '../engine';
 import { CameraInitializationError } from '../error';
+import { CameraEventCallback } from '../types';
 import { getCameraEntityFromConfig } from '../utils/camera-entity-from-config';
-import { getPTZInfo } from './requests';
-import { PTZInfo, frigateEventChangeTriggerResponseSchema } from './types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
+import {
+  FrigateEventWatcherRequest,
+  FrigateEventWatcherSubscriptionInterface,
+} from './event-watcher';
+import { getPTZInfo } from './requests';
+import { FrigateEventChange, PTZInfo } from './types';
 
 const CAMERA_BIRDSEYE = 'birdseye' as const;
+
+interface FrigateCameraInitializationOptions extends CameraInitializationOptions {
+  entityRegistryManager: EntityRegistryManager;
+  frigateEventWatcher: FrigateEventWatcherSubscriptionInterface;
+  hass: HomeAssistant;
+  stateWatcher: StateWatcherSubscriptionInterface;
+}
 
 export const isBirdseye = (cameraConfig: CameraConfig): boolean => {
   return cameraConfig.frigate.camera_name === CAMERA_BIRDSEYE;
 };
 
 export class FrigateCamera extends Camera {
-  public async initialize(
-    hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
-  ): Promise<Camera> {
-    await this._initializeConfig(hass, entityRegistryManager);
-    await this._initializeCapabilities(hass);
-    await this._subscribeToEvents(hass);
-    return await super.initialize(hass, entityRegistryManager);
+  constructor(
+    config: CameraConfig,
+    engine: CameraManagerEngine,
+    options?: {
+      capabilities?: Capabilities;
+      eventCallback?: CameraEventCallback;
+    },
+  ) {
+    super(config, engine, options);
+  }
+
+  public async initialize(options: FrigateCameraInitializationOptions): Promise<Camera> {
+    await this._initializeConfig(options.hass, options.entityRegistryManager);
+    await this._initializeCapabilities(options.hass);
+    await this._subscribeToEvents(options.hass, options.frigateEventWatcher);
+    return await super.initialize(options);
   }
 
   protected async _initializeConfig(
@@ -266,49 +287,39 @@ export class FrigateCamera extends Camera {
     return null;
   }
 
-  protected async _subscribeToEvents(hass: HomeAssistant): Promise<void> {
+  protected async _subscribeToEvents(
+    hass: HomeAssistant,
+    frigateEventWatcher: FrigateEventWatcherSubscriptionInterface,
+  ): Promise<void> {
     const config = this.getConfig();
     if (!config.triggers.events.length || !config.frigate.camera_name) {
       return;
     }
 
-    this._destroyCallbacks.push(
-      await subscribeToTrigger(hass, (ev) => this._handleEventChange(ev), {
-        platform: 'mqtt',
-        topic: `${config.frigate.client_id}/events`,
+    /* istanbul ignore next -- exercising the matcher is not possible when the
+    test uses an event watcher -- @preserve */
+    const request: FrigateEventWatcherRequest = {
+      instanceID: config.frigate.client_id,
+      callback: (event: FrigateEventChange) => this._frigateEventHandler(event),
+      matcher: (event: FrigateEventChange): boolean =>
+        event.after.camera === config.frigate.camera_name,
+    };
 
-        // Only trigger for events pertaining to this camera.
-        payload: config.frigate.camera_name,
-        valueTemplate: '{{ value_json.after.camera }}',
-      }),
-    );
+    await frigateEventWatcher.subscribe(hass, request);
+    this._onDestroy(() => frigateEventWatcher.unsubscribe(request));
   }
 
-  protected _handleEventChange(ev: unknown): void {
-    const parseResult = frigateEventChangeTriggerResponseSchema.safeParse(ev);
-    if (!parseResult.success) {
-      console.warn('Ignoring unparseable Frigate event', ev);
-      return;
-    }
-
-    const change = parseResult.data.variables.trigger.payload_json;
+  protected _frigateEventHandler = (ev: FrigateEventChange): void => {
     const snapshotChange =
-      (!change.before.has_snapshot && change.after.has_snapshot) ||
-      change.before.snapshot?.frame_time !== change.after.snapshot?.frame_time;
-    const clipChange = !change.before.has_clip && change.after.has_clip;
+      (!ev.before.has_snapshot && ev.after.has_snapshot) ||
+      ev.before.snapshot?.frame_time !== ev.after.snapshot?.frame_time;
+    const clipChange = !ev.before.has_clip && ev.after.has_clip;
 
     const config = this.getConfig();
-    if (config.frigate.camera_name !== change.after.camera) {
-      return;
-    }
-
     if (
       (config.frigate.zones?.length &&
-        !config.frigate.zones.some((zone) =>
-          change.after.current_zones.includes(zone),
-        )) ||
-      (config.frigate.labels?.length &&
-        !config.frigate.labels.includes(change.after.label))
+        !config.frigate.zones.some((zone) => ev.after.current_zones.includes(zone))) ||
+      (config.frigate.labels?.length && !config.frigate.labels.includes(ev.after.label))
     ) {
       return;
     }
@@ -327,11 +338,11 @@ export class FrigateCamera extends Camera {
     this._eventCallback?.({
       fidelity: 'high',
       cameraID: this.getID(),
-      type: change.type,
+      type: ev.type,
       // In cases where there are both clip and snapshot media, ensure to only
       // trigger on the media type that is allowed by the configuration.
       clip: clipChange && eventsToTriggerOn.includes('clips'),
       snapshot: snapshotChange && eventsToTriggerOn.includes('snapshots'),
     });
-  }
+  };
 }

@@ -101,14 +101,17 @@ export function contentsChanged(
 
 /**
  * Log an error as a warning to the console.
- * @param e The Error object.
+ * @param e The Error-like object.
  * @param func The Console func to call.
  */
-export function errorToConsole(e: Error, func: CallableFunction = console.warn): void {
+export function errorToConsole(
+  e: Error | { message: unknown },
+  func: CallableFunction = console.warn,
+): void {
   if (e instanceof FrigateCardError && e.context) {
     func(e, e.context);
   } else {
-    func(e);
+    func(e.message);
   }
 }
 

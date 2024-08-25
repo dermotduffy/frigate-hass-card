@@ -83,8 +83,7 @@ export const ptzInfoSchema = z.object({
 });
 export type PTZInfo = z.infer<typeof ptzInfoSchema>;
 
-// Frigate events as stored in MQTT updates.
-const frigateEventChangeSchema = z.object({
+const frigateEventChangeBeforeAfterSchema = z.object({
   camera: z.string(),
   snapshot: z
     .object({
@@ -96,25 +95,13 @@ const frigateEventChangeSchema = z.object({
   label: z.string(),
   current_zones: z.string().array(),
 });
-export type FrigateEventChange = z.infer<typeof frigateEventChangeSchema>;
 
-const frigateEventChangeType = z.enum(['new', 'update', 'end']);
-export type FrigateEventChangeType = z.infer<typeof frigateEventChangeType>;
-
-export const frigateEventChangeTriggerResponseSchema = z.object({
-  variables: z.object({
-    trigger: z.object({
-      payload_json: z.object({
-        before: frigateEventChangeSchema,
-        after: frigateEventChangeSchema,
-        type: frigateEventChangeType,
-      }),
-    }),
-  }),
+export const frigateEventChangeSchema = z.object({
+  before: frigateEventChangeBeforeAfterSchema,
+  after: frigateEventChangeBeforeAfterSchema,
+  type: z.enum(['new', 'update', 'end']),
 });
-export type FrigateEventChangeTriggerResponse = z.infer<
-  typeof frigateEventChangeTriggerResponseSchema
->;
+export type FrigateEventChange = z.infer<typeof frigateEventChangeSchema>;
 
 // ==============================
 // Frigate concrete query results

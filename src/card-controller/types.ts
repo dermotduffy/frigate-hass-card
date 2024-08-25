@@ -12,7 +12,7 @@ import type { DefaultManager } from './default-manager';
 import type { DownloadManager } from './download-manager';
 import type { ExpandManager } from './expand-manager';
 import type { FullscreenManager } from './fullscreen-manager';
-import type { HASSManager } from './hass-manager';
+import type { HASSManager } from './hass/hass-manager';
 import type { InitializationManager } from './initialization-manager';
 import type { InteractionManager } from './interaction-manager';
 import type { KeyboardStateManager } from './keyboard-state-manager';
@@ -121,13 +121,16 @@ export interface CardDownloadAPI {
 export interface CardElementAPI {
   getActionsManager(): ActionsManager;
   getCameraManager(): CameraManager;
+  getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
   getExpandManager(): ExpandManager;
   getFullscreenManager(): FullscreenManager;
   getInitializationManager(): InitializationManager;
   getInteractionManager(): InteractionManager;
+  getHASSManager(): HASSManager;
   getKeyboardStateManager(): KeyboardStateManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
+  getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
   getQueryStringManager(): QueryStringManager;
 }

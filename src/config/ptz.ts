@@ -1,5 +1,5 @@
-export const PTZ_PAN_TILT_ACTIONS = ['left', 'right', 'up', 'down'] as const;
-export const PTZ_ZOOM_ACTIONS = ['zoom_in', 'zoom_out'] as const;
+const PTZ_PAN_TILT_ACTIONS = ['left', 'right', 'up', 'down'] as const;
+const PTZ_ZOOM_ACTIONS = ['zoom_in', 'zoom_out'] as const;
 const PTZ_BASE_ACTIONS = [...PTZ_PAN_TILT_ACTIONS, ...PTZ_ZOOM_ACTIONS] as const;
 export type PTZBaseAction = (typeof PTZ_BASE_ACTIONS)[number];
 

@@ -123,10 +123,7 @@ export class CameraManager {
     this._api = api;
     this._engineFactory =
       options?.factory ??
-      new CameraManagerEngineFactory(
-        this._api.getEntityRegistryManager(),
-        this._api.getResolvedMediaCache(),
-      );
+      new CameraManagerEngineFactory(this._api.getEntityRegistryManager());
     this._store = options?.store ?? new CameraManagerStore();
   }
 
@@ -157,7 +154,9 @@ export class CameraManager {
       // rapidly in the config editor).
       await this._initializationLimit.add(resetAndInitialize);
     } catch (e: unknown) {
-      this._api.getMessageManager().setErrorIfHigherPriority(e);
+      this._api
+        .getMessageManager()
+        .setErrorIfHigherPriority(e, localize('error.camera_initialization'));
       return false;
     }
     return true;
@@ -190,9 +189,11 @@ export class CameraManager {
       const engineType = engineTypes[index];
       const engine = engineType
         ? engines.get(engineType) ??
-          (await this._engineFactory.createEngine(engineType, (ev) =>
-            this._api.getTriggersManager().handleCameraEvent(ev),
-          ))
+          (await this._engineFactory.createEngine(engineType, {
+            eventCallback: (ev) => this._api.getTriggersManager().handleCameraEvent(ev),
+            stateWatcher: this._api.getHASSManager().getStateWatcher(),
+            resolvedMediaCache: this._api.getResolvedMediaCache(),
+          }))
         : null;
       if (!engine || !engineType) {
         throw new CameraInitializationError(
@@ -238,12 +239,7 @@ export class CameraManager {
     // Configuration is initialized in parallel.
     const cameras = await allPromises(
       engineByConfig.entries(),
-      async ([cameraConfig, engine]) =>
-        await engine.createCamera(
-          hass,
-          this._api.getEntityRegistryManager(),
-          cameraConfig,
-        ),
+      async ([cameraConfig, engine]) => await engine.createCamera(hass, cameraConfig),
     );
 
     // Do the additions based off the result-order, to ensure the map order is

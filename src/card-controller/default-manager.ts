@@ -1,9 +1,8 @@
 import PQueue from 'p-queue';
-import { DestroyCallback, subscribeToTrigger } from '../utils/ha';
+import { createGeneralAction } from '../utils/action';
 import { isActionAllowedBasedOnInteractionState } from '../utils/interaction-mode';
 import { Timer } from '../utils/timer';
 import { CardDefaultManagerAPI } from './types';
-import { createGeneralAction } from '../utils/action';
 
 /**
  * Manages automated resetting to the default view.
@@ -11,7 +10,6 @@ import { createGeneralAction } from '../utils/action';
 export class DefaultManager {
   protected _timer = new Timer();
   protected _api: CardDefaultManagerAPI;
-  protected _unsubscribeCallback: DestroyCallback | null = null;
   protected _initializationLimit = new PQueue({ concurrency: 1 });
 
   constructor(api: CardDefaultManagerAPI) {
@@ -47,8 +45,7 @@ export class DefaultManager {
 
   public uninitialize(): void {
     this._timer.stop();
-    this._unsubscribeCallback?.();
-    this._unsubscribeCallback = null;
+    this._api.getHASSManager().getStateWatcher().unsubscribe(this._stateChangeHandler);
     this._api.getAutomationsManager().deleteAutomations(this);
   }
 
@@ -59,19 +56,11 @@ export class DefaultManager {
       return false;
     }
 
-    if (this._unsubscribeCallback) {
-      await this._unsubscribeCallback();
-    }
-
-    this._unsubscribeCallback = await subscribeToTrigger(
-      hass,
-      () => this._setToDefaultIfAllowed(),
-      {
-        entityID: config.entities,
-        platform: 'state',
-        stateOnly: true,
-      },
-    );
+    this._api.getHASSManager().getStateWatcher().unsubscribe(this._stateChangeHandler);
+    this._api
+      .getHASSManager()
+      .getStateWatcher()
+      .subscribe(this._stateChangeHandler, config.entities);
 
     // If the timer is running, restart it with the newly configured timer.
     if (this._timer.isRunning()) {
@@ -81,6 +70,10 @@ export class DefaultManager {
 
     return true;
   }
+
+  protected _stateChangeHandler = (): void => {
+    this._setToDefaultIfAllowed();
+  };
 
   protected _setToDefaultIfAllowed(): void {
     if (this._isAutomatedUpdateAllowed()) {

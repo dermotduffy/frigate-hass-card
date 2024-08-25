@@ -1,11 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
+import { CardController } from '../../src/card-controller/controller';
 import { DefaultManager } from '../../src/card-controller/default-manager';
+import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher';
 import {
-  callHASubscribeMessageHandler,
+  callStateWatcherCallback,
   createCardAPI,
   createConfig,
   createHASS,
+  createStateEntity,
 } from '../test-utils';
+
+const createCardAPIWithStateWatcher = (): CardController => {
+  const api = createCardAPI();
+  vi.mocked(api.getHASSManager().getStateWatcher).mockReturnValue(
+    mock<StateWatcherSubscriptionInterface>(),
+  );
+  return api;
+};
 
 // @vitest-environment jsdom
 describe('DefaultManager', () => {
@@ -15,7 +27,7 @@ describe('DefaultManager', () => {
 
   describe('time based', () => {
     it('should set default view when allowed', async () => {
-      const api = createCardAPI();
+      const api = createCardAPIWithStateWatcher();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           view: {
@@ -75,7 +87,7 @@ describe('DefaultManager', () => {
     });
 
     it('should restart timer when reconfigured', async () => {
-      const api = createCardAPI();
+      const api = createCardAPIWithStateWatcher();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           view: {
@@ -88,13 +100,14 @@ describe('DefaultManager', () => {
       vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
 
       const hass = createHASS();
-      const unsubcribeCallback = vi.fn();
-      vi.mocked(hass.connection.subscribeMessage).mockResolvedValue(unsubcribeCallback);
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
       vi.useFakeTimers();
 
       const manager = new DefaultManager(api);
+
+      await manager.initialize();
+      expect(api.getViewManager().setViewDefault).not.toBeCalled();
 
       await manager.initialize();
       expect(api.getViewManager().setViewDefault).not.toBeCalled();
@@ -105,65 +118,38 @@ describe('DefaultManager', () => {
     });
   });
 
-  describe('state based', () => {
-    it('should set default view when state changed', async () => {
-      const api = createCardAPI();
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          view: {
-            default_reset: {
-              every_seconds: 10,
-            },
-          },
-        }),
-      );
-      vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
-
-      const hass = createHASS();
-      const unsubcribeCallback = vi.fn();
-      vi.mocked(hass.connection.subscribeMessage).mockResolvedValue(unsubcribeCallback);
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
-
-      const manager = new DefaultManager(api);
-      await manager.initialize();
-
-      callHASubscribeMessageHandler(hass, {
-        variables: {
-          trigger: {
-            from_state: {
-              entity_id: 'binary_sensor.foo',
-              state: 'off',
-            },
-            to_state: {
-              entity_id: 'binary_sensor.foo',
-              state: 'on',
-            },
+  it('should set default view when state changed', async () => {
+    const api = createCardAPIWithStateWatcher();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+      createConfig({
+        view: {
+          default_reset: {
+            entities: ['binary_sensor.foo'],
+            every_seconds: 10,
           },
         },
-      });
+      }),
+    );
+    vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
 
-      await manager.initialize();
-      expect(unsubcribeCallback).toBeCalledTimes(1);
+    const hass = createHASS();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
-      expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
+    const manager = new DefaultManager(api);
+    await manager.initialize();
+
+    callStateWatcherCallback(api.getHASSManager().getStateWatcher(), {
+      entityID: 'binary_sensor.foo',
+      oldState: createStateEntity({ state: 'off' }),
+      newState: createStateEntity({ state: 'on' }),
     });
 
-    it('should not monitor state without config', async () => {
-      const api = createCardAPI();
-      const hass = createHASS();
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
-
-      const manager = new DefaultManager(api);
-      await manager.initialize();
-
-      const mock = vi.mocked(hass.connection.subscribeMessage).mock;
-      expect(mock.calls.length).toBe(0);
-    });
+    expect(api.getViewManager().setViewDefault).toBeCalled();
   });
 
   describe('interaction based', () => {
     it('should not register automation on initialization', async () => {
-      const api = createCardAPI();
+      const api = createCardAPIWithStateWatcher();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -182,7 +168,7 @@ describe('DefaultManager', () => {
     });
 
     it('should register automation on initialization', async () => {
-      const api = createCardAPI();
+      const api = createCardAPIWithStateWatcher();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -216,10 +202,10 @@ describe('DefaultManager', () => {
       ]);
     });
 
-    it('should remove automation on uninitalize', async () => {
-      const api = createCardAPI();
+    it('should remove automation on uninitalize', () => {
+      const api = createCardAPIWithStateWatcher();
       const manager = new DefaultManager(api);
-      await manager.uninitialize();
+      manager.uninitialize();
 
       expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(manager);
     });

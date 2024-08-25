@@ -29,7 +29,6 @@ import {
 import { sortMedia } from '../../src/camera-manager/utils/sort-media';
 import { CardController } from '../../src/card-controller/controller';
 import { CameraConfig } from '../../src/config/types';
-import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
 import { ViewMedia } from '../../src/view/media';
 import {
   TestViewMedia,
@@ -240,11 +239,7 @@ describe('CameraManager', async () => {
         camera.engineType === undefined ? Engine.Generic : camera.engineType;
       if (engineType) {
         vi.mocked(mockEngine.createCamera).mockImplementationOnce(
-          async (
-            _hass: HomeAssistant,
-            _entityRegistryManager: EntityRegistryManager,
-            cameraConfig: CameraConfig,
-          ): Promise<Camera> =>
+          async (_hass: HomeAssistant, cameraConfig: CameraConfig): Promise<Camera> =>
             createCamera(
               cameraConfig,
               mockEngine,
@@ -313,6 +308,7 @@ describe('CameraManager', async () => {
           'Could not determine camera id for the following camera, ' +
             "may need to set 'id' parameter manually",
         ),
+        'Camera initialization failed',
       );
     });
 
@@ -338,6 +334,7 @@ describe('CameraManager', async () => {
           'Duplicate Frigate camera id for the following camera, ' +
             "use the 'id' parameter to uniquely identify cameras",
         ),
+        'Camera initialization failed',
       );
     });
 
@@ -356,6 +353,7 @@ describe('CameraManager', async () => {
       expect(await manager.initializeCamerasFromConfig()).toBeFalsy();
       expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(
         new Error('Could not determine suitable engine for camera'),
+        'Camera initialization failed',
       );
     });
 
@@ -371,13 +369,13 @@ describe('CameraManager', async () => {
         factory,
       );
       expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
-      const triggerCallback = factory.createEngine.mock.calls[0][1];
+      const eventCallback = factory.createEngine.mock.calls[0][1].eventCallback;
 
       const cameraEvent: CameraEvent = {
         cameraID: 'camera',
         type: 'new',
       };
-      triggerCallback?.(cameraEvent);
+      eventCallback?.(cameraEvent);
       expect(api.getTriggersManager().handleCameraEvent).toBeCalledWith(cameraEvent);
     });
 

@@ -8,6 +8,7 @@ import { Engine } from '../../src/camera-manager/types.js';
 import { EntityRegistryManager } from '../../src/utils/ha/entity-registry/index.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media.js';
 import { TestViewMedia, createCameraConfig } from '../test-utils.js';
+import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 
 describe('CameraManagerStore', async () => {
   const configVisible = createCameraConfig({
@@ -18,13 +19,16 @@ describe('CameraManagerStore', async () => {
     hide: true,
   });
 
-  const engineFactory = new CameraManagerEngineFactory(
-    mock<EntityRegistryManager>(),
-    mock<ResolvedMediaCache>(),
-  );
+  const engineFactory = new CameraManagerEngineFactory(mock<EntityRegistryManager>());
 
-  const engineGeneric = await engineFactory.createEngine(Engine.Generic);
-  const engineFrigate = await engineFactory.createEngine(Engine.Frigate);
+  const engineGeneric = await engineFactory.createEngine(Engine.Generic, {
+    stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+    resolvedMediaCache: mock<ResolvedMediaCache>(),
+  });
+  const engineFrigate = await engineFactory.createEngine(Engine.Frigate, {
+    stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+    resolvedMediaCache: mock<ResolvedMediaCache>(),
+  });
 
   const setupStore = (): CameraManagerStore => {
     const store = new CameraManagerStore();

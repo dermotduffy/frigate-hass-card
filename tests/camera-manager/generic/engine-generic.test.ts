@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { GenericCameraManagerEngine } from '../../../src/camera-manager/generic/engine-generic';
 import { Engine, QueryResultsType, QueryType } from '../../../src/camera-manager/types';
+import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
 import { CameraConfig, RawFrigateCardConfig } from '../../../src/config/types';
-import { EntityRegistryManager } from '../../../src/utils/ha/entity-registry';
 import {
   TestViewMedia,
   createCameraConfig,
@@ -13,7 +13,7 @@ import {
 } from '../../test-utils';
 
 const createEngine = (): GenericCameraManagerEngine => {
-  return new GenericCameraManagerEngine();
+  return new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>());
 };
 
 const createGenericCameraConfig = (config?: RawFrigateCardConfig): CameraConfig => {
@@ -27,11 +27,7 @@ describe('GenericCameraManagerEngine', () => {
 
   it('should initialize camera', async () => {
     const config = createGenericCameraConfig();
-    const camera = await createEngine().createCamera(
-      createHASS(),
-      mock<EntityRegistryManager>(),
-      config,
-    );
+    const camera = await createEngine().createCamera(createHASS(), config);
 
     expect(camera.getConfig()).toEqual(config);
     expect(camera.getCapabilities()).toBeTruthy();
