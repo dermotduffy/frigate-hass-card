@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { PTZAction, PTZ_PAN_TILT_ACTIONS, PTZ_ZOOM_ACTIONS } from '../../config/ptz';
+import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
+import { PTZAction } from '../../config/ptz';
 import { ActionPhase, CameraConfig } from '../../config/types';
-import { ExtendedHomeAssistant, PTZCapabilities, PTZMovementType } from '../../types';
+import { ExtendedHomeAssistant } from '../../types';
 import { getEntityIcon, getEntityTitle } from '../../utils/ha';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { ViewMedia } from '../../view/media';
 import { Camera } from '../camera';
 import { Capabilities } from '../capabilities';
@@ -40,8 +40,13 @@ import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 export class GenericCameraManagerEngine implements CameraManagerEngine {
   protected _eventCallback?: CameraEventCallback;
+  protected _stateWatcher: StateWatcherSubscriptionInterface;
 
-  constructor(eventCallback?: CameraEventCallback) {
+  constructor(
+    stateWatcher: StateWatcherSubscriptionInterface,
+    eventCallback?: CameraEventCallback,
+  ) {
+    this._stateWatcher = stateWatcher;
     this._eventCallback = eventCallback;
   }
 
@@ -50,8 +55,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
   }
 
   public async createCamera(
-    hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
+    _hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
     return await new Camera(cameraConfig, this, {
@@ -74,7 +78,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
         },
       ),
       eventCallback: this._eventCallback,
-    }).initialize(hass, entityRegistryManager);
+    }).initialize({ stateWatcher: this._stateWatcher });
   }
 
   public generateDefaultEventQuery(

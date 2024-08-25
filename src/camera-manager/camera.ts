@@ -1,18 +1,16 @@
-import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { CameraConfig } from '../config/types';
 import { localize } from '../localize/localize';
-import { allPromises } from '../utils/basic';
-import {
-  DestroyCallback,
-  isTriggeredState,
-  parseStateChangeTrigger,
-  subscribeToTrigger,
-} from '../utils/ha';
-import { EntityRegistryManager } from '../utils/ha/entity-registry';
+import { HassStateDifference, isTriggeredState } from '../utils/ha';
 import { Capabilities } from './capabilities';
 import { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
 import { CameraEventCallback } from './types';
+
+export interface CameraInitializationOptions {
+  stateWatcher: StateWatcherSubscriptionInterface;
+}
+type DestroyCallback = () => void | Promise<void>;
 
 export class Camera {
   protected _config: CameraConfig;
@@ -35,47 +33,17 @@ export class Camera {
     this._eventCallback = options?.eventCallback;
   }
 
-  protected async _convertStateChangeToCameraEvent(data: unknown): Promise<void> {
-    const stateChange = parseStateChangeTrigger(data);
-    if (!stateChange) {
-      return;
-    }
-
-    this._eventCallback?.({
-      cameraID: this.getID(),
-      type: isTriggeredState(stateChange.to_state.state) ? 'new' : 'end',
-    });
-  }
-
-  protected async _subscribeToTriggerEntities(hass: HomeAssistant): Promise<void> {
-    if (!this._config.triggers.entities.length) {
-      return;
-    }
-
-    this._destroyCallbacks.push(
-      await subscribeToTrigger(
-        hass,
-        (data) => this._convertStateChangeToCameraEvent(data),
-        {
-          entityID: this._config.triggers.entities,
-          platform: 'state',
-          stateOnly: true,
-        },
-      ),
+  async initialize(options: CameraInitializationOptions): Promise<Camera> {
+    options.stateWatcher.subscribe(
+      this._stateChangeHandler,
+      this._config.triggers.entities,
     );
-  }
-
-  async initialize(
-    hass: HomeAssistant,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _entityRegistryManager: EntityRegistryManager,
-  ): Promise<Camera> {
-    await this._subscribeToTriggerEntities(hass);
+    this._onDestroy(() => options.stateWatcher.unsubscribe(this._stateChangeHandler));
     return this;
   }
 
-  async destroy(): Promise<void> {
-    await allPromises(this._destroyCallbacks, (cb) => cb());
+  public async destroy(): Promise<void> {
+    this._destroyCallbacks.forEach((callback) => callback());
   }
 
   public getConfig(): CameraConfig {
@@ -99,5 +67,16 @@ export class Camera {
 
   public getCapabilities(): Capabilities | null {
     return this._capabilities ?? null;
+  }
+
+  protected _stateChangeHandler = (difference: HassStateDifference): void => {
+    this._eventCallback?.({
+      cameraID: this.getID(),
+      type: isTriggeredState(difference.newState.state) ? 'new' : 'end',
+    });
+  };
+
+  protected _onDestroy(callback: DestroyCallback): void {
+    this._destroyCallbacks.push(callback);
   }
 }

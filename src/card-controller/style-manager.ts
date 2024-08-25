@@ -11,7 +11,7 @@ export class StyleManager {
     this._api = api;
   }
 
-  public setLightOrDarkMode(): void {
+  public setLightOrDarkMode = (): void => {
     const config = this._api.getConfigManager().getConfig();
     const isDarkMode =
       config?.view.dark_mode === 'on' ||
@@ -24,7 +24,7 @@ export class StyleManager {
       isDarkMode,
       'dark',
     );
-  }
+  };
 
   public setExpandedMode(): void {
     const card = this._api.getCardElementManager().getElement();

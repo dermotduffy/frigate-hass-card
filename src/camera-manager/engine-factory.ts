@@ -1,4 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
 import { CameraConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
@@ -12,34 +13,41 @@ import { CameraInitializationError } from './error';
 import { CameraEventCallback, Engine } from './types';
 import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
 
-export class CameraManagerEngineFactory {
-  protected _entityRegistryManager: EntityRegistryManager;
-  protected _resolvedMediaCache: ResolvedMediaCache;
+interface CameraManagerEngineFactoryOptions {
+  stateWatcher: StateWatcherSubscriptionInterface;
+  resolvedMediaCache: ResolvedMediaCache;
+  eventCallback?: CameraEventCallback;
+}
 
-  constructor(
-    entityRegistryManager: EntityRegistryManager,
-    resolvedMediaCache: ResolvedMediaCache,
-  ) {
+export class CameraManagerEngineFactory {
+  // Entity registry manager is required for the actual function of the factory.
+  protected _entityRegistryManager: EntityRegistryManager;
+
+  constructor(entityRegistryManager: EntityRegistryManager) {
     this._entityRegistryManager = entityRegistryManager;
-    this._resolvedMediaCache = resolvedMediaCache;
   }
 
   public async createEngine(
     engine: Engine,
-    eventCallback?: CameraEventCallback,
+    options: CameraManagerEngineFactoryOptions,
   ): Promise<CameraManagerEngine> {
     let cameraManagerEngine: CameraManagerEngine;
     switch (engine) {
       case Engine.Generic:
         const { GenericCameraManagerEngine } = await import('./generic/engine-generic');
-        cameraManagerEngine = new GenericCameraManagerEngine(eventCallback);
+        cameraManagerEngine = new GenericCameraManagerEngine(
+          options.stateWatcher,
+          options.eventCallback,
+        );
         break;
       case Engine.Frigate:
         const { FrigateCameraManagerEngine } = await import('./frigate/engine-frigate');
         cameraManagerEngine = new FrigateCameraManagerEngine(
+          this._entityRegistryManager,
+          options.stateWatcher,
           new RecordingSegmentsCache(),
           new RequestCache(),
-          eventCallback,
+          options.eventCallback,
         );
         break;
       case Engine.MotionEye:
@@ -47,10 +55,12 @@ export class CameraManagerEngineFactory {
           './motioneye/engine-motioneye'
         );
         cameraManagerEngine = new MotionEyeCameraManagerEngine(
+          this._entityRegistryManager,
+          options.stateWatcher,
           new BrowseMediaManager(new MemoryRequestCache<string, BrowseMedia>()),
-          this._resolvedMediaCache,
+          options.resolvedMediaCache,
           new RequestCache(),
-          eventCallback,
+          options.eventCallback,
         );
     }
     return cameraManagerEngine;

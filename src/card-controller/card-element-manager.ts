@@ -46,9 +46,9 @@ export class CardElementManager {
     this._menuToggleCallback();
   }
 
-  public update(): void {
+  public update = (): void => {
     this._element.requestUpdate();
-  }
+  };
 
   public hasUpdated(): boolean {
     return this._element.hasUpdated;
@@ -68,6 +68,17 @@ export class CardElementManager {
     this._api.getMicrophoneManager().initialize();
     this._api.getKeyboardStateManager().initialize();
     this._api.getDefaultManager().initialize();
+
+    this._api
+      .getHASSManager()
+      .getStateWatcher()
+      ?.subscribe(this.update, [
+        ...(this._api.getConfigManager().getConfig()?.view.render_entities ?? []),
+
+        // Refresh the card if media player state changes:
+        // https://github.com/dermotduffy/frigate-hass-card/issues/881
+        ...(this._api.getMediaPlayerManager().getMediaPlayers() ?? []),
+      ]);
 
     // Whether or not the card is in panel mode on the dashboard.
     setOrRemoveAttribute(this._element, isCardInPanel(this._element), 'panel');
@@ -129,6 +140,7 @@ export class CardElementManager {
     this._api.getKeyboardStateManager().uninitialize();
     this._api.getActionsManager().uninitialize();
     this._api.getDefaultManager().uninitialize();
+    this._api.getHASSManager().getStateWatcher()?.unsubscribe(this.update);
 
     // Uninitialize cameras to cause them to reinitialize on
     // reconnection, to ensure the state subscription/unsubscription works

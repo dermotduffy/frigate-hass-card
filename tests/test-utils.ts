@@ -1,8 +1,4 @@
-import {
-  CurrentUser,
-  HASSDomEvent,
-  HomeAssistant,
-} from '@dermotduffy/custom-card-helpers';
+import { CurrentUser, HASSDomEvent } from '@dermotduffy/custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { LitElement } from 'lit';
 import { expect, vi } from 'vitest';
@@ -29,7 +25,8 @@ import { DefaultManager } from '../src/card-controller/default-manager';
 import { DownloadManager } from '../src/card-controller/download-manager';
 import { ExpandManager } from '../src/card-controller/expand-manager';
 import { FullscreenManager } from '../src/card-controller/fullscreen-manager';
-import { HASSManager } from '../src/card-controller/hass-manager';
+import { HASSManager } from '../src/card-controller/hass/hass-manager';
+import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
 import { InitializationManager } from '../src/card-controller/initialization-manager';
 import { InteractionManager } from '../src/card-controller/interaction-manager';
 import { KeyboardStateManager } from '../src/card-controller/keyboard-state-manager';
@@ -57,6 +54,7 @@ import {
   performanceConfigSchema,
 } from '../src/config/types';
 import { CapabilitiesRaw, ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
+import { HassStateDifference } from '../src/utils/ha';
 import { EntityRegistryManager } from '../src/utils/ha/entity-registry';
 import { Entity } from '../src/utils/ha/entity-registry/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
@@ -213,7 +211,11 @@ export const createStore = (
     const eventCallback = cameraProps.eventCallback ?? vi.fn();
     const camera = new Camera(
       cameraProps.config ?? createCameraConfig(),
-      cameraProps.engine ?? new GenericCameraManagerEngine(eventCallback),
+      cameraProps.engine ??
+        new GenericCameraManagerEngine(
+          mock<StateWatcherSubscriptionInterface>(),
+          eventCallback,
+        ),
       {
         capabilities:
           cameraProps.capabilities === undefined
@@ -464,14 +466,14 @@ export const createCardAPI = (): CardController => {
   return api;
 };
 
-export const callHASubscribeMessageHandler = (
-  hass: HomeAssistant,
-  ev: unknown,
+export const callStateWatcherCallback = (
+  stateWatcher: StateWatcherSubscriptionInterface,
+  diff: HassStateDifference,
   n = 0,
 ): void => {
-  const mock = vi.mocked(hass.connection.subscribeMessage).mock;
+  const mock = vi.mocked(stateWatcher.subscribe).mock;
   expect(mock.calls.length).greaterThan(n);
-  mock.calls[n][0](ev);
+  mock.calls[n][0](diff);
 };
 
 /**

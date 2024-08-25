@@ -42,16 +42,17 @@ export class MessageManager {
     }
   }
 
-  public setErrorIfHigherPriority(error: unknown): void {
+  public setErrorIfHigherPriority(error: unknown, prefix?: string): void {
     // This object should accept unknown objects to be able to seamlessly
-    // process arguments to catch() which can only be unknown/any.
-    if (!(error instanceof Error)) {
+    // process arguments to catch() which can only be unknown/any. HA may throw
+    // non Error() based errors.
+    if (!error || typeof error !== 'object' || !('message' in error)) {
       return;
     }
 
     errorToConsole(error);
     this.setMessageIfHigherPriority({
-      message: error.message,
+      message: prefix ? `${prefix}: ${error.message}` : error.message,
       type: 'error',
       ...(error instanceof FrigateCardError && { context: error.context }),
     });

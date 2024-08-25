@@ -1,4 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { CameraConfig } from '../../config/types';
 import { ExtendedHomeAssistant } from '../../types';
 import { canonicalizeHAURL } from '../../utils/ha';
@@ -28,10 +29,10 @@ import {
   PartialEventQuery,
   QueryType,
 } from '../types';
+import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 import { BrowseMediaCamera } from './camera';
 import { BrowseMediaViewMediaFactory } from './media';
 import { BrowseMediaMetadata } from './types';
-import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 
 /**
  * A utility method to determine if a browse media object matches against a
@@ -123,16 +124,20 @@ export class BrowseMediaCameraManagerEngine
   implements CameraManagerEngine
 {
   protected _browseMediaManager: BrowseMediaManager<BrowseMediaMetadata>;
+  protected _entityRegistryManager: EntityRegistryManager;
   protected _resolvedMediaCache: ResolvedMediaCache;
   protected _requestCache: RequestCache;
 
   public constructor(
+    entityRegistryManager: EntityRegistryManager,
+    stateWatcher: StateWatcherSubscriptionInterface,
     browseMediaManager: BrowseMediaManager<BrowseMediaMetadata>,
     resolvedMediaCache: ResolvedMediaCache,
     requestCache: RequestCache,
     eventCallback?: CameraEventCallback,
   ) {
-    super(eventCallback);
+    super(stateWatcher, eventCallback);
+    this._entityRegistryManager = entityRegistryManager;
     this._browseMediaManager = browseMediaManager;
     this._resolvedMediaCache = resolvedMediaCache;
     this._requestCache = requestCache;
@@ -140,7 +145,6 @@ export class BrowseMediaCameraManagerEngine
 
   public async createCamera(
     hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
     const camera = new BrowseMediaCamera(cameraConfig, this, {
@@ -164,7 +168,11 @@ export class BrowseMediaCameraManagerEngine
       ),
       eventCallback: this._eventCallback,
     });
-    return await camera.initialize(hass, entityRegistryManager);
+    return await camera.initialize({
+      entityRegistryManager: this._entityRegistryManager,
+      hass,
+      stateWatcher: this._stateWatcher,
+    });
   }
 
   public generateDefaultEventQuery(

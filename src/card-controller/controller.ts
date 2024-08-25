@@ -20,7 +20,7 @@ import { ConfigManager } from './config/config-manager';
 import { DownloadManager } from './download-manager';
 import { ExpandManager } from './expand-manager';
 import { FullscreenManager } from './fullscreen-manager';
-import { HASSManager } from './hass-manager';
+import { HASSManager } from './hass/hass-manager';
 import { InitializationManager } from './initialization-manager';
 import { InteractionManager } from './interaction-manager';
 import { MediaLoadedInfoManager } from './media-info-manager';

@@ -144,6 +144,22 @@ describe('MessageManager', () => {
     expect(consoleSpy).toBeCalled();
   });
 
+  it('should set error with prefix', () => {
+    const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
+
+    const api = createCardAPI();
+    const manager = new MessageManager(api);
+
+    manager.setErrorIfHigherPriority(new Error('generic error message'), 'PREFIX');
+    expect(manager.hasMessage()).toBeTruthy();
+    expect(manager.getMessage()).toEqual({
+      message: 'PREFIX: generic error message',
+      type: 'error',
+    });
+
+    expect(consoleSpy).toBeCalled();
+  });
+
   it('should not set unknown error type', () => {
     const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 

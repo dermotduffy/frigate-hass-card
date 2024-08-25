@@ -570,6 +570,7 @@
   },
   "error": {
     "awaiting_live": "Waiting for live stream to load ...",
+    "camera_initialization": "Camera initialization failed",
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",

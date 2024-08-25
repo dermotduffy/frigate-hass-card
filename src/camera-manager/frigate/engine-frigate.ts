@@ -4,6 +4,7 @@ import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
 import uniqWith from 'lodash-es/uniqWith';
+import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
 import { PTZAction } from '../../config/ptz';
 import { ActionPhase, CameraConfig } from '../../config/types';
 import { ExtendedHomeAssistant } from '../../types';
@@ -20,8 +21,8 @@ import { ViewMediaClassifier } from '../../view/media-classifier';
 import { RecordingSegmentsCache, RequestCache } from '../cache';
 import { Camera } from '../camera';
 import {
-  CameraManagerEngine,
   CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT,
+  CameraManagerEngine,
 } from '../engine';
 import { GenericCameraManagerEngine } from '../generic/engine-generic';
 import { DateRange } from '../range';
@@ -59,15 +60,16 @@ import {
 import { getDefaultGo2RTCEndpoint } from '../utils/go2rtc-endpoint';
 import frigateLogo from './assets/frigate-logo-dark.svg';
 import { FrigateCamera, isBirdseye } from './camera';
+import { FrigateEventWatcher } from './event-watcher';
 import { FrigateViewMediaFactory } from './media';
 import { FrigateViewMediaClassifier } from './media-classifier';
 import {
-  getEvents,
-  getEventSummary,
-  getRecordingSegments,
-  getRecordingsSummary,
   NativeFrigateEventQuery,
   NativeFrigateRecordingSegmentsQuery,
+  getEventSummary,
+  getEvents,
+  getRecordingSegments,
+  getRecordingsSummary,
   retainEvent,
 } from './requests';
 import {
@@ -110,6 +112,8 @@ export class FrigateCameraManagerEngine
   extends GenericCameraManagerEngine
   implements CameraManagerEngine
 {
+  protected _entityRegistryManager: EntityRegistryManager;
+  protected _frigateEventWatcher: FrigateEventWatcher;
   protected _recordingSegmentsCache: RecordingSegmentsCache;
   protected _requestCache: RequestCache;
 
@@ -121,11 +125,15 @@ export class FrigateCameraManagerEngine
   );
 
   constructor(
+    entityRegistryManager: EntityRegistryManager,
+    stateWatcher: StateWatcherSubscriptionInterface,
     recordingSegmentsCache: RecordingSegmentsCache,
     requestCache: RequestCache,
     eventCallback?: CameraEventCallback,
   ) {
-    super(eventCallback);
+    super(stateWatcher, eventCallback);
+    this._entityRegistryManager = entityRegistryManager;
+    this._frigateEventWatcher = new FrigateEventWatcher();
     this._recordingSegmentsCache = recordingSegmentsCache;
     this._requestCache = requestCache;
   }
@@ -136,13 +144,17 @@ export class FrigateCameraManagerEngine
 
   public async createCamera(
     hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
   ): Promise<Camera> {
     const camera = new FrigateCamera(cameraConfig, this, {
       eventCallback: this._eventCallback,
     });
-    return await camera.initialize(hass, entityRegistryManager);
+    return await camera.initialize({
+      hass,
+      entityRegistryManager: this._entityRegistryManager,
+      stateWatcher: this._stateWatcher,
+      frigateEventWatcher: this._frigateEventWatcher,
+    });
   }
 
   public async getMediaDownloadPath(

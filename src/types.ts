@@ -56,7 +56,7 @@ export const MESSAGE_TYPE_PRIORITIES: MessagePriority = {
 };
 
 export interface Message {
-  message: string;
+  message: unknown;
   type: MessageType;
   icon?: string;
   context?: unknown;

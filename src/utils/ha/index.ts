@@ -17,14 +17,6 @@ import {
 } from '../../types.js';
 import { domainIcon } from '../icons/domain-icon.js';
 import { getParseErrorKeys } from '../zod.js';
-import {
-  HAStateChangeFromTo,
-  haStateChangeTriggerResponseSchema,
-  SubscriptionCallback,
-  SubscriptionUnsubscribe,
-} from './types.js';
-
-export type DestroyCallback = () => Promise<void>;
 
 /**
  * Make a HomeAssistant websocket request. May throw.
@@ -100,8 +92,8 @@ export async function homeAssistantSignPath(
   return hass.hassUrl(response.path);
 }
 
-interface HassStateDifference {
-  entity: string;
+export interface HassStateDifference {
+  entityID: string;
   oldState?: HassEntity;
   newState: HassEntity;
 }
@@ -115,7 +107,7 @@ interface HassStateDifference {
  * strings only, firstOnly: whether or not to get the first difference only.
  * @returns An array of HassStateDifference objects.
  */
-function getHassDifferences(
+export function getHassDifferences(
   newHass: HomeAssistant | undefined | null,
   oldHass: HomeAssistant | undefined | null,
   entities: string[] | null,
@@ -137,7 +129,7 @@ function getHassDifferences(
       (!options?.stateOnly && oldState !== newState)
     ) {
       differences.push({
-        entity: entity,
+        entityID: entity,
         oldState: oldState,
         newState: newState,
       });
@@ -402,54 +394,4 @@ export const hasHAConnectionStateChanged = (
   newHass: HomeAssistant | undefined | null,
 ): boolean => {
   return oldHass?.connected !== newHass?.connected;
-};
-
-/**
- * Subscribe to a HA trigger
- * @param hass The HA object.
- * @param callback The callback to call with the data.
- * @param options Parameters to the trigger, see:
- *   https://www.home-assistant.io/docs/automation/trigger/#state-trigger
- * @returns A callback to unsubscribe.
- */
-export const subscribeToTrigger = async (
-  hass: HomeAssistant,
-  callback: SubscriptionCallback,
-  options?: {
-    entityID?: string | string[];
-    platform?: string;
-    topic?: string;
-    payload?: string;
-    valueTemplate?: string;
-    stateOnly?: boolean;
-  },
-): Promise<SubscriptionUnsubscribe> => {
-  return await hass.connection.subscribeMessage(callback, {
-    type: 'subscribe_trigger',
-    trigger: {
-      ...(options?.platform && { platform: options.platform }),
-      ...(options?.entityID && { entity_id: options.entityID }),
-      ...(options?.topic && { topic: options.topic }),
-      ...(options?.payload && { payload: options.payload }),
-      ...(options?.valueTemplate && { value_template: options.valueTemplate }),
-      ...(options?.stateOnly && {
-        from: null,
-        to: null,
-      }),
-    },
-  });
-};
-
-/**
- * Parse a state change trigger response.
- * @param data The raw data.
- * @returns A HAStateChangeFromTo object.
- */
-export const parseStateChangeTrigger = (data: unknown): HAStateChangeFromTo | null => {
-  const parseResult = haStateChangeTriggerResponseSchema.safeParse(data);
-  if (!parseResult.success) {
-    console.warn('Ignoring unparseable HA state change', data);
-    return null;
-  }
-  return parseResult.data.variables.trigger;
 };

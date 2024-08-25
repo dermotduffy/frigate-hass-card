@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CardController } from '../../src/card-controller/controller';
-import { HASSManager } from '../../src/card-controller/hass-manager';
+import { HASSManager } from '../../../src/card-controller/hass/hass-manager';
+import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import {
   createCameraConfig,
   createCameraManager,
@@ -11,13 +11,7 @@ import {
   createStore,
   createUser,
   createView,
-} from '../test-utils';
-
-const createAPIWithoutMediaPlayers = (): CardController => {
-  const api = createCardAPI();
-  vi.mocked(api.getMediaPlayerManager().getMediaPlayers).mockReturnValue([]);
-  return api;
-};
+} from '../../test-utils';
 
 describe('HASSManager', () => {
   beforeEach(() => {
@@ -29,8 +23,13 @@ describe('HASSManager', () => {
     expect(manager.getHASS()).toBeNull();
   });
 
+  it('should get state watcher', () => {
+    const manager = new HASSManager(createCardAPI());
+    expect(manager.getStateWatcher()).toEqual(expect.any(StateWatcher));
+  });
+
   it('should set light or dark mode upon setting hass', () => {
-    const api = createAPIWithoutMediaPlayers();
+    const api = createCardAPI();
     const manager = new HASSManager(api);
 
     manager.setHASS(createHASS());
@@ -40,7 +39,7 @@ describe('HASSManager', () => {
 
   describe('should set condition manager state', () => {
     it('positively', () => {
-      const api = createAPIWithoutMediaPlayers();
+      const api = createCardAPI();
       const manager = new HASSManager(api);
       vi.mocked(api.getConditionsManager().hasHAStateConditions).mockReturnValue(true);
 
@@ -59,7 +58,7 @@ describe('HASSManager', () => {
     });
 
     it('negatively', () => {
-      const api = createAPIWithoutMediaPlayers();
+      const api = createCardAPI();
       const manager = new HASSManager(api);
       vi.mocked(api.getConditionsManager().hasHAStateConditions).mockReturnValue(false);
 
@@ -71,7 +70,7 @@ describe('HASSManager', () => {
 
   describe('should handle connection state change when', () => {
     it('initially disconnected', () => {
-      const api = createAPIWithoutMediaPlayers();
+      const api = createCardAPI();
       const manager = new HASSManager(api);
 
       const disconnectedHASS = createHASS();
@@ -90,7 +89,7 @@ describe('HASSManager', () => {
     });
 
     it('disconnected', () => {
-      const api = createAPIWithoutMediaPlayers();
+      const api = createCardAPI();
       const manager = new HASSManager(api);
 
       manager.setHASS(createHASS());
@@ -110,7 +109,7 @@ describe('HASSManager', () => {
     });
 
     it('reconnected', () => {
-      const api = createAPIWithoutMediaPlayers();
+      const api = createCardAPI();
       const manager = new HASSManager(api);
 
       const disconnectedHASS = createHASS();
@@ -124,7 +123,7 @@ describe('HASSManager', () => {
     });
 
     it('hass is null', () => {
-      const api = createAPIWithoutMediaPlayers();
+      const api = createCardAPI();
       const manager = new HASSManager(api);
       const connectedHASS = createHASS();
       connectedHASS.connected = true;
@@ -148,7 +147,7 @@ describe('HASSManager', () => {
 
   describe('should not set default view when', () => {
     it('selected camera is unknown', () => {
-      const api = createAPIWithoutMediaPlayers();
+      const api = createCardAPI();
       vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
       vi.mocked(api.getCameraManager().getStore).mockReturnValue(
         createStore([
@@ -179,7 +178,7 @@ describe('HASSManager', () => {
     });
 
     it('when there is card interaction', () => {
-      const api = createAPIWithoutMediaPlayers();
+      const api = createCardAPI();
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           view: {
@@ -199,44 +198,6 @@ describe('HASSManager', () => {
       manager.setHASS(hass);
 
       expect(api.getViewManager().setViewDefault).not.toBeCalled();
-    });
-  });
-
-  describe('should update card when', () => {
-    it('render entity changes', () => {
-      const api = createAPIWithoutMediaPlayers();
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          view: {
-            render_entities: ['sensor.force_update'],
-          },
-        }),
-      );
-
-      const manager = new HASSManager(api);
-      const hass = createHASS({
-        'sensor.force_update': createStateEntity(),
-      });
-
-      manager.setHASS(hass);
-
-      expect(api.getCardElementManager().update).toBeCalled();
-    });
-
-    it('media player entity changes', () => {
-      const api = createCardAPI();
-      vi.mocked(api.getMediaPlayerManager().getMediaPlayers).mockReturnValue([
-        'media_player.foo',
-      ]);
-
-      const manager = new HASSManager(api);
-      const hass = createHASS({
-        'media_player.foo': createStateEntity(),
-      });
-
-      manager.setHASS(hass);
-
-      expect(api.getCardElementManager().update).toBeCalled();
     });
   });
 });

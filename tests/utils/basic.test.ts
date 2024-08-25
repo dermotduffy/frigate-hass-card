@@ -103,36 +103,40 @@ describe('contentsChanged', () => {
 describe('errorToConsole', () => {
   const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should log given error', () => {
-    const error = new Error();
+    const error = new Error('ERROR');
     errorToConsole(error);
-    expect(spy).toHaveBeenCalledWith(error);
+    expect(spy).toHaveBeenCalledWith('ERROR');
   });
   it('should log with context given frigate card error', () => {
     const data = { foo: 2 };
-    const error = new FrigateCardError('foo', { foo: 2 });
+    const error = new FrigateCardError('ERROR', { foo: 2 });
     errorToConsole(error);
     expect(spy).toHaveBeenCalledWith(error, data);
   });
   it('should log with custom function', () => {
     const func = vi.fn();
-    const error = new Error();
+    const error = new Error('ERROR');
     errorToConsole(error, func);
-    expect(func).toHaveBeenCalledWith(error);
+    expect(func).toHaveBeenCalledWith('ERROR');
   });
 });
 
 describe('isHoverableDevice', () => {
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should return hoverable', () => {
-    const spy = vi
-      .spyOn(window, 'matchMedia')
-      .mockReturnValue(<MediaQueryList>{ matches: true });
+    vi.spyOn(window, 'matchMedia').mockReturnValue(<MediaQueryList>{ matches: true });
     expect(isHoverableDevice()).toBeTruthy();
   });
   it('should return not hoverable', () => {
-    const spy = vi
-      .spyOn(window, 'matchMedia')
-      .mockReturnValue(<MediaQueryList>{ matches: false });
+    vi.spyOn(window, 'matchMedia').mockReturnValue(<MediaQueryList>{ matches: false });
     expect(isHoverableDevice()).toBeFalsy();
   });
 });
@@ -225,6 +229,7 @@ describe('sleep', () => {
   it('should sleep', async () => {
     const spy = vi
       .spyOn(global, 'setTimeout')
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       .mockImplementation((func: () => unknown, _time?: number): any => {
         func();
       });

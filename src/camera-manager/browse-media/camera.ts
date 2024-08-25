@@ -2,19 +2,23 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { localize } from '../../localize/localize';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { Entity } from '../../utils/ha/entity-registry/types';
-import { Camera } from '../camera';
+import { Camera, CameraInitializationOptions } from '../camera';
 import { CameraInitializationError } from '../error';
+
+interface BrowseMediaCameraInitializationOptions extends CameraInitializationOptions {
+  entityRegistryManager: EntityRegistryManager;
+  hass: HomeAssistant;
+}
 
 export class BrowseMediaCamera extends Camera {
   protected _entity: Entity | null = null;
 
   public async initialize(
-    hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
+    options: BrowseMediaCameraInitializationOptions,
   ): Promise<Camera> {
     const config = this.getConfig();
     const entity = config.camera_entity
-      ? await entityRegistryManager.getEntity(hass, config.camera_entity)
+      ? await options.entityRegistryManager.getEntity(options.hass, config.camera_entity)
       : null;
 
     if (!entity || !config.camera_entity) {
