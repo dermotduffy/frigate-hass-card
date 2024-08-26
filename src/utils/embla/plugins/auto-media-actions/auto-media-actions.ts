@@ -50,7 +50,7 @@ export function AutoMediaActions(
   let options: OptionsType;
   let emblaApi: EmblaCarouselType;
   let slides: HTMLElement[];
-  let containerIntersecting: boolean | null = null;
+  let viewportIntersecting: boolean | null = null;
   const microphoneMuteTimer = new Timer();
 
   const intersectionObserver: IntersectionObserver = new IntersectionObserver(
@@ -92,7 +92,7 @@ export function AutoMediaActions(
     emblaApi.on('destroy', mute);
 
     document.addEventListener('visibilitychange', visibilityHandler);
-    intersectionObserver.observe(emblaApi.containerNode());
+    intersectionObserver.observe(emblaApi.rootNode());
 
     if (
       options.autoUnmuteConditions?.includes('microphone') ||
@@ -184,14 +184,14 @@ export function AutoMediaActions(
   }
 
   function intersectionHandler(entries: IntersectionObserverEntry[]): void {
-    const wasIntersecting = containerIntersecting;
-    containerIntersecting = entries.some((entry) => entry.isIntersecting);
+    const wasIntersecting = viewportIntersecting;
+    viewportIntersecting = entries.some((entry) => entry.isIntersecting);
 
-    if (wasIntersecting !== null && wasIntersecting !== containerIntersecting) {
+    if (wasIntersecting !== null && wasIntersecting !== viewportIntersecting) {
       // If the live view is preloaded (i.e. in the background) we may need to
       // take media actions, e.g. muting a live stream that is now running in
       // the background, so we act even if the new state is hidden.
-      actOnVisibilityChange(containerIntersecting);
+      actOnVisibilityChange(viewportIntersecting);
     }
   }
 

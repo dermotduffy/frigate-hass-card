@@ -29,6 +29,7 @@ describe('LiveController', () => {
     parent.addEventListener('frigate-card:message', eventListener);
 
     const controller = new LiveController(host);
+    expect(host.addController).toBeCalled();
 
     controller.hostConnected();
 
