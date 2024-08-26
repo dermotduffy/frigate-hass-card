@@ -7,6 +7,7 @@ import {
 } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { ClipsOrSnapshotsOrAll } from '../../types';
+import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
 import { View, ViewParameters } from '../../view/view';
 import { getCameraIDsForViewName } from '../../view/view-to-cameras';
 import { CardViewAPI } from '../types';
@@ -221,7 +222,15 @@ export class ViewFactory {
     const switchingToGalleryFromViewer =
       baseView?.isViewerView() && view.isGalleryView();
 
-    if (switchingToGalleryFromViewer && baseView?.query && baseView?.queryResults) {
+    const alreadyHasMatchingQuery =
+      mediaType === MediaQueriesClassifier.getMediaType(baseView?.query);
+
+    if (
+      switchingToGalleryFromViewer &&
+      alreadyHasMatchingQuery &&
+      baseView?.query &&
+      baseView?.queryResults
+    ) {
       // If the user is currently using the viewer, and then switches to the
       // gallery we make an attempt to keep the query/queryResults the same so
       // the gallery can be used to click back and forth to the viewer, and the

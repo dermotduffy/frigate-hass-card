@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { QueryType } from '../../../src/camera-manager/types';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { QueryExecutor } from '../../../src/card-controller/view/query-executor';
 import { ViewModifier } from '../../../src/card-controller/view/types';
@@ -618,7 +619,13 @@ describe('getViewByParametersWithNewQuery', () => {
       const baseView = new View({
         view: 'media',
         camera: 'camera.office',
-        query: new EventMediaQueries(),
+        query: new EventMediaQueries([
+          {
+            type: QueryType.Event,
+            cameraIDs: new Set(['camera.office']),
+            hasClip: true,
+          },
+        ]),
         queryResults: new MediaQueriesResults(),
       });
 
