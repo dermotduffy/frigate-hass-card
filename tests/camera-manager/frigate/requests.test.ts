@@ -34,6 +34,8 @@ describe('frigate requests', () => {
       day: new Date(),
     };
     const hass = createHASS();
+    hass.config.time_zone = 'Europe/Dublin';
+
     vi.mocked(homeAssistantWSRequest).mockResolvedValue(recordingSummary);
     expect(await getRecordingsSummary(hass, 'clientID', 'camera.office')).toBe(
       recordingSummary,
@@ -45,7 +47,7 @@ describe('frigate requests', () => {
         type: 'frigate/recordings/summary',
         instance_id: 'clientID',
         camera: 'camera.office',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezone: 'Europe/Dublin',
       }),
       true,
     );
@@ -179,6 +181,8 @@ describe('frigate requests', () => {
       },
     ];
     const hass = createHASS();
+    hass.config.time_zone = 'Europe/Dublin';
+
     vi.mocked(homeAssistantWSRequest).mockResolvedValue(eventSummary);
     expect(await getEventSummary(hass, 'clientID')).toBe(eventSummary);
     expect(homeAssistantWSRequest).toBeCalledWith(
@@ -187,7 +191,7 @@ describe('frigate requests', () => {
       expect.objectContaining({
         type: 'frigate/events/summary',
         instance_id: 'clientID',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezone: 'Europe/Dublin',
       }),
       true,
     );
