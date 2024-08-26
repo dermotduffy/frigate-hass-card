@@ -1,4 +1,5 @@
 import { CameraManager } from '../camera-manager/manager';
+import { CapabilitySearchOptions } from '../camera-manager/types';
 import { FrigateCardView } from '../config/types';
 
 /**
@@ -10,6 +11,10 @@ export const getCameraIDsForViewName = (
   viewName: FrigateCardView,
   cameraID?: string,
 ): Set<string> => {
+  const capabilityMatchAnyMedia: CapabilitySearchOptions = {
+    anyCapabilities: ['clips', 'snapshots', 'recordings'],
+  };
+
   switch (viewName) {
     case 'image':
     case 'diagnostics':
@@ -35,17 +40,15 @@ export const getCameraIDsForViewName = (
         : cameraManager.getStore().getCameraIDsWithCapability(capability);
 
     case 'timeline':
-      return cameraManager.getStore().getCameraIDsWithCapability({
-        anyCapabilities: ['clips', 'snapshots', 'recordings'],
-      });
+      return cameraManager
+        .getStore()
+        .getCameraIDsWithCapability(capabilityMatchAnyMedia);
 
     case 'media':
       return cameraID
-        ? cameraManager.getStore().getAllDependentCameras(cameraID, {
-            anyCapabilities: ['clips', 'snapshots', 'recordings'],
-          })
-        : cameraManager.getStore().getCameraIDsWithCapability({
-            anyCapabilities: ['clips', 'snapshots', 'recordings'],
-          });
+        ? cameraManager
+            .getStore()
+            .getAllDependentCameras(cameraID, capabilityMatchAnyMedia)
+        : cameraManager.getStore().getCameraIDsWithCapability(capabilityMatchAnyMedia);
   }
 };
