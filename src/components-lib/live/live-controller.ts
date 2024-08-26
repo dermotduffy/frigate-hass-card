@@ -50,6 +50,9 @@ export class LiveController implements ReactiveController {
 
   constructor(host: LiveControllerHost) {
     this._host = host;
+
+    host.addController(this);
+
     this._intersectionObserver = new IntersectionObserver(
       this._intersectionHandler.bind(this),
     );
