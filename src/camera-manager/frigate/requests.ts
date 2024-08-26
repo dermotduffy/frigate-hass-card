@@ -36,7 +36,10 @@ export const getRecordingsSummary = async (
       type: 'frigate/recordings/summary',
       instance_id: clientID,
       camera: camera_name,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+
+      // Ask for the summary relative to HA timezone
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1267
+      timezone: hass.config.time_zone,
     },
     true,
     // See: https://github.com/colinhacks/zod/pull/1752
@@ -148,7 +151,10 @@ export const getEventSummary = async (
     {
       type: 'frigate/events/summary',
       instance_id: clientID,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+
+      // Ask for the summary relative to HA timezone
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1267
+      timezone: hass.config.time_zone,
     },
     true,
   );
