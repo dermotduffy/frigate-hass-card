@@ -21,11 +21,21 @@ describe('HASSManager', () => {
   it('should have null hass on construction', () => {
     const manager = new HASSManager(createCardAPI());
     expect(manager.getHASS()).toBeNull();
+    expect(manager.hasHASS()).toBeFalsy();
   });
 
   it('should get state watcher', () => {
     const manager = new HASSManager(createCardAPI());
     expect(manager.getStateWatcher()).toEqual(expect.any(StateWatcher));
+  });
+
+  it('should get hass after set', () => {
+    const manager = new HASSManager(createCardAPI());
+    const hass = createHASS();
+    manager.setHASS(hass);
+
+    expect(manager.getHASS()).toBe(hass);
+    expect(manager.hasHASS()).toBeTruthy();
   });
 
   it('should set light or dark mode upon setting hass', () => {

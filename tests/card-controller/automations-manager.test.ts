@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
-import { createCardAPI, createHASS } from '../test-utils.js';
+import { createCardAPI } from '../test-utils.js';
 import { ActionType } from '../../src/config/types.js';
 import { AuxillaryActionConfig } from '../../src/card-controller/actions/types.js';
 
@@ -34,9 +34,25 @@ describe('AutomationsManager', () => {
     expect(api.getActionsManager().executeActions).not.toBeCalled();
   });
 
+  it('should do nothing without being initialized', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      false,
+    );
+
+    const automationsManager = new AutomationsManager(api);
+    automationsManager.execute();
+
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
+  });
+
   it('should do nothing without automations', () => {
     const api = createCardAPI();
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
 
     const automationsManager = new AutomationsManager(api);
     automationsManager.execute();
@@ -46,7 +62,10 @@ describe('AutomationsManager', () => {
 
   it('should execute actions', () => {
     const api = createCardAPI();
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
 
     const automationsManager = new AutomationsManager(api);
     automationsManager.addAutomations([automation]);
@@ -77,7 +96,11 @@ describe('AutomationsManager', () => {
 
   it('should execute actions_not', () => {
     const api = createCardAPI();
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
+
     vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(false);
 
     const automationsManager = new AutomationsManager(api);
@@ -90,7 +113,10 @@ describe('AutomationsManager', () => {
 
   it('should prevent automation loops', () => {
     const api = createCardAPI();
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
 
     const automationsManager = new AutomationsManager(api);
     automationsManager.addAutomations([automation, not_automation]);
@@ -130,7 +156,10 @@ describe('AutomationsManager', () => {
 
   it('should delete automations', () => {
     const api = createCardAPI();
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+      true,
+    );
 
     const automationsManager = new AutomationsManager(api);
     automationsManager.addAutomations([automation]);

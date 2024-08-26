@@ -17,6 +17,10 @@ export class HASSManager {
     return this._hass;
   }
 
+  public hasHASS(): boolean {
+    return !!this._hass;
+  }
+
   public getStateWatcher(): StateWatcherSubscriptionInterface {
     return this._stateWatcher;
   }
