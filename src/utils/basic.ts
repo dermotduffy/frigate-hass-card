@@ -105,13 +105,15 @@ export function contentsChanged(
  * @param func The Console func to call.
  */
 export function errorToConsole(
-  e: Error | { message: unknown },
+  e: Error | { message: unknown } | string,
   func: CallableFunction = console.warn,
 ): void {
   if (e instanceof FrigateCardError && e.context) {
     func(e, e.context);
-  } else {
+  } else if (typeof e === 'object' && 'message' in e) {
     func(e.message);
+  } else {
+    func(e);
   }
 }
 
