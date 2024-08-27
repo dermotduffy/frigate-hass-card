@@ -39,6 +39,7 @@ it('low performance profile', () => {
     'menu.buttons.timeline.enabled': false,
     'menu.style': 'outside',
     'performance.features.animated_progress_indicator': false,
+    'performance.features.max_simultaneous_engine_requests': 1,
     'performance.features.media_chunk_size': 10,
     'performance.style.border_radius': false,
     'performance.style.box_shadow': false,
