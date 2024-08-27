@@ -22,10 +22,11 @@ performance:
     # [...]
 ```
 
-| Option                        | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `animated_progress_indicator` | `true`  | Will show the animated progress indicator 'spinner' when `true` or a simple loading icon when `false`.                                                                                                                                                                                                                                                                                                              |
-| `media_chunk_size`            | `50`    | How many media items to fetch and render at a time (e.g. thumbnails under a live view, or number of snapshots to load in the media viewer). This may only make partial sense in some contexts (e.g. the 'infinite gallery' is still infinite, it just loads thumbnails this many items at a time) or not at all (e.g. the timeline will show the number of events dictated by the time span the user navigates to). |
+| Option                             | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `animated_progress_indicator`      | `true`     | Will show the animated progress indicator 'spinner' when `true` or a simple loading icon when `false`.                                                                                                                                                                                                                                                                                                              |
+| `media_chunk_size`                 | `50`       | How many media items to fetch and render at a time (e.g. thumbnails under a live view, or number of snapshots to load in the media viewer). This may only make partial sense in some contexts (e.g. the 'infinite gallery' is still infinite, it just loads thumbnails this many items at a time) or not at all (e.g. the timeline will show the number of events dictated by the time span the user navigates to). |
+| `max_simultaneous_engine_requests` | _Infinity_ | How many camera engine requests to allow occur in parallel. Setting lower values will slow the card down since more requests will run in sequence, but it will increase the chances of positive cache hit rates and reduce the chances of overwhelming the backend.                                                                                                                                                 |
 
 ### `style`
 
@@ -59,6 +60,7 @@ performance:
   features:
     animated_progress_indicator: true
     media_chunk_size: 50
+    max_simultaneous_engine_requests: 100
   style:
     border_radius: true
     box_shadow: true

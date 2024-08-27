@@ -401,6 +401,7 @@
       "features": {
         "animated_progress_indicator": "Indicador de Carregamento Animado",
         "editor_label": "Opções de recursos",
+        "max_simultaneous_engine_requests": "",
         "media_chunk_size": "Tamanho do bloco de mídia"
       },
       "style": {

@@ -1913,6 +1913,7 @@ export const performanceConfigSchema = z
           .min(0)
           .max(MEDIA_CHUNK_SIZE_MAX)
           .default(performanceConfigDefault.features.media_chunk_size),
+        max_simultaneous_engine_requests: z.number().min(1).optional(),
       })
       .default(performanceConfigDefault.features),
     style: z

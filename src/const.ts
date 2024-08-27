@@ -348,6 +348,7 @@ export const CONF_OVERRIDES = 'overrides' as const;
 const CONF_PERFORMANCE = 'performance' as const;
 export const CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR = `${CONF_PERFORMANCE}.features.animated_progress_indicator`;
 export const CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE = `${CONF_PERFORMANCE}.features.media_chunk_size`;
+export const CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS = `${CONF_PERFORMANCE}.features.max_simultaneous_engine_requests`;
 export const CONF_PERFORMANCE_PROFILE = `${CONF_PERFORMANCE}.profile`;
 export const CONF_PERFORMANCE_STYLE_BOX_SHADOW = `${CONF_PERFORMANCE}.style.box_shadow`;
 export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.border_radius`;

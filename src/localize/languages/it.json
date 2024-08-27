@@ -401,6 +401,7 @@
       "features": {
         "animated_progress_indicator": "Indicatore di avanzamento animato",
         "editor_label": "Opzioni funzionalità",
+        "max_simultaneous_engine_requests": "",
         "media_chunk_size": "Dimensione del blocco multimediale"
       },
       "style": {
