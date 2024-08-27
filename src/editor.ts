@@ -171,6 +171,7 @@ import {
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
+  CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS,
   CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE,
   CONF_PERFORMANCE_PROFILE,
   CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
@@ -2790,6 +2791,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ${this._renderNumberInput(CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE, {
                     max: MEDIA_CHUNK_SIZE_MAX,
                   })}
+                  ${this._renderNumberInput(
+                    CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS,
+                    {
+                      min: 1,
+                    },
+                  )}
                 `,
               )}
               ${this._putInSubmenu(

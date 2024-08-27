@@ -401,6 +401,7 @@
       "features": {
         "animated_progress_indicator": "Indicador animat del progrés",
         "editor_label": "Opcions de característiques",
+        "max_simultaneous_engine_requests": "",
         "media_chunk_size": "Mida del fragment multimèdia"
       },
       "style": {

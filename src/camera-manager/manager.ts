@@ -112,6 +112,7 @@ export class CameraManager {
   protected _engineFactory: CameraManagerEngineFactory;
   protected _store: CameraManagerStore;
   protected _initializationLimit = new PQueue({ concurrency: 1 });
+  protected _requestLimit = new PQueue();
 
   constructor(
     api: CardCameraAPI,
@@ -134,6 +135,9 @@ export class CameraManager {
     if (!config || !hass) {
       return false;
     }
+
+    this._requestLimit.concurrency =
+      config.performance.features.max_simultaneous_engine_requests ?? Infinity;
 
     // For each camera merge the config (which has no defaults) into the camera
     // global config (which does have defaults). The merging must happen in this
@@ -535,7 +539,10 @@ export class CameraManager {
     }
 
     const queryStartTime = new Date();
-    await engine.favoriteMedia(hass, cameraConfig, media, favorite);
+
+    await this._requestLimit.add(() =>
+      engine.favoriteMedia(hass, cameraConfig, media, favorite),
+    );
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
@@ -590,7 +597,11 @@ export class CameraManager {
       return null;
     }
 
-    return await engine.getMediaSeekTime(hass, this._store, media, target);
+    return (
+      (await this._requestLimit.add(() =>
+        engine.getMediaSeekTime(hass, this._store, media, target),
+      )) ?? null
+    );
   }
 
   protected async _handleQuery<QT extends DataQuery>(
@@ -653,7 +664,9 @@ export class CameraManager {
       }
       await Promise.all(
         Array.from(engines.keys()).map((engine) =>
-          processEngineQuery(engine, { ...query, cameraIDs: engines.get(engine) }),
+          this._requestLimit.add(() =>
+            processEngineQuery(engine, { ...query, cameraIDs: engines.get(engine) }),
+          ),
         ),
       );
     };
@@ -789,6 +802,8 @@ export class CameraManager {
     if (!engine || !hass) {
       return;
     }
-    return await engine.executePTZAction(hass, cameraConfig, action, options);
+    return await this._requestLimit.add(() =>
+      engine.executePTZAction(hass, cameraConfig, action, options),
+    );
   }
 }

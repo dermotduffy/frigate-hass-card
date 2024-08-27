@@ -401,6 +401,7 @@
       "features": {
         "animated_progress_indicator": "Animação na barra de progresso",
         "editor_label": "Editor de etiquetas",
+        "max_simultaneous_engine_requests": "",
         "media_chunk_size": "Tamanho do ficheiro"
       },
       "style": {
