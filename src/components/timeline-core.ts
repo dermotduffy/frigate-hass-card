@@ -678,13 +678,6 @@ export class FrigateCardTimelineCore extends LitElement {
         query: mediaQuery,
       },
       queryExecutorOptions: {
-        // Reject the new results unless there is something to be gained (i.e. they
-        // are not a subset of the existing results). Example usecase: On initial
-        // view load in mini timeline mode, the first 50 events are fetched -- the
-        // first drag of the timeline should not dispatch new results unless
-        // something is actually useful (as otherwise it creates a visible 'flicker'
-        // for the user as the viewer reloads all the media).
-        rejectResults: (results) => !!view.queryResults?.isSupersetOf(results),
         selectResult: {
           id:
             this.viewManagerEpoch?.manager

@@ -124,6 +124,10 @@ describe('errorToConsole', () => {
     errorToConsole(error, func);
     expect(func).toHaveBeenCalledWith('ERROR');
   });
+  it('should log string', () => {
+    errorToConsole('string message');
+    expect(spy).toHaveBeenCalledWith('string message');
+  });
 });
 
 describe('isHoverableDevice', () => {
