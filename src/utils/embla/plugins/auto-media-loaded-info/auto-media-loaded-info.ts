@@ -46,7 +46,9 @@ function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
   function mediaLoadedInfoHandler(ev: CustomEvent<MediaLoadedInfo>): void {
     const eventPath = ev.composedPath();
 
-    for (const [index, slide] of slides.entries()) {
+    // As an optimization, the most recent slide is the one at the end. That's
+    // where most users are spending time, so start the search there.
+    for (const [index, slide] of [...slides.entries()].reverse()) {
       if (eventPath.includes(slide)) {
         mediaLoadedInfo[index] = ev.detail;
         if (index !== emblaApi.selectedScrollSnap()) {
@@ -76,7 +78,8 @@ function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
     const savedMediaLoadedInfo: MediaLoadedInfo | undefined = mediaLoadedInfo[index];
     if (savedMediaLoadedInfo) {
       dispatchExistingMediaLoadedInfoAsEvent(
-        emblaApi.containerNode(),
+        // Event is redispatched from source element.
+        slides[index],
         savedMediaLoadedInfo,
       );
     }

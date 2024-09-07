@@ -12,6 +12,14 @@
   justify-content: space-between;
 }
 
+/*******************************************************
+ * Non-hover styles should not interact with the pointer
+ *******************************************************/
+
+:host(:not([data-style*='hover'])) {
+  pointer-events: none;
+}
+
 /***********************************
  * Aligned divs: matching & opposing
  ***********************************/

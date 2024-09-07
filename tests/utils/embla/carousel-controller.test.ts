@@ -4,13 +4,13 @@ import { CarouselController } from '../../../src/utils/embla/carousel-controller
 import AutoMediaLoadedInfo from '../../../src/utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info';
 import {
   MutationObserverMock,
+  callMutationHandler,
   createParent,
   createSlot,
   createSlotHost,
 } from '../../test-utils';
 import {
   callEmblaHandler,
-  callMutationHandler,
   createEmblaApiInstance,
   createTestSlideNodes,
 } from './test-utils';

@@ -16,6 +16,7 @@ export const createTestEmblaOptionHandler = (): OptionsHandlerType => ({
   optionsAtMedia: <Type extends LooseOptionsType>(options: Type): Type => {
     return options;
   },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   optionsMediaQueries: (_optionsList: LooseOptionsType[]): MediaQueryList[] => [],
 });
 
@@ -34,27 +35,13 @@ export const callEmblaHandler = (
   }
 };
 
-export const callVisibilityHandler = (): void => {
+export const callVisibilityHandler = async (): Promise<void> => {
   const mock = vi.mocked(global.document.addEventListener).mock;
   for (const [evt, cb] of mock.calls) {
     if (evt === 'visibilitychange' && typeof cb === 'function') {
-      cb(new Event('foo'));
+      await (cb as EventListener | ((_: unknown) => Promise<void>))(new Event('foo'));
     }
   }
-};
-
-export const callMutationHandler = (n = 0): void => {
-  const mockResult = vi.mocked(MutationObserver).mock.results[n];
-  if (mockResult.type !== 'return') {
-    return;
-  }
-  const observer = mockResult.value;
-  vi.mocked(MutationObserver).mock.calls[n][0](
-    // Note this is a very incomplete / invalid IntersectionObserverEntry that
-    // just provides the bare basics current implementation uses.
-    [],
-    observer,
-  );
 };
 
 export const callResizeHandler = (
@@ -110,5 +97,6 @@ export const createEmblaApiInstance = (options?: {
 };
 
 export const createTestSlideNodes = (options?: { n?: number }): HTMLElement[] => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return [...Array(options?.n ?? 10).keys()].map((_) => document.createElement('div'));
 };
