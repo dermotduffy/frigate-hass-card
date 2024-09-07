@@ -1,5 +1,3 @@
-!> This documentation is for the unreleased `dev` branch! See the [Github README](https://github.com/dermotduffy/frigate-hass-card?tab=readme-ov-file#frigate-lovelace-card) for documentation of the released version.
-
 # Getting Started
 
 ## Installation
