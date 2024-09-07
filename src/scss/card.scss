@@ -183,7 +183,7 @@ web-dialog::part(dialog) {
  * Overlay styles
  ****************/
 frigate-card-overlay {
-  z-index: 1;
+  z-index: 10;
 }
 
 /*******************
@@ -191,7 +191,7 @@ frigate-card-overlay {
  *******************/
 
 frigate-card-menu[data-style*='hover'] {
-  z-index: 4;
+  z-index: 20;
   transition: opacity 0.5s ease;
   opacity: 0;
 }
@@ -205,7 +205,6 @@ frigate-card-menu[data-style*='hover']:hover,
  *************************/
 
 frigate-card-status-bar[data-style*='hover'] {
-  z-index: 3;
   transition: opacity 0.5s ease;
   opacity: 0;
 }
