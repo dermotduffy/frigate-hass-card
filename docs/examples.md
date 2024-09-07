@@ -713,6 +713,8 @@ status_bar:
 
 This example shows an icon and a message on the status bar when a camera is triggered, replacing the existing contents of the status bar through the use of `exclusive`.
 
+![](images/dynamic-status.gif 'Dynamic Status Messages :size=400')
+
 ```yaml
 type: custom:frigate-card
 cameras:

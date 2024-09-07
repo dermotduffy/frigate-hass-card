@@ -91,6 +91,12 @@ cameras of different dimensions, and custom submenus per camera.
 
 ![](images/video-scrubbing.gif 'Video scrubbing :size=400')
 
+## Status Bar
+
+### Dynamic Status Messages
+
+![](images/dynamic-status.gif 'Dynamic Status Messages :size=400')
+
 ## Submenus
 
 ![](images/submenu.gif 'Configurable submenus :size=400')
