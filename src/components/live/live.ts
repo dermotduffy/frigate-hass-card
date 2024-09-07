@@ -47,7 +47,6 @@ import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
 import { aspectRatioToString, contentsChanged } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
-import { AutoMediaActions } from '../../utils/embla/plugins/auto-media-actions/auto-media-actions.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
 import { getStateObjOrDispatchError } from '../../utils/get-state-obj.js';
@@ -62,6 +61,7 @@ import '../next-prev-control.js';
 import '../ptz.js';
 import { FrigateCardPTZ } from '../ptz.js';
 import '../surround.js';
+import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 
 const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
 
@@ -290,9 +290,32 @@ export class FrigateCardLiveCarousel extends LitElement {
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
   protected _refPTZControl: Ref<FrigateCardPTZ> = createRef();
+  protected _refCarousel: Ref<HTMLElement> = createRef();
+
+  protected _mediaActionsController = new MediaActionsController();
 
   @state()
   protected _mediaHasLoaded = false;
+
+  public connectedCallback(): void {
+    super.connectedCallback();
+
+    // Request update in order to reinitialize the media action controller.
+    this.requestUpdate();
+  }
+
+  public disconnectedCallback(): void {
+    this._mediaActionsController.destroy();
+    super.disconnectedCallback();
+  }
+
+  updated(changedProperties: PropertyValues): void {
+    super.updated(changedProperties);
+
+    if (!this._mediaActionsController.hasRoot() && this._refCarousel.value) {
+      this._mediaActionsController.initialize(this._refCarousel.value);
+    }
+  }
 
   protected _getTransitionEffect(): TransitionEffect {
     return (
@@ -312,19 +335,12 @@ export class FrigateCardLiveCarousel extends LitElement {
     return Math.max(0, Array.from(cameraIDs).indexOf(view.camera));
   }
 
-  protected _getPlugins(): EmblaCarouselPlugins {
-    return [
-      AutoLazyLoad({
-        ...(this.overriddenLiveConfig?.lazy_load && {
-          lazyLoadCallback: (index, slide) =>
-            this._lazyloadOrUnloadSlide('load', index, slide),
-        }),
-        lazyUnloadConditions: this.overriddenLiveConfig?.lazy_unload,
-        lazyUnloadCallback: (index, slide) =>
-          this._lazyloadOrUnloadSlide('unload', index, slide),
-      }),
-      AutoMediaLoadedInfo(),
-      AutoMediaActions({
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (
+      changedProps.has('microphoneManager') ||
+      changedProps.has('overriddenLiveConfig')
+    ) {
+      this._mediaActionsController.setOptions({
         playerSelector: FRIGATE_CARD_LIVE_PROVIDER,
         ...(this.overriddenLiveConfig?.auto_play && {
           autoPlayConditions: this.overriddenLiveConfig.auto_play,
@@ -344,7 +360,33 @@ export class FrigateCardLiveCarousel extends LitElement {
           microphoneMuteSeconds:
             this.overriddenLiveConfig.microphone.mute_after_microphone_mute_seconds,
         }),
+      });
+    }
+
+    if (changedProps.has('viewManagerEpoch')) {
+      if (
+        this.viewFilterCameraID &&
+        this.viewManagerEpoch?.manager.getView()?.camera !== this.viewFilterCameraID
+      ) {
+        this._mediaActionsController.unselectAll();
+      } else {
+        this._mediaActionsController.select(this._getSelectedCameraIndex());
+      }
+    }
+  }
+
+  protected _getPlugins(): EmblaCarouselPlugins {
+    return [
+      AutoLazyLoad({
+        ...(this.overriddenLiveConfig?.lazy_load && {
+          lazyLoadCallback: (index, slide) =>
+            this._lazyloadOrUnloadSlide('load', index, slide),
+        }),
+        lazyUnloadConditions: this.overriddenLiveConfig?.lazy_unload,
+        lazyUnloadCallback: (index, slide) =>
+          this._lazyloadOrUnloadSlide('unload', index, slide),
       }),
+      AutoMediaLoadedInfo(),
       AutoSize(),
     ];
   }
@@ -541,15 +583,10 @@ export class FrigateCardLiveCarousel extends LitElement {
     // Notes on the below:
     // - guard() is used to avoid reseting the carousel unless the
     //   options/plugins actually change.
-    // - the 'carousel:settle' event is listened for (instead of
-    //   'carousel:select') to only trigger the view change (which subsequently
-    //   fetches thumbnails) after the carousel has stopped moving. This gives a
-    //   much smoother carousel experience since network fetches are not at the
-    //   same time as carousel movement (at a cost of fetching thumbnails a
-    //   little later).
 
     return html`
       <frigate-card-carousel
+        ${ref(this._refCarousel)}
         .loop=${hasMultipleCameras}
         .dragEnabled=${hasMultipleCameras && this.overriddenLiveConfig?.draggable}
         .plugins=${guard(
@@ -748,7 +785,7 @@ export class FrigateCardLiveProvider
     );
   }
 
-  disconnectedCallback(): void {
+  public disconnectedCallback(): void {
     this._isVideoMediaLoaded = false;
   }
 

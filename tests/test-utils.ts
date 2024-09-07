@@ -385,16 +385,41 @@ export const requestAnimationFrameMock = (callback: FrameRequestCallback) => {
   return 1;
 };
 
-export const callIntersectionHandler = (intersecting = true, n = 0): void => {
+export const callIntersectionHandler = async (
+  intersecting = true,
+  n = 0,
+): Promise<void> => {
   const mockResult = vi.mocked(IntersectionObserver).mock.results[n];
   if (mockResult.type !== 'return') {
     return;
   }
   const observer = mockResult.value;
-  vi.mocked(IntersectionObserver).mock.calls[n][0](
+  await (
+    vi.mocked(IntersectionObserver).mock.calls[n][0] as
+      | IntersectionObserverCallback
+      | ((_: unknown) => Promise<void>)
+  )(
     // Note this is a very incomplete / invalid IntersectionObserverEntry that
     // just provides the bare basics current implementation uses.
     intersecting ? [{ isIntersecting: true } as IntersectionObserverEntry] : [],
+    observer,
+  );
+};
+
+export const callMutationHandler = async (n = 0): Promise<void> => {
+  const mockResult = vi.mocked(MutationObserver).mock.results[n];
+  if (mockResult.type !== 'return') {
+    return;
+  }
+  const observer = mockResult.value;
+  await (
+    vi.mocked(MutationObserver).mock.calls[n][0] as
+      | MutationCallback
+      | ((_: unknown) => Promise<void>)
+  )(
+    // Note this is a very incomplete / invalid IntersectionObserverEntry that
+    // just provides the bare basics current implementation uses.
+    [],
     observer,
   );
 };

@@ -13,6 +13,7 @@ import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { RemoveContextPropertyViewModifier } from '../card-controller/view/modifiers/remove-context-property.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
+import { MediaActionsController } from '../components-lib/media-actions-controller.js';
 import { MediaGridSelected } from '../components-lib/media-grid-controller.js';
 import { ZoomSettingsObserved } from '../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-view-context.js';
@@ -47,7 +48,6 @@ import {
 } from '../utils/basic.js';
 import { CarouselSelected } from '../utils/embla/carousel-controller.js';
 import { AutoLazyLoad } from '../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
-import { AutoMediaActions } from '../utils/embla/plugins/auto-media-actions/auto-media-actions.js';
 import AutoMediaLoadedInfo from '../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../utils/embla/plugins/auto-size/auto-size.js';
 import { canonicalizeHAURL } from '../utils/ha/index.js';
@@ -189,12 +189,10 @@ export class FrigateCardViewerCarousel extends LitElement {
   protected _selected = 0;
 
   protected _media: ViewMedia[] | null = null;
+  protected _mediaActionsController = new MediaActionsController();
   protected _player: FrigateCardMediaPlayer | null = null;
+  protected _refCarousel: Ref<HTMLElement> = createRef();
 
-  /**
-   * The updated lifecycle callback for this element.
-   * @param changedProperties The properties that were changed in this render.
-   */
   updated(changedProperties: PropertyValues): void {
     super.updated(changedProperties);
 
@@ -209,6 +207,22 @@ export class FrigateCardViewerCarousel extends LitElement {
         this._seekHandler();
       }
     }
+
+    if (!this._mediaActionsController.hasRoot() && this._refCarousel.value) {
+      this._mediaActionsController.initialize(this._refCarousel.value);
+    }
+  }
+
+  public connectedCallback(): void {
+    super.connectedCallback();
+
+    // Request update in order to reinitialize the media action controller.
+    this.requestUpdate();
+  }
+
+  public disconnectedCallback(): void {
+    this._mediaActionsController.destroy();
+    super.disconnectedCallback();
   }
 
   /**
@@ -234,21 +248,6 @@ export class FrigateCardViewerCarousel extends LitElement {
         }),
       }),
       AutoMediaLoadedInfo(),
-      AutoMediaActions({
-        playerSelector: FRIGATE_CARD_VIEWER_PROVIDER,
-        ...(this.viewerConfig?.auto_play && {
-          autoPlayConditions: this.viewerConfig.auto_play,
-        }),
-        ...(this.viewerConfig?.auto_pause && {
-          autoPauseConditions: this.viewerConfig.auto_pause,
-        }),
-        ...(this.viewerConfig?.auto_mute && {
-          autoMuteConditions: this.viewerConfig.auto_mute,
-        }),
-        ...(this.viewerConfig?.auto_unmute && {
-          autoUnmuteConditions: this.viewerConfig.auto_unmute,
-        }),
-      }),
       AutoSize(),
     ];
   }
@@ -356,6 +355,24 @@ export class FrigateCardViewerCarousel extends LitElement {
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('viewerConfig')) {
+      this._mediaActionsController.setOptions({
+        playerSelector: FRIGATE_CARD_VIEWER_PROVIDER,
+        ...(this.viewerConfig?.auto_play && {
+          autoPlayConditions: this.viewerConfig.auto_play,
+        }),
+        ...(this.viewerConfig?.auto_pause && {
+          autoPauseConditions: this.viewerConfig.auto_pause,
+        }),
+        ...(this.viewerConfig?.auto_mute && {
+          autoMuteConditions: this.viewerConfig.auto_mute,
+        }),
+        ...(this.viewerConfig?.auto_unmute && {
+          autoUnmuteConditions: this.viewerConfig.auto_unmute,
+        }),
+      });
+    }
+
     if (changedProps.has('viewManagerEpoch')) {
       const view = this.viewManagerEpoch?.manager.getView();
       const newMedia = view?.queryResults?.getResults(this.viewFilterCameraID) ?? null;
@@ -367,6 +384,12 @@ export class FrigateCardViewerCarousel extends LitElement {
         setOrRemoveAttribute(this, false, 'unseekable');
         this._media = newMedia;
         this._selected = newSelected;
+      }
+
+      if (!newMedia) {
+        this._mediaActionsController.unselectAll();
+      } else {
+        this._mediaActionsController.select(newSelected);
       }
     }
   }
@@ -405,6 +428,7 @@ export class FrigateCardViewerCarousel extends LitElement {
 
     return html`
       <frigate-card-carousel
+        ${ref(this._refCarousel)}
         .dragEnabled=${this.viewerConfig?.draggable ?? true}
         .plugins=${guard([this.viewerConfig, this._media], this._getPlugins.bind(this))}
         .selected=${this._selected}
