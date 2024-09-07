@@ -300,7 +300,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
 
-        // Request update in order to reinitialize the media action controller.
+    // Request update in order to reinitialize the media action controller.
     this.requestUpdate();
   }
 
