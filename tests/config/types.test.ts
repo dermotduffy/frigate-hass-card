@@ -24,6 +24,7 @@ describe('config defaults', () => {
           client_id: 'frigate',
         },
         image: {
+          mode: 'auto',
           refresh_seconds: 1,
         },
         live_provider: 'auto',
@@ -58,7 +59,7 @@ describe('config defaults', () => {
         min_height: '100px',
       },
       image: {
-        mode: 'url',
+        mode: 'auto',
         refresh_seconds: 1,
       },
       live: {

@@ -31,6 +31,10 @@ export const CONF_CAMERAS_ARRAY_GO2RTC_STREAM =
   `${CONF_CAMERAS}.#.go2rtc.stream` as const;
 export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
+export const CONF_CAMERAS_ARRAY_IMAGE_ENTITY = `${CONF_CAMERAS}.#.image.entity` as const;
+export const CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS =
+  `${CONF_CAMERAS}.#.image.entity_parameters` as const;
+export const CONF_CAMERAS_ARRAY_IMAGE_MODE = `${CONF_CAMERAS}.#.image.mode` as const;
 export const CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS =
   `${CONF_CAMERAS}.#.image.refresh_seconds` as const;
 export const CONF_CAMERAS_ARRAY_IMAGE_URL = `${CONF_CAMERAS}.#.image.url` as const;
@@ -290,6 +294,8 @@ export const CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED =
 export const CONF_LIVE_ZOOMABLE = `${CONF_LIVE}.zoomable` as const;
 
 const CONF_IMAGE = 'image' as const;
+export const CONF_IMAGE_ENTITY = `${CONF_IMAGE}.entity` as const;
+export const CONF_IMAGE_ENTITY_PARAMETERS = `${CONF_IMAGE}.entity_parameters` as const;
 export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;

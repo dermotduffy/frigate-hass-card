@@ -219,6 +219,19 @@
         "grid_selected_width_factor": "Augmenter la largeur du média sélectionnée par ce facteur",
         "mode": "Mode"
       },
+      "image": {
+        "entity": "",
+        "entity_parameters": "",
+        "mode": "Mode d'affichage des images",
+        "modes": {
+          "camera": "Instantané de la caméra Home Assistant de l'entité caméra",
+          "entity": "",
+          "screensaver": "Logo Frigate intégré",
+          "url": "Image arbitraire spécifiée par URL"
+        },
+        "refresh_seconds": "Nombre de secondes après lesquelles actualiser (0=jamais)",
+        "url": "URL d'image statique pour l'affichage de l'image"
+      },
       "media_action_conditions": {
         "all": "Toutes les opportunités",
         "hidden": "Sur le navigateur/onglet masqué",
@@ -256,17 +269,6 @@
       },
       "max_height": "Hauteur maximale de la carte en unités CSS (par exemple '100vh')",
       "min_height": "Hauteur minimale de la carte en unités CSS (par exemple « 100 px »)"
-    },
-    "image": {
-      "mode": "Mode d'affichage des images",
-      "modes": {
-        "camera": "Instantané de la caméra Home Assistant de l'entité caméra",
-        "screensaver": "Logo Frigate intégré",
-        "url": "Image arbitraire spécifiée par URL"
-      },
-      "refresh_seconds": "Nombre de secondes après lesquelles actualiser (0=jamais)",
-      "url": "URL d'image statique pour l'affichage de l'image",
-      "zoomable": "L'image peut être zoomée/panoramique"
     },
     "live": {
       "auto_mute": "Couper automatiquement le son des caméras en direct",

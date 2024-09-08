@@ -356,7 +356,11 @@ cameras:
   - camera_entity: camera.back_yard
     live_provider: image
     image:
+      mode: auto
       refresh_seconds: 1
+      url: 'https://path/to/image.png'
+      entity: image.office_person
+      entity_parameters: 'width=400&height=200'
   - camera_entity: camera.office_motioneye
     motioneye:
       images:
