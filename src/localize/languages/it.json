@@ -231,7 +231,7 @@
         },
         "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)",
         "url": "URL di immagine statica per la vista dell'immagine"
-      },  
+      },
       "media_action_conditions": {
         "all": "Tutte le opportunità",
         "hidden": "Sul browser/nascondere le schede",
