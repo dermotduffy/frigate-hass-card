@@ -4123,7 +4123,7 @@ __metadata:
     rollup-plugin-serve: "npm:^1.1.1"
     rollup-plugin-styler: "npm:^1.8.0"
     rollup-plugin-visualizer: "npm:^5.12.0"
-    sass: "npm:^1.77.4"
+    sass: "patch:sass@npm%3A1.77.4#~/.yarn/patches/sass-npm-1.77.4-13b6910aea.patch"
     screenfull: "npm:^6.0.2"
     side-drawer: "npm:^3.1.0"
     ts-prune: "npm:^0.10.3"
@@ -7671,7 +7671,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.77.4":
+"sass@npm:1.77.4":
   version: 1.77.4
   resolution: "sass@npm:1.77.4"
   dependencies:
@@ -7681,6 +7681,19 @@ __metadata:
   bin:
     sass: sass.js
   checksum: 10c0/b9cb4882bded282aabe38d011adfce375e1f282184fcf93dc3da5d5be834c6aa53c474c15634c351ef7bd85146cfd1cc81343654cc3bcf000d78e856da4225ef
+  languageName: node
+  linkType: hard
+
+"sass@patch:sass@npm%3A1.77.4#~/.yarn/patches/sass-npm-1.77.4-13b6910aea.patch":
+  version: 1.77.4
+  resolution: "sass@patch:sass@npm%3A1.77.4#~/.yarn/patches/sass-npm-1.77.4-13b6910aea.patch::version=1.77.4&hash=0f2bd0"
+  dependencies:
+    chokidar: "npm:>=3.0.0 <4.0.0"
+    immutable: "npm:^4.0.0"
+    source-map-js: "npm:>=0.6.2 <2.0.0"
+  bin:
+    sass: sass.js
+  checksum: 10c0/39f768553fa1a29e4cfc11b672080c1a29a6b2565378ba0cca6b56604fb40db2d25dc224cbfcfac4caf0d448a154dae1fdfd1cd674a2f8396548ea8c0a43f868
   languageName: node
   linkType: hard
 
