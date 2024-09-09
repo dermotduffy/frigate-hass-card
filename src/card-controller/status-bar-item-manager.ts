@@ -48,7 +48,7 @@ export class StatusBarItemManager {
     const engineLogoIcon = cameraMetadata?.engineLogo ?? null;
     const title = options?.view?.is('live')
       ? cameraMetadata?.title ?? null
-      : options?.view?.isAnyMediaView()
+      : options?.view?.isViewerView()
         ? options?.view.queryResults?.getSelectedResult()?.getTitle() ?? null
         : null;
     const resolution = options?.mediaLoadedInfo

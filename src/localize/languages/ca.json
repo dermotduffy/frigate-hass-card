@@ -219,6 +219,19 @@
         "grid_selected_width_factor": "Augmenta l'amplada del suport multimèdia seleccionat en aquest factor",
         "mode": "Mode"
       },
+      "image": {
+        "entity": "",
+        "entity_parameters": "",
+        "mode": "Mode de visualització d'imatges",
+        "modes": {
+          "camera": "Instantània de l'entitat de la càmera de Home Assistant",
+          "entity": "",
+          "screensaver": "Logotip de Frigate incrustat",
+          "url": "Imatge arbitrària especificada per URL"
+        },
+        "refresh_seconds": "Nombre de segons després dels quals cal actualitzar (0=mai)",
+        "url": "URL d'imatge estàtica per a la visualització d'imatges"
+      },
       "media_action_conditions": {
         "all": "Totes les oportunitats",
         "hidden": "A l'amagat del navegador/pestanya",
@@ -256,17 +269,6 @@
       },
       "max_height": "Alçada màxima de la targeta en unitats CSS (p. ex., '100vh')",
       "min_height": "Alçada mínima de la targeta en unitats CSS (p. ex., '100 px')"
-    },
-    "image": {
-      "mode": "Mode de visualització d'imatges",
-      "modes": {
-        "camera": "Instantània de l'entitat de la càmera de Home Assistant",
-        "screensaver": "Logotip de Frigate incrustat",
-        "url": "Imatge arbitrària especificada per URL"
-      },
-      "refresh_seconds": "Nombre de segons després dels quals cal actualitzar (0=mai)",
-      "url": "URL d'imatge estàtica per a la visualització d'imatges",
-      "zoomable": "La imatge es pot ampliar/escombrar"
     },
     "live": {
       "auto_mute": "Silencia automàticament les càmeres en directe",

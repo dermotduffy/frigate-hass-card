@@ -219,6 +219,19 @@
         "grid_selected_width_factor": "Increase selected media width by this factor",
         "mode": "Mode"
       },
+      "image": {
+        "entity": "Entity for use with entity mode",
+        "entity_parameters": "Query parameters added to the entity-based picture URLs (e.g. width=1920&height=1080)",
+        "mode": "Image mode",
+        "modes": {
+          "camera": "Home Assistant camera snapshot of camera entity",
+          "entity": "Entity with entity_picture attribute",
+          "screensaver": "Embedded Frigate logo",
+          "url": "Arbitrary image specified by URL"
+        },
+        "refresh_seconds": "Number of seconds after which to refresh (0=never)",
+        "url": "Static image URL"
+      },
       "media_action_conditions": {
         "all": "All opportunities",
         "hidden": "On browser/tab hiding",
@@ -256,17 +269,6 @@
       },
       "max_height": "Maximum card height in CSS units (e.g. '100vh')",
       "min_height": "Minimum card height in CSS units (e.g. '100px')"
-    },
-    "image": {
-      "mode": "Image view mode",
-      "modes": {
-        "camera": "Home Assistant camera snapshot of camera entity",
-        "screensaver": "Embedded Frigate logo",
-        "url": "Arbitrary image specified by URL"
-      },
-      "refresh_seconds": "Number of seconds after which to refresh (0=never)",
-      "url": "Static image URL for image view",
-      "zoomable": "Image can be zoomed/panned"
     },
     "live": {
       "auto_mute": "Automatically mute live cameras",

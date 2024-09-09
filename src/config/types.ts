@@ -917,25 +917,25 @@ export type PTZControlsConfig = z.infer<typeof ptzControlsConfigSchema>;
 // `image` card view.
 // *************************************************************************
 
-const imageBaseConfigDefault = {
+const imageConfigDefault = {
+  mode: 'auto' as const,
   refresh_seconds: 1,
 };
 
+const IMAGE_MODES = ['auto', 'camera', 'entity', 'screensaver', 'url'] as const;
+export type ImageMode = (typeof IMAGE_MODES)[number];
+
 const imageBaseConfigSchema = z.object({
+  mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
+
+  refresh_seconds: z.number().min(0).default(imageConfigDefault.refresh_seconds),
+
   url: z.string().optional(),
-  refresh_seconds: z.number().min(0).default(imageBaseConfigDefault.refresh_seconds),
+  entity: z.string().optional(),
+  entity_parameters: z.string().optional(),
 });
 
-const IMAGE_MODES = ['screensaver', 'camera', 'url'] as const;
-const imageConfigDefault = {
-  mode: 'url' as const,
-  ...imageBaseConfigDefault,
-};
-
 const imageConfigSchema = imageBaseConfigSchema
-  .extend({
-    mode: z.enum(IMAGE_MODES).default(imageConfigDefault.mode),
-  })
   .merge(actionsSchema)
   .default(imageConfigDefault);
 export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
@@ -1127,8 +1127,6 @@ const go2rtcConfigSchema = z.object({
   stream: z.string().optional(),
 });
 
-const liveImageConfigSchema = imageBaseConfigSchema;
-
 const webrtcCardConfigSchema = z
   .object({
     entity: z.string().optional(),
@@ -1302,9 +1300,6 @@ const cameraConfigDefault = {
   frigate: {
     client_id: 'frigate' as const,
   },
-  image: {
-    refresh_seconds: 1,
-  },
   live_provider: 'auto' as const,
   motioneye: {
     images: {
@@ -1408,7 +1403,7 @@ export const cameraConfigSchema = z
     // Live provider options.
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
     go2rtc: go2rtcConfigSchema.optional(),
-    image: liveImageConfigSchema.default(cameraConfigDefault.image),
+    image: imageBaseConfigSchema.optional().default(imageConfigDefault),
     jsmpeg: jsmpegConfigSchema.optional(),
     webrtc_card: webrtcCardConfigSchema.optional(),
 

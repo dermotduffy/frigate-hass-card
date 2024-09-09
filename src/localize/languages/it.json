@@ -219,6 +219,19 @@
         "grid_selected_width_factor": "",
         "mode": ""
       },
+      "image": {
+        "entity": "",
+        "entity_parameters": "",
+        "mode": "Modalità Visualizza immagine",
+        "modes": {
+          "camera": "Istantanea della telecamera di Home Assistant dell'entità telecamera",
+          "entity": "",
+          "screensaver": "Logo Frigate incorporato",
+          "url": "Immagine arbitraria specificata dall'URL"
+        },
+        "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)",
+        "url": "URL di immagine statica per la vista dell'immagine"
+      },
       "media_action_conditions": {
         "all": "Tutte le opportunità",
         "hidden": "Sul browser/nascondere le schede",
@@ -256,17 +269,6 @@
       },
       "max_height": "",
       "min_height": ""
-    },
-    "image": {
-      "mode": "Modalità Visualizza immagine",
-      "modes": {
-        "camera": "Istantanea della telecamera di Home Assistant dell'entità telecamera",
-        "screensaver": "Logo Frigate incorporato",
-        "url": "Immagine arbitraria specificata dall'URL"
-      },
-      "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)",
-      "url": "URL di immagine statica per la vista dell'immagine",
-      "zoomable": ""
     },
     "live": {
       "auto_mute": "Muta automaticamente le telecamere in diretta",

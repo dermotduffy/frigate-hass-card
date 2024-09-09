@@ -66,6 +66,9 @@ import {
   CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
+  CONF_CAMERAS_ARRAY_IMAGE_ENTITY,
+  CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS,
+  CONF_CAMERAS_ARRAY_IMAGE_MODE,
   CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
   CONF_CAMERAS_ARRAY_IMAGE_URL,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
@@ -85,6 +88,8 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_MAX_HEIGHT,
   CONF_DIMENSIONS_MIN_HEIGHT,
+  CONF_IMAGE_ENTITY,
+  CONF_IMAGE_ENTITY_PARAMETERS,
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
@@ -519,9 +524,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _imageModes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'camera', label: localize('config.image.modes.camera') },
-    { value: 'screensaver', label: localize('config.image.modes.screensaver') },
-    { value: 'url', label: localize('config.image.modes.url') },
+    { value: 'camera', label: localize('config.common.image.modes.camera') },
+    { value: 'entity', label: localize('config.common.image.modes.entity') },
+    { value: 'screensaver', label: localize('config.common.image.modes.screensaver') },
+    { value: 'url', label: localize('config.common.image.modes.url') },
   ];
 
   protected _timelineEventsMediaTypes: EditorSelectOption[] = [
@@ -1733,6 +1739,36 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     );
   }
 
+  protected _renderImageOptions(
+    configPathMode: string,
+    configPathUrl: string,
+    configPathEntity: string,
+    configPathEntityParameters: string,
+    configPathRefreshSeconds: string,
+  ): TemplateResult {
+    return html`
+      ${this._renderOptionSelector(configPathMode, this._imageModes, {
+        label: localize('config.common.image.mode'),
+      })}
+      ${this._renderStringInput(configPathUrl, {
+        label: localize('config.common.image.url'),
+      })}
+      ${this._renderOptionSelector(
+        configPathEntity,
+        this.hass ? getEntitiesFromHASS(this.hass) : [],
+        {
+          label: localize('config.common.image.entity'),
+        },
+      )}
+      ${this._renderStringInput(configPathEntityParameters, {
+        label: localize('config.common.image.entity_parameters'),
+      })}
+      ${this._renderNumberInput(configPathRefreshSeconds, {
+        label: localize('config.common.image.refresh_seconds'),
+      })}
+    `;
+  }
+
   /**
    * Render a camera section.
    * @param cameras The full array of cameras.
@@ -2006,17 +2042,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   true,
                   'config.cameras.image.editor_label',
                   { name: 'mdi:image' },
-                  html`
-                    ${this._renderNumberInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_URL, cameraIndex),
-                    )}
-                  `,
+                  this._renderImageOptions(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_MODE, cameraIndex),
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_URL, cameraIndex),
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_ENTITY, cameraIndex),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
+                      cameraIndex,
+                    ),
+                  ),
                 )}
                 ${this._putInSubmenu(
                   MENU_CAMERAS_WEBRTC_CARD,
@@ -2725,9 +2763,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._renderOptionSetHeader('image')}
         ${this._expandedMenus[MENU_OPTIONS] === 'image'
           ? html` <div class="values">
-              ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
-              ${this._renderStringInput(CONF_IMAGE_URL)}
-              ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
+              ${this._renderImageOptions(
+                CONF_IMAGE_MODE,
+                CONF_IMAGE_URL,
+                CONF_IMAGE_ENTITY,
+                CONF_IMAGE_ENTITY_PARAMETERS,
+                CONF_IMAGE_REFRESH_SECONDS,
+              )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('timeline')}
