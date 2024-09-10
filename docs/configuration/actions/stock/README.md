@@ -4,6 +4,8 @@
 
 Call a service. See [Home Assistant actions documentation](https://www.home-assistant.io/dashboards/actions/).
 
+!> Home Assistant has deprecated the `call-service` action, please use [`perform-action`](#perform-action) instead.
+
 ```yaml
 action: call-service
 # [...]
@@ -24,6 +26,15 @@ Navigate to a particular dashboard path. See [Home Assistant actions documentati
 
 ```yaml
 action: navigate
+# [...]
+```
+
+## `perform-action`
+
+Perform a Home Assistant action. See [Home Assistant actions documentation](https://www.home-assistant.io/dashboards/actions/).
+
+```yaml
+action: perform-action
 # [...]
 ```
 
@@ -117,4 +128,15 @@ elements:
     tap_action:
       action: fire-dom-event
       key: value
+  - type: icon
+    icon: mdi:numeric-8-box
+    title: Perform action
+    style:
+      left: 200px
+      top: 400px
+    tap_action:
+      action: perform-action
+      perform_action: homeassistant.toggle
+      target:
+        entity_id: light.office_main_lights
 ```

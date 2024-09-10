@@ -229,12 +229,14 @@ export class FrigateCardSubmenuSelect extends LitElement {
         title: title || option,
         ...((entityID.startsWith('select.') || entityID.startsWith('input_select.')) && {
           tap_action: {
-            action: 'call-service',
-            service: entityID.startsWith('select.')
+            action: 'perform-action',
+            perform_action: entityID.startsWith('select.')
               ? 'select.select_option'
               : 'input_select.select_option',
-            data: {
+            target: {
               entity_id: entityID,
+            },
+            data: {
               option: option,
             },
           },

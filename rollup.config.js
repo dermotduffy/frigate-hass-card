@@ -101,7 +101,6 @@ const config = {
   moduleContext: {
     './node_modules/@formatjs/intl-utils/lib/src/diff.js': 'window',
     './node_modules/@formatjs/intl-utils/lib/src/resolve-locale.js': 'window',
-    './node_modules/flatpickr/dist/esm/index.js': 'window',
   },
 };
 

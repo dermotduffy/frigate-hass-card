@@ -1,15 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   getConfiguredPTZAction,
   getConfiguredPTZMovementType,
   getPTZCapabilitiesFromCameraConfig,
 } from '../../../src/camera-manager/utils/ptz';
-import { createCameraConfig } from '../../test-utils';
 import { PTZAction } from '../../../src/config/ptz';
+import { createCameraConfig } from '../../test-utils';
 
 const action = {
-  action: 'call-service' as const,
-  service: 'service',
+  action: 'perform-action' as const,
+  perform_action: 'action',
   data: {
     device: '048123',
     cmd: 'preset',

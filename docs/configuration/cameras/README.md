@@ -210,8 +210,8 @@ the integration currently offers.
 
 | Option                                                                                                                                                                                                                                                                   | Default                                                    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `actions_left`, `actions_right`, `actions_up`, `actions_down`, `actions_zoom_in`, `actions_zoom_out`, `actions_home`                                                                                                                                                     | Set by camera [engine](./engine.md) of the selected camera | The [call-service](../actions/stock/README.md?id=call-service) action that will be called for each PTZ action for relative movements.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `actions_left_start`, `actions_left_stop`, `actions_right_start`, `actions_right_stop`,`actions_up_start`, `actions_up_stop`,`actions_down_start`, `actions_down_stop`,`actions_zoom_in_start`, `actions_zoom_in_stop`,`actions_zoom_out_start`, `actions_zoom_out_stop` | Set by camera [engine](./engine.md) of the selected camera | The [call-service](../actions/stock/README.md?id=call-service) action that will be called for each PTZ action for continous movements. Both a `_start` and `_stop` variety must be provided for an action to be usable.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `actions_left`, `actions_right`, `actions_up`, `actions_down`, `actions_zoom_in`, `actions_zoom_out`, `actions_home`                                                                                                                                                     | Set by camera [engine](./engine.md) of the selected camera | The [perform-action](../actions/stock/README.md?id=perform-action) action that will be called for each PTZ action for relative movements.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `actions_left_start`, `actions_left_stop`, `actions_right_start`, `actions_right_stop`,`actions_up_start`, `actions_up_stop`,`actions_down_start`, `actions_down_stop`,`actions_zoom_in_start`, `actions_zoom_in_stop`,`actions_zoom_out_start`, `actions_zoom_out_stop` | Set by camera [engine](./engine.md) of the selected camera | The [perform-action](../actions/stock/README.md?id=perform-action) action that will be called for each PTZ action for continous movements. Both a `_start` and `_stop` variety must be provided for an action to be usable.                                                                                                                                                                                                                                                                                                                                                                                             |
 | `c2r_delay_between_calls_seconds`                                                                                                                                                                                                                                        | `0.2`                                                      | When the camera is configured with continuous actions only (e.g. `left_start` and `left_stop`, but not `left`), if something requests a relative action (e.g. a manually configured [action](../actions/README.md)), then `start` will be called, followed by a delay of this number of seconds and finally `stop` will be called. Cameras / integrations that are slower to respond to continuous steps may need to increase this value to avoid the continuous motion being too small. Cameras / integrations that are rapid to respond may need to decrease this value to avoid the "relative step" being too large. |
 | `data_left`, `data_right`, `data_up`, `data_down`, `data_zoom_in`, `data_zoom_out`, `data_home`                                                                                                                                                                          |                                                            | Shorthand for relative actions that call the service defined by the `service` parameter, with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[action]`. If both `actions_X` and `data_X` are specified, `actions_X` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples).                                                                                                                                                                                               |
 | `data_left_start`, `data_left_stop`, `data_right_start`, `data_right_stop`, `data_up_start`, `data_up_stop`, `data_down_start`, `data_down_stop`, `data_zoom_in_start`, `data_zoom_in_stop`, `data_zoom_out_start`, `data_zoom_out_stop`                                 |                                                            | Shorthand for continuous actions that call the service defined by the `service` parameter, with the data provided in this argument. Internally, this is just translated into the longer-form `actions_[action]_start` and `actions_[action]_stop`. If both `actions_X_*` and `data_X_*` are specified, `actions_X_*` takes priority. This is compatible with [AlexxIT's WebRTC Card PTZ configuration](https://github.com/AlexxIT/WebRTC/wiki/PTZ-Config-Examples). Both a `_start` and `_stop` variety must be provided for an action to be usable.                                                                    |
@@ -232,7 +232,7 @@ cameras:
           ? [action]
 ```
 
-`[action]` is any [call-service](../actions/stock/README.md?id=call-service) action.
+`[action]` is any [perform-action](../actions/stock/README.md?id=perform-action) action.
 
 ## `triggers`
 
@@ -382,22 +382,22 @@ cameras:
       r2c_delay_between_calls_seconds: 0.5
       # Relative action (only `left` shown)
       actions_left:
-        action: call-service
-        service: service.of_your_choice
+        action: perform-action
+        perform_action: service.of_your_choice
         data:
           device: '048123'
           cmd: left
       # Continuous action (only `right` shown)
       actions_right_start:
-        action: call-service
-        service: service.of_your_choice
+        action: perform-action
+        perform_action: service.of_your_choice
         data:
           device: '048123'
           cmd: right
           phase: start
       actions_right_stop:
-        action: call-service
-        service: service.of_your_choice
+        action: perform-action
+        perform_action: service.of_your_choice
         data:
           device: '048123'
           phase: stop
@@ -419,8 +419,8 @@ cameras:
       presets:
         # Preset using long form.
         armchair:
-          action: call-service
-          service: service.of_your_choice
+        action: perform-action
+        perform_action: service.of_your_choice
           data:
             device: '048123'
             cmd: preset

@@ -1120,8 +1120,8 @@ describe('CameraManager', async () => {
       const hass = createHASS();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
       const action = {
-        action: 'call-service' as const,
-        service: 'service',
+        action: 'perform-action' as const,
+        perform_action: 'action',
       };
       const manager = createCameraManager(api, engine, [
         {
