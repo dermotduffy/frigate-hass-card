@@ -4,12 +4,10 @@
   "service": "dev",
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-      "moby": false,
-      "dockerDashComposeVersion": "v2"
+      "moby": false
     }
   },
   "workspaceFolder": "${localWorkspaceFolder}",
-  "shutdownAction": "stopCompose",
   "forwardPorts": [10001, "hass:8123", "frigate:5000"],
   "portsAttributes": {
     "10001": {
@@ -25,8 +23,8 @@
       "onAutoForward": "silent"
     }
   },
-  "initializeCommand": ".devcontainer/initialize.sh",
-  "postCreateCommand": "yarn install",
+  "initializeCommand": [".devcontainer/initialize.sh"],
+  "postCreateCommand": ["yarn", "install"],
   "customizations": {
     "vscode": {
       "extensions": [
