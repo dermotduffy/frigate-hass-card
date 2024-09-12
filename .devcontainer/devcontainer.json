@@ -2,11 +2,6 @@
 {
   "dockerComposeFile": "../docker-compose.yml",
   "service": "dev",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-      "moby": false
-    }
-  },
   "workspaceFolder": "${localWorkspaceFolder}",
   "forwardPorts": [10001, "hass:8123", "frigate:5000"],
   "portsAttributes": {

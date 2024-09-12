@@ -1,15 +1,12 @@
----
 services:
   dev:
-    init: true
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile
-    network_mode: host
     env_file:
       - .env
     volumes:
-      - /var/run/docker.sock:/var/run/docker-host.sock
+      - /var/run/docker.sock:/var/run/docker.sock
       - .:${LOCAL_WORKSPACE_FOLDER}:cached
   hass:
     extends:
