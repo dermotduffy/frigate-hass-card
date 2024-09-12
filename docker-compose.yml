@@ -1,12 +1,11 @@
 services:
-  dev:
-    build:
-      context: .
-      dockerfile: .devcontainer/Dockerfile
+  devcontainer:
+    build: .devcontainer
+    init: true
     env_file:
       - .env
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker-host.sock
       - .:${LOCAL_WORKSPACE_FOLDER}:cached
   hass:
     extends:
