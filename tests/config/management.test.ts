@@ -813,7 +813,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('should move PTZ elements to live', () => {
-      it('xxx case with 1 element', () => {
+      it('case with 1 element', () => {
         const config = {
           type: 'custom:frigate-card',
           cameras: [{ camera_entity: 'camera.office' }],
