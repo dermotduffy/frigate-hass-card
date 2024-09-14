@@ -131,7 +131,7 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
         this._cachedValueController?.clearValue();
         return true;
       }
-      return false;
+      return !this.hasUpdated;
     }
     return true;
   }

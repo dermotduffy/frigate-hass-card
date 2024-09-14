@@ -603,18 +603,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dermotduffy/custom-card-helpers@npm:^1.9.0":
-  version: 1.9.0
-  resolution: "@dermotduffy/custom-card-helpers@npm:1.9.0"
+"@dermotduffy/custom-card-helpers@npm:^1.9.1":
+  version: 1.9.1
+  resolution: "@dermotduffy/custom-card-helpers@npm:1.9.1"
   dependencies:
     "@formatjs/intl-utils": "npm:^3.8.4"
-    home-assistant-js-websocket: "npm:^6.0.1"
+    home-assistant-js-websocket: "npm:^9.4.0"
     intl-messageformat: "npm:^9.11.1"
     lit: "npm:^2.1.1"
     rollup: "npm:^2.63.0"
     superstruct: "npm:^0.15.3"
     typescript: "npm:^4.5.4"
-  checksum: 10c0/312a31a9abe6ddc37109ffe2725df30e72213b4fa2cceacbb4bdb3712b46a73e49b9fb7fab69dc521050538e882d7180e3d7434011f637a34f2bc9098b880e97
+  checksum: 10c0/e42073e00682195c3d253f9b36dc091f7329a5e2a5cdd395bf0988ec2c8585db887ef772975894e4a1126653a2f3cb348a4ea4c1fbe8ce739002fd0f8461da40
   languageName: node
   linkType: hard
 
@@ -4075,7 +4075,7 @@ __metadata:
     "@babel/plugin-proposal-decorators": "npm:^7.24.7"
     "@babel/plugin-transform-class-properties": "npm:^7.24.7"
     "@cycjimmy/jsmpeg-player": "npm:^6.0.5"
-    "@dermotduffy/custom-card-helpers": "npm:^1.9.0"
+    "@dermotduffy/custom-card-helpers": "npm:^1.9.1"
     "@dermotduffy/panzoom": "npm:^4.5.1"
     "@egjs/hammerjs": "npm:^2.0.17"
     "@graphiteds/core": "npm:^1.9.21"
@@ -4106,7 +4106,7 @@ __metadata:
     eslint-config-airbnb-base: "npm:^15.0.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
-    home-assistant-js-websocket: "npm:^8.2.0"
+    home-assistant-js-websocket: "npm:^9.4.0"
     jsdom: "npm:^21.1.2"
     keycharm: "npm:^0.4.0"
     lit: "npm:^3.1.4"
@@ -4559,17 +4559,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"home-assistant-js-websocket@npm:^6.0.1":
-  version: 6.1.1
-  resolution: "home-assistant-js-websocket@npm:6.1.1"
-  checksum: 10c0/fe00b8d7a681d39b31ac5078b79fa1ef67cccd37df2c7ec31b1ad9ded33c899570b453c9439db71c3bda24df6d0c1e3d9d040583b0717f4630476ab528120a9f
-  languageName: node
-  linkType: hard
-
-"home-assistant-js-websocket@npm:^8.2.0":
-  version: 8.2.0
-  resolution: "home-assistant-js-websocket@npm:8.2.0"
-  checksum: 10c0/9a1f1f5cb39ce0629653347d5ae31a14f14742596c15fea7bd72f4c0ee4ce4613b1172b4f4df52f293b4e5aeb3b5ead75f395d5fe5c4785193e7d00f8355ef5a
+"home-assistant-js-websocket@npm:^9.4.0":
+  version: 9.4.0
+  resolution: "home-assistant-js-websocket@npm:9.4.0"
+  checksum: 10c0/9c8a5ff903648ebe7856f62a58af53e3d89dd24a30c600a2145ed518cd5f5f2218345048cfc42bdc3ee5d6f2994da3948765c77b6012ed56cf4546173a1a1de1
   languageName: node
   linkType: hard
 

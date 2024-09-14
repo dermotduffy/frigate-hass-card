@@ -423,8 +423,8 @@ describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
         expect.objectContaining({
           ptz: expect.objectContaining({
             [`actions_${action}`]: {
-              action: 'call-service',
-              service: 'foo',
+              action: 'perform-action',
+              perform_action: 'foo',
               data: {
                 device: '048123',
                 cmd: action,
@@ -465,8 +465,8 @@ describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
         expect.objectContaining({
           ptz: expect.objectContaining({
             [`actions_${action}_start`]: {
-              action: 'call-service',
-              service: 'foo',
+              action: 'perform-action',
+              perform_action: 'foo',
               data: {
                 device: '048123',
                 cmd: action,
@@ -474,8 +474,8 @@ describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
               },
             },
             [`actions_${action}_stop`]: {
-              action: 'call-service',
-              service: 'foo',
+              action: 'perform-action',
+              perform_action: 'foo',
               data: {
                 device: '048123',
                 cmd: action,
@@ -511,16 +511,16 @@ describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
         ptz: expect.objectContaining({
           presets: {
             home: {
-              action: 'call-service',
-              service: 'service_inner',
+              action: 'perform-action',
+              perform_action: 'service_inner',
               data: {
                 device: '048123',
                 cmd: 'home',
               },
             },
             another: {
-              action: 'call-service',
-              service: 'service_inner',
+              action: 'perform-action',
+              perform_action: 'service_inner',
               data: {
                 device: '048123',
                 cmd: 'another',

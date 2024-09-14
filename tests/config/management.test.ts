@@ -21,6 +21,7 @@ import {
 import { PTZControlAction } from '../../src/config/ptz';
 import {
   Actions,
+  PerformActionActionConfig,
   RawFrigateCardConfig,
   frigateCardConfigSchema,
 } from '../../src/config/types';
@@ -752,8 +753,8 @@ describe('should handle version specific upgrades', () => {
                 color: 'white',
               },
               tap_action: {
-                action: 'call-service',
-                service: 'notify.persistent_notification',
+                action: 'perform-action',
+                perform_action: 'notify.persistent_notification',
                 data: {
                   message: 'Hello 1',
                 },
@@ -773,15 +774,15 @@ describe('should handle version specific upgrades', () => {
           view: {
             actions: {
               double_tap_action: {
-                action: 'call-service',
-                service: 'notify.persistent_notification',
+                action: 'perform-action',
+                perform_action: 'notify.persistent_notification',
                 data: {
                   message: 'Hello 2',
                 },
               },
               hold_action: {
-                action: 'call-service',
-                service: 'notify.persistent_notification',
+                action: 'perform-action',
+                perform_action: 'notify.persistent_notification',
                 data: {
                   message: 'Hello 3',
                 },
@@ -843,11 +844,11 @@ describe('should handle version specific upgrades', () => {
           cameras_global: {
             ptz: {
               actions_up: {
-                action: 'call-service',
+                action: 'perform-action',
                 data: {
                   message: 'Hello 1',
                 },
-                service: 'notify.persistent_notification',
+                perform_action: 'notify.persistent_notification',
               },
             },
           },
@@ -907,11 +908,11 @@ describe('should handle version specific upgrades', () => {
           cameras_global: {
             ptz: {
               actions_up: {
-                action: 'call-service',
+                action: 'perform-action',
                 data: {
                   message: 'Hello 1',
                 },
-                service: 'notify.persistent_notification',
+                perform_action: 'notify.persistent_notification',
               },
             },
           },
@@ -1000,11 +1001,11 @@ describe('should handle version specific upgrades', () => {
           cameras_global: {
             ptz: {
               actions_up: {
-                action: 'call-service',
+                action: 'perform-action',
                 data: {
                   message: 'Hello 1',
                 },
-                service: 'notify.persistent_notification',
+                perform_action: 'notify.persistent_notification',
               },
             },
           },
@@ -1073,11 +1074,11 @@ describe('should handle version specific upgrades', () => {
           cameras_global: {
             ptz: {
               actions_up: {
-                action: 'call-service',
+                action: 'perform-action',
                 data: {
                   message: 'Hello 1',
                 },
-                service: 'notify.persistent_notification',
+                perform_action: 'notify.persistent_notification',
               },
             },
           },
@@ -1160,11 +1161,11 @@ describe('should handle version specific upgrades', () => {
           cameras_global: {
             ptz: {
               actions_up: {
-                action: 'call-service',
+                action: 'perform-action',
                 data: {
                   message: 'Hello 1',
                 },
-                service: 'notify.persistent_notification',
+                perform_action: 'notify.persistent_notification',
               },
             },
           },
@@ -1237,11 +1238,11 @@ describe('should handle version specific upgrades', () => {
           cameras_global: {
             ptz: {
               actions_up: {
-                action: 'call-service',
+                action: 'perform-action',
                 data: {
                   message: 'Original',
                 },
-                service: 'notify.persistent_notification',
+                perform_action: 'notify.persistent_notification',
               },
             },
           },
@@ -2855,7 +2856,7 @@ describe('should handle version specific upgrades', () => {
     });
 
     describe('split live.ptz', () => {
-      const getAction = (action: PTZControlAction): CallServiceActionConfig => ({
+      const getActionBefore = (action: PTZControlAction): CallServiceActionConfig => ({
         action: 'call-service',
         service: 'service',
         data: {
@@ -2863,8 +2864,16 @@ describe('should handle version specific upgrades', () => {
         },
       });
 
+      const getActionAfter = (action: PTZControlAction): PerformActionActionConfig => ({
+        action: 'perform-action',
+        perform_action: 'service',
+        data: {
+          arg: action,
+        },
+      });
+
       const getTapAction = (action: PTZControlAction): Actions => ({
-        tap_action: getAction(action),
+        tap_action: getActionBefore(action),
       });
 
       it('with action_ format', () => {
@@ -2882,7 +2891,7 @@ describe('should handle version specific upgrades', () => {
                 actions_zoom_out: getTapAction('zoom_out'),
                 actions_home: {
                   ...getTapAction('home'),
-                  double_tap_action: getAction('up'),
+                  double_tap_action: getActionBefore('up'),
                 },
 
                 mode: 'auto' as const,
@@ -2907,14 +2916,14 @@ describe('should handle version specific upgrades', () => {
           cameras: [{}],
           cameras_global: {
             ptz: {
-              actions_left: getAction('left'),
-              actions_right: getAction('right'),
-              actions_up: getAction('up'),
-              actions_down: getAction('down'),
-              actions_zoom_in: getAction('zoom_in'),
-              actions_zoom_out: getAction('zoom_out'),
+              actions_left: getActionAfter('left'),
+              actions_right: getActionAfter('right'),
+              actions_up: getActionAfter('up'),
+              actions_down: getActionAfter('down'),
+              actions_zoom_in: getActionAfter('zoom_in'),
+              actions_zoom_out: getActionAfter('zoom_out'),
               presets: {
-                home: getAction('home'),
+                home: getActionAfter('home'),
               },
             },
           },
@@ -3052,7 +3061,7 @@ describe('should handle version specific upgrades', () => {
             controls: {
               ptz: {
                 actions_up: {
-                  double_tap_action: getAction('up'),
+                  double_tap_action: getActionBefore('up'),
                 },
                 actions_down: getTapAction('down'),
               },
@@ -3065,7 +3074,7 @@ describe('should handle version specific upgrades', () => {
           expect.objectContaining({
             cameras_global: {
               ptz: {
-                actions_down: getAction('down'),
+                actions_down: getActionAfter('down'),
               },
             },
           }),
@@ -3081,8 +3090,8 @@ describe('should handle version specific upgrades', () => {
             controls: {
               ptz: {
                 presets: {
-                  home: getAction('left'),
-                  other: getAction('right'),
+                  home: getActionBefore('left'),
+                  other: getActionBefore('right'),
                 },
                 actions_home: getTapAction('home'),
               },
@@ -3096,8 +3105,8 @@ describe('should handle version specific upgrades', () => {
             cameras_global: {
               ptz: {
                 presets: {
-                  other: getAction('right'),
-                  home: getAction('home'),
+                  other: getActionAfter('right'),
+                  home: getActionAfter('home'),
                 },
               },
             },
@@ -3302,6 +3311,61 @@ describe('should handle version specific upgrades', () => {
           postUpgradeChecks(config);
         });
       });
+    });
+
+    it('call-service -> perform-action', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        elements: [
+          {
+            type: 'icon',
+            icon: 'mdi:cow',
+            tap_action: {
+              action: 'call-service',
+              service: 'foo',
+            },
+          },
+        ],
+        view: {
+          actions: {
+            double_tap_action: {
+              action: 'call-service',
+              service: 'bar',
+              data: {
+                key: 'value',
+              },
+            },
+          },
+        },
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        elements: [
+          {
+            type: 'icon',
+            icon: 'mdi:cow',
+            tap_action: {
+              action: 'perform-action',
+              perform_action: 'foo',
+            },
+          },
+        ],
+        view: {
+          actions: {
+            double_tap_action: {
+              action: 'perform-action',
+              perform_action: 'bar',
+              data: {
+                key: 'value',
+              },
+            },
+          },
+        },
+      });
+      postUpgradeChecks(config);
     });
   });
 });

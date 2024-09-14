@@ -4,9 +4,11 @@ import {
   MoreInfoActionConfig,
   NavigateActionConfig,
   NoActionConfig,
+  PerformActionActionConfig,
   ToggleActionConfig,
   UrlActionConfig,
 } from '@dermotduffy/custom-card-helpers';
+import { HassServiceTarget } from 'home-assistant-js-websocket';
 import { z } from 'zod';
 import { MEDIA_CHUNK_SIZE_DEFAULT, MEDIA_CHUNK_SIZE_MAX } from '../const.js';
 import { capabilityKeys } from '../types.js';
@@ -168,6 +170,28 @@ const toggleActionSchema = schemaForType<
   }),
 );
 
+const targetSchema = schemaForType<HassServiceTarget>()(
+  z.object({
+    entity_id: z.string().optional(),
+    device_id: z.string().optional(),
+    area_id: z.string().optional(),
+  }),
+);
+
+const performActionActionSchema = schemaForType<
+  PerformActionActionConfig & ExtendedConfirmationRestrictionConfig
+>()(
+  actionBaseSchema.extend({
+    action: z.literal('perform-action'),
+    perform_action: z.string(),
+    data: z.object({}).passthrough().optional(),
+    target: targetSchema.optional(),
+  }),
+);
+
+// Note: call-service is deprecated and will eventually go away. Please use
+// perform-action instead.
+// See: https://www.home-assistant.io/blog/2024/08/07/release-20248/#goodbye-service-calls-hello-actions-
 const callServiceActionSchema = schemaForType<
   CallServiceActionConfig & ExtendedConfirmationRestrictionConfig
 >()(
@@ -175,6 +199,7 @@ const callServiceActionSchema = schemaForType<
     action: z.literal('call-service'),
     service: z.string(),
     data: z.object({}).passthrough().optional(),
+    target: targetSchema.optional(),
   }),
 );
 
@@ -391,6 +416,7 @@ export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSche
 export const actionSchema = z.union([
   toggleActionSchema,
   callServiceActionSchema,
+  performActionActionSchema,
   navigateActionSchema,
   urlActionSchema,
   moreInfoActionSchema,
@@ -814,8 +840,8 @@ const dataPTZFormatToFullFormat = function (suffix: string): (data: unknown) => 
       const name = match?.[1];
       if (name && !(`${suffix}${name}` in data)) {
         out[`${suffix}${name}`] = {
-          action: 'call-service',
-          service: data['service'],
+          action: 'perform-action',
+          perform_action: data['service'],
           data: data[key],
         };
         delete out[key];
@@ -830,29 +856,29 @@ const ptzCameraConfigSchema = z.preprocess(
   dataPTZFormatToFullFormat('actions_'),
   z
     .object({
-      actions_left: callServiceActionSchema.optional(),
-      actions_left_start: callServiceActionSchema.optional(),
-      actions_left_stop: callServiceActionSchema.optional(),
+      actions_left: performActionActionSchema.optional(),
+      actions_left_start: performActionActionSchema.optional(),
+      actions_left_stop: performActionActionSchema.optional(),
 
-      actions_right: callServiceActionSchema.optional(),
-      actions_right_start: callServiceActionSchema.optional(),
-      actions_right_stop: callServiceActionSchema.optional(),
+      actions_right: performActionActionSchema.optional(),
+      actions_right_start: performActionActionSchema.optional(),
+      actions_right_stop: performActionActionSchema.optional(),
 
-      actions_up: callServiceActionSchema.optional(),
-      actions_up_start: callServiceActionSchema.optional(),
-      actions_up_stop: callServiceActionSchema.optional(),
+      actions_up: performActionActionSchema.optional(),
+      actions_up_start: performActionActionSchema.optional(),
+      actions_up_stop: performActionActionSchema.optional(),
 
-      actions_down: callServiceActionSchema.optional(),
-      actions_down_start: callServiceActionSchema.optional(),
-      actions_down_stop: callServiceActionSchema.optional(),
+      actions_down: performActionActionSchema.optional(),
+      actions_down_start: performActionActionSchema.optional(),
+      actions_down_stop: performActionActionSchema.optional(),
 
-      actions_zoom_in: callServiceActionSchema.optional(),
-      actions_zoom_in_start: callServiceActionSchema.optional(),
-      actions_zoom_in_stop: callServiceActionSchema.optional(),
+      actions_zoom_in: performActionActionSchema.optional(),
+      actions_zoom_in_start: performActionActionSchema.optional(),
+      actions_zoom_in_stop: performActionActionSchema.optional(),
 
-      actions_zoom_out: callServiceActionSchema.optional(),
-      actions_zoom_out_start: callServiceActionSchema.optional(),
-      actions_zoom_out_stop: callServiceActionSchema.optional(),
+      actions_zoom_out: performActionActionSchema.optional(),
+      actions_zoom_out_start: performActionActionSchema.optional(),
+      actions_zoom_out_stop: performActionActionSchema.optional(),
 
       // The number of seconds between subsequent relative calls when converting a
       // relative request into a continuous request.
@@ -870,7 +896,7 @@ const ptzCameraConfigSchema = z.preprocess(
         .preprocess(
           dataPTZFormatToFullFormat(''),
           z.union([
-            z.record(callServiceActionSchema),
+            z.record(performActionActionSchema),
 
             // This is used by the data_ style of action.
             z.object({ service: z.string().optional() }),

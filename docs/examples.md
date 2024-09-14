@@ -205,7 +205,7 @@ elements:
           right: 25px
           bottom: 50px
         tap_action:
-          action: call-service
+          action: perform-action
           service: amcrest.ptz_control
           data:
             entity_id: camera.kitchen
@@ -252,9 +252,9 @@ elements:
         style:
           color: red
         tap_action:
-          action: call-service
-          service: homeassistant.toggle
-          data:
+          action: perform-action
+          perform_action: homeassistant.toggle
+          target:
             entity_id: siren.siren
     conditions:
       - condition: triggered

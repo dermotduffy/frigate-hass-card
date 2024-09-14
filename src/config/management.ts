@@ -446,6 +446,21 @@ const conditionToConditionsTransform = (data: unknown): boolean => {
   return false;
 };
 
+const callServiceToPerformActionTransform = (data: unknown): boolean => {
+  if (
+    typeof data !== 'object' ||
+    !data ||
+    data['action'] !== 'call-service' ||
+    typeof data['service'] !== 'string'
+  ) {
+    return false;
+  }
+  data['action'] = 'perform-action';
+  data['perform_action'] = data['service'];
+  delete data['service'];
+  return true;
+};
+
 /**
  * Transform service_data -> data
  * See: https://github.com/dermotduffy/frigate-hass-card/issues/1103
@@ -849,4 +864,18 @@ const UPGRADES = [
   }),
   deleteWithOverrides('live.controls.title'),
   deleteWithOverrides('media_viewer.controls.title'),
+
+  // Upgrade call-service calls throughout the card config. They could show up
+  // attached to any element, any automation, or any card/view action (i.e. very
+  // broadly across the config), so it's challenging to better target this
+  // upgrade. As written, this will convert things that look like call-service
+  // calls recurseively throughout the whole card config, but this could
+  // conceivably be an overreach if (e.g.) some totally unrelated object has {
+  // action: 'call-service', service: '<any string>' } that means something
+  // different.
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(callServiceToPerformActionTransform)(
+      typeof data === 'object' && data ? (data as RawFrigateCardConfig) : {},
+    );
+  },
 ];
