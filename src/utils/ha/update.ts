@@ -1,7 +1,7 @@
 import {
-    HassEntity,
-    HassEntityAttributeBase,
-    HassEntityBase
+  HassEntity,
+  HassEntityAttributeBase,
+  HassEntityBase,
 } from 'home-assistant-js-websocket';
 
 const UPDATE_SUPPORT_PROGRESS = 4;

@@ -1,0 +1,89 @@
+@use './button.scss';
+
+:host {
+  --mdc-icon-button-size: calc(var(--frigate-card-status-bar-height) - 6px);
+  --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
+
+  display: block;
+  width: 100%;
+
+  pointer-events: auto;
+
+  opacity: 1;
+  transition: opacity 1s;
+}
+
+/*******************************************************
+ * Non-hover styles should not interact with the pointer
+ *******************************************************/
+
+:host(:not([data-style*='hover'])) {
+  pointer-events: none;
+}
+
+/***************
+ * Outside style
+ ***************/
+
+:host([data-style='outside']) {
+  color: var(--primary-text-color);
+  background: var(--secondary-background-color);
+}
+
+/*******************
+ * Non-outside style
+ *******************/
+
+:host(:not([data-style='outside'])) {
+  color: white;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+}
+:host([data-style='popup'][hide]) {
+  opacity: 0;
+}
+
+/*********************
+ * Status bar contents
+ *********************/
+
+.status {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  overflow: hidden;
+
+  width: 100%;
+  height: var(--frigate-card-status-bar-height);
+}
+
+.item {
+  display: inline-block;
+
+  margin: 3px;
+  padding: 3px;
+
+  align-content: center;
+
+  opacity: 0.7;
+}
+.item:first-child {
+  margin-left: 10px;
+}
+.item:last-child {
+  margin-right: 10px;
+}
+
+.item.expand {
+  flex: 1;
+}
+
+.item.action {
+  cursor: pointer;
+}
+
+img.item {
+  width: var(--mdc-icon-size, 24px);
+  height: var(--mdc-icon-size, 24px);
+}

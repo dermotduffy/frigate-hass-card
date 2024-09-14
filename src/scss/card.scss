@@ -18,10 +18,13 @@
   max-height: var(--frigate-card-max-height);
   min-height: var(--frigate-card-min-height);
 
+  // Ensure all clicks at the top level work.
+  pointer-events: all;
+
   // The standard HA header is 56 pixels tall, so that much off the top (header)
   // and bottom (to maintain center), before doing the calculation of
   // max-height. This matters on small mobile devices in landscape orientation.
-  --frigate-card-expand-max-height: calc( ( 100vh - (2 * 56px) ) * 0.85 );
+  --frigate-card-expand-max-height: calc((100vh - (2 * 56px)) * 0.85);
   --frigate-card-expand-max-width: 85vw;
   --frigate-card-expand-width: none;
   --frigate-card-expand-height: none;
@@ -52,10 +55,6 @@ div.main {
   // Necessary to get Safari to show border-radius correctly.
   transform: translateZ(0);
 
-  // Include the borders in the sizing (to keep the triggered warning pulse
-  // visible in fullscreen).
-  box-sizing: border-box;
-
   // Hide scrollbar: Firefox
   scrollbar-width: none;
   // Hide scrollbar: IE and Edge
@@ -81,23 +80,6 @@ div.main.curve-bottom {
   border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
 
-/* The 'hover' menu mode is styled applied outside of the menu itself */
-frigate-card-menu[data-style*='hover'] {
-  z-index: 1;
-  transition: opacity 0.5s ease;
-}
-
-.main + frigate-card-menu[data-style*='hover'] {
-  opacity: 0;
-}
-frigate-card-menu[data-style='hover']:hover {
-  opacity: 1;
-}
-.main:hover + frigate-card-menu[data-style='hover-card'],
-frigate-card-menu[data-style='hover-card']:hover {
-  opacity: 1;
-}
-
 ha-card {
   display: flex;
   flex-direction: column;
@@ -111,20 +93,6 @@ ha-card {
   height: 100%;
   position: static;
   color: var(--secondary-text-color, white);
-}
-ha-card.triggered {
-  @keyframes warning-pulse {
-    0% {
-      border: solid 2px rgba(0, 0, 0, 0);
-    }
-    50% {
-      border: solid 2px var(--warning-color);
-    }
-    100% {
-      border: solid 2px rgba(0, 0, 0, 0);
-    }
-  }
-  animation: warning-pulse 5s infinite;
 }
 
 /************
@@ -195,4 +163,52 @@ web-dialog::part(dialog) {
   // Fixes to render the dialog correctly in Safari.
   border-radius: 0px;
   background: transparent;
+}
+
+/*************************************
+ * "Outside" style for menu/status bar
+ *************************************/
+
+.outerlay[data-position='top'] {
+  border-top-left-radius: var(--ha-card-border-radius, 4px);
+  border-top-right-radius: var(--ha-card-border-radius, 4px);
+}
+
+.outerlay[data-position='bottom'] {
+  border-bottom-left-radius: var(--ha-card-border-radius, 4px);
+  border-bottom-right-radius: var(--ha-card-border-radius, 4px);
+}
+
+/****************
+ * Overlay styles
+ ****************/
+frigate-card-overlay {
+  z-index: 10;
+}
+
+/*******************
+ * Menu hover styles
+ *******************/
+
+frigate-card-menu[data-style*='hover'] {
+  z-index: 20;
+  transition: opacity 0.5s ease;
+  opacity: 0;
+}
+frigate-card-menu[data-style*='hover']:hover,
+.main:hover > frigate-card-overlay > frigate-card-menu[data-style='hover-card'] {
+  opacity: 1;
+}
+
+/*************************
+ * Status bar hover styles
+ *************************/
+
+frigate-card-status-bar[data-style*='hover'] {
+  transition: opacity 0.5s ease;
+  opacity: 0;
+}
+frigate-card-status-bar[data-style*='hover']:hover,
+.main:hover > frigate-card-overlay > frigate-card-status-bar[data-style='hover-card'] {
+  opacity: 1;
 }

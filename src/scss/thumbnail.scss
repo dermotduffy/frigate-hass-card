@@ -16,7 +16,10 @@
 
 :host([details]) {
   border: 1px solid var(--primary-color);
-  border-radius: var(--frigate-card-css-border-radius, var(--ha-card-border-radius, 4px));
+  border-radius: var(
+    --frigate-card-css-border-radius,
+    var(--ha-card-border-radius, 4px)
+  );
   padding: 2px;
 
   // When details are enabled, use a background color so that the details have
@@ -36,10 +39,12 @@ ha-icon {
 
   cursor: pointer;
 
-  transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition:
+    opacity 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 }
 ha-icon:hover {
-  opacity: 1.0;
+  opacity: 1;
 }
 
 ha-icon.star {
@@ -60,6 +65,7 @@ ha-icon.download {
   bottom: 3px;
 }
 
-frigate-card-thumbnail-details-event, frigate-card-thumbnail-details-recording {
+frigate-card-thumbnail-details-event,
+frigate-card-thumbnail-details-recording {
   flex: 1;
 }

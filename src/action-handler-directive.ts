@@ -1,19 +1,19 @@
-import { fireEvent } from 'custom-card-helpers';
+import { fireEvent } from '@dermotduffy/custom-card-helpers';
 import type {
   ActionHandlerDetail,
   ActionHandlerOptions,
-} from 'custom-card-helpers/dist/types.d.js';
+} from '@dermotduffy/custom-card-helpers';
 import { noChange } from 'lit';
 import {
   AttributePart,
-  directive,
   Directive,
   DirectiveParameters,
+  directive,
 } from 'lit/directive.js';
 import { stopEventFromActivatingCardWideActions } from './utils/action.js';
 import { Timer } from './utils/timer.js';
 
-interface ActionHandler extends HTMLElement {
+interface ActionHandlerInterface extends HTMLElement {
   holdTime: number;
   bind(element: Element, options): void;
 }
@@ -25,13 +25,14 @@ interface FrigateCardActionHandlerOptions extends ActionHandlerOptions {
   allowPropagation?: boolean;
 }
 
-class ActionHandler extends HTMLElement implements ActionHandler {
+class ActionHandler extends HTMLElement implements ActionHandlerInterface {
   public holdTime = 0.4;
 
   protected holdTimer = new Timer();
   protected doubleClickTimer = new Timer();
 
   protected held = false;
+  protected started = false;
 
   public connectedCallback(): void {
     [
@@ -53,7 +54,10 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     });
   }
 
-  public bind(element: ActionHandlerElement, options): void {
+  public bind(
+    element: ActionHandlerElement,
+    options?: FrigateCardActionHandlerOptions,
+  ): void {
     if (element.actionHandlerOptions) {
       // Reset the options on an existing actionHandler.
       element.actionHandlerOptions = options;
@@ -80,7 +84,22 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         this.held = true;
       });
 
-      fireEvent(element, 'action', { action: 'start_tap' });
+      // Without this check we get double start_tap events from touchstart and
+      // mousedown events (on Android).
+      if (!this.started) {
+        this.started = true;
+        fireEvent(element, 'action', { action: 'start_tap' });
+      }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const endTap = (_ev: Event): void => {
+      this.holdTimer.stop();
+
+      if (this.started) {
+        this.started = false;
+        fireEvent(element, 'action', { action: 'end_tap' });
+      }
     };
 
     const end = (ev: Event): void => {
@@ -100,9 +119,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
         return;
       }
 
-      this.holdTimer.stop();
-
-      fireEvent(element, 'action', { action: 'end_tap' });
+      endTap(ev);
 
       if (options?.hasHold && this.held) {
         fireEvent(element, 'action', { action: 'hold' });
@@ -137,6 +154,9 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     element.addEventListener('click', end);
 
     element.addEventListener('keyup', handleEnter);
+
+    // If the mouse leaves the element, this is considered the end of the interaction.
+    element.addEventListener('mouseleave', endTap);
   }
 }
 
@@ -176,6 +196,29 @@ export const actionHandler = directive(
     render(_options?: FrigateCardActionHandlerOptions) {}
   },
 );
+
+export interface ActionEventTarget extends EventTarget {
+  addEventListener(
+    event: '@action',
+    listener: (this: ActionEventTarget, ev: CustomEvent<ActionHandlerDetail>) => void,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  addEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  removeEventListener(
+    event: '@action',
+    listener: (this: ActionEventTarget, ev: CustomEvent<ActionHandlerDetail>) => void,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ): void;
+}
 
 declare global {
   interface HTMLElementTagNameMap {

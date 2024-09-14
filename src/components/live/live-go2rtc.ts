@@ -8,14 +8,10 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { CameraConfig, MicrophoneConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize';
-import liveMSEStyle from '../../scss/live-go2rtc.scss';
-import {
-  CameraConfig,
-  ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
-  MicrophoneConfig,
-} from '../../types.js';
+import liveGo2RTCStyle from '../../scss/live-go2rtc.scss';
+import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
 import { setControlsOnVideo } from '../../utils/media.js';
 import { screenshotMedia } from '../../utils/screenshot.js';
@@ -75,7 +71,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   public isMuted(): boolean {
-    return this._player?.video.muted ?? true;
+    return this._player?.video?.muted ?? true;
   }
 
   public async seek(seconds: number): Promise<void> {
@@ -91,11 +87,11 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   public isPaused(): boolean {
-    return this._player?.video.paused ?? true;
+    return this._player?.video?.paused ?? true;
   }
 
   public async getScreenshotURL(): Promise<string | null> {
-    return this._player ? screenshotMedia(this._player.video) : null;
+    return this._player?.video ? screenshotMedia(this._player.video) : null;
   }
 
   disconnectedCallback(): void {
@@ -171,7 +167,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveMSEStyle);
+    return unsafeCSS(liveGo2RTCStyle);
   }
 }
 

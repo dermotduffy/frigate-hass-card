@@ -1,0 +1,66 @@
+@use './button.scss';
+
+:host {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+
+  // Overlay itself does not handle click events.
+  pointer-events: none;
+}
+
+slot {
+  position: absolute;
+  display: block;
+}
+
+/***************
+ * Slot position
+ ***************/
+
+slot[name='top'] {
+  top: 0px;
+}
+slot[name='bottom'] {
+  bottom: 0px;
+}
+slot[name='left'] {
+  left: 0px;
+}
+slot[name='right'] {
+  right: 0px;
+}
+
+/***********
+ * Slot size
+ ***********/
+
+slot[name='top'],
+slot[name='bottom'] {
+  width: 100%;
+}
+slot[name='left'],
+slot[name='right'] {
+  height: 100%;
+}
+
+/*******************************
+ * Match rounded corners to card
+ *******************************/
+
+slot[name='top'],
+slot[name='left'] {
+  border-top-left-radius: var(--ha-card-border-radius, 4px);
+}
+slot[name='top'],
+slot[name='right'] {
+  border-top-right-radius: var(--ha-card-border-radius, 4px);
+}
+slot[name='bottom'],
+slot[name='left'] {
+  border-bottom-left-radius: var(--ha-card-border-radius, 4px);
+}
+slot[name='bottom'],
+slot[name='right'] {
+  border-bottom-right-radius: var(--ha-card-border-radius, 4px);
+}

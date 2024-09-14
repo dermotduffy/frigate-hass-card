@@ -1,4 +1,8 @@
-import { computeStateDomain, HomeAssistant } from 'custom-card-helpers';
+import {
+  computeDomain,
+  computeStateDomain,
+  HomeAssistant,
+} from '@dermotduffy/custom-card-helpers';
 import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
 import { StyleInfo } from 'lit/directives/style-map.js';
 import { ZodSchema } from 'zod';
@@ -11,7 +15,7 @@ import {
   signedPathSchema,
   StateParameters,
 } from '../../types.js';
-import { stateIcon } from '../icons/state-icon.js';
+import { domainIcon } from '../icons/domain-icon.js';
 import { getParseErrorKeys } from '../zod.js';
 
 /**
@@ -88,8 +92,8 @@ export async function homeAssistantSignPath(
   return hass.hassUrl(response.path);
 }
 
-interface HassStateDifference {
-  entity: string;
+export interface HassStateDifference {
+  entityID: string;
   oldState?: HassEntity;
   newState: HassEntity;
 }
@@ -125,7 +129,7 @@ export function getHassDifferences(
       (!options?.stateOnly && oldState !== newState)
     ) {
       differences.push({
-        entity: entity,
+        entityID: entity,
         oldState: oldState,
         newState: newState,
       });
@@ -234,7 +238,7 @@ export function refreshDynamicStateParameters(
     params.style = { ...computeStyle(state), ...params.style };
   }
   params.title = params.title ?? (state?.attributes?.friendly_name || params.entity);
-  params.icon = params.icon ?? stateIcon(state);
+  params.icon = params.icon ?? getEntityIcon(hass, params.entity);
 
   const domain = state ? computeStateDomain(state) : undefined;
   params.data_domain =
@@ -262,12 +266,25 @@ export function getEntityTitle(
 
 /**
  * Get the icon of an entity.
- * @param entity The entity id.
+ * @param entityID The entity id.
  * @param hass The Home Assistant object.
  * @returns The icon or undefined.
  */
-export function getEntityIcon(hass?: HomeAssistant, entity?: string): string {
-  return stateIcon(entity ? hass?.states[entity] : null);
+export function getEntityIcon(
+  hass: HomeAssistant,
+  entityID: string,
+  defaultIcon?: string,
+): string {
+  const entityState = hass.states[entityID];
+  if (entityState && entityState.attributes.icon) {
+    return entityState.attributes.icon;
+  }
+  return domainIcon(
+    computeDomain(entityID),
+    entityState,
+    entityState?.state,
+    defaultIcon,
+  );
 }
 
 /**
@@ -278,17 +295,18 @@ export function getEntityIcon(hass?: HomeAssistant, entity?: string): string {
  */
 export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
   const neededElements = [
-    'ha-selector',
-    'ha-menu-button',
-    'ha-camera-stream',
-    'ha-hls-player',
-    'ha-web-rtc-player',
-    'ha-icon',
-    'ha-circular-progress',
-    'ha-icon-button',
-    'ha-card',
-    'ha-svg-icon',
     'ha-button-menu',
+    'ha-button',
+    'ha-camera-stream',
+    'ha-card',
+    'ha-circular-progress',
+    'ha-hls-player',
+    'ha-icon-button',
+    'ha-icon',
+    'ha-menu-button',
+    'ha-selector',
+    'ha-svg-icon',
+    'ha-web-rtc-player',
   ];
 
   if (neededElements.every((element) => customElements.get(element))) {
@@ -313,11 +331,11 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
 
 /**
  * Determine if a given state qualifies as 'triggered'.
- * @param state The HASSEntity.
+ * @param state The HA entity state string.
  * @returns `true` if triggered, `false` otherwise.
  */
-export const isTriggeredState = (state?: HassEntity): boolean => {
-  return !!state && ['on', 'open'].includes(state.state);
+export const isTriggeredState = (state?: string): boolean => {
+  return !!state && ['on', 'open'].includes(state);
 };
 
 /**
@@ -364,3 +382,16 @@ export function canonicalizeHAURL(
   }
   return url ?? null;
 }
+
+/**
+ * Determine if HA connection state has changed.
+ * @param newHass The new HA object.
+ * @param oldHass The old HA object.
+ * @returns `true` if the connection state has changed.
+ */
+export const hasHAConnectionStateChanged = (
+  oldHass: HomeAssistant | undefined | null,
+  newHass: HomeAssistant | undefined | null,
+): boolean => {
+  return oldHass?.connected !== newHass?.connected;
+};

@@ -1,4 +1,11 @@
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
 import { property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import selectStyle from '../scss/select.scss';
@@ -24,7 +31,10 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
   public options?: SelectOption[];
 
   @property({ attribute: false, hasChanged: contentsChanged })
-  public value?: SelectValues;
+  public value: SelectValues | null = null;
+
+  @property({ attribute: false, hasChanged: contentsChanged })
+  public initialValue?: SelectValues;
 
   @property({ attribute: true })
   public label?: string;
@@ -45,6 +55,10 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
     ...grSelectElements,
   };
 
+  public reset(): void {
+    this.value = null;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected _valueChangedHandler(_ev: CustomEvent<{ value: unknown }>): void {
     const value: SelectValues | undefined = this._refSelect.value?.value;
@@ -52,8 +66,21 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
     // the change event even if the value has not actually changed. Prevent that
     // from propagating upwards.
     if (value !== undefined && !isEqual(this.value, value)) {
+      const initialValueSet = this.value === null;
       this.value = value;
-      dispatchFrigateCardEvent(this, 'select:change', value);
+
+      // The underlying gr-select element will call on the first first value set
+      // (even when the user has not interacted with the control). Do not
+      // dispatch events for this.
+      if (!initialValueSet) {
+        dispatchFrigateCardEvent(this, 'select:change', value);
+      }
+    }
+  }
+
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (changedProps.has('initialValue') && this.initialValue && !this.value) {
+      this.value = this.initialValue;
     }
   }
 
@@ -65,7 +92,7 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
       size="small"
       ?multiple=${this.multiple}
       ?clearable=${this.clearable}
-      .value=${this.value ?? this._refSelect.value?.value ?? []}
+      .value=${this.value ?? []}
       @gr-change=${this._valueChangedHandler.bind(this)}
     >
       ${this.options?.map(

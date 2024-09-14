@@ -1,11 +1,23 @@
-import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig, ExtendedHomeAssistant } from '../types';
-import { EntityRegistryManager } from '../utils/ha/entity-registry';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { PTZAction } from '../config/ptz';
+import { ActionPhase, CameraConfig } from '../config/types';
+import { ExtendedHomeAssistant } from '../types';
 import { ViewMedia } from '../view/media';
+import { Camera } from './camera';
+import { CameraManagerReadOnlyConfigStore } from './store';
 import {
+  CameraEndpoint,
+  CameraEndpoints,
+  CameraEndpointsContext,
+  CameraManagerCameraMetadata,
+  CameraManagerMediaCapabilities,
   DataQuery,
+  Engine,
+  EngineOptions,
   EventQuery,
   EventQueryResultsMap,
+  MediaMetadataQuery,
+  MediaMetadataQueryResultsMap,
   PartialEventQuery,
   PartialRecordingQuery,
   PartialRecordingSegmentsQuery,
@@ -14,17 +26,6 @@ import {
   RecordingQueryResultsMap,
   RecordingSegmentsQuery,
   RecordingSegmentsQueryResultsMap,
-  CameraManagerCameraCapabilities,
-  CameraManagerMediaCapabilities,
-  CameraManagerCameraMetadata,
-  CameraEndpointsContext,
-  CameraConfigs,
-  Engine,
-  CameraEndpoints,
-  MediaMetadataQuery,
-  MediaMetadataQueryResultsMap,
-  EngineOptions,
-  CameraEndpoint,
 } from './types';
 
 export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
@@ -32,61 +33,57 @@ export const CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT = 10000;
 export interface CameraManagerEngine {
   getEngineType(): Engine;
 
-  initializeCamera(
-    hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
-    cameraConfig: CameraConfig,
-  ): Promise<CameraConfig>;
+  createCamera(hass: HomeAssistant, cameraConfig: CameraConfig): Promise<Camera>;
 
   generateDefaultEventQuery(
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: PartialEventQuery,
   ): EventQuery[] | null;
 
   generateDefaultRecordingQuery(
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: PartialRecordingQuery,
   ): RecordingQuery[] | null;
 
   generateDefaultRecordingSegmentsQuery(
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: PartialRecordingSegmentsQuery,
   ): RecordingSegmentsQuery[] | null;
 
   getEvents(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: EventQuery,
     engineOptions?: EngineOptions,
   ): Promise<EventQueryResultsMap | null>;
 
   getRecordings(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: RecordingQuery,
     engineOptions?: EngineOptions,
   ): Promise<RecordingQueryResultsMap | null>;
 
   getRecordingSegments(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: RecordingSegmentsQuery,
     engineOptions?: EngineOptions,
   ): Promise<RecordingSegmentsQueryResultsMap | null>;
 
   generateMediaFromEvents(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: EventQuery,
     results: QueryReturnType<EventQuery>,
   ): ViewMedia[] | null;
 
   generateMediaFromRecordings(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: RecordingQuery,
     results: QueryReturnType<RecordingQuery>,
   ): ViewMedia[] | null;
@@ -108,7 +105,7 @@ export interface CameraManagerEngine {
 
   getMediaSeekTime(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     media: ViewMedia,
     target: Date,
     engineOptions?: EngineOptions,
@@ -116,7 +113,7 @@ export interface CameraManagerEngine {
 
   getMediaMetadata(
     hass: HomeAssistant,
-    cameras: CameraConfigs,
+    store: CameraManagerReadOnlyConfigStore,
     query: MediaMetadataQuery,
     engineOptions?: EngineOptions,
   ): Promise<MediaMetadataQueryResultsMap | null>;
@@ -126,14 +123,20 @@ export interface CameraManagerEngine {
     cameraConfig: CameraConfig,
   ): CameraManagerCameraMetadata;
 
-  getCameraCapabilities(
-    cameraConfig: CameraConfig,
-  ): CameraManagerCameraCapabilities | null;
-
   getMediaCapabilities(media: ViewMedia): CameraManagerMediaCapabilities | null;
 
   getCameraEndpoints(
     cameraConfig: CameraConfig,
     context?: CameraEndpointsContext,
   ): CameraEndpoints | null;
+
+  executePTZAction(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+    action: PTZAction,
+    options?: {
+      phase?: ActionPhase;
+      preset?: string;
+    },
+  ): Promise<void>;
 }

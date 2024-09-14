@@ -1,22 +1,8 @@
-import { HomeAssistant } from 'custom-card-helpers';
-import { CameraConfig, ExtendedHomeAssistant } from '../../types';
-import { ViewMedia } from '../../view/media';
-import {
-  CameraManagerMediaCapabilities,
-  DataQuery,
-  EventQuery,
-  PartialEventQuery,
-  CameraConfigs,
-  CameraManagerCameraCapabilities,
-  QueryType,
-  CameraEndpoint,
-} from '../types';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { CameraManagerEngine } from '../engine';
-import { GenericCameraManagerEngine } from '../generic/engine-generic';
-import { CameraInitializationError } from '../error';
-import { localize } from '../../localize/localize';
-import { Entity } from '../../utils/ha/entity-registry/types';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/state-watcher';
+import { CameraConfig } from '../../config/types';
+import { ExtendedHomeAssistant } from '../../types';
+import { canonicalizeHAURL } from '../../utils/ha';
 import { BrowseMediaManager } from '../../utils/ha/browse-media/browse-media-manager';
 import {
   BROWSE_MEDIA_CACHE_SECONDS,
@@ -24,12 +10,29 @@ import {
   MEDIA_CLASS_VIDEO,
   RichBrowseMedia,
 } from '../../utils/ha/browse-media/types';
-import { BrowseMediaMetadata } from './types';
-import { rangesOverlap } from '../range';
+import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media';
-import { canonicalizeHAURL } from '../../utils/ha';
+import { ViewMedia } from '../../view/media';
 import { RequestCache } from '../cache';
+import { Camera } from '../camera';
+import { Capabilities } from '../capabilities';
+import { CameraManagerEngine } from '../engine';
+import { GenericCameraManagerEngine } from '../generic/engine-generic';
+import { rangesOverlap } from '../range';
+import { CameraManagerReadOnlyConfigStore } from '../store';
+import {
+  CameraEndpoint,
+  CameraEventCallback,
+  CameraManagerMediaCapabilities,
+  DataQuery,
+  EventQuery,
+  PartialEventQuery,
+  QueryType,
+} from '../types';
+import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
+import { BrowseMediaCamera } from './camera';
 import { BrowseMediaViewMediaFactory } from './media';
+import { BrowseMediaMetadata } from './types';
 
 /**
  * A utility method to determine if a browse media object matches against a
@@ -85,8 +88,8 @@ export const getViewMediaFromBrowseMediaArray = (
       browseMediaItem.media_class === MEDIA_CLASS_VIDEO
         ? 'clip'
         : browseMediaItem.media_class === MEDIA_CLASS_IMAGE
-        ? 'snapshot'
-        : null;
+          ? 'snapshot'
+          : null;
 
     if (!mediaType) {
       continue;
@@ -120,42 +123,60 @@ export class BrowseMediaCameraManagerEngine
   extends GenericCameraManagerEngine
   implements CameraManagerEngine
 {
-  protected _cameraEntities: Map<string, Entity> = new Map();
   protected _browseMediaManager: BrowseMediaManager<BrowseMediaMetadata>;
+  protected _entityRegistryManager: EntityRegistryManager;
   protected _resolvedMediaCache: ResolvedMediaCache;
   protected _requestCache: RequestCache;
 
   public constructor(
+    entityRegistryManager: EntityRegistryManager,
+    stateWatcher: StateWatcherSubscriptionInterface,
     browseMediaManager: BrowseMediaManager<BrowseMediaMetadata>,
     resolvedMediaCache: ResolvedMediaCache,
     requestCache: RequestCache,
+    eventCallback?: CameraEventCallback,
   ) {
-    super();
+    super(stateWatcher, eventCallback);
+    this._entityRegistryManager = entityRegistryManager;
     this._browseMediaManager = browseMediaManager;
     this._resolvedMediaCache = resolvedMediaCache;
     this._requestCache = requestCache;
   }
 
-  public async initializeCamera(
+  public async createCamera(
     hass: HomeAssistant,
-    entityRegistryManager: EntityRegistryManager,
     cameraConfig: CameraConfig,
-  ): Promise<CameraConfig> {
-    const entity = cameraConfig.camera_entity
-      ? await entityRegistryManager.getEntity(hass, cameraConfig.camera_entity)
-      : null;
-    if (!entity || !cameraConfig.camera_entity) {
-      throw new CameraInitializationError(
-        localize('error.no_camera_entity'),
-        cameraConfig,
-      );
-    }
-    this._cameraEntities.set(cameraConfig.camera_entity, entity);
-    return cameraConfig;
+  ): Promise<Camera> {
+    const camera = new BrowseMediaCamera(cameraConfig, this, {
+      capabilities: new Capabilities(
+        {
+          'favorite-events': false,
+          'favorite-recordings': false,
+          clips: true,
+          live: true,
+          menu: true,
+          recordings: false,
+          seek: false,
+          snapshots: true,
+          substream: true,
+          ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
+        },
+        {
+          disable: cameraConfig.capabilities?.disable,
+          disableExcept: cameraConfig.capabilities?.disable_except,
+        },
+      ),
+      eventCallback: this._eventCallback,
+    });
+    return await camera.initialize({
+      entityRegistryManager: this._entityRegistryManager,
+      hass,
+      stateWatcher: this._stateWatcher,
+    });
   }
 
   public generateDefaultEventQuery(
-    _cameras: CameraConfigs,
+    _store: CameraManagerReadOnlyConfigStore,
     cameraIDs: Set<string>,
     query: PartialEventQuery,
   ): EventQuery[] | null {
@@ -188,21 +209,6 @@ export class BrowseMediaCameraManagerEngine
       return BROWSE_MEDIA_CACHE_SECONDS;
     }
     return null;
-  }
-
-  public getCameraCapabilities(
-    cameraConfig: CameraConfig,
-  ): CameraManagerCameraCapabilities | null {
-    const parentCapabilities = super.getCameraCapabilities(cameraConfig);
-    if (!parentCapabilities) {
-      return null;
-    }
-    return {
-      ...parentCapabilities,
-      supportsClips: true,
-      supportsSnapshots: true,
-      supportsTimeline: true,
-    };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

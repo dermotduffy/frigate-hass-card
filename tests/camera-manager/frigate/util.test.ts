@@ -1,4 +1,4 @@
-import add from 'date-fns/add';
+import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import {
@@ -9,7 +9,7 @@ import {
   getRecordingMediaContentID,
   getRecordingTitle,
 } from '../../../src/camera-manager/frigate/util';
-import { CameraConfig } from '../../../src/types';
+import { CameraConfig } from '../../../src/config/types';
 import {
   createCameraConfig,
   createFrigateEvent,

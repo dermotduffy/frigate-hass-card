@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { localize } from '../../localize/localize';
 import { FrigateCardError } from '../../types';
 import { homeAssistantWSRequest } from '../../utils/ha';
@@ -8,6 +8,8 @@ import {
   eventSummarySchema,
   FrigateEvent,
   frigateEventsSchema,
+  PTZInfo,
+  ptzInfoSchema,
   recordingSegmentsSchema,
   RecordingSummary,
   recordingSummarySchema,
@@ -34,7 +36,10 @@ export const getRecordingsSummary = async (
       type: 'frigate/recordings/summary',
       instance_id: clientID,
       camera: camera_name,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+
+      // Ask for the summary relative to HA timezone
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1267
+      timezone: hass.config.time_zone,
     },
     true,
     // See: https://github.com/colinhacks/zod/pull/1752
@@ -146,7 +151,27 @@ export const getEventSummary = async (
     {
       type: 'frigate/events/summary',
       instance_id: clientID,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+
+      // Ask for the summary relative to HA timezone
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1267
+      timezone: hass.config.time_zone,
+    },
+    true,
+  );
+};
+
+export const getPTZInfo = async (
+  hass: HomeAssistant,
+  clientID: string,
+  cameraName: string,
+): Promise<PTZInfo> => {
+  return await homeAssistantWSRequest(
+    hass,
+    ptzInfoSchema,
+    {
+      type: 'frigate/ptz/info',
+      instance_id: clientID,
+      camera: cameraName,
     },
     true,
   );

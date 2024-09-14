@@ -20,7 +20,10 @@
           "endsPattern": "^created"
         }
       },
-      "isBackground": true
+      "isBackground": true,
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
     }
   ]
 }

@@ -1,35 +1,59 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
-import 'lit-flatpickr';
-import { LitFlatpickr } from 'lit-flatpickr';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
+import { localize } from '../localize/localize';
 import datePickerStyle from '../scss/date-picker.scss';
+import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import { dispatchFrigateCardEvent } from '../utils/basic';
 
 export interface DatePickerEvent {
-  date: Date;
+  date: Date | null;
 }
 
 @customElement('frigate-card-date-picker')
 export class FrigateCardDatePicker extends LitElement {
-  protected _refInput: Ref<LitFlatpickr> = createRef();
+  @property({ attribute: false })
+  public icon?: string;
 
-  public open(): void {
-    this._refInput.value?.open();
+  protected _refInput: Ref<HTMLInputElement> = createRef();
+
+  get value(): Date | null {
+    return this._refInput.value?.value ? new Date(this._refInput.value.value) : null;
+  }
+
+  public reset(): void {
+    if (this._refInput.value) {
+      this._refInput.value.value = '';
+    }
   }
 
   protected render(): TemplateResult {
-    return html` <lit-flatpickr
-      ${ref(this._refInput)}
-      .onChange=${(dates: Date[]) => {
-        if (dates.length) {
-          // This is a single date picker, there should be only a single date.
-          dispatchFrigateCardEvent<DatePickerEvent>(this, 'date-picker:change', {
-            date: dates[0],
-          });
-        }
-      }}
-    ></lit-flatpickr>`;
+    const changed = () => {
+      const value = this._refInput.value?.value;
+
+      dispatchFrigateCardEvent<DatePickerEvent>(this, 'date-picker:change', {
+        date: value ? new Date(value) : null,
+      });
+    };
+
+    return html`<input
+        aria-label="${localize('timeline.select_date')}"
+        title="${localize('timeline.select_date')}"
+        ${ref(this._refInput)}
+        type="datetime-local"
+        @input=${() => changed()}
+        @change=${() => changed()}
+      />
+      <ha-icon
+        aria-label="${localize('timeline.select_date')}"
+        title="${localize('timeline.select_date')}"
+        .icon=${this.icon ?? `mdi:calendar-search`}
+        @click=${(ev: Event) => {
+          stopEventFromActivatingCardWideActions(ev);
+          this._refInput.value?.showPicker();
+        }}
+      >
+      </ha-icon>`;
   }
 
   static get styles(): CSSResultGroup {

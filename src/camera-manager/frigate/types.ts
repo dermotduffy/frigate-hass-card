@@ -76,6 +76,33 @@ export const eventSummarySchema = z
   .array();
 export type EventSummary = z.infer<typeof eventSummarySchema>;
 
+export const ptzInfoSchema = z.object({
+  name: z.string().optional(),
+  features: z.string().array().optional(),
+  presets: z.string().array().optional(),
+});
+export type PTZInfo = z.infer<typeof ptzInfoSchema>;
+
+const frigateEventChangeBeforeAfterSchema = z.object({
+  camera: z.string(),
+  snapshot: z
+    .object({
+      frame_time: z.number(),
+    })
+    .nullable(),
+  has_clip: z.boolean(),
+  has_snapshot: z.boolean(),
+  label: z.string(),
+  current_zones: z.string().array(),
+});
+
+export const frigateEventChangeSchema = z.object({
+  before: frigateEventChangeBeforeAfterSchema,
+  after: frigateEventChangeBeforeAfterSchema,
+  type: z.enum(['new', 'update', 'end']),
+});
+export type FrigateEventChange = z.infer<typeof frigateEventChangeSchema>;
+
 // ==============================
 // Frigate concrete query results
 // ==============================

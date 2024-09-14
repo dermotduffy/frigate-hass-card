@@ -1,60 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
-import { getAllDependentCameras } from '../../src/utils/camera';
+import { describe, expect, it } from 'vitest';
 import {
-  createViewWithNextStream,
-  createViewWithSelectedSubstream,
-  createViewWithoutSubstream,
+  getStreamCameraID,
   hasSubstream,
+  removeSubstream,
 } from '../../src/utils/substream';
 import { View } from '../../src/view/view';
-import { createCameraManager } from '../test-utils';
 
-vi.mock('../../src/camera-manager/manager.js');
-vi.mock('../../src/utils/camera');
-
-describe('createViewWithSelectedSubstream', () => {
-  it('should create view with selected substream', () => {
-    const view = new View({ view: 'live', camera: 'camera' });
-    const newView = createViewWithSelectedSubstream(view, 'substream');
-    expect(newView?.context?.live?.overrides).toEqual(
-      new Map([['camera', 'substream']]),
-    );
-  });
-
-  it('should create view with selected substream with existing overrides', () => {
-    const view = new View({
-      view: 'live',
-      camera: 'camera',
-      context: {
-        live: {
-          overrides: new Map([['camera', 'camera']]),
-        },
-      },
-    });
-    const newView = createViewWithSelectedSubstream(view, 'substream');
-    expect(newView?.context?.live?.overrides).toEqual(
-      new Map([['camera', 'substream']]),
-    );
-  });
-});
-
-describe('createViewWithoutSubstream', () => {
-  it('should create view without substream', () => {
-    const view = new View({
-      view: 'live',
-      camera: 'camera',
-      context: {
-        live: {
-          overrides: new Map([['camera', 'camera']]),
-        },
-      },
-    });
-    const newView = createViewWithoutSubstream(view);
-    expect(newView?.context?.live?.overrides).toEqual(new Map());
-  });
-});
-
-describe('hasSubstream', () => {
+describe('hasSubstream/getStreamCameraID', () => {
   it('should detect substream', () => {
     const view = new View({
       view: 'live',
@@ -66,6 +18,7 @@ describe('hasSubstream', () => {
       },
     });
     expect(hasSubstream(view)).toBeTruthy();
+    expect(getStreamCameraID(view)).toBe('camera2');
   });
   it('should not detect substream when absent', () => {
     const view = new View({
@@ -73,6 +26,7 @@ describe('hasSubstream', () => {
       camera: 'camera',
     });
     expect(hasSubstream(view)).toBeFalsy();
+    expect(getStreamCameraID(view)).toBe('camera');
   });
   it('should not detect substream when main stream', () => {
     const view = new View({
@@ -85,33 +39,28 @@ describe('hasSubstream', () => {
       },
     });
     expect(hasSubstream(view)).toBeFalsy();
+    expect(getStreamCameraID(view)).toBe('camera');
+  });
+  it('should respect cameraID override', () => {
+    const view = new View({
+      view: 'live',
+      camera: 'camera',
+      context: {
+        live: {
+          overrides: new Map([
+            ['camera', 'camera2'],
+            ['camera3', 'camera4'],
+          ]),
+        },
+      },
+    });
+    expect(hasSubstream(view)).toBeTruthy();
+    expect(getStreamCameraID(view, 'camera3')).toBe('camera4');
   });
 });
 
-describe('createViewWithNextStream', () => {
-  it('should create new equal view with no dependencies', () => {
-    const view = new View({
-      view: 'live',
-      camera: 'camera',
-    });
-    vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera']));
-    const cameraManager = createCameraManager()
-    const newView = createViewWithNextStream(cameraManager, view);
-    expect(newView.camera).toBe(view.camera);
-    expect(newView.view).toBe(view.view);
-    expect(newView.context).toEqual(view.context);
-  });
-  it('should create new view with next stream', () => {
-    const view = new View({
-      view: 'live',
-      camera: 'camera',
-    });
-    vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera', 'camera2']));
-    const cameraManager = createCameraManager()
-    const newView = createViewWithNextStream(cameraManager, view);
-    expect(newView.context?.live?.overrides).toEqual(new Map([['camera', 'camera2']]));
-  });
-  it('should create new view with next stream that cycles back', () => {
+describe('removeSubstream', () => {
+  it('should remove substream that exists', () => {
     const view = new View({
       view: 'live',
       camera: 'camera',
@@ -121,24 +70,29 @@ describe('createViewWithNextStream', () => {
         },
       },
     });
-    vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera', 'camera2']));
-    const cameraManager = createCameraManager()
-    const newView = createViewWithNextStream(cameraManager, view);
-    expect(newView.context?.live?.overrides).toEqual(new Map([['camera', 'camera']]));
+    removeSubstream(view);
+    expect(view.context).toEqual({
+      live: {
+        overrides: new Map(),
+      },
+    });
   });
-  it('should create new view with first stream with invalid substream', () => {
+
+  it('should not remove substream that does not exists', () => {
     const view = new View({
       view: 'live',
-      camera: 'camera',
+      camera: 'camera-has-no-overrides',
       context: {
         live: {
-          overrides: new Map([['camera', 'camera-that-does-not-exist']]),
+          overrides: new Map([['camera', 'camera2']]),
         },
       },
     });
-    vi.mocked(getAllDependentCameras).mockReturnValue(new Set(['camera', 'camera2']));
-    const cameraManager = createCameraManager()
-    const newView = createViewWithNextStream(cameraManager, view);
-    expect(newView.context?.live?.overrides).toEqual(new Map([['camera', 'camera']]));
+    removeSubstream(view);
+    expect(view.context).toEqual({
+      live: {
+        overrides: new Map([['camera', 'camera2']]),
+      },
+    });
   });
 });

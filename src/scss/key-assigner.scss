@@ -1,0 +1,79 @@
+@use 'dotdotdot.scss';
+
+:host {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  // Values match other HA editor components.
+  padding: 10px;
+  height: 56px;
+  border: 1px solid var(--divider-color);
+}
+
+:host([assigning]) ha-button.assign span,
+:host([assigning]) ha-button.assign ha-icon {
+  color: var(--warning-color);
+}
+
+ha-icon {
+  padding: 10px;
+}
+
+div.label {
+  width: 100px;
+  margin-left: 4px;
+}
+
+div.key-row {
+  flex: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+div.key {
+  display: flex;
+  align-items: center;
+
+  height: 90%;
+  width: min-content;
+
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+div.key-inner {
+  height: 100%;
+  width: 100%;
+
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+
+  border: 2px;
+  border-radius: 4px;
+  border-style: outset;
+  border-color: var(--divider-color);
+
+  font-family: monospace;
+  text-transform: capitalize;
+}
+
+div.unassigned {
+  font-style: italic;
+}
+
+div.key + div.key:before {
+  display: flex;
+  align-items: center;
+
+  margin-right: 5px;
+
+  content: ' + ';
+}

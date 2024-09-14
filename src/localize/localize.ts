@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import * as en from './languages/en.json';
 
 const DEFAULT_LANG = 'en' as const;
@@ -52,19 +52,24 @@ export function getLanguage(hass?: HomeAssistant): string {
 /**
  * Load required languages.
  */
-export const loadLanguages = async (hass: HomeAssistant): Promise<void> => {
+export const loadLanguages = async (hass: HomeAssistant): Promise<boolean> => {
   const lang = getLanguage(hass);
-  if (lang === 'it') {
+  if (lang === 'ca') {
+    languages[lang] = await import('./languages/ca.json');
+  } else if (lang === 'it') {
     languages[lang] = await import('./languages/it.json');
   } else if (lang === 'pt') {
     languages[lang] = await import('./languages/pt-PT.json');
   } else if (lang === 'pt_BR') {
     languages[lang] = await import('./languages/pt-BR.json');
+  } else if (lang === 'fr') {
+    languages[lang] = await import('./languages/fr.json');
   }
 
   if (lang) {
     frigateCardLanguage = lang;
   }
+  return true;
 };
 
 /**

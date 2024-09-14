@@ -1,5 +1,5 @@
-import { HomeAssistant } from 'custom-card-helpers';
-import add from 'date-fns/add';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { add } from 'date-fns';
 import { homeAssistantWSRequest } from '..';
 import { MemoryRequestCache } from '../../../camera-manager/cache';
 import { allPromises } from '../../basic';

@@ -28,7 +28,10 @@ export function deepRemoveDefaults<T extends z.ZodTypeAny>(schema: T): any {
   }
 
   if (schema instanceof z.ZodArray) {
-    return z.ZodArray.create(deepRemoveDefaults(schema.element));
+    return z.ZodArray.create(deepRemoveDefaults(schema.element))
+      .min(schema._def.minLength?.value, schema._def.minLength?.message)
+      .max(schema._def.maxLength?.value, schema._def.maxLength?.message)
+      .length(schema._def.exactLength?.value, schema._def.exactLength?.message);
   }
 
   if (schema instanceof z.ZodOptional) {
@@ -62,7 +65,7 @@ export function getParseErrorKeys<T>(error: z.ZodError<T>): string[] {
  * @param error The ZodError object from parsing.
  * @returns An array of string error paths.
  */
-export const getParseErrorPaths = <T>(error: z.ZodError<T>): Set<string> | null => {
+export const getParseErrorPaths = <T>(error: z.ZodError<T>): Set<string> => {
   /* Zod errors involving unions are complex, as Zod may not be able to tell
    * where the 'real' error is vs simply a union option not matching. This
    * function finds all ZodError "issues" that don't have an error with 'type'
@@ -74,23 +77,14 @@ export const getParseErrorPaths = <T>(error: z.ZodError<T>): Set<string> | null 
    * available unions). This usually suggests the user specified an incorrect
    * type name entirely. */
   const contenders = new Set<string>();
-  if (error && error.issues) {
-    for (let i = 0; i < error.issues.length; i++) {
-      const issue = error.issues[i];
-      if (issue.code == 'invalid_union') {
+  if (error.issues.length) {
+    for (const issue of error.issues) {
+      if (issue.code === 'invalid_union') {
         const unionErrors = (issue as z.ZodInvalidUnionIssue).unionErrors;
-        for (let j = 0; j < unionErrors.length; j++) {
-          const nestedErrors = getParseErrorPaths(unionErrors[j]);
-          if (nestedErrors && nestedErrors.size) {
-            nestedErrors.forEach(contenders.add, contenders);
-          }
+        for (const unionError of unionErrors) {
+          getParseErrorPaths(unionError).forEach(contenders.add, contenders);
         }
-      } else if (issue.code == 'invalid_type') {
-        if (issue.path[issue.path.length - 1] == 'type') {
-          return null;
-        }
-        contenders.add(getParseErrorPathString(issue.path));
-      } else if (issue.code != 'custom') {
+      } else {
         contenders.add(getParseErrorPathString(issue.path));
       }
     }

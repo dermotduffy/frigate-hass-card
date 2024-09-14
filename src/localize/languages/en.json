@@ -10,10 +10,69 @@
   "config": {
     "cameras": {
       "camera_entity": "Camera Entity",
+      "capabilities": {
+        "capabilities": {
+          "clips": "Clips",
+          "favorite-events": "Favorite Events",
+          "favorite-recordings": "Favorite Recordings",
+          "live": "Live",
+          "menu": "Menu",
+          "ptz": "PTZ",
+          "recordings": "Recordings",
+          "seek": "Seeking",
+          "snapshots": "Snapshots",
+          "substream": "Substream"
+        },
+        "disable": "Disable",
+        "disable_except": "Disable except",
+        "editor_label": "Camera capabilities"
+      },
+      "cast": {
+        "dashboard": {
+          "dashboard_path": "Dashboard path",
+          "view_path": "View path"
+        },
+        "editor_label": "Cast options",
+        "method": "Cast method",
+        "methods": {
+          "dashboard": "Dashboard",
+          "standard": "Standard"
+        }
+      },
       "dependencies": {
         "all_cameras": "Show events for all cameras with this camera",
         "cameras": "Show events for specific cameras with this camera",
-        "editor_label": "Dependency Options"
+        "editor_label": "Dependency options"
+      },
+      "dimensions": {
+        "aspect_ratio": "Static aspect ratio",
+        "editor_label": "Camera dimensions",
+        "layout": {
+          "editor_label": "Camera Layout",
+          "fit": "Layout fit",
+          "fits": {
+            "contain": "Media is contained/letterboxed",
+            "cover": "Media expands proportionally to cover the card",
+            "fill": "Media is stretched to fill the card"
+          },
+          "pan": {
+            "x": "Pan horizontal percentage",
+            "y": "Pan vertical percentage"
+          },
+          "position": {
+            "editor_label": "Layout Cover Position",
+            "x": "Horizontal placement percentage",
+            "y": "Vertical placement percentage"
+          },
+          "view_box": {
+            "bottom": "Bottom inset percentage",
+            "editor_label": "Layout View Box",
+            "left": "Left inset percentage",
+            "right": "Right inset percentage",
+            "top": "Top inset percentage"
+          },
+          "zoom": "Zoom factor"
+        }
       },
       "engines": {
         "editor_label": "Camera engine options"
@@ -21,7 +80,7 @@
       "frigate": {
         "camera_name": "Frigate camera name (Autodetected from entity)",
         "client_id": "Frigate client id (For >1 Frigate server)",
-        "editor_label": "Frigate Options",
+        "editor_label": "Frigate options",
         "labels": "Frigate labels/object filters",
         "url": "Frigate server URL",
         "zones": "Frigate zones"
@@ -37,7 +96,6 @@
         },
         "stream": "go2rtc stream name"
       },
-      "hide": "Hide camera from UI",
       "icon": "Icon for this camera (Autodetected from entity)",
       "id": "Unique id for this camera in this card",
       "image": {
@@ -58,7 +116,7 @@
         "webrtc-card": "WebRTC Card (i.e. AlexxIT's WebRTC Card)"
       },
       "motioneye": {
-        "editor_label": "MotionEye Options",
+        "editor_label": "MotionEye options",
         "images": {
           "directory_pattern": "Images directory pattern",
           "file_pattern": "Images file pattern"
@@ -71,8 +129,14 @@
       },
       "title": "Title for this camera (Autodetected from entity)",
       "triggers": {
-        "editor_label": "Trigger Options",
+        "editor_label": "Trigger options",
         "entities": "Trigger from other entities",
+        "events": {
+          "clips": "Events with new clips",
+          "editor_label": "Trigger Events",
+          "events": "All events",
+          "snapshots": "Events with new snapshots"
+        },
         "motion": "Trigger by auto-detecting the motion sensor",
         "occupancy": "Trigger by auto-detecting the occupancy sensor"
       },
@@ -107,10 +171,15 @@
         },
         "thumbnails": {
           "editor_label": "Thumbnails",
-          "media": "Whether to show thumbnails of clips or snapshots",
-          "medias": {
+          "events_media_type": "Whether to show event thumbnails of clips or snapshots",
+          "events_media_types": {
             "clips": "Clip thumbnails",
             "snapshots": "Snapshot thumbnails"
+          },
+          "media_type": "Whether to show thumnails of events or recordings",
+          "media_types": {
+            "events": "Events",
+            "recordings": "Recordings"
           },
           "mode": "Thumbnails mode",
           "modes": {
@@ -133,36 +202,41 @@
             "above": "Above",
             "below": "Below",
             "none": "None"
-          }
-        },
-        "title": {
-          "duration_seconds": "Seconds to display popup title (0=forever)",
-          "editor_label": "Popup Title Controls",
-          "mode": "Popup title display mode",
-          "modes": {
-            "none": "No title display",
-            "popup-bottom-left": "Popup on the bottom left",
-            "popup-bottom-right": "Popup on the bottom right",
-            "popup-top-left": "Popup on the top left",
-            "popup-top-right": "Popup on the top right"
+          },
+          "pan_mode": "Default pan mode",
+          "pan_modes": {
+            "pan": "Pan",
+            "seek": "Pan seeks across all media",
+            "seek-in-camera": "Pan seeks within selected camera only",
+            "seek-in-media": "Pan seeks within selected media item only"
           }
         }
       },
-      "layout": {
-        "fit": "Layout fit",
-        "fits": {
-          "contain": "Media is contained/letterboxed",
-          "cover": "Media expands proportionally to cover the card",
-          "fill": "Media is stretched to fill the card"
+      "display": {
+        "editor_label": "Display",
+        "grid_columns": "Exact number of grid columns",
+        "grid_max_columns": "Maximum number of grid columns",
+        "grid_selected_width_factor": "Increase selected media width by this factor",
+        "mode": "Mode"
+      },
+      "image": {
+        "entity": "Entity for use with entity mode",
+        "entity_parameters": "Query parameters added to the entity-based picture URLs (e.g. width=1920&height=1080)",
+        "mode": "Image mode",
+        "modes": {
+          "camera": "Home Assistant camera snapshot of camera entity",
+          "entity": "Entity with entity_picture attribute",
+          "screensaver": "Embedded Frigate logo",
+          "url": "Arbitrary image specified by URL"
         },
-        "position": {
-          "x": "Horizontal placement percentage",
-          "y": "Vertical placement percentage"
-        }
+        "refresh_seconds": "Number of seconds after which to refresh (0=never)",
+        "url": "Static image URL"
       },
       "media_action_conditions": {
         "all": "All opportunities",
         "hidden": "On browser/tab hiding",
+        "microphone_mute": "On microphone mute",
+        "microphone_unmute": "On microphone unmute",
         "never": "Never",
         "selected": "On selection",
         "unselected": "On unselection",
@@ -170,9 +244,9 @@
       },
       "timeline": {
         "clustering_threshold": "The count of events at which they are clustered (0=no clustering)",
-        "media": "The media the timeline displays",
-        "medias": {
-          "all": "All media types",
+        "events_media_type": "The events media the timeline displays",
+        "events_media_types": {
+          "all": "All event media types",
           "clips": "Clips",
           "snapshots": "Snapshots"
         },
@@ -196,35 +270,46 @@
       "max_height": "Maximum card height in CSS units (e.g. '100vh')",
       "min_height": "Minimum card height in CSS units (e.g. '100px')"
     },
-    "image": {
-      "layout": "Image Layout",
-      "mode": "Image view mode",
-      "modes": {
-        "camera": "Home Assistant camera snapshot of camera entity",
-        "screensaver": "Embedded Frigate logo",
-        "url": "Arbitrary image specified by URL"
-      },
-      "refresh_seconds": "Number of seconds after which to refresh (0=never)",
-      "url": "Static image URL for image view",
-      "zoomable": "Image can be zoomed/panned"
-    },
     "live": {
       "auto_mute": "Automatically mute live cameras",
       "auto_pause": "Automatically pause live cameras",
       "auto_play": "Automatically play live cameras",
       "auto_unmute": "Automatically unmute live cameras",
       "controls": {
-        "editor_label": "Live Controls"
+        "editor_label": "Live Controls",
+        "ptz": {
+          "editor_label": "PTZ",
+          "hide_home": "Hide home control",
+          "hide_pan_tilt": "Hide pan & tilt control",
+          "hide_zoom": "Hide zoom control",
+          "mode": "Mode",
+          "modes": {
+            "off": "Off",
+            "on": "On"
+          },
+          "orientation": "Orientation",
+          "orientations": {
+            "horizontal": "Horizontal",
+            "vertical": "Vertical"
+          },
+          "position": "Position",
+          "positions": {
+            "bottom-left": "Bottom left",
+            "bottom-right": "Bottom right",
+            "top-left": "Top left",
+            "top-right": "Top right"
+          }
+        }
       },
       "draggable": "Live cameras view can be dragged/swiped",
-      "layout": "Live Layout",
       "lazy_load": "Live cameras are lazily loaded",
       "lazy_unload": "Live cameras are lazily unloaded",
       "microphone": {
         "always_connected": "Always keep the microphone connected",
         "disconnect_seconds": "Seconds after which to disconnect microphone (0=never)",
         "editor_label": "Microphone",
-        "enabled": "Microphone enabled"
+        "enabled": "Microphone enabled",
+        "mute_after_microphone_mute_seconds": "Seconds after microphone mute to mute inbound audio"
       },
       "preload": "Preload live view in the background",
       "show_image_during_load": "Show still image while the live stream is loading",
@@ -240,7 +325,6 @@
         "editor_label": "Media Viewer Controls"
       },
       "draggable": "Media Viewer can be dragged/swiped",
-      "layout": "Media Viewer Layout",
       "lazy_load": "Media Viewer media is lazily loaded in carousel",
       "snapshot_click_plays_clip": "Clicking on a snapshot plays a related clip",
       "transition_effect": "Media Viewer transition effect",
@@ -268,6 +352,7 @@
         "camera_ui": "Camera user interface",
         "cameras": "Cameras",
         "clips": "Clips",
+        "display_mode": "Display mode",
         "download": "Download",
         "enabled": "Button enabled",
         "expand": "Expand",
@@ -281,6 +366,8 @@
         "mute": "Mute / Unmute",
         "play": "Play / Pause",
         "priority": "Priority",
+        "ptz_controls": "Show PTZ controls",
+        "ptz_home": "PTZ Home",
         "recordings": "Recordings",
         "screenshot": "Screenshot",
         "snapshots": "Snapshots",
@@ -316,12 +403,8 @@
       "features": {
         "animated_progress_indicator": "Animated Progress Indicator",
         "editor_label": "Feature Options",
+        "max_simultaneous_engine_requests": "Max simultaneous camera engine requests",
         "media_chunk_size": "Media chunk size"
-      },
-      "profile": "Performance profile",
-      "profiles": {
-        "high": "High/full performance",
-        "low": "Low performance"
       },
       "style": {
         "border_radius": "Curves",
@@ -329,6 +412,38 @@
         "editor_label": "Style Options"
       },
       "warning": "This card is in low profile mode so defaults have changed to optimize performance"
+    },
+    "profiles": {
+      "editor_label": "Configuration profiles",
+      "low-performance": "Low performance",
+      "scrubbing": "Video scrubbing"
+    },
+    "status_bar": {
+      "height": "Status bar height in pixels",
+      "items": {
+        "enabled": "Item enabled",
+        "engine": "Camera engine",
+        "live_provider": "Live provider",
+        "priority": "Item priority",
+        "resolution": "Resolution",
+        "technology": "Technology",
+        "title": "Title"
+      },
+      "popup_seconds": "Status bar popup seconds",
+      "position": "Status bar position",
+      "positions": {
+        "bottom": "Positioned on the bottom",
+        "top": "Positioned on the top"
+      },
+      "style": "Status bar style",
+      "styles": {
+        "hover": "Hover status bar",
+        "hover-card": "Hover status bar (card-wide)",
+        "none": "No status bar",
+        "outside": "Outside status bar",
+        "overlay": "Overlay status bar",
+        "popup": "Popup status bar"
+      }
     },
     "view": {
       "camera_select": "View for newly selected cameras",
@@ -339,17 +454,58 @@
         "on": "On"
       },
       "default": "Default view",
-      "scan": {
-        "enabled": "Scan mode enabled",
-        "scan_mode": "Scan mode",
+      "default_cycle_camera": "Cycle through cameras when default view updates",
+      "default_reset": {
+        "after_interaction": "Reset to the default view after user interaction ends",
+        "editor_label": "Default view reset behavior",
+        "entities": "Reset to the default view on entity state change",
+        "every_seconds": "Reset to default view every X seconds (0=never)",
+        "interaction_mode": "How default reset behaves when the card has human interaction",
+        "interaction_modes": {
+          "active": "Only allow reset when card has active human interaction",
+          "all": "Reset regardless of human interaction",
+          "inactive": "Only reset when card has no human interaction"
+        }
+      },
+      "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
+      "keyboard_shortcuts": {
+        "editor_label": "Keyboard shortcuts",
+        "enabled": "Keyboard shortcuts enabled",
+        "ptz_down": "PTZ Down",
+        "ptz_home": "PTZ Home",
+        "ptz_left": "PTZ Left",
+        "ptz_right": "PTZ Right",
+        "ptz_up": "PTZ Up",
+        "ptz_zoom_in": "PTZ Zoom In",
+        "ptz_zoom_out": "PTZ Zoom Out"
+      },
+      "triggers": {
+        "actions": {
+          "editor_label": "Trigger actions",
+          "interaction_mode": "How to handle actions when the card has human interaction",
+          "interaction_modes": {
+            "active": "Only trigger actions when card has human interaction",
+            "all": "Trigger actions regardless of human interaction",
+            "inactive": "Only trigger actions when card has no human interaction"
+          },
+          "trigger": "Trigger action",
+          "triggers": {
+            "default": "Change to or update default view",
+            "live": "Change to or update live view",
+            "media": "Change to the relevant media view for new media",
+            "none": "No action"
+          },
+          "untrigger": "Untrigger action",
+          "untriggers": {
+            "default": "Change to default view/camera",
+            "none": "No action"
+          }
+        },
+        "editor_label": "Trigger behavior",
+        "filter_selected_camera": "Only trigger on selected camera",
         "show_trigger_status": "Show pulsing border when triggered",
-        "untrigger_reset": "Reset the view to default after untrigger",
         "untrigger_seconds": "Seconds after inactive state change to untrigger"
       },
-      "timeout_seconds": "Reset to default view X seconds after user action (0=never)",
-      "update_cycle_camera": "Cycle through cameras when default view updates",
-      "update_force": "Force card updates (ignore user interaction)",
-      "update_seconds": "Refresh default view every X seconds (0=never)",
       "views": {
         "clip": "Most recent clip",
         "clips": "Clips gallery",
@@ -364,6 +520,10 @@
       }
     }
   },
+  "display_modes": {
+    "grid": "Show media viewer for each camera in a grid",
+    "single": "Show single media viewer"
+  },
   "editor": {
     "add_new_camera": "Add new camera",
     "button": "Button",
@@ -371,8 +531,8 @@
     "cameras": "Cameras",
     "cameras_secondary": "What cameras to render on this card",
     "delete": "Delete",
-    "dimensions": "Dimensions",
-    "dimensions_secondary": "Dimensions & shape options",
+    "dimensions": "Card dimensions",
+    "dimensions_secondary": "Card dimensions & shape options",
     "image": "Image",
     "image_secondary": "Static image view options",
     "live": "Live",
@@ -389,6 +549,10 @@
     "overrides_secondary": "Dynamic configuration overrides detected",
     "performance": "Performance",
     "performance_secondary": "Card performance options",
+    "profiles": "Configuration profiles",
+    "profiles_secondary": "Choose pre-configured sets of defaults",
+    "status_bar": "Status bar",
+    "status_bar_secondary": "Status bar look & feel options",
     "timeline": "Timeline",
     "timeline_secondary": "Event timeline options",
     "upgrade": "Upgrade",
@@ -408,6 +572,8 @@
     }
   },
   "error": {
+    "awaiting_live": "Waiting for live stream to load ...",
+    "camera_initialization": "Camera initialization failed",
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
@@ -432,10 +598,11 @@
     "no_camera_entity_for_triggers": "A camera entity is required in order to autodetect triggers",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
     "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
+    "no_dashboard_or_view": "Both 'dashboard_path' and 'view_path' parameters are required for the 'dashboard' cast method",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
-    "no_visible_cameras": "No visible cameras found, you must configure at least one non-hidden camera",
+    "no_supported_camera": "The selected camera does not support this view",
+    "no_supported_cameras": "No cameras support this view",
     "reconnecting": "Reconnecting",
-    "timeline_no_cameras": "No Frigate cameras to show in timeline",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "unknown": "Unknown error",
@@ -453,6 +620,17 @@
     "tag": "Tag",
     "what": "What",
     "where": "Where"
+  },
+  "key_assigner": {
+    "assign": "Assign",
+    "assigning": "Assigning",
+    "modifiers": {
+      "alt": "Alt",
+      "ctrl": "Ctrl",
+      "meta": "Meta",
+      "shift": "Shift"
+    },
+    "unassign": "Unassign"
   },
   "media_filter": {
     "all": "All",
@@ -476,12 +654,16 @@
     "what": "What",
     "when": "When",
     "whens": {
+      "custom": "Custom",
       "past_month": "Past Month",
       "past_week": "Past Week",
       "today": "Today",
       "yesterday": "Yesterday"
     },
     "where": "Where"
+  },
+  "media_viewer": {
+    "unseekable": "Seek time not found in media"
   },
   "recording": {
     "camera": "Camera",
@@ -498,11 +680,6 @@
     "timeline": "See media in timeline"
   },
   "timeline": {
-    "pan_behavior": {
-      "pan": "Pan",
-      "seek": "Pan seeks across all media",
-      "seek-in-media": "Pan seeks within selected media item only"
-    },
     "select_date": "Choose date"
   }
 }

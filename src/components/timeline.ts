@@ -1,9 +1,10 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import timelineStyle from '../scss/timeline.scss';
-import { CardWideConfig, ExtendedHomeAssistant, TimelineConfig } from '../types';
 import { CameraManager } from '../camera-manager/manager';
-import { View } from '../view/view';
+import { ViewManagerEpoch } from '../card-controller/view/types';
+import { CardWideConfig, TimelineConfig } from '../config/types';
+import basicBlockStyle from '../scss/basic-block.scss';
+import { ExtendedHomeAssistant } from '../types';
 import './surround.js';
 import './timeline-core.js';
 
@@ -13,7 +14,7 @@ export class FrigateCardTimeline extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public timelineConfig?: TimelineConfig;
@@ -24,10 +25,6 @@ export class FrigateCardTimeline extends LitElement {
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
     if (!this.timelineConfig) {
       return html``;
@@ -36,10 +33,13 @@ export class FrigateCardTimeline extends LitElement {
     return html`
       <frigate-card-timeline-core
         .hass=${this.hass}
-        .view=${this.view}
+        .viewManagerEpoch=${this.viewManagerEpoch}
         .timelineConfig=${this.timelineConfig}
         .thumbnailConfig=${this.timelineConfig.controls.thumbnails}
         .cameraManager=${this.cameraManager}
+        .cameraIDs=${this.cameraManager?.getStore().getCameraIDsWithCapability({
+          anyCapabilities: ['clips', 'snapshots', 'recordings'],
+        })}
         .cardWideConfig=${this.cardWideConfig}
         .itemClickAction=${this.timelineConfig.controls.thumbnails.mode === 'none'
           ? 'play'
@@ -49,11 +49,8 @@ export class FrigateCardTimeline extends LitElement {
     `;
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(timelineStyle);
+    return unsafeCSS(basicBlockStyle);
   }
 }
 

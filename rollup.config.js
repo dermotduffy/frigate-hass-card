@@ -1,10 +1,10 @@
-import typescript from 'rollup-plugin-typescript2';
+import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
-import nodeResolve from '@rollup/plugin-node-resolve';
-import { terser } from 'rollup-plugin-terser';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import terser from '@rollup/plugin-terser';
 import serve from 'rollup-plugin-serve';
 import json from '@rollup/plugin-json';
-import styles from 'rollup-plugin-styles';
+import styles from 'rollup-plugin-styler';
 import image from '@rollup/plugin-image';
 import replace from '@rollup/plugin-replace';
 import gitInfo from 'rollup-plugin-git-info';
@@ -30,7 +30,7 @@ const serveopts = {
  * @type {import('rollup').RollupOptions['plugins']}
  */
 const plugins = [
-  gitInfo({ enableBuildDate: true, updateVersion: false }),
+  gitInfo.default({ enableBuildDate: true, updateVersion: false }),
   styles({
     modules: false,
     // Behavior of inject mode, without actually injecting style
@@ -48,7 +48,11 @@ const plugins = [
     include: 'node_modules/**',
     sourceMap: false,
   }),
-  typescript(),
+  typescript({
+    sourceMap: dev,
+    inlineSources: dev,
+    exclude: ['dist/**', 'tests/**/*.test.ts'],
+  }),
   json({ exclude: 'package.json' }),
   replace({
     preventAssignment: true,
@@ -58,7 +62,10 @@ const plugins = [
   }),
   watch && serve(serveopts),
   !dev && terser(),
-  visualizer(),
+  visualizer({
+    filename: 'visualizations/treemap.html',
+    template: 'treemap',
+  }),
 ];
 
 /**
@@ -86,9 +93,7 @@ const config = {
       return '[name]-[hash].js';
     },
     format: 'es',
-    ...(dev && {
-      sourcemap: true,
-    }),
+    sourcemap: dev,
   },
   plugins: plugins,
   // These files use this at the toplevel, which causes rollup warning
@@ -96,7 +101,6 @@ const config = {
   moduleContext: {
     './node_modules/@formatjs/intl-utils/lib/src/diff.js': 'window',
     './node_modules/@formatjs/intl-utils/lib/src/resolve-locale.js': 'window',
-    './node_modules/flatpickr/dist/esm/index.js': 'window',
   },
 };
 

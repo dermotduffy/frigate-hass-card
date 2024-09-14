@@ -9,6 +9,7 @@ const MEDIA_SEEK_CONTROLS_HIDE_SECONDS = 1;
 
 export type FrigateCardHTMLVideoElement = HTMLVideoElement & {
   _controlsHideTimer?: Timer;
+  _controlsOriginalValue?: boolean;
 };
 
 /**
@@ -24,6 +25,7 @@ export const setControlsOnVideo = (
   if (video._controlsHideTimer) {
     video._controlsHideTimer.stop();
     delete video._controlsHideTimer;
+    delete video._controlsOriginalValue;
   }
   video.controls = value;
 };
@@ -38,9 +40,21 @@ export const hideMediaControlsTemporarily = (
   video: FrigateCardHTMLVideoElement,
   seconds = MEDIA_SEEK_CONTROLS_HIDE_SECONDS,
 ): void => {
-  const oldValue = video.controls;
+  const oldValue = video._controlsOriginalValue ?? video.controls;
   setControlsOnVideo(video, false);
   video._controlsHideTimer ??= new Timer();
+  video._controlsOriginalValue = oldValue;
+
+  // LitElement may change the src attribute of the video element during
+  // rendering, so we need to ensure that the controls are reset on the 'old'
+  // video. See:
+  // https://github.com/dermotduffy/frigate-hass-card/issues/1310
+  const resetIfReloaded = () => {
+    setControlsOnVideo(video, oldValue);
+    video.removeEventListener('loadstart', resetIfReloaded);
+  };
+  video.addEventListener('loadstart', resetIfReloaded);
+
   video._controlsHideTimer.start(seconds, () => {
     setControlsOnVideo(video, oldValue);
   });

@@ -30,6 +30,22 @@ describe('Timer', () => {
     expect(handler).toBeCalled();
   });
 
+  it('should not fire when stopped', () => {
+    const timer = new Timer();
+    const handler = vi.fn();
+    timer.start(10, handler);
+
+    expect(timer.isRunning()).toBeTruthy();
+    expect(handler).not.toBeCalled();
+
+    timer.stop();
+
+    vi.runOnlyPendingTimers();
+
+    expect(timer.isRunning()).toBeFalsy();
+    expect(handler).not.toBeCalled();
+  });
+
   it('should fire repeatedly when started', () => {
     const timer = new Timer();
     const handler = vi.fn();
@@ -49,10 +65,10 @@ describe('Timer', () => {
     expect(handler).toBeCalledTimes(2);
   });
 
-  it('should not fire when stopped', () => {
+  it('should not fire repeatedly when stopped', () => {
     const timer = new Timer();
     const handler = vi.fn();
-    timer.start(10, handler);
+    timer.startRepeated(10, handler);
 
     expect(timer.isRunning()).toBeTruthy();
     expect(handler).not.toBeCalled();

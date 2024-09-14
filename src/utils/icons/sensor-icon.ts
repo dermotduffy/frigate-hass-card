@@ -1,4 +1,4 @@
-import { UNIT_C, UNIT_F } from 'custom-card-helpers';
+import { UNIT_C, UNIT_F } from '@dermotduffy/custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
 
 const FIXED_DEVICE_CLASS_ICONS = {
@@ -70,10 +70,7 @@ const batteryStateIcon = (
   return batteryIcon(battery, batteryCharging);
 };
 
-const batteryIcon = (
-  batteryState: number | string,
-  batteryCharging?: boolean,
-) => {
+const batteryIcon = (batteryState: number | string, batteryCharging?: boolean) => {
   const batteryValue = Number(batteryState);
   if (isNaN(batteryValue)) {
     if (batteryState === 'off') {

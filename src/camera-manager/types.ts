@@ -1,4 +1,5 @@
-import { CameraConfig, FrigateCardView } from '../types';
+import { CapabilityKey } from '../types';
+import { FrigateCardView } from '../config/types';
 import { ViewMedia } from '../view/media';
 
 // ====
@@ -64,19 +65,19 @@ export interface RecordingSegment {
 export type QueryReturnType<QT> = QT extends EventQuery
   ? EventQueryResults
   : QT extends RecordingQuery
-  ? RecordingQueryResults
-  : QT extends RecordingSegmentsQuery
-  ? RecordingSegmentsQueryResults
-  : QT extends MediaMetadataQuery
-  ? MediaMetadataQueryResults
-  : never;
+    ? RecordingQueryResults
+    : QT extends RecordingSegmentsQuery
+      ? RecordingSegmentsQueryResults
+      : QT extends MediaMetadataQuery
+        ? MediaMetadataQueryResults
+        : never;
 export type PartialQueryConcreteType<PQT> = PQT extends PartialEventQuery
   ? EventQuery
   : PQT extends PartialRecordingQuery
-  ? RecordingQuery
-  : PQT extends PartialRecordingSegmentsQuery
-  ? RecordingSegmentsQuery
-  : never;
+    ? RecordingQuery
+    : PQT extends PartialRecordingSegmentsQuery
+      ? RecordingSegmentsQuery
+      : never;
 
 export type ResultsMap<QT> = Map<QT, QueryReturnType<QT>>;
 export type EventQueryResultsMap = ResultsMap<EventQuery>;
@@ -91,19 +92,12 @@ export interface MediaMetadata {
   what?: Set<string>;
 }
 
-interface BaseCapabilities {
-  canFavoriteEvents: boolean;
-  canFavoriteRecordings: boolean;
-  canSeek: boolean;
-
-  supportsClips: boolean;
-  supportsRecordings: boolean;
-  supportsSnapshots: boolean;
-  supportsTimeline: boolean;
+interface CapabilitySearchAllAny {
+  allCapabilities?: CapabilityKey[];
+  anyCapabilities?: CapabilityKey[];
 }
+export type CapabilitySearchOptions = CapabilityKey | CapabilitySearchAllAny;
 
-export type CameraManagerCapabilities = BaseCapabilities;
-export type CameraManagerCameraCapabilities = BaseCapabilities;
 export interface CameraManagerMediaCapabilities {
   canFavorite: boolean;
   canDownload: boolean;
@@ -132,11 +126,25 @@ export interface CameraEndpoints {
   webrtcCard?: CameraEndpoint;
 }
 
-export type CameraConfigs = Map<string, CameraConfig>;
-
 export interface EngineOptions {
   useCache?: boolean;
 }
+
+export interface CameraEvent {
+  cameraID: string;
+
+  type: 'new' | 'update' | 'end';
+
+  // When fidelity is `high`, the engine is assumed to provide exact details of
+  // what new media is available. Otherwise all media types are assumed to be
+  // possibly newly available.
+  fidelity?: 'high' | 'low';
+
+  // Whether a new clip/snapshot/recording may be available.
+  clip?: boolean;
+  snapshot?: boolean;
+}
+export type CameraEventCallback = (ev: CameraEvent) => void;
 
 // ===========
 // Event Query

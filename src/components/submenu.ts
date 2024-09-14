@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   html,
@@ -11,13 +11,9 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
+import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../config/types.js';
 import submenuStyle from '../scss/submenu.scss';
-import {
-  MenuSubmenu,
-  MenuSubmenuItem,
-  MenuSubmenuSelect,
-  StateParameters,
-} from '../types.js';
+import { StateParameters } from '../types.js';
 import {
   frigateCardHasAction,
   stopEventFromActivatingCardWideActions,
@@ -39,7 +35,9 @@ export class FrigateCardSubmenu extends LitElement {
     if (!this.hass) {
       return;
     }
-    const stateParameters = refreshDynamicStateParameters(this.hass, { ...item } as StateParameters);
+    const stateParameters = refreshDynamicStateParameters(this.hass, {
+      ...item,
+    } as StateParameters);
     const getIcon = (stateParameters: StateParameters): TemplateResult => {
       if (stateParameters.icon) {
         return html` <ha-icon
@@ -83,6 +81,7 @@ export class FrigateCardSubmenu extends LitElement {
     if (!this.submenu) {
       return html``;
     }
+    const items = this.submenu.items as MenuSubmenuItem[];
     return html`
       <ha-button-menu
         corner=${'BOTTOM_LEFT'}
@@ -95,7 +94,7 @@ export class FrigateCardSubmenu extends LitElement {
         @click=${(ev) => stopEventFromActivatingCardWideActions(ev)}
       >
         <ha-icon-button
-          style="${styleMap(this.submenu.style as StyleInfo || {})}"
+          style="${styleMap((this.submenu.style as StyleInfo) || {})}"
           class="button"
           slot="trigger"
           .label=${this.submenu.title || ''}
@@ -111,7 +110,7 @@ export class FrigateCardSubmenu extends LitElement {
         >
           <ha-icon icon="${this.submenu.icon}"></ha-icon>
         </ha-icon-button>
-        ${this.submenu.items.map(this._renderItem.bind(this))}
+        ${items.map(this._renderItem.bind(this))}
       </ha-button-menu>
     `;
   }
@@ -219,21 +218,25 @@ export class FrigateCardSubmenuSelect extends LitElement {
     // the items correctly (below).
     delete submenu['options'];
 
+    const items = submenu.items as MenuSubmenuItem[];
+
     for (const option of options) {
       const title = this._optionTitles?.[option] ?? option;
-      submenu.items.push({
+      items.push({
         state_color: true,
         selected: stateObj.state === option,
         enabled: true,
         title: title || option,
         ...((entityID.startsWith('select.') || entityID.startsWith('input_select.')) && {
           tap_action: {
-            action: 'call-service',
-            service: entityID.startsWith('select.')
+            action: 'perform-action',
+            perform_action: entityID.startsWith('select.')
               ? 'select.select_option'
               : 'input_select.select_option',
-            service_data: {
+            target: {
               entity_id: entityID,
+            },
+            data: {
               option: option,
             },
           },

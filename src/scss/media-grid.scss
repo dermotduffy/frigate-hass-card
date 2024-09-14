@@ -1,0 +1,54 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  --frigate-card-grid-border-size: 3px;
+  --frigate-card-grid-column-size: 100%;
+  --frigate-card-grid-selected-width-factor: 2;
+
+  // Allow the grid to scroll if necessary (e.g. fullscreen).
+  overflow: auto;
+
+  // Hide scrollbar: Firefox
+  scrollbar-width: none;
+  // Hide scrollbar: IE and Edge
+  -ms-overflow-style: none;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+:host::-webkit-scrollbar {
+  display: none;
+}
+
+::slotted(*) {
+  box-sizing: border-box;
+  border-radius: var(--ha-card-border-radius, 4px);
+  overflow: hidden;
+  width: var(--frigate-card-grid-column-size);
+
+  // Unselected items included a transparent border to act as the effective
+  // gutter between elements, and to ensure when the item is selected it does
+  // not change in size (even border-box sizing appears to allow size to change
+  // when the element has a non-fixed height).
+  border: var(--frigate-card-grid-border-size) solid transparent;
+}
+
+::slotted([selected]) {
+  border: var(--frigate-card-grid-border-size) solid var(--primary-color);
+  width: min(
+    100%,
+    calc(
+      var(--frigate-card-grid-selected-width-factor) *
+        var(--frigate-card-grid-column-size)
+    )
+  );
+
+  // When at item is selected, it may be enlarged -- it should render "in-front"
+  // of the other cameras that will then "move out of the way".
+  z-index: 2;
+}
+
+slot {
+  display: block;
+}

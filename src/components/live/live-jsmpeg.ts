@@ -4,22 +4,18 @@ import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
 import { renderProgressIndicator } from '../../components/message.js';
+import { CameraConfig, CardWideConfig } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
 import liveJSMPEGStyle from '../../scss/live-jsmpeg.scss';
-import {
-  CameraConfig,
-  CardWideConfig,
-  ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
-} from '../../types.js';
+import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
 import { getEndpointAddressOrDispatchError } from '../../utils/endpoint.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
 } from '../../utils/media-info.js';
-import { dispatchErrorMessageEvent } from '../message.js';
 import { Timer } from '../../utils/timer.js';
+import { dispatchErrorMessageEvent } from '../message.js';
 
 // Number of seconds a signed URL is valid for.
 const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -145,6 +141,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
         capabilities: {
           supportsPause: true,
         },
+        technology: ['jsmpeg'],
       });
     }
   }

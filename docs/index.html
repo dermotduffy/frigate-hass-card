@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frigate Card</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="Frigate Card Documentation" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" href="images/favicon.ico" />
+
+    <!-- Themes (light + dark) -->
+    <link
+      rel="stylesheet"
+      media="(prefers-color-scheme: dark)"
+      href="./css/theme-simple-dark.css"
+    />
+    <link
+      rel="stylesheet"
+      media="(prefers-color-scheme: light)"
+      href="./css/theme-simple.css"
+    />
+    <style>
+      :root {
+        --content-max-width: 95vw;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      window.$docsify = {
+        // Full reference: https://docsify.js.org/#/configuration
+
+        // The repo to link to.
+        repo: 'dermotduffy/frigate-hass-card',
+
+        // The overall documentation name.
+        name: 'Frigate Card',
+
+        logo: 'images/frigate-logo.svg',
+
+        // Automatically go to the top of a page on route change.
+        auto2top: true,
+
+        // Use a sidebar.
+        loadSidebar: true,
+
+        // Automatically use headings up to H2 for sider.
+        subMaxLevel: 2,
+
+        // Show the Frigate Card cover page.
+        coverpage: true,
+
+        // Use relative links (this way both vscode and docsify work on clicking
+        // a link).
+        relativePath: true,
+
+        // Skip the link to the main content.
+        skipLink: false,
+
+        // Google tag (Google Analytics 4).
+        gtag: 'G-ZFD19QWCJP',
+      };
+    </script>
+
+    <!-- Docsify preview (necessary for Google Analytics 4) -->
+    <!-- Update when there's a docsify release after
+    https://github.com/docsifyjs/docsify/pull/1702  -->
+    <script src="./js/docsify.min.js"></script>
+    <script src="./js/gtag.min.js"></script>
+
+    <!-- Themeable -->
+    <script src="./js/docsify-themeable.min.js"></script>
+
+    <!-- Prism Syntax Highlighting for YAML -->
+    <script src="./js/prism-yaml.min.js"></script>
+
+    <!-- Search plugin -->
+    <script src="./js/search.js"></script>
+
+    <!-- Zoom in on images on click -->
+    <script src="./js/zoom-image.min.js"></script>
+
+    <!-- Copy samples can copy to clipboard -->
+    <script src="./js/docsify-copy-code.min.js"></script>
+
+    <!-- Allow sidebar selections to collapse -->
+    <script src="./js/docsify-sidebar-collapse.min.js"></script>
+  </body>
+</html>

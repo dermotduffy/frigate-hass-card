@@ -7,33 +7,19 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import surroundStyle from '../scss/surround.scss';
+import { CameraManager } from '../camera-manager/manager.js';
+import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
+import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import {
   CardWideConfig,
-  ClipsOrSnapshotsOrAll,
-  ExtendedHomeAssistant,
   MiniTimelineControlConfig,
   ThumbnailsControlConfig,
-} from '../types.js';
+} from '../config/types.js';
+import basicBlockStyle from '../scss/basic-block.scss';
+import { ExtendedHomeAssistant } from '../types.js';
 import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
-import { CameraManager } from '../camera-manager/manager.js';
-import { View } from '../view/view.js';
-import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 import './surround-basic.js';
-import { changeViewToRecentEventsForCameraAndDependents } from '../utils/media-to-view';
-import { getAllDependentCameras } from '../utils/camera.js';
-import type { DataQuery } from '../camera-manager/types';
-
-interface ThumbnailViewContext {
-  // Whether or not to fetch thumbnails.
-  fetch?: boolean;
-}
-
-declare module 'view' {
-  interface ViewContext {
-    thumbnails?: ThumbnailViewContext;
-  }
-}
+import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
 @customElement('frigate-card-surround')
 export class FrigateCardSurround extends LitElement {
@@ -41,17 +27,13 @@ export class FrigateCardSurround extends LitElement {
   public hass?: ExtendedHomeAssistant;
 
   @property({ attribute: false })
-  public view?: Readonly<View>;
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public thumbnailConfig?: ThumbnailsControlConfig;
 
   @property({ attribute: false, hasChanged: contentsChanged })
   public timelineConfig?: MiniTimelineControlConfig;
-
-  // If fetchMedia is not specified, no fetching is done.
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public fetchMedia?: ClipsOrSnapshotsOrAll;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -60,40 +42,6 @@ export class FrigateCardSurround extends LitElement {
   public cardWideConfig?: CardWideConfig;
 
   protected _cameraIDsForTimeline?: Set<string>;
-
-  /**
-   * Fetch thumbnail media when a target is not specified in the view (e.g. for
-   * the live view).
-   * @param param Task parameters.
-   * @returns
-   */
-  protected async _fetchMedia(): Promise<void> {
-    if (
-      !this.cameraManager ||
-      !this.cardWideConfig ||
-      !this.fetchMedia ||
-      !this.hass ||
-      !this.view ||
-      this.view.query ||
-      !this.thumbnailConfig ||
-      this.thumbnailConfig.mode === 'none' ||
-      !(this.view.context?.thumbnails?.fetch ?? true)
-    ) {
-      return;
-    }
-    await changeViewToRecentEventsForCameraAndDependents(
-      this,
-      this.hass,
-      this.cameraManager,
-      this.cardWideConfig,
-      this.view,
-      {
-        targetView: this.view.view,
-        mediaType: this.fetchMedia,
-        select: 'latest',
-      },
-    );
-  }
 
   /**
    * Determine if a drawer is being used.
@@ -105,58 +53,55 @@ export class FrigateCardSurround extends LitElement {
     );
   }
 
-  /**
-   * Called before each update.
-   */
   protected willUpdate(changedProperties: PropertyValues): void {
     if (this.timelineConfig?.mode && this.timelineConfig.mode !== 'none') {
-      import('./timeline.js');
+      import('./timeline-core.js');
     }
 
-    // Only reset the timeline cameraIDs when the media materially changes (and
-    // not on every view change, since the view will change frequently when the
-    // user is scrubbing video).
+    // Only reset the timeline cameraIDs when the media or display mode
+    // materially changes (and not on every view change, since the view will
+    // change frequently when the user is scrubbing video).
+    const view = this.viewManagerEpoch?.manager.getView();
     if (
-      changedProperties.has('view') &&
-      View.isMajorMediaChange(changedProperties.get('view'), this.view)
+      changedProperties.has('viewManagerEpoch') &&
+      (this.viewManagerEpoch?.manager.hasMajorMediaChange(
+        this.viewManagerEpoch?.oldView,
+      ) ||
+        this.viewManagerEpoch?.oldView?.displayMode !== view?.displayMode)
     ) {
       this._cameraIDsForTimeline = this._getCameraIDsForTimeline() ?? undefined;
-    }
-
-    // Once the component will certainly update, dispatch a media request. Only
-    // do so if properties relevant to the request have changed (as per their
-    // hasChanged).
-    if (
-      ['view', 'fetch', 'browseMediaParams'].some((prop) => changedProperties.has(prop))
-    ) {
-      this._fetchMedia();
     }
   }
 
   protected _getCameraIDsForTimeline(): Set<string> | null {
-    if (!this.view) {
+    const view = this.viewManagerEpoch?.manager.getView();
+    if (!view || !this.cameraManager) {
       return null;
     }
-    if (this.view?.is('live')) {
-      return getAllDependentCameras(this.cameraManager, this.view.camera);
+
+    if (view.is('live')) {
+      const capabilitySearch = {
+        anyCapabilities: ['clips' as const, 'snapshots' as const, 'recordings' as const],
+      };
+      if (view.supportsMultipleDisplayModes() && view.isGrid()) {
+        return this.cameraManager
+          .getStore()
+          .getCameraIDsWithCapability(capabilitySearch);
+      } else {
+        return this.cameraManager
+          .getStore()
+          .getAllDependentCameras(view.camera, capabilitySearch);
+      }
     }
-    if (this.view.isViewerView()) {
-      return new Set(
-        this.view.query
-          ?.getQueries()
-          ?.map((query: DataQuery) => [...query.cameraIDs])
-          .flat(),
-      );
+    if (view.isViewerView()) {
+      return view.query?.getQueryCameraIDs() ?? null;
     }
     return null;
   }
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.view) {
+    const view = this.viewManagerEpoch?.manager.getView();
+    if (!this.hass || !view) {
       return;
     }
 
@@ -183,25 +128,25 @@ export class FrigateCardSurround extends LitElement {
             .hass=${this.hass}
             .config=${this.thumbnailConfig}
             .cameraManager=${this.cameraManager}
-            .view=${this.view}
-            .selected=${this.view.queryResults?.getSelectedIndex() ?? undefined}
-            @frigate-card:view:change=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
+            .fadeThumbnails=${view.isViewerView()}
+            .viewManagerEpoch=${this.viewManagerEpoch}
+            .selected=${view.queryResults?.getSelectedIndex() ?? undefined}
             @frigate-card:thumbnail-carousel:tap=${(
               ev: CustomEvent<ThumbnailCarouselTap>,
             ) => {
               const media = ev.detail.queryResults.getSelectedResult();
               if (media) {
-                this.view
-                  ?.evolve({
+                this.viewManagerEpoch?.manager.setViewByParameters({
+                  params: {
                     view: 'media',
                     queryResults: ev.detail.queryResults,
                     ...(media.getCameraID() && { camera: media.getCameraID() }),
-                  })
-                  .removeContext('timeline')
-                  // Send the view change from the source of the tap event, so
-                  // the view change will be caught by the handler above (to
-                  // close the drawer).
-                  .dispatchChangeEvent(ev.composedPath()[0]);
+                  },
+                  modifiers: [
+                    new RemoveContextViewModifier(['timeline', 'mediaViewer']),
+                  ],
+                });
+                changeDrawer(ev, 'close');
               }
             }}
           >
@@ -211,8 +156,8 @@ export class FrigateCardSurround extends LitElement {
         ? html` <frigate-card-timeline-core
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}
-            .view=${this.view}
-            .itemClickAction=${this.view.isViewerView() ||
+            .viewManagerEpoch=${this.viewManagerEpoch}
+            .itemClickAction=${view.isViewerView() ||
             !this.thumbnailConfig ||
             this.thumbnailConfig?.mode === 'none'
               ? 'play'
@@ -230,11 +175,8 @@ export class FrigateCardSurround extends LitElement {
     </frigate-card-surround-basic>`;
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
-    return unsafeCSS(surroundStyle);
+    return unsafeCSS(basicBlockStyle);
   }
 }
 

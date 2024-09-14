@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
 import {
   CSSResultGroup,
@@ -6,31 +6,27 @@ import {
   LitElement,
   PropertyValues,
   TemplateResult,
-  unsafeCSS
+  unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import isEqual from 'lodash-es/isEqual';
-import { CachedValueController } from '../cached-value-controller.js';
+import { CameraManager } from '../camera-manager/manager.js';
+import { CachedValueController } from '../components-lib/cached-value-controller.js';
+import { CameraConfig, ImageMode, ImageViewConfig } from '../config/types.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
-import {
-  CameraConfig,
-  FrigateCardMediaPlayer,
-  ImageViewConfig,
-  MediaLoadedInfo
-} from '../types.js';
+import { FrigateCardMediaPlayer, MediaLoadedInfo } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { isHassDifferent } from '../utils/ha';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaPauseEvent,
-  dispatchMediaPlayEvent
+  dispatchMediaPlayEvent,
 } from '../utils/media-info.js';
-import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import { View } from '../view/view.js';
 import { dispatchErrorMessageEvent } from './message.js';
 
@@ -47,6 +43,9 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
+
+  @property({ attribute: false })
+  public cameraManager?: CameraManager;
 
   // Using contentsChanged to ensure overridden configs (e.g. when the
   // 'show_image_during_load' option is true for live views, an overridden
@@ -120,21 +119,19 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
       return false;
     }
 
-    const cameraEntity = this._getCameraEntity();
-    if (
-      changedProps.has('hass') &&
-      changedProps.size == 1 &&
-      this.imageConfig?.mode === 'camera' &&
-      cameraEntity
-    ) {
-      if (isHassDifferent(this.hass, changedProps.get('hass'), [cameraEntity])) {
+    const relevantEntity = this._getRelevantEntityForMode(
+      this._resolveMode(this.imageConfig?.mode),
+    );
+
+    if (changedProps.has('hass') && changedProps.size == 1 && relevantEntity) {
+      if (isHassDifferent(this.hass, changedProps.get('hass'), [relevantEntity])) {
         // If the state of the camera entity has changed, remove the cached
         // value (will be re-calculated in willUpdate). This is important to
         // ensure a changed access token is immediately used.
         this._cachedValueController?.clearValue();
         return true;
       }
-      return false;
+      return !this.hasUpdated;
     }
     return true;
   }
@@ -157,12 +154,11 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
           () => dispatchMediaPauseEvent(this),
         );
       }
-      updateElementStyleFromMediaLayoutConfig(this, this.imageConfig?.layout);
-
-      if (changedProps.has('imageConfig') && this.imageConfig?.zoomable) {
-        import('./zoomer.js');
-      }
     }
+
+    const relevantEntity = this._getRelevantEntityForMode(
+      this._resolveMode(this.imageConfig?.mode),
+    );
 
     // If the camera or view changed, immediately discard the old value (view to
     // allow pressing of the image button to fetch a fresh image). Likewise, if
@@ -171,8 +167,7 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
     if (
       changedProps.has('cameraConfig') ||
       changedProps.has('view') ||
-      (this.imageConfig?.mode === 'camera' &&
-        !this._getAcceptableState(this._getCameraEntity()))
+      (relevantEntity && !this._getAcceptableState(relevantEntity))
     ) {
       this._cachedValueController?.clearValue();
     }
@@ -251,24 +246,75 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
   /**
    * Build a working absolute image URL that the browser will not cache.
    * @param url An input URL (may be relative to document origin)
-   * @returns A new URL (absolute, will not be browser cached).
+   * @returns A new URL as a string (absolute, will not be browser cached).
    */
-  protected _buildImageURL(url: string): string {
-    const urlObj = new URL(url, document.baseURI);
-    urlObj.searchParams.append('_t', String(Date.now()));
-    return urlObj.toString();
+  protected _buildImageURL(url: URL): string {
+    url.searchParams.append('_t', String(Date.now()));
+    return url.toString();
+  }
+
+  protected _addQueryParametersToURL(url: URL, parameters?: string): URL {
+    if (parameters) {
+      const searchParams = new URLSearchParams(parameters);
+      for (const [key, value] of searchParams.entries()) {
+        url.searchParams.append(key, value);
+      }
+    }
+    return url;
+  }
+
+  protected _getRelevantEntityForMode(mode: Exclude<ImageMode, 'auto'>): string | null {
+    return mode === 'camera'
+      ? this._getCameraEntity()
+      : mode === 'entity'
+        ? this.imageConfig?.entity ?? null
+        : null;
+  }
+
+  protected _resolveMode(mode?: ImageMode): Exclude<ImageMode, 'auto'> {
+    if (!mode) {
+      return 'screensaver';
+    } else if (mode !== 'auto') {
+      return mode;
+    }
+
+    const cameraEntity = this._getCameraEntity();
+    if (this.imageConfig?.entity) {
+      return 'entity';
+    } else if (this.imageConfig?.url) {
+      return 'url';
+    } else if (cameraEntity) {
+      return 'camera';
+    }
+
+    return 'screensaver';
   }
 
   protected _getImageSource(): string {
-    if (this.hass && this.imageConfig?.mode === 'camera') {
+    const mode = this._resolveMode(this.imageConfig?.mode);
+
+    if (this.hass && mode === 'camera') {
       const state = this._getAcceptableState(this._getCameraEntity());
       if (state?.attributes.entity_picture) {
-        return this._buildImageURL(state.attributes.entity_picture);
+        const urlObj = new URL(state.attributes.entity_picture, document.baseURI);
+        this._addQueryParametersToURL(urlObj, this.imageConfig?.entity_parameters);
+        return this._buildImageURL(urlObj);
       }
     }
-    if (this.imageConfig?.mode !== 'screensaver' && this.imageConfig?.url) {
-      return this._buildImageURL(this.imageConfig.url);
+
+    if (this.hass && mode === 'entity' && this.imageConfig?.entity) {
+      const state = this._getAcceptableState(this.imageConfig?.entity);
+      if (state?.attributes.entity_picture) {
+        const urlObj = new URL(state.attributes.entity_picture, document.baseURI);
+        this._addQueryParametersToURL(urlObj, this.imageConfig?.entity_parameters);
+        return this._buildImageURL(urlObj);
+      }
     }
+
+    if (mode === 'url' && this.imageConfig?.url) {
+      return this._buildImageURL(new URL(this.imageConfig.url, document.baseURI));
+    }
+
     return defaultImage;
   }
 
@@ -282,50 +328,48 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
     }
   }
 
-  protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
-    return this.imageConfig?.zoomable
-      ? html` <frigate-card-zoomer> ${template} </frigate-card-zoomer>`
-      : template;
-  }
-
   protected render(): TemplateResult | void {
     const src = this._cachedValueController?.value;
     // Note the use of live() below to ensure the update will restore the image
     // src if it's been changed via _forceSafeImage().
     return src
-      ? this._useZoomIfRequired(html` <img
-          ${ref(this._refImage)}
-          src=${live(src)}
-          @load=${(ev: Event) => {
-            const mediaLoadedInfo = createMediaLoadedInfo(ev, {
-              player: this,
-              capabilities: {
-                supportsPause: !!this.imageConfig?.refresh_seconds,
-              },
-            });
-            // Avoid the media being reported as repeatedly loading unless the
-            // media info changes.
-            if (mediaLoadedInfo && !isEqual(this._mediaLoadedInfo, mediaLoadedInfo)) {
-              this._mediaLoadedInfo = mediaLoadedInfo;
-              dispatchExistingMediaLoadedInfoAsEvent(this, mediaLoadedInfo);
-            }
-          }}
-          @error=${() => {
-            if (this.imageConfig?.mode === 'camera') {
-              // In camera mode, the user has likely not made an error, but HA
-              // may be unavailble, so show the stock image. Don't let the URL
-              // override the stock image in this case, as this could create an
-              // error loop if that URL subsequently failed to load.
-              this._forceSafeImage(true);
-            } else if (this.imageConfig?.mode === 'url') {
-              // In url mode, the user likely specified a URL that cannot be
-              // resolved. Show an error message.
-              dispatchErrorMessageEvent(this, localize('error.image_load_error'), {
-                context: this.imageConfig,
+      ? html`
+          <img
+            ${ref(this._refImage)}
+            src=${live(src)}
+            @load=${(ev: Event) => {
+              const mediaLoadedInfo = createMediaLoadedInfo(ev, {
+                player: this,
+                capabilities: {
+                  supportsPause: !!this.imageConfig?.refresh_seconds,
+                },
               });
-            }
-          }}
-        />`)
+              // Avoid the media being reported as repeatedly loading unless the
+              // media info changes.
+              if (mediaLoadedInfo && !isEqual(this._mediaLoadedInfo, mediaLoadedInfo)) {
+                this._mediaLoadedInfo = mediaLoadedInfo;
+                dispatchExistingMediaLoadedInfoAsEvent(this, mediaLoadedInfo);
+              }
+            }}
+            @error=${() => {
+              const mode = this._resolveMode(this.imageConfig?.mode);
+              if (mode === 'camera' || mode === 'entity') {
+                // In camera or entity mode, the user has likely not made an
+                // error, but HA may be unavailble, so show the stock image.
+                // Don't let the URL override the stock image in this case, as
+                // this could create an error loop if that URL subsequently
+                // failed to load.
+                this._forceSafeImage(true);
+              } else if (mode === 'url') {
+                // In url mode, the user likely specified a URL that cannot be
+                // resolved. Show an error message.
+                dispatchErrorMessageEvent(this, localize('error.image_load_error'), {
+                  context: this.imageConfig,
+                });
+              }
+            }}
+          />
+        `
       : html``;
   }
 

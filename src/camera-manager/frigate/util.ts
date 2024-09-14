@@ -1,5 +1,6 @@
-import utcToZonedTime from 'date-fns-tz/utcToZonedTime';
-import { CameraConfig, ClipsOrSnapshots } from '../../types';
+import { toZonedTime } from 'date-fns-tz';
+import { CameraConfig } from '../../config/types';
+import { ClipsOrSnapshots } from '../../types';
 import { formatDateAndTime, prettifyTitle } from '../../utils/basic';
 import { FrigateEvent, FrigateRecording } from './types';
 
@@ -17,7 +18,7 @@ export const getEventTitle = (event: FrigateEvent): string => {
   const score = event.top_score !== null ? ` ${Math.round(event.top_score * 100)}%` : '';
 
   return `${formatDateAndTime(
-    utcToZonedTime(event.start_time * 1000, localTimezone),
+    toZonedTime(event.start_time * 1000, localTimezone),
   )} [${durationSeconds}s, ${prettifyTitle(event.label)}${score}]`;
 };
 

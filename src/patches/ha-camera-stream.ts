@@ -80,7 +80,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
     public isPaused(): boolean {
       return this._player?.isPaused() ?? true;
     }
-    
+
     public async getScreenshotURL(): Promise<string | null> {
       return this._player ? await this._player.getScreenshotURL() : null;
     }
@@ -98,7 +98,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
         return html`
           <img
             @load=${(ev: Event) => {
-              dispatchMediaLoadedEvent(this, ev, { player: this });
+              dispatchMediaLoadedEvent(this, ev, {
+                player: this,
+                technology: ['mjpeg'],
+              });
             }}
             .src=${typeof this._connected == 'undefined' || this._connected
               ? computeMJPEGStreamUrl(this.stateObj)

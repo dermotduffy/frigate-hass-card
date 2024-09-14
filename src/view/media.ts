@@ -13,9 +13,6 @@ export class ViewMedia {
     this._mediaType = mediaType;
     this._cameraID = cameraID;
   }
-  public getContentType(): 'image' | 'video' {
-    return this._mediaType === 'snapshot' ? 'image' : 'video';
-  }
   public getCameraID(): string {
     return this._cameraID;
   }

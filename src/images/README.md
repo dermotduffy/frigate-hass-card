@@ -12,10 +12,10 @@
 
 **Image Formatting Process**:
 
-* Horizontal mirror (to face the opposite direction)
-* Cropped for 16:9
-* Scaled down to 492x277
-* Quality @ 85%
+- Horizontal mirror (to face the opposite direction)
+- Cropped for 16:9
+- Scaled down to 492x277
+- Quality @ 85%
 
 ```sh
 $ convert -extent 2048x1152 -flop -gravity center 47543120431_b285c45ac8_k.jpg frigate-bird-in-sky.jpg

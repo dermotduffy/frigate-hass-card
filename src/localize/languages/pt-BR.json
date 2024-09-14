@@ -10,10 +10,69 @@
   "config": {
     "cameras": {
       "camera_entity": "Entidade da Câmera",
+      "capabilities": {
+        "capabilities": {
+          "clips": "",
+          "favorite-events": "",
+          "favorite-recordings": "",
+          "live": "",
+          "menu": "",
+          "ptz": "",
+          "recordings": "",
+          "seek": "",
+          "snapshots": "",
+          "substream": ""
+        },
+        "disable": "",
+        "disable_except": "",
+        "editor_label": ""
+      },
+      "cast": {
+        "dashboard": {
+          "dashboard_path": "",
+          "view_path": ""
+        },
+        "editor_label": "",
+        "method": "",
+        "methods": {
+          "dashboard": "",
+          "standard": ""
+        }
+      },
       "dependencies": {
         "all_cameras": "Mostrar eventos para todas as câmeras nesta câmera",
         "cameras": "Mostrar eventos para câmeras específicas nesta câmera",
         "editor_label": "Opções de dependência"
+      },
+      "dimensions": {
+        "aspect_ratio": "",
+        "editor_label": "",
+        "layout": {
+          "editor_label": "",
+          "fit": "Ajuste de layout",
+          "fits": {
+            "contain": "A mídia é contida no cartão",
+            "cover": "A mídia se expande proporcionalmente para cobrir o cartão",
+            "fill": "A mídia é esticada para preencher o cartão"
+          },
+          "pan": {
+            "x": "",
+            "y": ""
+          },
+          "position": {
+            "editor_label": "",
+            "x": "Porcentagem do posicionamento horizontal",
+            "y": "Porcentagem do posicionamento vertical"
+          },
+          "view_box": {
+            "bottom": "",
+            "editor_label": "",
+            "left": "",
+            "right": "",
+            "top": ""
+          },
+          "zoom": ""
+        }
       },
       "engines": {
         "editor_label": "Opções do motor da câmera"
@@ -37,7 +96,6 @@
         },
         "stream": "Nome do stream do go2rtc"
       },
-      "hide": "Ocultar câmera da interface do usuário",
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "id": "ID exclusivo para esta câmera nesse cartão",
       "image": {
@@ -73,6 +131,12 @@
       "triggers": {
         "editor_label": "Opções de acionamento",
         "entities": "Acionar a partir de outras entidades",
+        "events": {
+          "clips": "",
+          "editor_label": "",
+          "events": "",
+          "snapshots": ""
+        },
         "motion": "Acionar detectando automaticamente o sensor de movimento",
         "occupancy": "Acionar detectando automaticamente o sensor de ocupação"
       },
@@ -107,10 +171,15 @@
         },
         "thumbnails": {
           "editor_label": "Miniaturas",
-          "media": "Se deve mostrar miniaturas de clipes ou snapshots",
-          "medias": {
+          "events_media_type": "Se deve mostrar miniaturas de clipes ou snapshots",
+          "events_media_types": {
             "clips": "Miniaturas de clipes",
             "snapshots": "Miniaturas de Snapshots"
+          },
+          "media_type": "",
+          "media_types": {
+            "events": "",
+            "recordings": ""
           },
           "mode": "Modo de miniaturas",
           "modes": {
@@ -133,36 +202,41 @@
             "above": "Acima",
             "below": "Abaixo",
             "none": "Nenhum"
-          }
-        },
-        "title": {
-          "duration_seconds": "Segundos para exibir o pop-up (0 = para sempre)",
-          "editor_label": "Controles do pop-up de título",
-          "mode": "Modo de exibição de título de mídia",
-          "modes": {
-            "none": "Sem exibição de título",
-            "popup-bottom-left": "Pop-up no canto inferior esquerdo",
-            "popup-bottom-right": "Pop-up no canto inferior direito",
-            "popup-top-left": "Pop-up no canto superior esquerdo",
-            "popup-top-right": "Pop-up no canto superior direito"
+          },
+          "pan_mode": "",
+          "pan_modes": {
+            "pan": "",
+            "seek": "",
+            "seek-in-camera": "",
+            "seek-in-media": ""
           }
         }
       },
-      "layout": {
-        "fit": "Ajuste de layout",
-        "fits": {
-          "contain": "A mídia é contida no cartão",
-          "cover": "A mídia se expande proporcionalmente para cobrir o cartão",
-          "fill": "A mídia é esticada para preencher o cartão"
+      "display": {
+        "editor_label": "",
+        "grid_columns": "",
+        "grid_max_columns": "",
+        "grid_selected_width_factor": "",
+        "mode": ""
+      },
+      "image": {
+        "entity": "",
+        "entity_parameters": "",
+        "mode": "Modo de visualização de imagem",
+        "modes": {
+          "camera": "Instantâneo da câmera do Home Assistant, da entidade de câmera",
+          "entity": "",
+          "screensaver": "Logo Frigate embutido",
+          "url": "Imagem arbitrária especificada por URL"
         },
-        "position": {
-          "x": "Porcentagem do posicionamento horizontal",
-          "y": "Porcentagem do posicionamento vertical"
-        }
+        "refresh_seconds": "Número de segundos após o qual atualizar (0 = nunca)",
+        "url": "Imagem arbitrária especificada por URL"
       },
       "media_action_conditions": {
         "all": "Todas as oportunidades",
         "hidden": "Ao ocultar o navegador/aba",
+        "microphone_mute": "",
+        "microphone_unmute": "",
         "never": "Nunca",
         "selected": "Ao selecionar",
         "unselected": "Ao desselecionar",
@@ -170,8 +244,8 @@
       },
       "timeline": {
         "clustering_threshold": "A contagem de eventos nos quais eles são agrupados (0 = sem agrupamento)",
-        "media": "A mídia que a linha do tempo exibe",
-        "medias": {
+        "events_media_type": "A mídia que a linha do tempo exibe",
+        "events_media_types": {
           "all": "Todos os tipos de mídia",
           "clips": "Clipes",
           "snapshots": "Instantâneos"
@@ -196,35 +270,46 @@
       "max_height": "",
       "min_height": ""
     },
-    "image": {
-      "layout": "Layout da imagem",
-      "mode": "Modo de visualização de imagem",
-      "modes": {
-        "camera": "Instantâneo da câmera do Home Assistant, da entidade de câmera",
-        "screensaver": "Logo Frigate embutido",
-        "url": "Imagem arbitrária especificada por URL"
-      },
-      "refresh_seconds": "Número de segundos após o qual atualizar (0 = nunca)",
-      "url": "Imagem arbitrária especificada por URL",
-      "zoomable": ""
-    },
     "live": {
       "auto_mute": "Silenciar câmeras ao vivo automaticamente",
       "auto_pause": "Pausar câmeras ao vivo automaticamente",
       "auto_play": "Reproduzir câmeras ao vivo automaticamente",
       "auto_unmute": "Ativar automaticamente o som das câmeras ao vivo",
       "controls": {
-        "editor_label": "Controles da visualização ao vivo"
+        "editor_label": "Controles da visualização ao vivo",
+        "ptz": {
+          "editor_label": "",
+          "hide_home": "",
+          "hide_pan_tilt": "",
+          "hide_zoom": "",
+          "mode": "",
+          "modes": {
+            "off": "",
+            "on": ""
+          },
+          "orientation": "",
+          "orientations": {
+            "horizontal": "",
+            "vertical": ""
+          },
+          "position": "",
+          "positions": {
+            "bottom-left": "",
+            "bottom-right": "",
+            "top-left": "",
+            "top-right": ""
+          }
+        }
       },
       "draggable": "A visualização ao vivo das câmeras pode ser arrastada/deslizada",
-      "layout": "Layout dinâmico",
       "lazy_load": "As câmeras ao vivo são carregadas lentamente",
       "lazy_unload": "As câmeras ao vivo são descarregadas preguiçosamente",
       "microphone": {
         "always_connected": "",
         "disconnect_seconds": "",
         "editor_label": "",
-        "enabled": ""
+        "enabled": "",
+        "mute_after_microphone_mute_seconds": ""
       },
       "preload": "Pré-carregar a visualização ao vivo em segundo plano",
       "show_image_during_load": "Mostrar imagem estática enquanto a transmissão ao vivo está carregando",
@@ -240,7 +325,6 @@
         "editor_label": "Controles do visualizador de mídia"
       },
       "draggable": "Visualizador de eventos pode ser arrastado/deslizado",
-      "layout": "Layout do visualizador de mídia",
       "lazy_load": "A mídia do Visualizador de eventos é carregada lentamente no carrossel",
       "snapshot_click_plays_clip": "Clicar em um instantâneo reproduz um clipe relacionado",
       "transition_effect": "Efeito de transição do Visualizador de eventos",
@@ -268,6 +352,7 @@
         "camera_ui": "Interface de usuário da câmera",
         "cameras": "Selecionar câmera",
         "clips": "Clipes",
+        "display_mode": "",
         "download": "Baixe a mídia do evento",
         "enabled": "Botão ativado",
         "expand": "Expandir",
@@ -277,9 +362,12 @@
         "image": "Imagem",
         "live": "Ao vivo",
         "media_player": "Enviar para o reprodutor de mídia",
+        "microphone": "",
         "mute": "",
         "play": "",
         "priority": "Prioridade",
+        "ptz_controls": "",
+        "ptz_home": "",
         "recordings": "Gravações",
         "screenshot": "",
         "snapshots": "Instantâneos",
@@ -315,12 +403,8 @@
       "features": {
         "animated_progress_indicator": "Indicador de Carregamento Animado",
         "editor_label": "Opções de recursos",
+        "max_simultaneous_engine_requests": "",
         "media_chunk_size": "Tamanho do bloco de mídia"
-      },
-      "profile": "Perfil de desempenho",
-      "profiles": {
-        "high": "Alto desempenho/completo",
-        "low": "Baixo desempenho"
       },
       "style": {
         "border_radius": "Curvas",
@@ -328,6 +412,38 @@
         "editor_label": "Opções de estilo"
       },
       "warning": "Este cartão está no modo de baixo desempenho, então os padrões foram alterados para otimizar o desempenho"
+    },
+    "profiles": {
+      "editor_label": "",
+      "low-performance": "",
+      "scrubbing": ""
+    },
+    "status_bar": {
+      "height": "",
+      "items": {
+        "enabled": "",
+        "engine": "",
+        "live_provider": "",
+        "priority": "",
+        "resolution": "",
+        "technology": "",
+        "title": ""
+      },
+      "popup_seconds": "",
+      "position": "",
+      "positions": {
+        "bottom": "",
+        "top": ""
+      },
+      "style": "",
+      "styles": {
+        "hover": "",
+        "hover-card": "",
+        "none": "",
+        "outside": "",
+        "overlay": "",
+        "popup": ""
+      }
     },
     "view": {
       "camera_select": "Visualização de câmeras recém-selecionadas",
@@ -338,17 +454,58 @@
         "on": "Ligado"
       },
       "default": "Visualização padrão",
-      "scan": {
-        "enabled": "Modo scan ativado",
-        "scan_mode": "Modo scan",
+      "default_cycle_camera": "Percorrer as câmeras quando a visualização padrão for atualizada",
+      "default_reset": {
+        "after_interaction": "",
+        "editor_label": "",
+        "entities": "",
+        "every_seconds": "Atualize a visualização padrão a cada X segundos (0 = nunca)",
+        "interaction_mode": "",
+        "interaction_modes": {
+          "active": "",
+          "all": "",
+          "inactive": ""
+        }
+      },
+      "interaction_seconds": "",
+      "keyboard_shortcuts": {
+        "editor_label": "",
+        "enabled": "",
+        "ptz_down": "",
+        "ptz_home": "",
+        "ptz_left": "",
+        "ptz_right": "",
+        "ptz_up": "",
+        "ptz_zoom_in": "",
+        "ptz_zoom_out": ""
+      },
+      "triggers": {
+        "actions": {
+          "editor_label": "",
+          "interaction_mode": "",
+          "interaction_modes": {
+            "active": "",
+            "all": "",
+            "inactive": ""
+          },
+          "trigger": "",
+          "triggers": {
+            "default": "",
+            "live": "",
+            "media": "",
+            "none": ""
+          },
+          "untrigger": "",
+          "untriggers": {
+            "default": "",
+            "none": ""
+          }
+        },
+        "editor_label": "",
+        "filter_selected_camera": "",
         "show_trigger_status": "Pulsar borda quando acionado",
-        "untrigger_reset": "Redefinir a visualização para o padrão após desacionar",
         "untrigger_seconds": "Segundos após a mudar para o estado inativo para desacionar"
       },
-      "timeout_seconds": "Redefinir para a visualização padrão X segundos após a ação do usuário (0 = nunca)",
-      "update_cycle_camera": "Percorrer as câmeras quando a visualização padrão for atualizada",
-      "update_force": "Forçar atualizações do cartão (ignore a interação do usuário)",
-      "update_seconds": "Atualize a visualização padrão a cada X segundos (0 = nunca)",
       "views": {
         "clip": "Clipe mais recente",
         "clips": "Galeria de clipes",
@@ -363,6 +520,10 @@
       }
     }
   },
+  "display_modes": {
+    "grid": "",
+    "single": ""
+  },
   "editor": {
     "add_new_camera": "Adicionar nova câmera",
     "button": "Botão",
@@ -370,8 +531,8 @@
     "cameras": "Câmeras",
     "cameras_secondary": "Quais câmeras renderizar neste cartão",
     "delete": "Excluir",
-    "dimensions": "Dimensões",
-    "dimensions_secondary": "Dimensões e opções de forma",
+    "dimensions": "",
+    "dimensions_secondary": "",
     "image": "Imagem",
     "image_secondary": "Opções de visualização de imagem estática",
     "live": "Ao vivo",
@@ -388,6 +549,10 @@
     "overrides_secondary": "Substituições de configuração dinâmica detectadas",
     "performance": "Desempenho",
     "performance_secondary": "Opções de desempenho do cartão",
+    "profiles": "",
+    "profiles_secondary": "",
+    "status_bar": "",
+    "status_bar_secondary": "",
     "timeline": "Linha do tempo",
     "timeline_secondary": "Opções do evento da linha do tempo",
     "upgrade": "Upgrade",
@@ -407,6 +572,8 @@
     }
   },
   "error": {
+    "awaiting_live": "",
+    "camera_initialization": "",
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
     "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Revise as informações confidenciais antes de compartilhar",
@@ -431,10 +598,11 @@
     "no_camera_entity_for_triggers": "Uma entidade de câmera é necessária para detectar automaticamente os gatilhos",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
     "no_camera_name": "Não foi possível determinar o nome da câmera da Frigate, especifique 'camera_entity' ou 'camera_name' para a câmera a seguir",
+    "no_dashboard_or_view": "",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
-    "no_visible_cameras": "Nenhuma câmera visível encontrada, você deve configurar pelo menos uma câmera não oculta",
+    "no_supported_camera": "",
+    "no_supported_cameras": "",
     "reconnecting": "Reconectando",
-    "timeline_no_cameras": "Nenhuma câmera do Frigate para mostrar na linha do tempo",
     "too_many_automations": "",
     "troubleshooting": "Verifique a solução de problemas",
     "unknown": "Erro desconhecido",
@@ -452,6 +620,17 @@
     "tag": "Etiqueta",
     "what": "O que",
     "where": "Onde"
+  },
+  "key_assigner": {
+    "assign": "",
+    "assigning": "",
+    "modifiers": {
+      "alt": "",
+      "ctrl": "",
+      "meta": "",
+      "shift": ""
+    },
+    "unassign": ""
   },
   "media_filter": {
     "all": "Todos",
@@ -475,12 +654,16 @@
     "what": "O que",
     "when": "Quando",
     "whens": {
+      "custom": "",
       "past_month": "Mês passado",
       "past_week": "Semana passada",
       "today": "Hoje",
       "yesterday": "Ontem"
     },
     "where": "Onde"
+  },
+  "media_viewer": {
+    "unseekable": ""
   },
   "recording": {
     "camera": "Câmera",
@@ -497,11 +680,6 @@
     "timeline": "Ver evento na linha do tempo"
   },
   "timeline": {
-    "pan_behavior": {
-      "pan": "",
-      "seek": "",
-      "seek-in-media": ""
-    },
     "select_date": "Escolha a data"
   }
 }

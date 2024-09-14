@@ -5,7 +5,7 @@ import { binarySensorIcon } from './binary-sensor-icon';
 import { coverIcon } from './cover-icon';
 import { sensorIcon } from './sensor-icon';
 
-export const DEFAULT_DOMAIN_ICON = 'mdi:bookmark';
+const DEFAULT_DOMAIN_ICON = 'mdi:bookmark';
 
 const FIXED_DOMAIN_ICONS = {
   alert: 'mdi:alert',
@@ -52,7 +52,12 @@ const FIXED_DOMAIN_ICONS = {
   zone: 'mdi:map-marker-radius',
 };
 
-export function domainIcon(domain: string, entity?: HassEntity, state?: string): string {
+export function domainIcon(
+  domain: string,
+  entity?: HassEntity,
+  state?: string,
+  defaultIcon?: string,
+): string {
   switch (domain) {
     case 'alarm_control_panel':
       return alarmPanelIcon(state);
@@ -195,6 +200,5 @@ export function domainIcon(domain: string, entity?: HassEntity, state?: string):
     return FIXED_DOMAIN_ICONS[domain];
   }
 
-  console.warn(`Unable to find icon for domain: ${domain}`);
-  return DEFAULT_DOMAIN_ICON;
+  return defaultIcon ?? DEFAULT_DOMAIN_ICON;
 }

@@ -1,5 +1,4 @@
-import add from 'date-fns/add';
-import sub from 'date-fns/sub';
+import { add, sub } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   compressRanges,
@@ -135,6 +134,7 @@ describe('compressRanges', () => {
       compressRanges([
         { start: now, end: nowPlusOne },
         { start: nowPlusOne, end: nowPlusTwo },
+        { start: now, end: nowPlusOne },
       ]),
     ).toEqual([{ start: now, end: nowPlusTwo }]);
   });
@@ -161,5 +161,9 @@ describe('compressRanges', () => {
       { start: 2, end: 3 },
     ];
     expect(compressRanges(input)).toEqual([{ start: 1, end: 3 }]);
+  });
+
+  it('should return nothing with no input', () => {
+    expect(compressRanges([])).toEqual([]);
   });
 });

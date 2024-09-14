@@ -1,6 +1,7 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state-watcher';
+import { CameraConfig } from '../config/types';
 import { localize } from '../localize/localize';
-import { CameraConfig, CardWideConfig } from '../types';
 import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
 import { BrowseMedia } from '../utils/ha/browse-media/types';
 import { EntityRegistryManager } from '../utils/ha/entity-registry';
@@ -9,37 +10,44 @@ import { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import { MemoryRequestCache, RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
 import { CameraInitializationError } from './error';
-import { Engine } from './types';
-import { getCameraEntityFromConfig } from './util';
+import { CameraEventCallback, Engine } from './types';
+import { getCameraEntityFromConfig } from './utils/camera-entity-from-config';
+
+interface CameraManagerEngineFactoryOptions {
+  stateWatcher: StateWatcherSubscriptionInterface;
+  resolvedMediaCache: ResolvedMediaCache;
+  eventCallback?: CameraEventCallback;
+}
 
 export class CameraManagerEngineFactory {
+  // Entity registry manager is required for the actual function of the factory.
   protected _entityRegistryManager: EntityRegistryManager;
-  protected _resolvedMediaCache: ResolvedMediaCache;
-  protected _cardWideConfig: CardWideConfig;
 
-  constructor(
-    entityRegistryManager: EntityRegistryManager,
-    resolvedMediaCache: ResolvedMediaCache,
-    cardWideConfig: CardWideConfig,
-  ) {
+  constructor(entityRegistryManager: EntityRegistryManager) {
     this._entityRegistryManager = entityRegistryManager;
-    this._cardWideConfig = cardWideConfig;
-    this._resolvedMediaCache = resolvedMediaCache;
   }
 
-  public async createEngine(engine: Engine): Promise<CameraManagerEngine | null> {
-    let cameraManagerEngine: CameraManagerEngine | null = null;
+  public async createEngine(
+    engine: Engine,
+    options: CameraManagerEngineFactoryOptions,
+  ): Promise<CameraManagerEngine> {
+    let cameraManagerEngine: CameraManagerEngine;
     switch (engine) {
       case Engine.Generic:
         const { GenericCameraManagerEngine } = await import('./generic/engine-generic');
-        cameraManagerEngine = new GenericCameraManagerEngine();
+        cameraManagerEngine = new GenericCameraManagerEngine(
+          options.stateWatcher,
+          options.eventCallback,
+        );
         break;
       case Engine.Frigate:
         const { FrigateCameraManagerEngine } = await import('./frigate/engine-frigate');
         cameraManagerEngine = new FrigateCameraManagerEngine(
-          this._cardWideConfig,
+          this._entityRegistryManager,
+          options.stateWatcher,
           new RecordingSegmentsCache(),
           new RequestCache(),
+          options.eventCallback,
         );
         break;
       case Engine.MotionEye:
@@ -47,9 +55,12 @@ export class CameraManagerEngineFactory {
           './motioneye/engine-motioneye'
         );
         cameraManagerEngine = new MotionEyeCameraManagerEngine(
+          this._entityRegistryManager,
+          options.stateWatcher,
           new BrowseMediaManager(new MemoryRequestCache<string, BrowseMedia>()),
-          this._resolvedMediaCache,
+          options.resolvedMediaCache,
           new RequestCache(),
+          options.eventCallback,
         );
     }
     return cameraManagerEngine;
@@ -66,7 +77,7 @@ export class CameraManagerEngineFactory {
       engine = Engine.MotionEye;
     } else if (cameraConfig.engine === 'generic') {
       engine = Engine.Generic;
-    } else if (cameraConfig.engine === 'auto') {
+    } else {
       const cameraEntity = getCameraEntityFromConfig(cameraConfig);
 
       if (cameraEntity) {
@@ -100,6 +111,11 @@ export class CameraManagerEngineFactory {
         // Frigate technically does not need an entity, if the camera name is
         // manually set the camera is assumed to be Frigate.
         engine = Engine.Frigate;
+      } else if (
+        cameraConfig.webrtc_card?.url ||
+        (cameraConfig.go2rtc?.url && cameraConfig.go2rtc?.stream)
+      ) {
+        engine = Engine.Generic;
       }
     }
 

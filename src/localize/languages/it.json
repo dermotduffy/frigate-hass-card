@@ -10,10 +10,69 @@
   "config": {
     "cameras": {
       "camera_entity": "Entità della telecamera",
+      "capabilities": {
+        "capabilities": {
+          "clips": "",
+          "favorite-events": "",
+          "favorite-recordings": "",
+          "live": "",
+          "menu": "",
+          "ptz": "",
+          "recordings": "",
+          "seek": "",
+          "snapshots": "",
+          "substream": ""
+        },
+        "disable": "",
+        "disable_except": "",
+        "editor_label": ""
+      },
+      "cast": {
+        "dashboard": {
+          "dashboard_path": "",
+          "view_path": ""
+        },
+        "editor_label": "",
+        "method": "",
+        "methods": {
+          "dashboard": "",
+          "standard": ""
+        }
+      },
       "dependencies": {
         "all_cameras": "Mostra eventi per tutte le telecamere con questa telecamera",
         "cameras": "Mostra eventi per telecamere specifiche con questa telecamera",
         "editor_label": "Opzioni di dipendenza"
+      },
+      "dimensions": {
+        "aspect_ratio": "",
+        "editor_label": "",
+        "layout": {
+          "editor_label": "",
+          "fit": "Adatta al layout",
+          "fits": {
+            "contain": "Il supporto è contenuto/in cassetta delle lettere",
+            "cover": "Il supporto si espande proporzionalmente per coprire la scheda",
+            "fill": "Il supporto viene allungato per riempire la scheda"
+          },
+          "pan": {
+            "x": "",
+            "y": ""
+          },
+          "position": {
+            "editor_label": "",
+            "x": "Percentuale di posizionamento orizzontale",
+            "y": "Percentuale di posizionamento verticale"
+          },
+          "view_box": {
+            "bottom": "",
+            "editor_label": "",
+            "left": "",
+            "right": "",
+            "top": ""
+          },
+          "zoom": ""
+        }
       },
       "engines": {
         "editor_label": "Opzioni del motore della fotocamera"
@@ -37,7 +96,6 @@
         },
         "stream": "nome del flusso go2rtc"
       },
-      "hide": "Nascondi la videocamera dall'interfaccia utente",
       "icon": "Icona per questa telecamera (Autoidentificato dall'entità)",
       "id": "ID univoco per questa telecamera in questa carta",
       "image": {
@@ -73,6 +131,12 @@
       "triggers": {
         "editor_label": "Trigger Opzioni",
         "entities": "Trigger da altre entità",
+        "events": {
+          "clips": "",
+          "editor_label": "",
+          "events": "",
+          "snapshots": ""
+        },
         "motion": "Trigger rilevando automaticamente dal sensore di movimento",
         "occupancy": "Attivare rilevando automatico tramite il sensore di presenza"
       },
@@ -107,10 +171,15 @@
         },
         "thumbnails": {
           "editor_label": "Miniature",
-          "media": "Se mostrare miniature di clip o istantanee",
-          "medias": {
+          "events_media_type": "Se mostrare miniature di clip o istantanee",
+          "events_media_types": {
             "clips": "Miniature di clip",
             "snapshots": "Miniature istantanee"
+          },
+          "media_type": "",
+          "media_types": {
+            "events": "",
+            "recordings": ""
           },
           "mode": "Modalità miniatura",
           "modes": {
@@ -133,36 +202,41 @@
             "above": "sopra",
             "below": "sotto",
             "none": "sessuna"
-          }
-        },
-        "title": {
-          "duration_seconds": "Secondi per visualizzare il titolo popup (0 = per sempre)",
-          "editor_label": "Controlli titolo popup",
-          "mode": "Modalità di visualizzazione del titolo",
-          "modes": {
-            "none": "Nessuna visualizzazione del titolo",
-            "popup-bottom-left": "Popup in basso a sinistra",
-            "popup-bottom-right": "Popup in basso a destra",
-            "popup-top-left": "Popup in alto a sinistra",
-            "popup-top-right": "Popup in alto a destra"
+          },
+          "pan_mode": "",
+          "pan_modes": {
+            "pan": "",
+            "seek": "",
+            "seek-in-camera": "",
+            "seek-in-media": ""
           }
         }
       },
-      "layout": {
-        "fit": "Adatta al layout",
-        "fits": {
-          "contain": "Il supporto è contenuto/in cassetta delle lettere",
-          "cover": "Il supporto si espande proporzionalmente per coprire la scheda",
-          "fill": "Il supporto viene allungato per riempire la scheda"
+      "display": {
+        "editor_label": "",
+        "grid_columns": "",
+        "grid_max_columns": "",
+        "grid_selected_width_factor": "",
+        "mode": ""
+      },
+      "image": {
+        "entity": "",
+        "entity_parameters": "",
+        "mode": "Modalità Visualizza immagine",
+        "modes": {
+          "camera": "Istantanea della telecamera di Home Assistant dell'entità telecamera",
+          "entity": "",
+          "screensaver": "Logo Frigate incorporato",
+          "url": "Immagine arbitraria specificata dall'URL"
         },
-        "position": {
-          "x": "Percentuale di posizionamento orizzontale",
-          "y": "Percentuale di posizionamento verticale"
-        }
+        "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)",
+        "url": "URL di immagine statica per la vista dell'immagine"
       },
       "media_action_conditions": {
         "all": "Tutte le opportunità",
         "hidden": "Sul browser/nascondere le schede",
+        "microphone_mute": "",
+        "microphone_unmute": "",
         "never": "Mai",
         "selected": "Sulla selezione",
         "unselected": "Sulla non selezione",
@@ -170,8 +244,8 @@
       },
       "timeline": {
         "clustering_threshold": "Il conteggio degli eventi in cui sono raggruppati (0 = nessun clustering)",
-        "media": "I media vengono visualizzati la sequenza temporale",
-        "medias": {
+        "events_media_type": "I media vengono visualizzati la sequenza temporale",
+        "events_media_types": {
           "all": "Tutti i tipi di media",
           "clips": "Clip",
           "snapshots": "Istantanee"
@@ -196,35 +270,46 @@
       "max_height": "",
       "min_height": ""
     },
-    "image": {
-      "layout": "Disposizione dell'immagine",
-      "mode": "Modalità Visualizza immagine",
-      "modes": {
-        "camera": "Istantanea della telecamera di Home Assistant dell'entità telecamera",
-        "screensaver": "Logo Frigate incorporato",
-        "url": "Immagine arbitraria specificata dall'URL"
-      },
-      "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)",
-      "url": "URL di immagine statica per la vista dell'immagine",
-      "zoomable": ""
-    },
     "live": {
       "auto_mute": "Muta automaticamente le telecamere in diretta",
       "auto_pause": "Metti in pausa automaticamente le telecamere in diretta",
       "auto_play": "Gioca automaticamente le telecamere dal vivo",
       "auto_unmute": "Riattiva automaticamente l'audio delle telecamere live",
       "controls": {
-        "editor_label": "Controlli dal vivo"
+        "editor_label": "Controlli dal vivo",
+        "ptz": {
+          "editor_label": "",
+          "hide_home": "",
+          "hide_pan_tilt": "",
+          "hide_zoom": "",
+          "mode": "",
+          "modes": {
+            "off": "",
+            "on": ""
+          },
+          "orientation": "",
+          "orientations": {
+            "horizontal": "",
+            "vertical": ""
+          },
+          "position": "",
+          "positions": {
+            "bottom-left": "",
+            "bottom-right": "",
+            "top-left": "",
+            "top-right": ""
+          }
+        }
       },
       "draggable": "Il Visualizzatore eventi può essere trascinato oppure puoi scorrere",
-      "layout": "Disposizione dal vivo",
       "lazy_load": "Le telecamere dal vivo sono pigramente cariche",
       "lazy_unload": "Le telecamere dal vivo sono pigramente non caricate",
       "microphone": {
         "always_connected": "",
         "disconnect_seconds": "",
         "editor_label": "",
-        "enabled": ""
+        "enabled": "",
+        "mute_after_microphone_mute_seconds": ""
       },
       "preload": "Precarica Live View in background",
       "show_image_during_load": "Mostra un'immagine fissa durante il caricamento del live streaming",
@@ -240,8 +325,8 @@
         "editor_label": "Controlli di visualizzatore multimediale"
       },
       "draggable": "Il visualizzatore multimediale può essere trascinato oppure può scorrere",
-      "layout": "Layout del visualizzatore multimediale",
       "lazy_load": "Il media Viewer viene caricato pigramente nel carosello",
+      "snapshot_click_plays_clip": "",
       "transition_effect": "Effetto di transizione del visualizzatore multimediale",
       "transition_effects": {
         "none": "Nessuna transizione",
@@ -267,6 +352,7 @@
         "camera_ui": "Interfaccia utente della fotocamera",
         "cameras": "Telecamere",
         "clips": "Clip",
+        "display_mode": "",
         "download": "Download",
         "enabled": "Pulsante abilitato",
         "expand": "Espandere",
@@ -276,9 +362,13 @@
         "image": "Immagine",
         "live": "Abitare",
         "media_player": "Invia a Media Player",
+        "microphone": "",
         "mute": "",
         "play": "",
         "priority": "Priorità",
+        "ptz_controls": "",
+        "ptz_home": "",
+        "recordings": "",
         "screenshot": "",
         "snapshots": "Istantanee",
         "substreams": "Flusso/i secondario/i",
@@ -300,6 +390,7 @@
       "styles": {
         "hidden": "Menu nascosto",
         "hover": "Menu al passaggio del mouse",
+        "hover-card": "",
         "none": "Nessun menu",
         "outside": "Menu esterno",
         "overlay": "Menu di overlay"
@@ -312,12 +403,8 @@
       "features": {
         "animated_progress_indicator": "Indicatore di avanzamento animato",
         "editor_label": "Opzioni funzionalità",
+        "max_simultaneous_engine_requests": "",
         "media_chunk_size": "Dimensione del blocco multimediale"
-      },
-      "profile": "Profilo delle prestazioni",
-      "profiles": {
-        "high": "Prestazioni alte",
-        "low": "Prestazioni basse"
       },
       "style": {
         "border_radius": "Curve",
@@ -325,6 +412,38 @@
         "editor_label": "Opzione di stile"
       },
       "warning": "Questa scheda è in modalità basso profilo, quindi le impostazioni predefinite sono state modificate per ottimizzare le prestazioni"
+    },
+    "profiles": {
+      "editor_label": "",
+      "low-performance": "",
+      "scrubbing": ""
+    },
+    "status_bar": {
+      "height": "",
+      "items": {
+        "enabled": "",
+        "engine": "",
+        "live_provider": "",
+        "priority": "",
+        "resolution": "",
+        "technology": "",
+        "title": ""
+      },
+      "popup_seconds": "",
+      "position": "",
+      "positions": {
+        "bottom": "",
+        "top": ""
+      },
+      "style": "",
+      "styles": {
+        "hover": "",
+        "hover-card": "",
+        "none": "",
+        "outside": "",
+        "overlay": "",
+        "popup": ""
+      }
     },
     "view": {
       "camera_select": "Visualizza per le telecamere appena selezionate",
@@ -335,28 +454,75 @@
         "on": "On"
       },
       "default": "Visualizzazione predefinita",
-      "scan": {
-        "enabled": "Modalità di scansione abilitata",
-        "scan_mode": "Modalità di scansione",
+      "default_cycle_camera": "Scorri le telecamere quando si aggiorna la visualizzazione predefinita",
+      "default_reset": {
+        "after_interaction": "",
+        "editor_label": "",
+        "entities": "",
+        "every_seconds": "Aggiorna la visualizzazione predefinita ogni x secondi (0 = mai)",
+        "interaction_mode": "",
+        "interaction_modes": {
+          "active": "",
+          "all": "",
+          "inactive": ""
+        }
+      },
+      "interaction_seconds": "",
+      "keyboard_shortcuts": {
+        "editor_label": "",
+        "enabled": "",
+        "ptz_down": "",
+        "ptz_home": "",
+        "ptz_left": "",
+        "ptz_right": "",
+        "ptz_up": "",
+        "ptz_zoom_in": "",
+        "ptz_zoom_out": ""
+      },
+      "triggers": {
+        "actions": {
+          "editor_label": "",
+          "interaction_mode": "",
+          "interaction_modes": {
+            "active": "",
+            "all": "",
+            "inactive": ""
+          },
+          "trigger": "",
+          "triggers": {
+            "default": "",
+            "live": "",
+            "media": "",
+            "none": ""
+          },
+          "untrigger": "",
+          "untriggers": {
+            "default": "",
+            "none": ""
+          }
+        },
+        "editor_label": "",
+        "filter_selected_camera": "",
         "show_trigger_status": "Mostra bordo pulsante quando attivato",
-        "untrigger_reset": "Reset the view to default after untrigger",
         "untrigger_seconds": "Reimposta la vista ai valori predefiniti dopo aver annullato l'attivazione"
       },
-      "timeout_seconds": "Ripristina la vista predefinita x secondi dopo l'azione dell'utente (0 = mai)",
-      "update_cycle_camera": "Scorri le telecamere quando si aggiorna la visualizzazione predefinita",
-      "update_force": "Aggiornamenti della scheda forza (ignora l'interazione dell'utente)",
-      "update_seconds": "Aggiorna la visualizzazione predefinita ogni x secondi (0 = mai)",
       "views": {
         "clip": "Clip più recente",
         "clips": "Galleria delle clip",
         "current": "Vista corrente",
         "image": "Immagine statica",
         "live": "Dal vivo",
+        "recording": "",
+        "recordings": "",
         "snapshot": "Snapshot più recente",
         "snapshots": "Galleria delle istantanee",
         "timeline": "Vista della timeline"
       }
     }
+  },
+  "display_modes": {
+    "grid": "",
+    "single": ""
   },
   "editor": {
     "add_new_camera": "Aggiungi nuova telecamera",
@@ -365,8 +531,8 @@
     "cameras": "Telecamere",
     "cameras_secondary": "Quali telecamere visualizzare su questa card",
     "delete": "Elimina",
-    "dimensions": "Dimensioni",
-    "dimensions_secondary": "Dimensioni e opzioni di forma",
+    "dimensions": "",
+    "dimensions_secondary": "",
     "image": "Immagine",
     "image_secondary": "Opzioni di visualizzazione dell'immagine statica",
     "live": "Live",
@@ -381,6 +547,12 @@
     "move_up": "Sposta verso l'alto",
     "overrides": "La sovrascrittura è attiva",
     "overrides_secondary": "Rilevate sovrascritture della configurazione dinamica",
+    "performance": "",
+    "performance_secondary": "",
+    "profiles": "",
+    "profiles_secondary": "",
+    "status_bar": "",
+    "status_bar_secondary": "",
     "timeline": "Timeline",
     "timeline_secondary": "Opzioni della timeline degli eventi",
     "upgrade": "Aggiornamento",
@@ -400,6 +572,8 @@
     }
   },
   "error": {
+    "awaiting_live": "",
+    "camera_initialization": "",
     "could_not_render_elements": "Impossibile renderizzare gli elementi dell'immagine",
     "could_not_resolve": "Impossibile risolvere l'URL dei media",
     "diagnostics": "Diagnostica delle carte.Si prega di rivedere per informazioni riservate prima di condividere",
@@ -424,12 +598,13 @@
     "no_camera_entity_for_triggers": "È necessaria un'entità telecamera per rilevare automaticamente i trigger",
     "no_camera_id": "Impossibile determinare l'ID della telecamera , potrebbe essere necessario impostare manualmente il parametro 'ID'",
     "no_camera_name": "Impossibile determinare un nome della telecamera in Frigate, si prega di specificare 'camera_enty' o 'camera_name'",
+    "no_dashboard_or_view": "",
     "no_live_camera": "Il parametro fotocamera_enty deve essere impostato e valido per questo provider live",
-    "no_visible_cameras": "Nessuna telecamera visibile trovata, è necessario configurare almeno una telecamera non nascosta",
+    "no_supported_camera": "",
+    "no_supported_cameras": "",
     "reconnecting": "Riconnessione",
-    "timeline_no_cameras": "Nessuna telecamera damostrare in Frigate nella timeline",
-    "troubleshooting": "Controllare la risoluzione dei problemi",
     "too_many_automations": "",
+    "troubleshooting": "Controllare la risoluzione dei problemi",
     "unknown": "Errore sconosciuto",
     "upgrade_available": "È disponibile un aggiornamento di configurazione della scheda automatizzato, visitare l'editor di schede visive",
     "webrtc_card_reported_error": "La scheda WebRTC ha riportato un errore",
@@ -442,8 +617,20 @@
     "score": "Punteggio",
     "seek": "Cercare",
     "start": "Avvia",
+    "tag": "",
     "what": "Che cosa",
     "where": "Dove"
+  },
+  "key_assigner": {
+    "assign": "",
+    "assigning": "",
+    "modifiers": {
+      "alt": "",
+      "ctrl": "",
+      "meta": "",
+      "shift": ""
+    },
+    "unassign": ""
   },
   "media_filter": {
     "all": "Tutto",
@@ -459,6 +646,7 @@
     "select_camera": "Seleziona fotocamera...",
     "select_favorite": "Seleziona preferito...",
     "select_media_type": "Seleziona il tipo di supporto...",
+    "select_tag": "",
     "select_what": "Seleziona cosa...",
     "select_when": "Seleziona quando...",
     "select_where": "Seleziona dove...",
@@ -466,12 +654,16 @@
     "what": "Che cosa",
     "when": "Quando",
     "whens": {
+      "custom": "",
       "past_month": "Mese scorso",
       "past_week": "Settimana scorso",
       "today": "Oggi",
       "yesterday": "Ieri"
     },
     "where": "Dove"
+  },
+  "media_viewer": {
+    "unseekable": ""
   },
   "recording": {
     "camera": "Camera",
@@ -482,16 +674,12 @@
     "start": "Inizio"
   },
   "thumbnail": {
+    "download": "",
     "no_thumbnail": "Nessuna miniatura disponibile",
     "retain_indefinitely": "L'evento sarà mantenuto indefinitamente",
     "timeline": "Vedi evento nella timeline"
   },
   "timeline": {
-    "pan_behavior": {
-      "pan": "",
-      "seek": "",
-      "seek-in-media": ""
-    },
     "select_date": "Scegli la data"
   }
 }

@@ -1,4 +1,8 @@
-import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
+import {
+  fireEvent,
+  HomeAssistant,
+  LovelaceCardEditor,
+} from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
@@ -7,6 +11,8 @@ import {
   MOTIONEYE_ICON_SVG_PATH,
   MOTIONEYE_ICON_SVG_VIEWBOX,
 } from './camera-manager/motioneye/icon.js';
+import './components/key-assigner.js';
+import { KeyboardShortcut } from './config/keyboard-shortcuts.js';
 import {
   copyConfig,
   deleteConfigValue,
@@ -15,12 +21,42 @@ import {
   isConfigUpgradeable,
   setConfigValue,
   upgradeConfig,
-} from './config-mgmt.js';
+} from './config/management.js';
+import { setProfiles } from './config/profiles/index.js';
+import {
+  BUTTON_SIZE_MIN,
+  FRIGATE_MENU_PRIORITY_MAX,
+  FRIGATE_STATUS_BAR_PRIORITY_MAX,
+  FrigateCardConfig,
+  frigateCardConfigDefaults,
+  profilesSchema,
+  RawFrigateCardConfig,
+  RawFrigateCardConfigArray,
+  STATUS_BAR_HEIGHT_MIN,
+  THUMBNAIL_WIDTH_MAX,
+  THUMBNAIL_WIDTH_MIN,
+} from './config/types.js';
 import {
   CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
+  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
+  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
+  CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
+  CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
+  CONF_CAMERAS_ARRAY_CAST_METHOD,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
   CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_X,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_Y,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_BOTTOM,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_LEFT,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_TOP,
+  CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR,
   CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME,
   CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID,
   CONF_CAMERAS_ARRAY_FRIGATE_LABELS,
@@ -28,9 +64,11 @@ import {
   CONF_CAMERAS_ARRAY_FRIGATE_ZONES,
   CONF_CAMERAS_ARRAY_GO2RTC_MODES,
   CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
-  CONF_CAMERAS_ARRAY_HIDE,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
+  CONF_CAMERAS_ARRAY_IMAGE_ENTITY,
+  CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS,
+  CONF_CAMERAS_ARRAY_IMAGE_MODE,
   CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
   CONF_CAMERAS_ARRAY_IMAGE_URL,
   CONF_CAMERAS_ARRAY_LIVE_PROVIDER,
@@ -41,6 +79,7 @@ import {
   CONF_CAMERAS_ARRAY_MOTIONEYE_URL,
   CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
+  CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS,
   CONF_CAMERAS_ARRAY_TRIGGERS_MOTION,
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
@@ -49,13 +88,11 @@ import {
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_MAX_HEIGHT,
   CONF_DIMENSIONS_MIN_HEIGHT,
-  CONF_IMAGE_LAYOUT_FIT,
-  CONF_IMAGE_LAYOUT_POSITION_X,
-  CONF_IMAGE_LAYOUT_POSITION_Y,
+  CONF_IMAGE_ENTITY,
+  CONF_IMAGE_ENTITY_PARAMETERS,
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
-  CONF_IMAGE_ZOOMABLE,
   CONF_LIVE_AUTO_MUTE,
   CONF_LIVE_AUTO_PAUSE,
   CONF_LIVE_AUTO_PLAY,
@@ -63,7 +100,14 @@ import {
   CONF_LIVE_CONTROLS_BUILTIN,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE,
   CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE,
-  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+  CONF_LIVE_CONTROLS_PTZ_HIDE_HOME,
+  CONF_LIVE_CONTROLS_PTZ_HIDE_PAN_TILT,
+  CONF_LIVE_CONTROLS_PTZ_HIDE_ZOOM,
+  CONF_LIVE_CONTROLS_PTZ_MODE,
+  CONF_LIVE_CONTROLS_PTZ_ORIENTATION,
+  CONF_LIVE_CONTROLS_PTZ_POSITION,
+  CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
+  CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
@@ -71,21 +115,22 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-  CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
+  CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_TIMELINE_MODE,
+  CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
   CONF_LIVE_CONTROLS_TIMELINE_STYLE,
   CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
-  CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
-  CONF_LIVE_CONTROLS_TITLE_MODE,
+  CONF_LIVE_DISPLAY_GRID_COLUMNS,
+  CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS,
+  CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
+  CONF_LIVE_DISPLAY_MODE,
   CONF_LIVE_DRAGGABLE,
-  CONF_LIVE_LAYOUT_FIT,
-  CONF_LIVE_LAYOUT_POSITION_X,
-  CONF_LIVE_LAYOUT_POSITION_Y,
   CONF_LIVE_LAZY_LOAD,
   CONF_LIVE_LAZY_UNLOAD,
   CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
   CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS,
+  CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS,
   CONF_LIVE_PRELOAD,
   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
   CONF_LIVE_TRANSITION_EFFECT,
@@ -110,17 +155,17 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
-  CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-  CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
+  CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS,
+  CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS,
+  CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
+  CONF_MEDIA_VIEWER_DISPLAY_MODE,
   CONF_MEDIA_VIEWER_DRAGGABLE,
-  CONF_MEDIA_VIEWER_LAYOUT_FIT,
-  CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
-  CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y,
   CONF_MEDIA_VIEWER_LAZY_LOAD,
   CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
   CONF_MEDIA_VIEWER_TRANSITION_EFFECT,
@@ -131,10 +176,17 @@ import {
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
+  CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS,
   CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE,
   CONF_PERFORMANCE_PROFILE,
   CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
   CONF_PERFORMANCE_STYLE_BOX_SHADOW,
+  CONF_PROFILES,
+  CONF_STATUS_BAR_HEIGHT,
+  CONF_STATUS_BAR_ITEMS,
+  CONF_STATUS_BAR_POPUP_SECONDS,
+  CONF_STATUS_BAR_POSITION,
+  CONF_STATUS_BAR_STYLE,
   CONF_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_DETAILS,
@@ -142,37 +194,41 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_FAVORITE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
-  CONF_TIMELINE_MEDIA,
+  CONF_TIMELINE_EVENTS_MEDIA_TYPE,
   CONF_TIMELINE_SHOW_RECORDINGS,
   CONF_TIMELINE_STYLE,
   CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DARK_MODE,
   CONF_VIEW_DEFAULT,
-  CONF_VIEW_SCAN,
-  CONF_VIEW_SCAN_ENABLED,
-  CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-  CONF_VIEW_SCAN_UNTRIGGER_RESET,
-  CONF_VIEW_SCAN_UNTRIGGER_SECONDS,
-  CONF_VIEW_TIMEOUT_SECONDS,
-  CONF_VIEW_UPDATE_CYCLE_CAMERA,
-  CONF_VIEW_UPDATE_FORCE,
-  CONF_VIEW_UPDATE_SECONDS,
+  CONF_VIEW_DEFAULT_CYCLE_CAMERA,
+  CONF_VIEW_DEFAULT_RESET,
+  CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION,
+  CONF_VIEW_DEFAULT_RESET_ENTITIES,
+  CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
+  CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+  CONF_VIEW_INTERACTION_SECONDS,
+  CONF_VIEW_KEYBOARD_SHORTCUTS,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_LEFT,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_RIGHT,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN,
+  CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT,
+  CONF_VIEW_TRIGGERS,
+  CONF_VIEW_TRIGGERS_ACTIONS,
+  CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
+  CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
+  CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
+  CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
+  CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
+  CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { localize } from './localize/localize.js';
-import { setLowPerformanceProfile } from './performance.js';
 import frigate_card_editor_style from './scss/editor.scss';
-import {
-  BUTTON_SIZE_MIN,
-  FRIGATE_MENU_PRIORITY_MAX,
-  FrigateCardConfig,
-  frigateCardConfigDefaults,
-  RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
-  THUMBNAIL_WIDTH_MAX,
-  THUMBNAIL_WIDTH_MIN,
-} from './types.js';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
 import {
@@ -181,9 +237,12 @@ import {
   sideLoadHomeAssistantElements,
 } from './utils/ha';
 
-const MENU_BUTTONS = 'buttons';
 const MENU_CAMERAS = 'cameras';
+const MENU_CAMERAS_CAPABILITIES = 'cameras.capabilities';
+const MENU_CAMERAS_CAST = 'cameras.cast';
 const MENU_CAMERAS_DEPENDENCIES = 'cameras.dependencies';
+const MENU_CAMERAS_DIMENSIONS = 'cameras.dimensions';
+const MENU_CAMERAS_DIMENSIONS_LAYOUT = 'cameras.dimensions.layout';
 const MENU_CAMERAS_ENGINE = 'cameras.engine';
 const MENU_CAMERAS_FRIGATE = 'cameras.frigate';
 const MENU_CAMERAS_GO2RTC = 'cameras.go2rtc';
@@ -192,13 +251,12 @@ const MENU_CAMERAS_LIVE_PROVIDER = 'cameras.live_provider';
 const MENU_CAMERAS_MOTIONEYE = 'cameras.motioneye';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
-const MENU_IMAGE_LAYOUT = 'image.layout';
 const MENU_LIVE_CONTROLS = 'live.controls';
 const MENU_LIVE_CONTROLS_NEXT_PREVIOUS = 'live.controls.next_previous';
+const MENU_LIVE_CONTROLS_PTZ = 'live.controls.ptz';
 const MENU_LIVE_CONTROLS_THUMBNAILS = 'live.controls.thumbnails';
 const MENU_LIVE_CONTROLS_TIMELINE = 'live.controls.timeline';
-const MENU_LIVE_CONTROLS_TITLE = 'live.controls.title';
-const MENU_LIVE_LAYOUT = 'live.layout';
+const MENU_LIVE_DISPLAY = 'live.display';
 const MENU_LIVE_MICROPHONE = 'live.microphone';
 const MENU_MEDIA_GALLERY_CONTROLS_FILTER = 'media_gallery.controls.filter';
 const MENU_MEDIA_GALLERY_CONTROLS_THUMBNAILS = 'media_gallery.controls.thumbnails';
@@ -206,13 +264,17 @@ const MENU_MEDIA_VIEWER_CONTROLS = 'media_viewer.controls';
 const MENU_MEDIA_VIEWER_CONTROLS_NEXT_PREVIOUS = 'media_viewer.controls.next_previous';
 const MENU_MEDIA_VIEWER_CONTROLS_THUMBNAILS = 'media_viewer.controls.thumbnails';
 const MENU_MEDIA_VIEWER_CONTROLS_TIMELINE = 'media_viewer.controls.timeline';
-const MENU_MEDIA_VIEWER_CONTROLS_TITLE = 'media_viewer.controls.title';
-const MENU_MEDIA_VIEWER_LAYOUT = 'media_viewer.layout';
+const MENU_MEDIA_VIEWER_DISPLAY = 'media_viewer.display';
+const MENU_MENU_BUTTONS = 'menu.buttons';
 const MENU_OPTIONS = 'options';
 const MENU_PERFORMANCE_FEATURES = 'performance.features';
 const MENU_PERFORMANCE_STYLE = 'performance.style';
+const MENU_STATUS_BAR_ITEMS = 'status_bar.items';
 const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
-const MENU_VIEW_SCAN = 'scan';
+const MENU_VIEW_DEFAULT_RESET = 'view.default_reset';
+const MENU_VIEW_KEYBOARD_SHORTCUTS = 'view.keyboard_shortcuts';
+const MENU_VIEW_TRIGGERS = 'view.triggers';
+const MENU_VIEW_TRIGGERS_ACTIONS = 'view.triggers.actions';
 
 interface EditorOptionsSet {
   icon: string;
@@ -249,6 +311,11 @@ const options: EditorOptions = {
     name: localize('editor.menu'),
     secondary: localize('editor.menu_secondary'),
   },
+  status_bar: {
+    icon: 'sign-text',
+    name: localize('editor.status_bar'),
+    secondary: localize('editor.status_bar_secondary'),
+  },
   live: {
     icon: 'cctv',
     name: localize('editor.live'),
@@ -283,6 +350,11 @@ const options: EditorOptions = {
     icon: 'speedometer',
     name: localize('editor.performance'),
     secondary: localize('editor.performance_secondary'),
+  },
+  profiles: {
+    icon: 'folder-wrench-outline',
+    name: localize('editor.profiles'),
+    secondary: localize('editor.profiles_secondary'),
   },
   overrides: {
     icon: 'file-replace',
@@ -420,36 +492,27 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
-  protected _thumbnailMedias: EditorSelectOption[] = [
+  protected _thumbnailMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
     {
-      value: 'clips',
-      label: localize('config.common.controls.thumbnails.medias.clips'),
+      value: 'events',
+      label: localize('config.common.controls.thumbnails.media_types.events'),
     },
     {
-      value: 'snapshots',
-      label: localize('config.common.controls.thumbnails.medias.snapshots'),
+      value: 'recordings',
+      label: localize('config.common.controls.thumbnails.media_types.recordings'),
     },
   ];
 
-  protected _titleModes: EditorSelectOption[] = [
+  protected _thumbnailEventsMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'none', label: localize('config.common.controls.title.modes.none') },
     {
-      value: 'popup-top-left',
-      label: localize('config.common.controls.title.modes.popup-top-left'),
+      value: 'clips',
+      label: localize('config.common.controls.thumbnails.events_media_types.clips'),
     },
     {
-      value: 'popup-top-right',
-      label: localize('config.common.controls.title.modes.popup-top-right'),
-    },
-    {
-      value: 'popup-bottom-left',
-      label: localize('config.common.controls.title.modes.popup-bottom-left'),
-    },
-    {
-      value: 'popup-bottom-right',
-      label: localize('config.common.controls.title.modes.popup-bottom-right'),
+      value: 'snapshots',
+      label: localize('config.common.controls.thumbnails.events_media_types.snapshots'),
     },
   ];
 
@@ -461,16 +524,23 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _imageModes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'camera', label: localize('config.image.modes.camera') },
-    { value: 'screensaver', label: localize('config.image.modes.screensaver') },
-    { value: 'url', label: localize('config.image.modes.url') },
+    { value: 'camera', label: localize('config.common.image.modes.camera') },
+    { value: 'entity', label: localize('config.common.image.modes.entity') },
+    { value: 'screensaver', label: localize('config.common.image.modes.screensaver') },
+    { value: 'url', label: localize('config.common.image.modes.url') },
   ];
 
-  protected _timelineMediaTypes: EditorSelectOption[] = [
+  protected _timelineEventsMediaTypes: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'all', label: localize('config.common.timeline.medias.all') },
-    { value: 'clips', label: localize('config.common.timeline.medias.clips') },
-    { value: 'snapshots', label: localize('config.common.timeline.medias.snapshots') },
+    { value: 'all', label: localize('config.common.timeline.events_media_types.all') },
+    {
+      value: 'clips',
+      label: localize('config.common.timeline.events_media_types.clips'),
+    },
+    {
+      value: 'snapshots',
+      label: localize('config.common.timeline.events_media_types.snapshots'),
+    },
   ];
 
   protected _timelineStyleTypes: EditorSelectOption[] = [
@@ -488,18 +558,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _mediaActionNegativeConditions: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'all', label: localize('config.common.media_action_conditions.all') },
     {
       value: 'unselected',
       label: localize('config.common.media_action_conditions.unselected'),
     },
     { value: 'hidden', label: localize('config.common.media_action_conditions.hidden') },
-    { value: 'never', label: localize('config.common.media_action_conditions.never') },
   ];
 
   protected _mediaActionPositiveConditions: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'all', label: localize('config.common.media_action_conditions.all') },
     {
       value: 'selected',
       label: localize('config.common.media_action_conditions.selected'),
@@ -508,14 +575,32 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       value: 'visible',
       label: localize('config.common.media_action_conditions.visible'),
     },
-    { value: 'never', label: localize('config.common.media_action_conditions.never') },
+  ];
+
+  protected _mediaLiveUnmuteConditions: EditorSelectOption[] = [
+    ...this._mediaActionPositiveConditions,
+    {
+      value: 'microphone',
+      label: localize('config.common.media_action_conditions.microphone_unmute'),
+    },
+  ];
+
+  protected _mediaLiveMuteConditions: EditorSelectOption[] = [
+    ...this._mediaActionNegativeConditions,
+    {
+      value: 'microphone',
+      label: localize('config.common.media_action_conditions.microphone_mute'),
+    },
   ];
 
   protected _layoutFits: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'contain', label: localize('config.common.layout.fits.contain') },
-    { value: 'cover', label: localize('config.common.layout.fits.cover') },
-    { value: 'fill', label: localize('config.common.layout.fits.fill') },
+    {
+      value: 'contain',
+      label: localize('config.cameras.dimensions.layout.fits.contain'),
+    },
+    { value: 'cover', label: localize('config.cameras.dimensions.layout.fits.cover') },
+    { value: 'fill', label: localize('config.cameras.dimensions.layout.fits.fill') },
   ];
 
   protected _miniTimelineModes: EditorSelectOption[] = [
@@ -525,10 +610,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'below', label: localize('config.common.controls.timeline.modes.below') },
   ];
 
-  protected _performanceProfiles: EditorSelectOption[] = [
+  protected _profiles: EditorSelectOption[] = [
     { value: '', label: '' },
-    { value: 'low', label: localize('config.performance.profiles.low') },
-    { value: 'high', label: localize('config.performance.profiles.high') },
+    { value: 'low-performance', label: localize('config.profiles.low-performance') },
+    { value: 'scrubbing', label: localize('config.profiles.scrubbing') },
   ];
 
   protected _go2rtcModes: EditorSelectOption[] = [
@@ -545,33 +630,235 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'toggle', label: localize('config.menu.buttons.types.toggle') },
   ];
 
+  protected _displayModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'single', label: localize('display_modes.single') },
+    { value: 'grid', label: localize('display_modes.grid') },
+  ];
+
+  protected _castMethods: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'standard', label: localize('config.cameras.cast.methods.standard') },
+    { value: 'dashboard', label: localize('config.cameras.cast.methods.dashboard') },
+  ];
+
+  protected _ptzModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'on', label: localize('config.live.controls.ptz.modes.on') },
+    { value: 'off', label: localize('config.live.controls.ptz.modes.off') },
+  ];
+
+  protected _ptzOrientations: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'vertical',
+      label: localize('config.live.controls.ptz.orientations.vertical'),
+    },
+    {
+      value: 'horizontal',
+      label: localize('config.live.controls.ptz.orientations.horizontal'),
+    },
+  ];
+
+  protected _ptzPositions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'top-left',
+      label: localize('config.live.controls.ptz.positions.top-left'),
+    },
+    {
+      value: 'top-right',
+      label: localize('config.live.controls.ptz.positions.top-right'),
+    },
+    {
+      value: 'bottom-left',
+      label: localize('config.live.controls.ptz.positions.bottom-left'),
+    },
+    {
+      value: 'bottom-right',
+      label: localize('config.live.controls.ptz.positions.bottom-right'),
+    },
+  ];
+
+  protected _triggersActionsInteractionModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'all',
+      label: localize('config.view.triggers.actions.interaction_modes.all'),
+    },
+    {
+      value: 'inactive',
+      label: localize('config.view.triggers.actions.interaction_modes.inactive'),
+    },
+    {
+      value: 'active',
+      label: localize('config.view.triggers.actions.interaction_modes.active'),
+    },
+  ];
+
+  protected _triggersActionsTrigger: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'default',
+      label: localize('config.view.triggers.actions.triggers.default'),
+    },
+    {
+      value: 'live',
+      label: localize('config.view.triggers.actions.triggers.live'),
+    },
+    {
+      value: 'media',
+      label: localize('config.view.triggers.actions.triggers.media'),
+    },
+    {
+      value: 'none',
+      label: localize('config.view.triggers.actions.triggers.none'),
+    },
+  ];
+
+  protected _triggersActionsUntrigger: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'default',
+      label: localize('config.view.triggers.actions.untriggers.default'),
+    },
+    {
+      value: 'none',
+      label: localize('config.view.triggers.actions.untriggers.none'),
+    },
+  ];
+
+  protected _triggersEvents: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'events',
+      label: localize('config.cameras.triggers.events.events'),
+    },
+    {
+      value: 'clips',
+      label: localize('config.cameras.triggers.events.clips'),
+    },
+    {
+      value: 'snapshots',
+      label: localize('config.cameras.triggers.events.snapshots'),
+    },
+  ];
+
+  protected _timelinePanModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'pan',
+      label: localize('config.common.controls.timeline.pan_modes.pan'),
+    },
+    {
+      value: 'seek',
+      label: localize('config.common.controls.timeline.pan_modes.seek'),
+    },
+    {
+      value: 'seek-in-media',
+      label: localize('config.common.controls.timeline.pan_modes.seek-in-media'),
+    },
+    {
+      value: 'seek-in-camera',
+      label: localize('config.common.controls.timeline.pan_modes.seek-in-camera'),
+    },
+  ];
+
+  protected _capabilities: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'live',
+      label: localize('config.cameras.capabilities.capabilities.live'),
+    },
+    {
+      value: 'substream',
+      label: localize('config.cameras.capabilities.capabilities.substream'),
+    },
+    {
+      value: 'clips',
+      label: localize('config.cameras.capabilities.capabilities.clips'),
+    },
+    {
+      value: 'recordings',
+      label: localize('config.cameras.capabilities.capabilities.recordings'),
+    },
+    {
+      value: 'snapshots',
+      label: localize('config.cameras.capabilities.capabilities.snapshots'),
+    },
+    {
+      value: 'favorite-events',
+      label: localize('config.cameras.capabilities.capabilities.favorite-events'),
+    },
+    {
+      value: 'favorite-recordings',
+      label: localize('config.cameras.capabilities.capabilities.favorite-recordings'),
+    },
+    {
+      value: 'seek',
+      label: localize('config.cameras.capabilities.capabilities.seek'),
+    },
+    {
+      value: 'ptz',
+      label: localize('config.cameras.capabilities.capabilities.ptz'),
+    },
+    {
+      value: 'menu',
+      label: localize('config.cameras.capabilities.capabilities.menu'),
+    },
+  ];
+
+  protected _defaultResetInteractionModes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'all',
+      label: localize('config.view.default_reset.interaction_modes.all'),
+    },
+    {
+      value: 'inactive',
+      label: localize('config.view.default_reset.interaction_modes.inactive'),
+    },
+    {
+      value: 'active',
+      label: localize('config.view.default_reset.interaction_modes.active'),
+    },
+  ];
+
+  protected _statusBarStyles: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'hover', label: localize('config.status_bar.styles.hover') },
+    { value: 'hover-card', label: localize('config.status_bar.styles.hover-card') },
+    { value: 'none', label: localize('config.status_bar.styles.none') },
+    { value: 'outside', label: localize('config.status_bar.styles.outside') },
+    { value: 'overlay', label: localize('config.status_bar.styles.overlay') },
+    { value: 'popup', label: localize('config.status_bar.styles.popup') },
+  ];
+
+  protected _statusBarPositions: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'top', label: localize('config.status_bar.positions.top') },
+    { value: 'bottom', label: localize('config.status_bar.positions.bottom') },
+  ];
+
   public setConfig(config: RawFrigateCardConfig): void {
-    // Note: This does not use Zod to parse the configuration, so it may be
+    // Note: This does not use Zod to parse the full configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
     // valid configuration here, to allow the user to fix the broken parts. As
     // such, RawFrigateCardConfig is used as the type.
     this._config = config;
     this._configUpgradeable = isConfigUpgradeable(config);
 
-    let unvalidatedProfile: string | null = null;
-    try {
-      // this._config may not be a valid FrigateCardConfig as it has not been
-      // parsed. Attempt to pull out the performance profile.
-      unvalidatedProfile = (this._config as FrigateCardConfig).performance?.profile;
-    } catch (_) {}
+    const profiles = profilesSchema.safeParse(
+      (this._config as FrigateCardConfig).profiles,
+    );
 
-    if (unvalidatedProfile === 'high' || unvalidatedProfile === 'low') {
+    if (profiles.success) {
       const defaults = copyConfig(frigateCardConfigDefaults);
-      if (unvalidatedProfile === 'low') {
-        setLowPerformanceProfile(this._config, defaults);
-      }
+      setProfiles(this._config, defaults, profiles.data);
       this._defaults = defaults;
     }
   }
 
-  /**
-   * Called before each update.
-   */
   protected willUpdate(): void {
     if (!this._initialized) {
       sideLoadHomeAssistantElements().then((success) => {
@@ -733,6 +1020,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       max?: number;
       label?: string;
       default?: number;
+      step?: number;
     },
   ): TemplateResult | void {
     if (!this._config) {
@@ -744,7 +1032,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     return html`
       <ha-selector
         .hass=${this.hass}
-        .selector=${{ number: { min: params?.min || 0, max: params?.max, mode: mode } }}
+        .selector=${{
+          number: {
+            min: params?.min || 0,
+            max: params?.max,
+            mode: mode,
+            step: params?.step,
+          },
+        }}
         .label=${params?.label || this._getLabel(configPath)}
         .value=${value ?? params?.default}
         .required=${false}
@@ -800,56 +1095,173 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     );
   }
 
-  protected _renderViewScanMenu(): TemplateResult {
-    const submenuClasses = {
-      submenu: true,
-      selected: !!this._expandedMenus[MENU_VIEW_SCAN],
-    };
-    return html`
-      <div class="${classMap(submenuClasses)}">
-        <div
-          class="submenu-header"
-          @click=${this._toggleMenu}
-          .domain=${MENU_VIEW_SCAN}
-          .key=${true}
-        >
-          <ha-icon .icon=${'mdi:target-account'}></ha-icon>
-          <span>${localize(`config.${CONF_VIEW_SCAN}.scan_mode`)}</span>
-        </div>
-        ${this._expandedMenus[MENU_VIEW_SCAN]
-          ? html` <div class="values">
-              ${this._renderSwitch(
-                CONF_VIEW_SCAN_ENABLED,
-                this._defaults.view.scan.enabled,
-                {
-                  label: localize(`config.${CONF_VIEW_SCAN_ENABLED}`),
-                },
-              )}
-              ${this._renderSwitch(
-                CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS,
-                this._defaults.view.scan.show_trigger_status,
-                {
-                  label: localize(`config.${CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS}`),
-                },
-              )}
-              ${this._renderSwitch(
-                CONF_VIEW_SCAN_UNTRIGGER_RESET,
-                this._defaults.view.scan.untrigger_reset,
-              )}
-              ${this._renderNumberInput(CONF_VIEW_SCAN_UNTRIGGER_SECONDS, {
-                default: this._defaults.view.scan.untrigger_seconds,
-              })}
-            </div>`
-          : ''}
-      </div>
-    `;
+  protected _renderViewDefaultResetMenu(): TemplateResult {
+    return this._putInSubmenu(
+      MENU_VIEW_DEFAULT_RESET,
+      true,
+      `config.${CONF_VIEW_DEFAULT_RESET}.editor_label`,
+      { name: 'mdi:restart' },
+      html`
+        ${this._renderSwitch(
+          CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION,
+          this._defaults.view.default_reset.after_interaction,
+        )}
+        ${this._renderNumberInput(CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS)}
+        ${this._renderOptionSelector(
+          CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+          this._defaultResetInteractionModes,
+          {
+            label: localize('config.view.default_reset.interaction_mode'),
+          },
+        )},
+        ${this._renderOptionSelector(
+          CONF_VIEW_DEFAULT_RESET_ENTITIES,
+          this.hass ? getEntitiesFromHASS(this.hass) : [],
+          {
+            multiple: true,
+          },
+        )}
+      `,
+    );
   }
 
-  /**
-   * Render an editor menu for the card menu buttons.
-   * @param button The name of the button.
-   * @returns A rendered template.
-   */
+  protected _renderViewTriggersMenu(): TemplateResult {
+    return this._putInSubmenu(
+      MENU_VIEW_TRIGGERS,
+      true,
+      `config.${CONF_VIEW_TRIGGERS}.editor_label`,
+      { name: 'mdi:target-account' },
+      html`
+        ${this._renderSwitch(
+          CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
+          this._defaults.view.triggers.filter_selected_camera,
+          {
+            label: localize(`config.${CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA}`),
+          },
+        )}
+        ${this._renderSwitch(
+          CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
+          this._defaults.view.triggers.show_trigger_status,
+          {
+            label: localize(`config.${CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS}`),
+          },
+        )}
+        ${this._renderNumberInput(CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS, {
+          default: this._defaults.view.triggers.untrigger_seconds,
+        })}
+        ${this._putInSubmenu(
+          MENU_VIEW_TRIGGERS_ACTIONS,
+          true,
+          `config.${CONF_VIEW_TRIGGERS_ACTIONS}.editor_label`,
+          { name: 'mdi:cogs' },
+          html` ${this._renderOptionSelector(
+            CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
+            this._triggersActionsTrigger,
+            {
+              label: localize('config.view.triggers.actions.trigger'),
+            },
+          )}
+          ${this._renderOptionSelector(
+            CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
+            this._triggersActionsUntrigger,
+            {
+              label: localize('config.view.triggers.actions.untrigger'),
+            },
+          )}
+          ${this._renderOptionSelector(
+            CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
+            this._triggersActionsInteractionModes,
+            {
+              label: localize('config.view.triggers.actions.interaction_mode'),
+            },
+          )}`,
+        )}
+      `,
+    );
+  }
+
+  protected _renderKeyAssigner(
+    configPath: string,
+    defaultValue: KeyboardShortcut,
+  ): TemplateResult {
+    return html` <frigate-card-key-assigner
+      .label=${localize(`config.${configPath}`)}
+      .value=${this._config
+        ? getConfigValue(this._config, configPath, defaultValue)
+        : null}
+      @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
+    ></frigate-card-key-assigner>`;
+  }
+
+  protected _renderViewKeyboardShortcutMenu(): TemplateResult {
+    return this._putInSubmenu(
+      MENU_VIEW_KEYBOARD_SHORTCUTS,
+      true,
+      `config.${CONF_VIEW_KEYBOARD_SHORTCUTS}.editor_label`,
+      { name: 'mdi:keyboard' },
+      html`
+        ${this._renderSwitch(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
+          this._defaults.view.keyboard_shortcuts.enabled,
+          {
+            label: localize(`config.${CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED}`),
+          },
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_LEFT,
+          this._defaults.view.keyboard_shortcuts.ptz_left,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_RIGHT,
+          this._defaults.view.keyboard_shortcuts.ptz_right,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP,
+          this._defaults.view.keyboard_shortcuts.ptz_up,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN,
+          this._defaults.view.keyboard_shortcuts.ptz_down,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN,
+          this._defaults.view.keyboard_shortcuts.ptz_zoom_in,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT,
+          this._defaults.view.keyboard_shortcuts.ptz_zoom_out,
+        )}
+        ${this._renderKeyAssigner(
+          CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME,
+          this._defaults.view.keyboard_shortcuts.ptz_home,
+        )}
+      `,
+    );
+  }
+
+  protected _renderStatusBarItem(item: string): TemplateResult {
+    return html` ${this._putInSubmenu(
+      MENU_STATUS_BAR_ITEMS,
+      item,
+      `config.status_bar.items.${item}`,
+      { name: 'mdi:feature-search' },
+      html`
+        ${this._renderSwitch(
+          `${CONF_STATUS_BAR_ITEMS}.${item}.enabled`,
+          this._defaults.status_bar.items[item]?.enabled ?? true,
+          {
+            label: localize('config.status_bar.items.enabled'),
+          },
+        )}
+        ${this._renderNumberInput(`${CONF_STATUS_BAR_ITEMS}.${item}.priority`, {
+          max: FRIGATE_STATUS_BAR_PRIORITY_MAX,
+          default: this._defaults.status_bar.items[item]?.priority,
+          label: localize('config.status_bar.items.priority'),
+        })}
+      `,
+    )}`;
+  }
+
   protected _renderMenuButton(
     button: string,
     additionalOptions?: TemplateResult,
@@ -859,56 +1271,38 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       { value: 'matching', label: localize('config.menu.buttons.alignments.matching') },
       { value: 'opposing', label: localize('config.menu.buttons.alignments.opposing') },
     ];
-    const submenuClasses = {
-      submenu: true,
-      selected: this._expandedMenus[MENU_BUTTONS] === button,
-    };
 
-    return html`
-      <div class="${classMap(submenuClasses)}">
-        <div
-          class="submenu-header"
-          @click=${this._toggleMenu}
-          .domain=${MENU_BUTTONS}
-          .key=${button}
-        >
-          <ha-icon .icon=${'mdi:gesture-tap-button'}></ha-icon>
-          <span
-            >${localize('editor.button') +
-            ': ' +
-            localize(`config.${CONF_MENU_BUTTONS}.${button}`)}</span
-          >
-        </div>
-
-        ${this._expandedMenus[MENU_BUTTONS] === button
-          ? html` <div class="values">
-              ${this._renderSwitch(
-                `${CONF_MENU_BUTTONS}.${button}.enabled`,
-                this._defaults.menu.buttons[button]?.enabled ?? true,
-                {
-                  label: localize('config.menu.buttons.enabled'),
-                },
-              )}
-              ${this._renderOptionSelector(
-                `${CONF_MENU_BUTTONS}.${button}.alignment`,
-                menuButtonAlignments,
-                {
-                  label: localize('config.menu.buttons.alignment'),
-                },
-              )}
-              ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
-                max: FRIGATE_MENU_PRIORITY_MAX,
-                default: this._defaults.menu.buttons[button]?.priority,
-                label: localize('config.menu.buttons.priority'),
-              })}
-              ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
-                label: localize('config.menu.buttons.icon'),
-              })}
-              ${additionalOptions}
-            </div>`
-          : ''}
-      </div>
-    `;
+    return html` ${this._putInSubmenu(
+      MENU_MENU_BUTTONS,
+      button,
+      `config.menu.buttons.${button}`,
+      { name: 'mdi:gesture-tap-button' },
+      html`
+        ${this._renderSwitch(
+          `${CONF_MENU_BUTTONS}.${button}.enabled`,
+          this._defaults.menu.buttons[button]?.enabled ?? true,
+          {
+            label: localize('config.menu.buttons.enabled'),
+          },
+        )}
+        ${this._renderOptionSelector(
+          `${CONF_MENU_BUTTONS}.${button}.alignment`,
+          menuButtonAlignments,
+          {
+            label: localize('config.menu.buttons.alignment'),
+          },
+        )}
+        ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
+          max: FRIGATE_MENU_PRIORITY_MAX,
+          default: this._defaults.menu.buttons[button]?.priority,
+          label: localize('config.menu.buttons.priority'),
+        })}
+        ${this._renderIconSelector(`${CONF_MENU_BUTTONS}.${button}.icon`, {
+          label: localize('config.menu.buttons.icon'),
+        })}
+        ${additionalOptions}
+      `,
+    )}`;
   }
 
   /**
@@ -947,10 +1341,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${icon.name
           ? html` <ha-icon .icon=${icon.name}></ha-icon> `
           : icon.path
-          ? html`
-              <ha-svg-icon .viewBox=${icon.viewBox} .path="${icon.path}"></ha-svg-icon>
-            `
-          : ``}
+            ? html`
+                <ha-svg-icon .viewBox=${icon.viewBox} .path="${icon.path}"></ha-svg-icon>
+              `
+            : ``}
         <span>${localize(labelPath)}</span>
       </div>
       ${selected ? html`<div class="values">${template}</div>` : ''}
@@ -972,6 +1366,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathFit: string,
     configPathPositionX: string,
     configPathPositionY: string,
+    configPathViewBoxTop: string,
+    configPathViewBoxBottom: string,
+    configPathViewBoxLeft: string,
+    configPathViewBoxRight: string,
+    configPathZoom: string,
+    configPathPanX: string,
+    configPathPanY: string,
   ): TemplateResult | void {
     return this._putInSubmenu(
       domain,
@@ -979,17 +1380,69 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       labelPath,
       { name: 'mdi:page-layout-body' },
       html`
-        ${this._renderOptionSelector(configPathFit, this._layoutFits)}
-        ${this._renderNumberInput(configPathPositionX, {
+        ${this._renderNumberInput(configPathZoom, {
+          min: 0,
+          max: 10,
+          label: localize('config.cameras.dimensions.layout.zoom'),
+          step: 0.1,
+        })}
+        ${this._renderNumberInput(configPathPanX, {
           min: 0,
           max: 100,
-          label: localize('config.common.layout.position.x'),
+          label: localize('config.cameras.dimensions.layout.pan.x'),
         })}
-        ${this._renderNumberInput(configPathPositionY, {
+        ${this._renderNumberInput(configPathPanY, {
           min: 0,
           max: 100,
-          label: localize('config.common.layout.position.y'),
+          label: localize('config.cameras.dimensions.layout.pan.y'),
         })}
+        ${this._renderOptionSelector(configPathFit, this._layoutFits, {
+          label: localize('config.cameras.dimensions.layout.fit'),
+        })}
+        ${this._putInSubmenu(
+          `${domain}.position`,
+          true,
+          'config.cameras.dimensions.layout.position.editor_label',
+          { name: 'mdi:aspect-ratio' },
+          html` ${this._renderNumberInput(configPathPositionX, {
+            min: 0,
+            max: 100,
+            label: localize('config.cameras.dimensions.layout.position.x'),
+          })}
+          ${this._renderNumberInput(configPathPositionY, {
+            min: 0,
+            max: 100,
+            label: localize('config.cameras.dimensions.layout.position.y'),
+          })}`,
+        )}
+        ${this._putInSubmenu(
+          `${domain}.view_box`,
+          true,
+          'config.cameras.dimensions.layout.view_box.editor_label',
+          { name: 'mdi:crop' },
+          html`
+            ${this._renderNumberInput(configPathViewBoxTop, {
+              min: 0,
+              max: 100,
+              label: localize('config.cameras.dimensions.layout.view_box.top'),
+            })}
+            ${this._renderNumberInput(configPathViewBoxBottom, {
+              min: 0,
+              max: 100,
+              label: localize('config.cameras.dimensions.layout.view_box.bottom'),
+            })}
+            ${this._renderNumberInput(configPathViewBoxLeft, {
+              min: 0,
+              max: 100,
+              label: localize('config.cameras.dimensions.layout.view_box.left'),
+            })}
+            ${this._renderNumberInput(configPathViewBoxRight, {
+              min: 0,
+              max: 100,
+              label: localize('config.cameras.dimensions.layout.view_box.right'),
+            })}
+          `,
+        )}
       `,
     );
   }
@@ -999,7 +1452,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @param configPathStyle Timeline style config path.
    * @param configPathWindowSeconds Timeline window config path.
    * @param configPathClusteringThreshold Clustering threshold config path.
-   * @param configPathTimelineMedia Timeline media config path.
+   * @param configPathTimelineEventsMediaType Timeline media config path.
    * @param configPathShowRecordings Show recordings config path.
    * @param defaultShowRecordings Default value of show_recordings.
    * @returns A rendered template.
@@ -1008,29 +1461,37 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
-    configPathTimelineMedia: string,
+    configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
     defaultShowRecordings: boolean,
+    configPathPanMode?: string,
   ): TemplateResult {
-    return html` ${this._renderOptionSelector(
-      configPathStyle,
-      this._timelineStyleTypes,
-      {
+    return html`
+      ${this._renderOptionSelector(configPathStyle, this._timelineStyleTypes, {
         label: localize(`config.common.${CONF_TIMELINE_STYLE}`),
-      },
-    )}
-    ${this._renderNumberInput(configPathWindowSeconds, {
-      label: localize(`config.common.${CONF_TIMELINE_WINDOW_SECONDS}`),
-    })}
-    ${this._renderNumberInput(configPathClusteringThreshold, {
-      label: localize(`config.common.${CONF_TIMELINE_CLUSTERING_THRESHOLD}`),
-    })}
-    ${this._renderOptionSelector(configPathTimelineMedia, this._timelineMediaTypes, {
-      label: localize(`config.common.${CONF_TIMELINE_MEDIA}`),
-    })}
-    ${this._renderSwitch(configPathShowRecordings, defaultShowRecordings, {
-      label: localize(`config.common.${CONF_TIMELINE_SHOW_RECORDINGS}`),
-    })}`;
+      })}
+      ${configPathPanMode
+        ? this._renderOptionSelector(configPathPanMode, this._timelinePanModes, {
+            label: localize(`config.common.controls.timeline.pan_mode`),
+          })
+        : ``}
+      ${this._renderNumberInput(configPathWindowSeconds, {
+        label: localize(`config.common.${CONF_TIMELINE_WINDOW_SECONDS}`),
+      })}
+      ${this._renderNumberInput(configPathClusteringThreshold, {
+        label: localize(`config.common.${CONF_TIMELINE_CLUSTERING_THRESHOLD}`),
+      })}
+      ${this._renderOptionSelector(
+        configPathTimelineEventsMediaType,
+        this._timelineEventsMediaTypes,
+        {
+          label: localize(`config.common.${CONF_TIMELINE_EVENTS_MEDIA_TYPE}`),
+        },
+      )}
+      ${this._renderSwitch(configPathShowRecordings, defaultShowRecordings, {
+        label: localize(`config.common.${CONF_TIMELINE_SHOW_RECORDINGS}`),
+      })}
+    `;
   }
 
   /**
@@ -1038,7 +1499,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @param domain The submenu domain.
    * @param configPathWindowSeconds Timeline window config path.
    * @param configPathClusteringThreshold Clustering threshold config path.
-   * @param configPathTimelineMedia Timeline media config path.
+   * @param configPathTimelineEventsMediaType Timeline media config path.
    * @param configPathShowRecordings Show recordings config path.
    * @returns A rendered template.
    */
@@ -1048,9 +1509,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
-    configPathTimelineMedia: string,
+    configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
     showRecordingsDefault: boolean,
+    configPathPanMode: string,
   ): TemplateResult | void {
     return this._putInSubmenu(
       domain,
@@ -1064,10 +1526,54 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         configPathStyle,
         configPathWindowSeconds,
         configPathClusteringThreshold,
-        configPathTimelineMedia,
+        configPathTimelineEventsMediaType,
         configPathShowRecordings,
         showRecordingsDefault,
+        configPathPanMode,
       )}`,
+    );
+  }
+
+  /**
+   * Render the next & previous controls.
+   * @param domain The submenu domain.
+   * @param configPathStyle Next previous style config path.
+   * @param configPathSize Next previous size config path.
+   * @returns A rendered template.
+   */
+  protected _renderViewDisplay(
+    domain: string,
+    configPathMode: string,
+    configPathSelectedWidthFactor: string,
+    configPathColumns: string,
+    configPathMaxColumns: string,
+  ): TemplateResult | void {
+    // grid_select_width_factor: z.number().min(0).optional(),
+    // grid_max_columns: z.number().min(0).optional(),
+    // grid_columns: z.number().min(0).optional(),
+
+    return this._putInSubmenu(
+      domain,
+      true,
+      'config.common.display.editor_label',
+      { name: 'mdi:palette-swatch' },
+      html`
+        ${this._renderOptionSelector(configPathMode, this._displayModes, {
+          label: localize('config.common.display.mode'),
+        })}
+        ${this._renderNumberInput(configPathSelectedWidthFactor, {
+          min: 0,
+          label: localize('config.common.display.grid_selected_width_factor'),
+        })}
+        ${this._renderNumberInput(configPathColumns, {
+          min: 0,
+          label: localize('config.common.display.grid_columns'),
+        })}
+        ${this._renderNumberInput(configPathMaxColumns, {
+          min: 0,
+          label: localize('config.common.display.grid_max_columns'),
+        })}
+      `,
     );
   }
 
@@ -1137,7 +1643,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       show_download_control: boolean;
     },
     options?: {
-      configPathMedia?: string;
+      configPathMediaType?: string;
+      configPathEventsMediaType?: string;
       configPathMode?: string;
     },
   ): TemplateResult | void {
@@ -1156,12 +1663,21 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               },
             )}`
           : html``}
-        ${options?.configPathMedia
+        ${options?.configPathMediaType
           ? html`${this._renderOptionSelector(
-              options.configPathMedia,
-              this._thumbnailMedias,
+              options.configPathMediaType,
+              this._thumbnailMediaTypes,
               {
-                label: localize('config.common.controls.thumbnails.media'),
+                label: localize('config.common.controls.thumbnails.media_type'),
+              },
+            )}`
+          : html``}
+        ${options?.configPathEventsMediaType
+          ? html`${this._renderOptionSelector(
+              options.configPathEventsMediaType,
+              this._thumbnailEventsMediaTypes,
+              {
+                label: localize('config.common.controls.thumbnails.events_media_type'),
               },
             )}`
           : html``}
@@ -1223,32 +1739,34 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     );
   }
 
-  /**
-   * Render the titles controls.
-   * @param domain The submenu domain.
-   * @param configPathMode Title mode config path.
-   * @param configPathDurationSeconds Title duration seconds config path.
-   * @returns A rendered template.
-   */
-  protected _renderTitleControls(
-    menuDomain: string,
+  protected _renderImageOptions(
     configPathMode: string,
-    configPathDurationSeconds: string,
-  ): TemplateResult | void {
-    return this._putInSubmenu(
-      menuDomain,
-      true,
-      'config.common.controls.title.editor_label',
-      { name: 'mdi:subtitles' },
-      html` ${this._renderOptionSelector(configPathMode, this._titleModes, {
-        label: localize('config.common.controls.title.mode'),
+    configPathUrl: string,
+    configPathEntity: string,
+    configPathEntityParameters: string,
+    configPathRefreshSeconds: string,
+  ): TemplateResult {
+    return html`
+      ${this._renderOptionSelector(configPathMode, this._imageModes, {
+        label: localize('config.common.image.mode'),
       })}
-      ${this._renderNumberInput(configPathDurationSeconds, {
-        min: 0,
-        max: 60,
-        label: localize('config.common.controls.title.duration_seconds'),
-      })}`,
-    );
+      ${this._renderStringInput(configPathUrl, {
+        label: localize('config.common.image.url'),
+      })}
+      ${this._renderOptionSelector(
+        configPathEntity,
+        this.hass ? getEntitiesFromHASS(this.hass) : [],
+        {
+          label: localize('config.common.image.entity'),
+        },
+      )}
+      ${this._renderStringInput(configPathEntityParameters, {
+        label: localize('config.common.image.entity_parameters'),
+      })}
+      ${this._renderNumberInput(configPathRefreshSeconds, {
+        label: localize('config.common.image.refresh_seconds'),
+      })}
+    `;
   }
 
   /**
@@ -1417,10 +1935,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderStringInput(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
               )}
-              ${this._renderSwitch(
-                getArrayConfigPath(CONF_CAMERAS_ARRAY_HIDE, cameraIndex),
-                this._defaults.cameras.hide,
-              )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_ENGINE,
                 true,
@@ -1528,17 +2042,19 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   true,
                   'config.cameras.image.editor_label',
                   { name: 'mdi:image' },
-                  html`
-                    ${this._renderNumberInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_URL, cameraIndex),
-                    )}
-                  `,
+                  this._renderImageOptions(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_MODE, cameraIndex),
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_URL, cameraIndex),
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_ENTITY, cameraIndex),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
+                      cameraIndex,
+                    ),
+                  ),
                 )}
                 ${this._putInSubmenu(
                   MENU_CAMERAS_WEBRTC_CARD,
@@ -1585,21 +2101,147 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 cameraIndex,
                 'config.cameras.triggers.editor_label',
                 { name: 'mdi:magnify-scan' },
-                html` ${this._renderSwitch(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY, cameraIndex),
-                  this._defaults.cameras.triggers.occupancy,
-                )}
-                ${this._renderSwitch(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_MOTION, cameraIndex),
-                  this._defaults.cameras.triggers.motion,
-                )}
-                ${this._renderOptionSelector(
-                  getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES, cameraIndex),
-                  entities,
-                  {
-                    multiple: true,
-                  },
-                )}`,
+                html`
+                  ${this._renderSwitch(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
+                      cameraIndex,
+                    ),
+                    this._defaults.cameras.triggers.occupancy,
+                  )}
+                  ${this._renderSwitch(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_MOTION, cameraIndex),
+                    this._defaults.cameras.triggers.motion,
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
+                      cameraIndex,
+                    ),
+                    entities,
+                    {
+                      multiple: true,
+                    },
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS, cameraIndex),
+                    this._triggersEvents,
+                    {
+                      multiple: true,
+                      label: localize('config.cameras.triggers.events.editor_label'),
+                    },
+                  )}
+                `,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_CAST,
+                cameraIndex,
+                'config.cameras.cast.editor_label',
+                { name: 'mdi:cast' },
+                html`
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_CAST_METHOD, cameraIndex),
+                    this._castMethods,
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
+                      cameraIndex,
+                    ),
+                  )}
+                `,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_DIMENSIONS,
+                cameraIndex,
+                'config.cameras.dimensions.editor_label',
+                { name: 'mdi:aspect-ratio' },
+                html`
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderMediaLayout(
+                    MENU_CAMERAS_DIMENSIONS_LAYOUT,
+                    'config.cameras.dimensions.layout.editor_label',
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_TOP,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_BOTTOM,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_LEFT,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_X,
+                      cameraIndex,
+                    ),
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_Y,
+                      cameraIndex,
+                    ),
+                  )}
+                `,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_CAPABILITIES,
+                cameraIndex,
+                'config.cameras.capabilities.editor_label',
+                { name: 'mdi:cog-stop' },
+                html`
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
+                      cameraIndex,
+                    ),
+                    this._capabilities,
+                    {
+                      multiple: true,
+                    },
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
+                      cameraIndex,
+                    ),
+                    this._capabilities,
+                    {
+                      multiple: true,
+                    },
+                  )}
+                `,
               )}
             </div>`
           : ``}
@@ -1728,6 +2370,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
             `
           : ''}
+        ${this._renderOptionSetHeader('profiles')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'profiles'
+          ? html` <div class="values">
+              ${this._renderOptionSelector(CONF_PROFILES, this._profiles, {
+                multiple: true,
+                label: localize('config.profiles.editor_label'),
+              })}
+            </div>`
+          : ''}
         ${this._renderOptionSetHeader('view')}
         ${this._expandedMenus[MENU_OPTIONS] === 'view'
           ? html`
@@ -1738,17 +2389,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   this._cameraSelectViewModes,
                 )}
                 ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
-                ${this._renderNumberInput(CONF_VIEW_TIMEOUT_SECONDS)}
-                ${this._renderNumberInput(CONF_VIEW_UPDATE_SECONDS)}
+                ${this._renderNumberInput(CONF_VIEW_INTERACTION_SECONDS)}
                 ${this._renderSwitch(
-                  CONF_VIEW_UPDATE_FORCE,
-                  this._defaults.view.update_force,
+                  CONF_VIEW_DEFAULT_CYCLE_CAMERA,
+                  this._defaults.view.default_cycle_camera,
                 )}
-                ${this._renderSwitch(
-                  CONF_VIEW_UPDATE_CYCLE_CAMERA,
-                  this._defaults.view.update_cycle_camera,
-                )}
-                ${this._renderViewScanMenu()}
+                ${this._renderViewDefaultResetMenu()} ${this._renderViewTriggersMenu()}
+                ${this._renderViewKeyboardShortcutMenu()}
               </div>
             `
           : ''}
@@ -1785,8 +2432,40 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   )}`,
                 )}
                 ${this._renderMenuButton('play') /*  */}
-                ${this._renderMenuButton('mute')}
+                ${this._renderMenuButton('mute') /*  */}
                 ${this._renderMenuButton('screenshot')}
+                ${this._renderMenuButton('display_mode')}
+                ${this._renderMenuButton('ptz_controls')}
+                ${this._renderMenuButton('ptz_home')}
+              </div>
+            `
+          : ''}
+        ${this._renderOptionSetHeader('status_bar')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'status_bar'
+          ? html`
+              <div class="values">
+                ${this._renderOptionSelector(
+                  CONF_STATUS_BAR_STYLE,
+                  this._statusBarStyles,
+                )}
+                ${this._renderOptionSelector(
+                  CONF_STATUS_BAR_POSITION,
+                  this._statusBarPositions,
+                )}
+                ${this._renderNumberInput(CONF_STATUS_BAR_HEIGHT, {
+                  min: STATUS_BAR_HEIGHT_MIN,
+                  label: localize('config.status_bar.height'),
+                })}
+                ${this._renderNumberInput(CONF_STATUS_BAR_POPUP_SECONDS, {
+                  min: 0,
+                  max: 60,
+                  default: this._defaults.status_bar.popup_seconds,
+                  label: localize('config.status_bar.popup_seconds'),
+                })}
+                ${this._renderStatusBarItem('title') /* */}
+                ${this._renderStatusBarItem('resolution') /* */}
+                ${this._renderStatusBarItem('technology') /* */}
+                ${this._renderStatusBarItem('engine') /* */}
               </div>
             `
           : ''}
@@ -1801,22 +2480,37 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderOptionSelector(
                   CONF_LIVE_LAZY_UNLOAD,
                   this._mediaActionNegativeConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_PLAY,
                   this._mediaActionPositiveConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_PAUSE,
                   this._mediaActionNegativeConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_MUTE,
-                  this._mediaActionNegativeConditions,
+                  this._mediaLiveMuteConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_AUTO_UNMUTE,
-                  this._mediaActionPositiveConditions,
+                  this._mediaLiveUnmuteConditions,
+                  {
+                    multiple: true,
+                  },
                 )}
                 ${this._renderOptionSelector(
                   CONF_LIVE_TRANSITION_EFFECT,
@@ -1825,6 +2519,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderSwitch(
                   CONF_LIVE_SHOW_IMAGE_DURING_LOAD,
                   this._defaults.live.show_image_during_load,
+                )}
+                ${this._renderViewDisplay(
+                  MENU_LIVE_DISPLAY,
+                  CONF_LIVE_DISPLAY_MODE,
+                  CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
+                  CONF_LIVE_DISPLAY_GRID_COLUMNS,
+                  CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS,
                 )}
                 ${this._putInSubmenu(
                   MENU_LIVE_CONTROLS,
@@ -1856,14 +2557,11 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_DOWNLOAD_CONTROL,
                       this._defaults.live.controls.thumbnails,
                       {
-                        configPathMedia: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA,
+                        configPathMediaType: CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE,
+                        configPathEventsMediaType:
+                          CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
                         configPathMode: CONF_LIVE_CONTROLS_THUMBNAILS_MODE,
                       },
-                    )}
-                    ${this._renderTitleControls(
-                      MENU_LIVE_CONTROLS_TITLE,
-                      CONF_LIVE_CONTROLS_TITLE_MODE,
-                      CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS,
                     )}
                     ${this._renderMiniTimeline(
                       MENU_LIVE_CONTROLS_TIMELINE,
@@ -1871,18 +2569,53 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_TIMELINE_STYLE,
                       CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS,
                       CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-                      CONF_LIVE_CONTROLS_TIMELINE_MEDIA,
+                      CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                       CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                       this._defaults.live.controls.timeline.show_recordings,
+                      CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
+                    )}
+                    ${this._putInSubmenu(
+                      MENU_LIVE_CONTROLS_PTZ,
+                      true,
+                      'config.live.controls.ptz.editor_label',
+                      { name: 'mdi:pan' },
+                      html`
+                        ${this._renderOptionSelector(
+                          CONF_LIVE_CONTROLS_PTZ_MODE,
+                          this._ptzModes,
+                        )}
+                        ${this._renderOptionSelector(
+                          CONF_LIVE_CONTROLS_PTZ_POSITION,
+                          this._ptzPositions,
+                        )}
+                        ${this._renderOptionSelector(
+                          CONF_LIVE_CONTROLS_PTZ_ORIENTATION,
+                          this._ptzOrientations,
+                        )}
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_PTZ_HIDE_PAN_TILT,
+                          this._defaults.live.controls.ptz.hide_pan_tilt,
+                          {
+                            label: localize('config.live.controls.ptz.hide_pan_tilt'),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_PTZ_HIDE_ZOOM,
+                          this._defaults.live.controls.ptz.hide_pan_tilt,
+                          {
+                            label: localize('config.live.controls.ptz.hide_zoom'),
+                          },
+                        )}
+                        ${this._renderSwitch(
+                          CONF_LIVE_CONTROLS_PTZ_HIDE_HOME,
+                          this._defaults.live.controls.ptz.hide_home,
+                          {
+                            label: localize('config.live.controls.ptz.hide_home'),
+                          },
+                        )}
+                      `,
                     )}
                   `,
-                )}
-                ${this._renderMediaLayout(
-                  MENU_LIVE_LAYOUT,
-                  'config.live.layout',
-                  CONF_LIVE_LAYOUT_FIT,
-                  CONF_LIVE_LAYOUT_POSITION_X,
-                  CONF_LIVE_LAYOUT_POSITION_Y,
                 )}
                 ${this._putInSubmenu(
                   MENU_LIVE_MICROPHONE,
@@ -1894,6 +2627,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     ${this._renderSwitch(
                       CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED,
                       this._defaults.live.microphone.always_connected,
+                    )}
+                    ${this._renderNumberInput(
+                      CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS,
                     )}
                   `,
                 )}
@@ -1924,18 +2660,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_PLAY,
                 this._mediaActionPositiveConditions,
+                {
+                  multiple: true,
+                },
               )}
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_PAUSE,
                 this._mediaActionNegativeConditions,
+                {
+                  multiple: true,
+                },
               )}
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_MUTE,
                 this._mediaActionNegativeConditions,
+                {
+                  multiple: true,
+                },
               )}
               ${this._renderOptionSelector(
                 CONF_MEDIA_VIEWER_AUTO_UNMUTE,
                 this._mediaActionPositiveConditions,
+                {
+                  multiple: true,
+                },
               )}
               ${this._renderSwitch(
                 CONF_MEDIA_VIEWER_DRAGGABLE,
@@ -1956,6 +2704,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${this._renderSwitch(
                 CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP,
                 this._defaults.media_viewer.snapshot_click_plays_clip,
+              )}
+              ${this._renderViewDisplay(
+                MENU_MEDIA_VIEWER_DISPLAY,
+                CONF_MEDIA_VIEWER_DISPLAY_MODE,
+                CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR,
+                CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS,
+                CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS,
               )}
               ${this._putInSubmenu(
                 MENU_MEDIA_VIEWER_CONTROLS,
@@ -1990,45 +2745,30 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       configPathMode: CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_MODE,
                     },
                   )}
-                  ${this._renderTitleControls(
-                    MENU_MEDIA_VIEWER_CONTROLS_TITLE,
-                    CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE,
-                    CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS,
-                  )}
                   ${this._renderMiniTimeline(
                     MENU_MEDIA_VIEWER_CONTROLS_TIMELINE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
-                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
                     this._defaults.media_viewer.controls.timeline.show_recordings,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE,
                   )}
                 `,
-              )}
-              ${this._renderMediaLayout(
-                MENU_MEDIA_VIEWER_LAYOUT,
-                'config.media_viewer.layout',
-                CONF_MEDIA_VIEWER_LAYOUT_FIT,
-                CONF_MEDIA_VIEWER_LAYOUT_POSITION_X,
-                CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y,
               )}
             </div>`
           : ''}
         ${this._renderOptionSetHeader('image')}
         ${this._expandedMenus[MENU_OPTIONS] === 'image'
           ? html` <div class="values">
-              ${this._renderOptionSelector(CONF_IMAGE_MODE, this._imageModes)}
-              ${this._renderStringInput(CONF_IMAGE_URL)}
-              ${this._renderNumberInput(CONF_IMAGE_REFRESH_SECONDS)}
-              ${this._renderSwitch(CONF_IMAGE_ZOOMABLE, this._defaults.image.zoomable)}
-              ${this._renderMediaLayout(
-                MENU_IMAGE_LAYOUT,
-                'config.image.layout',
-                CONF_IMAGE_LAYOUT_FIT,
-                CONF_IMAGE_LAYOUT_POSITION_X,
-                CONF_IMAGE_LAYOUT_POSITION_Y,
+              ${this._renderImageOptions(
+                CONF_IMAGE_MODE,
+                CONF_IMAGE_URL,
+                CONF_IMAGE_ENTITY,
+                CONF_IMAGE_ENTITY_PARAMETERS,
+                CONF_IMAGE_REFRESH_SECONDS,
               )}
             </div>`
           : ''}
@@ -2039,7 +2779,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 CONF_TIMELINE_STYLE,
                 CONF_TIMELINE_WINDOW_SECONDS,
                 CONF_TIMELINE_CLUSTERING_THRESHOLD,
-                CONF_TIMELINE_MEDIA,
+                CONF_TIMELINE_EVENTS_MEDIA_TYPE,
                 CONF_TIMELINE_SHOW_RECORDINGS,
                 this._defaults.timeline.show_recordings,
               )}
@@ -2080,10 +2820,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               ${getConfigValue(this._config, CONF_PERFORMANCE_PROFILE) === 'low'
                 ? this._renderInfo(localize('config.performance.warning'))
                 : html``}
-              ${this._renderOptionSelector(
-                CONF_PERFORMANCE_PROFILE,
-                this._performanceProfiles,
-              )}
               ${this._putInSubmenu(
                 MENU_PERFORMANCE_FEATURES,
                 true,
@@ -2097,6 +2833,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ${this._renderNumberInput(CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE, {
                     max: MEDIA_CHUNK_SIZE_MAX,
                   })}
+                  ${this._renderNumberInput(
+                    CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS,
+                    {
+                      min: 1,
+                    },
+                  )}
                 `,
               )}
               ${this._putInSubmenu(
@@ -2197,9 +2939,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     this._updateConfig(newConfig);
   }
 
-  /**
-   * Return compiled CSS styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(frigate_card_editor_style);
   }

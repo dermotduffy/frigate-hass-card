@@ -1,4 +1,5 @@
-import format from 'date-fns/format';
+import { Task, TaskStatus } from '@lit-labs/task';
+import { format } from 'date-fns';
 import {
   CSSResult,
   html,
@@ -9,11 +10,14 @@ import {
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import { CameraManager } from '../camera-manager/manager.js';
+import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
 import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
 import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
+import type { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import {
   errorToConsole,
@@ -21,17 +25,13 @@ import {
   getDurationString,
   prettifyTitle,
 } from '../utils/basic.js';
+import { downloadMedia } from '../utils/download.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask, FetchThumbnailTaskArgs } from '../utils/thumbnail.js';
-import { View } from '../view/view.js';
-import { Task, TaskStatus } from '@lit-labs/task';
-
-import type { ExtendedHomeAssistant } from '../types.js';
-import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
-import { CameraManager } from '../camera-manager/manager.js';
 import { ViewMediaClassifier } from '../view/media-classifier.js';
-import { downloadMedia } from '../utils/download.js';
+import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
+import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
@@ -271,7 +271,9 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
     const rawEndTime = this.media.getEndTime();
     const duration =
       rawStartTime && rawEndTime ? getDurationString(rawStartTime, rawEndTime) : null;
-    const inProgress = this.media.inProgress() ? localize('recording.in_progress') : null;
+    const inProgress = this.media.inProgress()
+      ? localize('recording.in_progress')
+      : null;
 
     const seek = this.seek ? format(this.seek, 'HH:mm:ss') : null;
 
@@ -333,15 +335,22 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
 
 @customElement('frigate-card-thumbnail')
 export class FrigateCardThumbnail extends LitElement {
-  // HomeAssistant object may be required for thumbnail signing (for Frigate
-  // events).
-  @property({ attribute: false })
+  // Performance: During timeline scrubbing, hass may be updated continuously.
+  // As it is not needed for the thumbnail rendering itself, it does not trigger
+  // a re-render. The HomeAssistant object may be required for thumbnail signing
+  // (after initial signing the thumbnail is stored in a data URL, so the
+  // signing will not expire).
   public hass?: ExtendedHomeAssistant;
+
+  // Performance: During timeline scrubbing, the view will be updated
+  // continuously. As it is not needed for the thumbnail rendering itself, it
+  // does not trigger a re-render.
+  public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
 
-  @property({ attribute: true })
+  @property({ attribute: false })
   public media?: ViewMedia;
 
   @property({ attribute: true, type: Boolean })
@@ -358,9 +367,6 @@ export class FrigateCardThumbnail extends LitElement {
 
   @property({ attribute: false })
   public seek?: Date;
-
-  @property({ attribute: false })
-  public view?: Readonly<View>;
 
   /**
    * Render the element.
@@ -381,7 +387,6 @@ export class FrigateCardThumbnail extends LitElement {
 
     const shouldShowTimelineControl =
       this.show_timeline_control &&
-      this.view &&
       (!ViewMediaClassifier.isRecording(this.media) ||
         // Only show timeline control if the recording has a start & end time.
         (this.media.getStartTime() && this.media.getEndTime()));
@@ -401,7 +406,6 @@ export class FrigateCardThumbnail extends LitElement {
       mediaCapabilities?.canDownload;
 
     const cameraTitle = this.cameraManager.getCameraMetadata(
-      this.hass,
       this.media.getCameraID(),
     )?.title;
 
@@ -414,13 +418,13 @@ export class FrigateCardThumbnail extends LitElement {
             .thumbnail=${thumbnail ?? undefined}
           ></frigate-card-thumbnail-feature-event>`
         : ViewMediaClassifier.isRecording(this.media)
-        ? html`<frigate-card-thumbnail-feature-recording
-            aria-label="${title ?? ''}"
-            title="${title ?? ''}"
-            .cameraTitle=${this.details ? undefined : cameraTitle}
-            .date=${this.media.getStartTime() ?? undefined}
-          ></frigate-card-thumbnail-feature-recording>`
-        : html``}
+          ? html`<frigate-card-thumbnail-feature-recording
+              aria-label="${title ?? ''}"
+              title="${title ?? ''}"
+              .cameraTitle=${this.details ? undefined : cameraTitle}
+              .date=${this.media.getStartTime() ?? undefined}
+            ></frigate-card-thumbnail-feature-recording>`
+          : html``}
       ${shouldShowFavoriteControl
         ? html` <ha-icon
             class="${classMap(starClasses)}"
@@ -431,7 +435,6 @@ export class FrigateCardThumbnail extends LitElement {
               if (this.hass && this.media) {
                 try {
                   await this.cameraManager?.favoriteMedia(
-                    this.hass,
                     this.media,
                     !this.media?.isFavorite(),
                   );
@@ -451,12 +454,12 @@ export class FrigateCardThumbnail extends LitElement {
             .seek=${this.seek}
           ></frigate-card-thumbnail-details-event>`
         : this.details && ViewMediaClassifier.isRecording(this.media)
-        ? html`<frigate-card-thumbnail-details-recording
-            .media=${this.media ?? undefined}
-            .cameraTitle=${cameraTitle}
-            .seek=${this.seek}
-          ></frigate-card-thumbnail-details-recording>`
-        : html``}
+          ? html`<frigate-card-thumbnail-details-recording
+              .media=${this.media ?? undefined}
+              .cameraTitle=${cameraTitle}
+              .seek=${this.seek}
+            ></frigate-card-thumbnail-details-recording>`
+          : html``}
       ${shouldShowTimelineControl
         ? html`<ha-icon
             class="timeline"
@@ -464,18 +467,19 @@ export class FrigateCardThumbnail extends LitElement {
             title=${localize('thumbnail.timeline')}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
-              if (!this.view || !this.media) {
+              if (!this.viewManagerEpoch || !this.media) {
                 return;
               }
-              this.view
-                .evolve({
+              this.viewManagerEpoch.manager.setViewByParameters({
+                params: {
                   view: 'timeline',
-                  queryResults: this.view.queryResults
-                    ?.clone()
+                  queryResults: this.viewManagerEpoch?.manager
+                    .getView()
+                    ?.queryResults?.clone()
                     .selectResultIfFound((media) => media === this.media),
-                })
-                .removeContext('timeline')
-                .dispatchChangeEvent(this);
+                },
+                modifiers: [new RemoveContextViewModifier(['timeline'])],
+              });
             }}
           ></ha-icon>`
         : ''}

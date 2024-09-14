@@ -59,7 +59,9 @@ div.timeline {
   color: var(--primary-text-color);
   background-color: var(--primary-color);
 
-  transition: background-color ease-in-out 1s, border-color ease-in-out 1s,
+  transition:
+    background-color ease-in-out 1s,
+    border-color ease-in-out 1s,
     box-shadow ease-in-out 1s;
 }
 .vis-item.vis-selected {
@@ -84,7 +86,6 @@ div.timeline {
   cursor: pointer;
 }
 :host([recordings]) .vis-item.vis-background,
-:host([recordings]) .vis-labelset,
 :host([recordings]) .vis-time-axis {
   cursor: crosshair;
 }
@@ -119,8 +120,7 @@ div.timeline {
 .vis-label {
   transition: background-color 0.5s ease-out;
 }
-:host([recordings]) .vis-text.vis-minor:hover,
-:host([recordings]) .vis-label:hover {
+:host([recordings]) .vis-text.vis-minor:hover {
   background-color: var(--primary-color);
 }
 
@@ -172,6 +172,7 @@ div.vis-tooltip {
 }
 
 .timeline-tools {
+  display: inline-flex;
   position: absolute;
   right: 2px;
   bottom: 2px;

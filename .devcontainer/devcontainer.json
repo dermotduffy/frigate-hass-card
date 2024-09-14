@@ -1,15 +1,16 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
   "dockerComposeFile": "../docker-compose.yml",
-  "service": "dev",
+  "service": "devcontainer",
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-      "moby": false,
-      "dockerDashComposeVersion": "v2"
+      "moby": false
     }
   },
+  "updateRemoteUserUID": true,
   "workspaceFolder": "${localWorkspaceFolder}",
-  "shutdownAction": "stopCompose",
+  "initializeCommand": [".devcontainer/initialize.sh"],
+  "postCreateCommand": ["yarn", "install"],
   "forwardPorts": [10001, "hass:8123", "frigate:5000"],
   "portsAttributes": {
     "10001": {
@@ -25,8 +26,6 @@
       "onAutoForward": "silent"
     }
   },
-  "initializeCommand": ".devcontainer/initialize.sh",
-  "postCreateCommand": "yarn install",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -39,9 +38,12 @@
         "davidanson.vscode-markdownlint",
         "redhat.vscode-yaml",
         "lokalise.i18n-ally",
+        "vitest.explorer",
+        "inlang.vs-code-extension",
         "ms-azuretools.vscode-docker"
       ],
       "settings": {
+        "task.allowAutomaticTasks": "on",
         "files.eol": "\n",
         "editor.tabSize": 2,
         "editor.formatOnPaste": false,

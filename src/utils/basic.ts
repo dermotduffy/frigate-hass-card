@@ -1,8 +1,14 @@
-import differenceInHours from 'date-fns/differenceInHours';
-import differenceInMinutes from 'date-fns/differenceInMinutes';
-import differenceInSeconds from 'date-fns/differenceInSeconds';
-import format from 'date-fns/format';
-import isEqual from 'lodash-es/isEqual';
+import {
+  differenceInHours,
+  differenceInMinutes,
+  differenceInSeconds,
+  format,
+} from 'date-fns';
+import { StyleInfo } from 'lit/directives/style-map';
+import isEqualWith from 'lodash-es/isEqualWith';
+import mergeWith from 'lodash-es/mergeWith';
+import round from 'lodash-es/round';
+import uniq from 'lodash-es/uniq';
 import { FrigateCardError } from '../types';
 
 export type ModifyInterface<T, R> = Omit<T, keyof R> & R;
@@ -85,18 +91,27 @@ export const setify = <T>(value: T | T[] | Set<T>): Set<T> => {
  * @param o The old value.
  * @returns `true` is the contents have changed.
  */
-export function contentsChanged(n: unknown, o: unknown): boolean {
-  return !isEqual(n, o);
+export function contentsChanged(
+  n: unknown,
+  o: unknown,
+  customizer?: (a: unknown, b: unknown) => boolean | undefined,
+): boolean {
+  return !isEqualWith(n, o, customizer);
 }
 
 /**
  * Log an error as a warning to the console.
- * @param e The Error object.
+ * @param e The Error-like object.
  * @param func The Console func to call.
  */
-export function errorToConsole(e: Error, func: CallableFunction = console.warn): void {
+export function errorToConsole(
+  e: Error | { message: unknown } | string,
+  func: CallableFunction = console.warn,
+): void {
   if (e instanceof FrigateCardError && e.context) {
     func(e, e.context);
+  } else if (typeof e === 'object' && 'message' in e) {
+    func(e.message);
   } else {
     func(e);
   }
@@ -220,4 +235,98 @@ export const setOrRemoveAttribute = (
   } else {
     element.removeAttribute(name);
   }
+};
+
+/**
+ * Allow typescript to narrow types based on truthy filter.
+ */
+export const isTruthy = <T>(x: T | false | undefined | null | '' | 0): x is T => !!x;
+
+/**
+ * Allow typescript to narrow types for HTMLElements.
+ */
+export const isHTMLElement = (element: unknown): element is HTMLElement =>
+  element instanceof HTMLElement;
+
+export const getChildrenFromElement = (parent: HTMLElement): HTMLElement[] => {
+  const children =
+    parent instanceof HTMLSlotElement
+      ? parent.assignedElements({ flatten: true })
+      : [...parent.children];
+  return children.filter(isHTMLElement);
+};
+
+export const recursivelyMergeObjectsNotArrays = <T>(target: T, src1: T, src2: T): T => {
+  return mergeWith(target, src1, src2, (_a, b) => (Array.isArray(b) ? b : undefined));
+};
+
+export const recursivelyMergeObjectsConcatenatingArraysUniquely = <T>(
+  target: T,
+  src1: T,
+  src2: T,
+): T => {
+  return mergeWith(target, src1, src2, (a, b) =>
+    Array.isArray(a) ? uniq(a.concat(b)) : undefined,
+  );
+};
+
+export const aspectRatioToString = (options?: {
+  ratio?: number[];
+  defaultStatic?: boolean;
+}): string => {
+  if (options?.ratio && options.ratio.length === 2) {
+    return `${options.ratio[0]} / ${options.ratio[1]}`;
+  } else if (options?.defaultStatic) {
+    return '16 / 9';
+  } else {
+    return 'auto';
+  }
+};
+
+export const aspectRatioToStyle = (options?: {
+  ratio?: number[];
+  defaultStatic?: boolean;
+}): StyleInfo => {
+  return {
+    'aspect-ratio': aspectRatioToString(options),
+  };
+};
+
+/**
+ * Remove empty slots from nested arrays.
+ */
+export const desparsifyArrays = <T>(data: T): T => {
+  if (Array.isArray(data)) {
+    return <T>(
+      data.filter((item) => item !== undefined).map((item) => desparsifyArrays(item))
+    );
+  } else if (typeof data === 'object' && data !== null) {
+    const result: Record<string | number | symbol, unknown> = {};
+    for (const key in data) {
+      result[key] = desparsifyArrays(data[key]);
+    }
+    return <T>result;
+  }
+  return data;
+};
+
+export const arefloatsApproximatelyEqual = (
+  a: number,
+  b: number,
+  precision?: number,
+): boolean => {
+  return round(a, precision) === round(b, precision);
+};
+
+/**
+ * Create a lodash isEqualsWith customizer that can compare floats.
+ */
+export const generateFloatApproximatelyEqualsCustomizer = (
+  precision: number,
+): ((a: unknown, b: unknown) => boolean | undefined) => {
+  return (a: unknown, b: unknown) => {
+    return typeof a === 'number' && typeof b === 'number'
+      ? arefloatsApproximatelyEqual(a, b, precision)
+      : undefined;
+  };
 };

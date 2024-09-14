@@ -1,13 +1,11 @@
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-
-import { NextPreviousControlConfig } from '../types.js';
-
+import { NextPreviousControlConfig } from '../config/types.js';
 import controlStyle from '../scss/next-previous-control.scss';
-import { createFetchThumbnailTask } from '../utils/thumbnail.js';
-import { HomeAssistant } from 'custom-card-helpers';
 import { renderTask } from '../utils/task.js';
+import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 
 @customElement('frigate-card-next-previous-control')
 export class FrigateCardNextPreviousControl extends LitElement {

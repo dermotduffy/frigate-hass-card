@@ -1,13 +1,16 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
-import liveHAStyle from '../../scss/live-ha.scss';
-import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
-import { getStateObjOrDispatchError } from './live.js';
+import { CameraConfig } from '../../config/types';
+import { localize } from '../../localize/localize';
 import '../../patches/ha-camera-stream';
 import '../../patches/ha-hls-player.js';
-import '../../patches/ha-web-rtc-player.ts';
+import '../../patches/ha-web-rtc-player.js';
+import liveHAStyle from '../../scss/live-ha.scss';
+import { FrigateCardMediaPlayer } from '../../types.js';
+import { renderMessage } from '../message';
+import { getStateObjOrDispatchError } from '../../utils/get-state-obj';
 
 @customElement('frigate-card-live-ha')
 export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPlayer {
@@ -55,7 +58,7 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
   }
 
   public async getScreenshotURL(): Promise<string | null> {
-    return await this._playerRef.value?.getScreenshotURL() ?? null;
+    return (await this._playerRef.value?.getScreenshotURL()) ?? null;
   }
 
   protected render(): TemplateResult | void {
@@ -67,7 +70,14 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
     if (!stateObj) {
       return;
     }
-
+    if (stateObj.state === 'unavailable') {
+      return renderMessage({
+        message: localize('error.live_camera_unavailable'),
+        type: 'error',
+        icon: 'mdi:connection',
+        context: this.cameraConfig,
+      });
+    }
     return html` <frigate-card-ha-camera-stream
       ${ref(this._playerRef)}
       .hass=${this.hass}

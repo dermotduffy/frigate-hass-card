@@ -6,7 +6,7 @@ package-lock.json
 .env
 .envrc
 
-stats.html
+/visualizations/
 /coverage/
 
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored

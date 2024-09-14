@@ -1,11 +1,24 @@
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
 export const TROUBLESHOOTING_URL = `${REPO_URL}#troubleshooting` as const;
 
+export const CONF_AUTOMATIONS = 'automations' as const;
+
 export const CONF_CAMERAS = 'cameras' as const;
 export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY =
   `${CONF_CAMERAS}.#.camera_entity` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME =
   `${CONF_CAMERAS}.#.frigate.camera_name` as const;
+export const CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE =
+  `${CONF_CAMERAS}.#.capabilities.disable` as const;
+export const CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT =
+  `${CONF_CAMERAS}.#.capabilities.disable_except` as const;
+export const CONF_CAMERAS_ARRAY_CAST_METHOD = `${CONF_CAMERAS}.#.cast.method` as const;
+export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH =
+  `${CONF_CAMERAS}.#.cast.dashboard.dashboard_path` as const;
+export const CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH =
+  `${CONF_CAMERAS}.#.cast.dashboard.view_path` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_ASPECT_RATIO =
+  `${CONF_CAMERAS}.#.dimensions.aspect_ratio` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_CLIENT_ID =
   `${CONF_CAMERAS}.#.frigate.client_id` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_LABELS =
@@ -16,9 +29,12 @@ export const CONF_CAMERAS_ARRAY_FRIGATE_ZONES =
 export const CONF_CAMERAS_ARRAY_GO2RTC_MODES = `${CONF_CAMERAS}.#.go2rtc.modes` as const;
 export const CONF_CAMERAS_ARRAY_GO2RTC_STREAM =
   `${CONF_CAMERAS}.#.go2rtc.stream` as const;
-export const CONF_CAMERAS_ARRAY_HIDE = `${CONF_CAMERAS}.#.hide` as const;
 export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
+export const CONF_CAMERAS_ARRAY_IMAGE_ENTITY = `${CONF_CAMERAS}.#.image.entity` as const;
+export const CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS =
+  `${CONF_CAMERAS}.#.image.entity_parameters` as const;
+export const CONF_CAMERAS_ARRAY_IMAGE_MODE = `${CONF_CAMERAS}.#.image.mode` as const;
 export const CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS =
   `${CONF_CAMERAS}.#.image.refresh_seconds` as const;
 export const CONF_CAMERAS_ARRAY_IMAGE_URL = `${CONF_CAMERAS}.#.image.url` as const;
@@ -43,15 +59,39 @@ export const CONF_CAMERAS_ARRAY_DEPENDENCIES_CAMERAS =
   `${CONF_CAMERAS}.#.dependencies.cameras` as const;
 export const CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS =
   `${CONF_CAMERAS}.#.dependencies.all_cameras` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_FIT =
+  `${CONF_CAMERAS}.#.dimensions.layout.fit` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_X =
+  `${CONF_CAMERAS}.#.dimensions.layout.pan.x` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_PAN_Y =
+  `${CONF_CAMERAS}.#.dimensions.layout.pan.y` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_X =
+  `${CONF_CAMERAS}.#.dimensions.layout.position.x` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_POSITION_Y =
+  `${CONF_CAMERAS}.#.dimensions.layout.position.y` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_TOP =
+  `${CONF_CAMERAS}.#.dimensions.layout.view_box.top` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_BOTTOM =
+  `${CONF_CAMERAS}.#.dimensions.layout.view_box.bottom` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_LEFT =
+  `${CONF_CAMERAS}.#.dimensions.layout.view_box.left` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT =
+  `${CONF_CAMERAS}.#.dimensions.layout.view_box.right` as const;
+export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR =
+  `${CONF_CAMERAS}.#.dimensions.layout.zoom` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_MOTION =
   `${CONF_CAMERAS}.#.triggers.motion` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY =
   `${CONF_CAMERAS}.#.triggers.occupancy` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES =
   `${CONF_CAMERAS}.#.triggers.entities` as const;
+export const CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS =
+  `${CONF_CAMERAS}.#.triggers.events` as const;
 
 const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
 export const CONF_CAMERAS_GLOBAL_IMAGE = `${CONF_CAMERAS_GLOBAL}.image` as const;
+export const CONF_CAMERAS_GLOBAL_LIVE_PROVIDER =
+  `${CONF_CAMERAS_GLOBAL}.live_provider` as const;
 export const CONF_CAMERAS_GLOBAL_JSMPEG = `${CONF_CAMERAS_GLOBAL}.jsmpeg` as const;
 export const CONF_CAMERAS_GLOBAL_WEBRTC_CARD =
   `${CONF_CAMERAS_GLOBAL}.webrtc_card` as const;
@@ -59,6 +99,9 @@ export const CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY =
   `${CONF_CAMERAS_GLOBAL}.triggers.occupancy` as const;
 export const CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS =
   `${CONF_CAMERAS_GLOBAL}.image.refresh_seconds` as const;
+export const CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT =
+  `${CONF_CAMERAS_GLOBAL}.dimensions.layout` as const;
+export const CONF_CAMERAS_GLOBAL_PTZ = `${CONF_CAMERAS_GLOBAL}.ptz` as const;
 
 export const CONF_ELEMENTS = 'elements' as const;
 
@@ -66,18 +109,49 @@ const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
 export const CONF_VIEW_DARK_MODE = `${CONF_VIEW}.dark_mode` as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
-export const CONF_VIEW_TIMEOUT_SECONDS = `${CONF_VIEW}.timeout_seconds` as const;
-export const CONF_VIEW_UPDATE_CYCLE_CAMERA = `${CONF_VIEW}.update_cycle_camera` as const;
-export const CONF_VIEW_UPDATE_FORCE = `${CONF_VIEW}.update_force` as const;
-export const CONF_VIEW_UPDATE_SECONDS = `${CONF_VIEW}.update_seconds` as const;
-export const CONF_VIEW_SCAN = `${CONF_VIEW}.scan` as const;
-export const CONF_VIEW_SCAN_ENABLED = `${CONF_VIEW_SCAN}.enabled` as const;
-export const CONF_VIEW_SCAN_SHOW_TRIGGER_STATUS =
-  `${CONF_VIEW_SCAN}.show_trigger_status` as const;
-export const CONF_VIEW_SCAN_UNTRIGGER_RESET =
-  `${CONF_VIEW_SCAN}.untrigger_reset` as const;
-export const CONF_VIEW_SCAN_UNTRIGGER_SECONDS =
-  `${CONF_VIEW_SCAN}.untrigger_seconds` as const;
+export const CONF_VIEW_INTERACTION_SECONDS = `${CONF_VIEW}.interaction_seconds` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS = `${CONF_VIEW}.keyboard_shortcuts` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED =
+  `${CONF_VIEW}.keyboard_shortcuts.enabled` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_LEFT =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_left` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_RIGHT =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_right` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_up` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_down` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_zoom_in` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_zoom_out` as const;
+export const CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME =
+  `${CONF_VIEW_KEYBOARD_SHORTCUTS}.ptz_home` as const;
+export const CONF_VIEW_DEFAULT_CYCLE_CAMERA =
+  `${CONF_VIEW}.default_cycle_camera` as const;
+export const CONF_VIEW_DEFAULT_RESET = `${CONF_VIEW}.default_reset` as const;
+export const CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE =
+  `${CONF_VIEW_DEFAULT_RESET}.interaction_mode` as const;
+export const CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS =
+  `${CONF_VIEW_DEFAULT_RESET}.every_seconds` as const;
+export const CONF_VIEW_DEFAULT_RESET_ENTITIES =
+  `${CONF_VIEW_DEFAULT_RESET}.entities` as const;
+export const CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION =
+  `${CONF_VIEW_DEFAULT_RESET}.after_interaction` as const;
+export const CONF_VIEW_TRIGGERS = `${CONF_VIEW}.triggers` as const;
+export const CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS =
+  `${CONF_VIEW_TRIGGERS}.show_trigger_status` as const;
+export const CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA =
+  `${CONF_VIEW_TRIGGERS}.filter_selected_camera` as const;
+export const CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS =
+  `${CONF_VIEW_TRIGGERS}.untrigger_seconds` as const;
+export const CONF_VIEW_TRIGGERS_ACTIONS = `${CONF_VIEW_TRIGGERS}.actions` as const;
+export const CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER =
+  `${CONF_VIEW_TRIGGERS_ACTIONS}.trigger` as const;
+export const CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER =
+  `${CONF_VIEW_TRIGGERS_ACTIONS}.untrigger` as const;
+export const CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE =
+  `${CONF_VIEW_TRIGGERS_ACTIONS}.interaction_mode` as const;
 
 export const CONF_MEDIA_GALLERY = 'media_gallery' as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE =
@@ -93,11 +167,19 @@ export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_GALLERY}.controls.thumbnails.size` as const;
 
-export const CONF_MEDIA_VIEWER = 'media_viewer' as const;
+const CONF_MEDIA_VIEWER = 'media_viewer' as const;
 export const CONF_MEDIA_VIEWER_AUTO_PLAY = `${CONF_MEDIA_VIEWER}.auto_play` as const;
 export const CONF_MEDIA_VIEWER_AUTO_PAUSE = `${CONF_MEDIA_VIEWER}.auto_pause` as const;
 export const CONF_MEDIA_VIEWER_AUTO_MUTE = `${CONF_MEDIA_VIEWER}.auto_mute` as const;
 export const CONF_MEDIA_VIEWER_AUTO_UNMUTE = `${CONF_MEDIA_VIEWER}.auto_unmute` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_MODE =
+  `${CONF_MEDIA_VIEWER}.display.mode` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_GRID_COLUMNS =
+  `${CONF_MEDIA_VIEWER}.display.grid_columns` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_GRID_MAX_COLUMNS =
+  `${CONF_MEDIA_VIEWER}.display.grid_max_columns` as const;
+export const CONF_MEDIA_VIEWER_DISPLAY_GRID_SELECTED_WIDTH_FACTOR =
+  `${CONF_MEDIA_VIEWER}.display.grid_selected_width_factor` as const;
 export const CONF_MEDIA_VIEWER_DRAGGABLE = `${CONF_MEDIA_VIEWER}.draggable` as const;
 export const CONF_MEDIA_VIEWER_LAZY_LOAD = `${CONF_MEDIA_VIEWER}.lazy_load` as const;
 export const CONF_MEDIA_VIEWER_SNAPSHOT_CLICK_PLAYS_CLIP =
@@ -124,10 +206,12 @@ export const CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE =
   `${CONF_MEDIA_VIEWER}.controls.thumbnails.size` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_MEDIA_VIEWER}.controls.timeline.clustering_threshold` as const;
-export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MEDIA =
-  `${CONF_MEDIA_VIEWER}.controls.timeline.media` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.events_media_type` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.mode` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.pan_mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.show_recordings` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE =
@@ -135,16 +219,6 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_STYLE =
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_MEDIA_VIEWER}.controls.timeline.window_seconds` as const;
 export const CONF_MEDIA_VIEWER_ZOOMABLE = `${CONF_MEDIA_VIEWER}.zoomable` as const;
-
-export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_MODE =
-  `${CONF_MEDIA_VIEWER}.controls.title.mode` as const;
-export const CONF_MEDIA_VIEWER_CONTROLS_TITLE_DURATION_SECONDS =
-  `${CONF_MEDIA_VIEWER}.controls.title.duration_seconds` as const;
-export const CONF_MEDIA_VIEWER_LAYOUT_FIT = `${CONF_MEDIA_VIEWER}.layout.fit` as const;
-export const CONF_MEDIA_VIEWER_LAYOUT_POSITION_X =
-  `${CONF_MEDIA_VIEWER}.layout.position.x` as const;
-export const CONF_MEDIA_VIEWER_LAYOUT_POSITION_Y =
-  `${CONF_MEDIA_VIEWER}.layout.position.y` as const;
 
 const CONF_LIVE = 'live' as const;
 export const CONF_LIVE_AUTO_PLAY = `${CONF_LIVE}.auto_play` as const;
@@ -156,8 +230,21 @@ export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_STYLE =
   `${CONF_LIVE}.controls.next_previous.style` as const;
 export const CONF_LIVE_CONTROLS_NEXT_PREVIOUS_SIZE =
   `${CONF_LIVE}.controls.next_previous.size` as const;
-export const CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA =
-  `${CONF_LIVE}.controls.thumbnails.media` as const;
+export const CONF_LIVE_CONTROLS_PTZ_HIDE_HOME =
+  `${CONF_LIVE}.controls.ptz.hide_home` as const;
+export const CONF_LIVE_CONTROLS_PTZ_HIDE_PAN_TILT =
+  `${CONF_LIVE}.controls.ptz.hide_pan_tilt` as const;
+export const CONF_LIVE_CONTROLS_PTZ_HIDE_ZOOM =
+  `${CONF_LIVE}.controls.ptz.hide_zoom` as const;
+export const CONF_LIVE_CONTROLS_PTZ_MODE = `${CONF_LIVE}.controls.ptz.mode` as const;
+export const CONF_LIVE_CONTROLS_PTZ_ORIENTATION =
+  `${CONF_LIVE}.controls.ptz.orientation` as const;
+export const CONF_LIVE_CONTROLS_PTZ_POSITION =
+  `${CONF_LIVE}.controls.ptz.position` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_MEDIA_TYPE =
+  `${CONF_LIVE}.controls.thumbnails.media_type` as const;
+export const CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE =
+  `${CONF_LIVE}.controls.thumbnails.events_media_type` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_MODE =
   `${CONF_LIVE}.controls.thumbnails.mode` as const;
 export const CONF_LIVE_CONTROLS_THUMBNAILS_SIZE =
@@ -172,22 +259,25 @@ export const CONF_LIVE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL =
   `${CONF_LIVE}.controls.thumbnails.show_timeline_control` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_LIVE}.controls.timeline.clustering_threshold` as const;
-export const CONF_LIVE_CONTROLS_TIMELINE_MEDIA =
-  `${CONF_LIVE}.controls.timeline.media` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
+  `${CONF_LIVE}.controls.timeline.events_media_type` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
   `${CONF_LIVE}.controls.timeline.mode` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE =
+  `${CONF_LIVE}.controls.timeline.pan_mode` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS =
   `${CONF_LIVE}.controls.timeline.show_recordings` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_STYLE =
   `${CONF_LIVE}.controls.timeline.style` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_WINDOW_SECONDS =
   `${CONF_LIVE}.controls.timeline.window_seconds` as const;
-export const CONF_LIVE_CONTROLS_TITLE_MODE = `${CONF_LIVE}.controls.title.mode` as const;
-export const CONF_LIVE_CONTROLS_TITLE_DURATION_SECONDS =
-  `${CONF_LIVE}.controls.title.duration_seconds` as const;
-export const CONF_LIVE_LAYOUT_FIT = `${CONF_LIVE}.layout.fit` as const;
-export const CONF_LIVE_LAYOUT_POSITION_X = `${CONF_LIVE}.layout.position.x` as const;
-export const CONF_LIVE_LAYOUT_POSITION_Y = `${CONF_LIVE}.layout.position.y` as const;
+export const CONF_LIVE_DISPLAY_MODE = `${CONF_LIVE}.display.mode` as const;
+export const CONF_LIVE_DISPLAY_GRID_COLUMNS =
+  `${CONF_LIVE}.display.grid_columns` as const;
+export const CONF_LIVE_DISPLAY_GRID_MAX_COLUMNS =
+  `${CONF_LIVE}.display.grid_max_columns` as const;
+export const CONF_LIVE_DISPLAY_GRID_SELECTED_WIDTH_FACTOR =
+  `${CONF_LIVE}.display.grid_selected_width_factor` as const;
 export const CONF_LIVE_DRAGGABLE = `${CONF_LIVE}.draggable` as const;
 export const CONF_LIVE_LAZY_LOAD = `${CONF_LIVE}.lazy_load` as const;
 export const CONF_LIVE_LAZY_UNLOAD = `${CONF_LIVE}.lazy_unload` as const;
@@ -197,24 +287,25 @@ export const CONF_LIVE_SHOW_IMAGE_DURING_LOAD =
   `${CONF_LIVE}.show_image_during_load` as const;
 export const CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS =
   `${CONF_LIVE}.microphone.disconnect_seconds` as const;
+export const CONF_LIVE_MICROPHONE_MUTE_AFTER_MICROPHONE_MUTE_SECONDS =
+  `${CONF_LIVE}.microphone.mute_after_microphone_mute_seconds` as const;
 export const CONF_LIVE_MICROPHONE_ALWAYS_CONNECTED =
   `${CONF_LIVE}.microphone.always_connected` as const;
 export const CONF_LIVE_ZOOMABLE = `${CONF_LIVE}.zoomable` as const;
 
 const CONF_IMAGE = 'image' as const;
-export const CONF_IMAGE_LAYOUT_FIT = `${CONF_IMAGE}.layout.fit` as const;
-export const CONF_IMAGE_LAYOUT_POSITION_X = `${CONF_IMAGE}.layout.position.x` as const;
-export const CONF_IMAGE_LAYOUT_POSITION_Y = `${CONF_IMAGE}.layout.position.y` as const;
+export const CONF_IMAGE_ENTITY = `${CONF_IMAGE}.entity` as const;
+export const CONF_IMAGE_ENTITY_PARAMETERS = `${CONF_IMAGE}.entity_parameters` as const;
 export const CONF_IMAGE_MODE = `${CONF_IMAGE}.mode` as const;
 export const CONF_IMAGE_REFRESH_SECONDS = `${CONF_IMAGE}.refresh_seconds` as const;
 export const CONF_IMAGE_URL = `${CONF_IMAGE}.url` as const;
-export const CONF_IMAGE_ZOOMABLE = `${CONF_IMAGE}.zoomable` as const;
 
 const CONF_TIMELINE = 'timeline' as const;
 export const CONF_TIMELINE_WINDOW_SECONDS = `${CONF_TIMELINE}.window_seconds` as const;
 export const CONF_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_TIMELINE}.clustering_threshold` as const;
-export const CONF_TIMELINE_MEDIA = `${CONF_TIMELINE}.media` as const;
+export const CONF_TIMELINE_EVENTS_MEDIA_TYPE =
+  `${CONF_TIMELINE}.events_media_type` as const;
 export const CONF_TIMELINE_SHOW_RECORDINGS = `${CONF_TIMELINE}.show_recordings` as const;
 export const CONF_TIMELINE_STYLE = `${CONF_TIMELINE}.style` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE =
@@ -237,18 +328,19 @@ export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
 export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
 export const CONF_MENU_BUTTONS = `${CONF_MENU}.buttons` as const;
 
-export const CONF_MENU_BUTTONS_CAMERAS = `${CONF_MENU}.buttons.cameras` as const;
-export const CONF_MENU_BUTTONS_CLIPS = `${CONF_MENU}.buttons.clips` as const;
-export const CONF_MENU_BUTTONS_DOWNLOAD = `${CONF_MENU}.buttons.download` as const;
 export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;
 export const CONF_MENU_BUTTONS_CAMERA_UI = `${CONF_MENU}.buttons.camera_ui` as const;
-export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU}.buttons.fullscreen` as const;
-export const CONF_MENU_BUTTONS_IMAGE = `${CONF_MENU}.buttons.image` as const;
-export const CONF_MENU_BUTTONS_LIVE = `${CONF_MENU}.buttons.live` as const;
 export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
   `${CONF_MENU}.buttons.media_player` as const;
-export const CONF_MENU_BUTTONS_SNAPSHOTS = `${CONF_MENU}.buttons.snapshots` as const;
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU}.buttons.timeline` as const;
+
+export const CONF_STATUS_BAR = 'status_bar' as const;
+export const CONF_STATUS_BAR_POSITION = `${CONF_STATUS_BAR}.position` as const;
+export const CONF_STATUS_BAR_STYLE = `${CONF_STATUS_BAR}.style` as const;
+export const CONF_STATUS_BAR_POPUP_SECONDS = `${CONF_STATUS_BAR}.popup_seconds` as const;
+export const CONF_STATUS_BAR_HEIGHT = `${CONF_STATUS_BAR}.height` as const;
+
+export const CONF_STATUS_BAR_ITEMS = `${CONF_STATUS_BAR}.items` as const;
 
 const CONF_DIMENSIONS = 'dimensions' as const;
 export const CONF_DIMENSIONS_ASPECT_RATIO = `${CONF_DIMENSIONS}.aspect_ratio` as const;
@@ -262,9 +354,12 @@ export const CONF_OVERRIDES = 'overrides' as const;
 const CONF_PERFORMANCE = 'performance' as const;
 export const CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR = `${CONF_PERFORMANCE}.features.animated_progress_indicator`;
 export const CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE = `${CONF_PERFORMANCE}.features.media_chunk_size`;
+export const CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS = `${CONF_PERFORMANCE}.features.max_simultaneous_engine_requests`;
 export const CONF_PERFORMANCE_PROFILE = `${CONF_PERFORMANCE}.profile`;
 export const CONF_PERFORMANCE_STYLE_BOX_SHADOW = `${CONF_PERFORMANCE}.style.box_shadow`;
 export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.border_radius`;
+
+export const CONF_PROFILES = 'profiles' as const;
 
 // Taken from https://github.dev/home-assistant/frontend/blob/b5861869e39290fd2e15737e89571dfc543b3ad3/src/data/media-player.ts#L93
 export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;

@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { z } from 'zod';
 import { homeAssistantWSRequest } from '.';
 
@@ -6,7 +6,7 @@ const deviceSchema = z.object({
   model: z.string().nullable(),
   config_entries: z.string().array(),
   manufacturer: z.string().nullable(),
-})
+});
 const deviceListSchema = deviceSchema.array();
 export type DeviceList = z.infer<typeof deviceListSchema>;
 

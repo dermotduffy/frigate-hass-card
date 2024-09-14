@@ -1,25 +1,35 @@
-import { describe, it, expect, vi, afterAll } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import { FrigateCardError } from '../../src/types';
 import {
   allPromises,
+  arefloatsApproximatelyEqual,
   arrayify,
   arrayMove,
+  aspectRatioToStyle,
   contentsChanged,
   dayToDate,
+  desparsifyArrays,
   dispatchFrigateCardEvent,
   errorToConsole,
   formatDate,
   formatDateAndTime,
+  generateFloatApproximatelyEqualsCustomizer,
+  getChildrenFromElement,
   getDurationString,
   isHoverableDevice,
+  isHTMLElement,
   isSuperset,
+  isTruthy,
   isValidDate,
   prettifyTitle,
+  recursivelyMergeObjectsConcatenatingArraysUniquely,
+  recursivelyMergeObjectsNotArrays,
   runWhenIdleIfSupported,
   setify,
   setOrRemoveAttribute,
   sleep,
 } from '../../src/utils/basic';
+import { createSlot, createSlotHost } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('dispatchFrigateCardEvent', () => {
@@ -93,36 +103,44 @@ describe('contentsChanged', () => {
 describe('errorToConsole', () => {
   const spy = vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should log given error', () => {
-    const error = new Error();
+    const error = new Error('ERROR');
     errorToConsole(error);
-    expect(spy).toHaveBeenCalledWith(error);
+    expect(spy).toHaveBeenCalledWith('ERROR');
   });
   it('should log with context given frigate card error', () => {
     const data = { foo: 2 };
-    const error = new FrigateCardError('foo', { foo: 2 });
+    const error = new FrigateCardError('ERROR', { foo: 2 });
     errorToConsole(error);
     expect(spy).toHaveBeenCalledWith(error, data);
   });
   it('should log with custom function', () => {
     const func = vi.fn();
-    const error = new Error();
+    const error = new Error('ERROR');
     errorToConsole(error, func);
-    expect(func).toHaveBeenCalledWith(error);
+    expect(func).toHaveBeenCalledWith('ERROR');
+  });
+  it('should log string', () => {
+    errorToConsole('string message');
+    expect(spy).toHaveBeenCalledWith('string message');
   });
 });
 
 describe('isHoverableDevice', () => {
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should return hoverable', () => {
-    const spy = vi
-      .spyOn(window, 'matchMedia')
-      .mockReturnValue(<MediaQueryList>{ matches: true });
+    vi.spyOn(window, 'matchMedia').mockReturnValue(<MediaQueryList>{ matches: true });
     expect(isHoverableDevice()).toBeTruthy();
   });
   it('should return not hoverable', () => {
-    const spy = vi
-      .spyOn(window, 'matchMedia')
-      .mockReturnValue(<MediaQueryList>{ matches: false });
+    vi.spyOn(window, 'matchMedia').mockReturnValue(<MediaQueryList>{ matches: false });
     expect(isHoverableDevice()).toBeFalsy();
   });
 });
@@ -152,6 +170,7 @@ describe('runWhenIdleIfSupported', () => {
   });
 
   it('should run directly when not supported', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).requestIdleCallback = undefined;
     const func = vi.fn();
     runWhenIdleIfSupported(func);
@@ -160,7 +179,7 @@ describe('runWhenIdleIfSupported', () => {
 
   it('should run idle when supported', () => {
     const requestIdle = vi.fn();
-    (window as any).requestIdleCallback = requestIdle;
+    window.requestIdleCallback = requestIdle;
     const func = vi.fn();
     runWhenIdleIfSupported(func);
     expect(requestIdle).toBeCalledWith(func, {});
@@ -168,7 +187,7 @@ describe('runWhenIdleIfSupported', () => {
 
   it('should run idle with timeout when supported', () => {
     const requestIdle = vi.fn();
-    (window as any).requestIdleCallback = requestIdle;
+    window.requestIdleCallback = requestIdle;
     const func = vi.fn();
     runWhenIdleIfSupported(func, 10);
     expect(requestIdle).toBeCalledWith(func, { timeout: 10 });
@@ -180,6 +199,11 @@ describe('getDurationString', () => {
     const start = new Date(2023, 3, 14, 13, 35, 0);
     const end = new Date(2023, 3, 14, 15, 37, 20);
     expect(getDurationString(start, end)).toBe('2h 2m 20s');
+  });
+  it('should return very short duration', () => {
+    const start = new Date(2023, 3, 14, 13, 35, 10);
+    const end = new Date(2023, 3, 14, 13, 35, 12);
+    expect(getDurationString(start, end)).toBe('2s');
   });
 });
 
@@ -209,6 +233,7 @@ describe('sleep', () => {
   it('should sleep', async () => {
     const spy = vi
       .spyOn(global, 'setTimeout')
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       .mockImplementation((func: () => unknown, _time?: number): any => {
         func();
       });
@@ -227,7 +252,13 @@ describe('isValidDate', () => {
 });
 
 describe('setOrRemoveAttribute', () => {
-  it('should set attribute', () => {
+  it('should set attribute without value', () => {
+    const element = document.createElement('div');
+    setOrRemoveAttribute(element, true, 'key');
+    expect(element.getAttribute('key')).toBe('');
+  });
+
+  it('should set attribute with value', () => {
     const element = document.createElement('div');
     setOrRemoveAttribute(element, true, 'key', 'value');
     expect(element.getAttribute('key')).toBe('value');
@@ -238,5 +269,250 @@ describe('setOrRemoveAttribute', () => {
     element.setAttribute('key', 'value');
     setOrRemoveAttribute(element, false, 'key');
     expect(element.getAttribute('key')).toBeFalsy();
+  });
+});
+
+describe('isTruthy', () => {
+  it('should return true for true', () => {
+    expect(isTruthy(true)).toBeTruthy();
+  });
+  it('should return false for false', () => {
+    expect(isTruthy(false)).toBeFalsy();
+  });
+});
+
+describe('isHTMLElement', () => {
+  it('should return true for HTMLElement', () => {
+    const htmlElement = document.createElement('div');
+    expect(isHTMLElement(htmlElement)).toBeTruthy();
+  });
+  it('should return false for Element', () => {
+    const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    expect(isHTMLElement(svgElement)).toBeFalsy();
+  });
+});
+
+describe('getChildrenFromElement', () => {
+  it('should return children for simple parent', () => {
+    const children = [document.createElement('div'), document.createElement('div')];
+    const parent = document.createElement('div');
+    children.forEach((child) => parent.appendChild(child));
+    expect(getChildrenFromElement(parent)).toEqual(children);
+  });
+
+  it('should return children for slot', () => {
+    const children = [document.createElement('div'), document.createElement('div')];
+    const slot = createSlot();
+    createSlotHost({ slot: slot, children: children });
+    expect(getChildrenFromElement(slot)).toEqual(children);
+  });
+});
+
+describe('recursivelyMergeObjectsNotArrays', () => {
+  it('should recursively merge objects but replace arrays', () => {
+    expect(
+      recursivelyMergeObjectsNotArrays(
+        {},
+        {
+          a: {
+            b: {
+              c: 3,
+              d: {
+                e: 4,
+              },
+              array: [1, 2, 3],
+            },
+            other: {
+              field: 7,
+            },
+          },
+        },
+        {
+          a: {
+            b: {
+              array: [4],
+              d: {
+                e: 5,
+              },
+            },
+          },
+        },
+      ),
+    ).toEqual({
+      a: {
+        b: {
+          c: 3,
+          array: [4],
+          d: {
+            e: 5,
+          },
+        },
+        other: {
+          field: 7,
+        },
+      },
+    });
+  });
+});
+
+describe('recursivelyMergeObjectsConcatenatingArraysUniquely', () => {
+  it('should recursively merge objects but uniquely concat arrays', () => {
+    expect(
+      recursivelyMergeObjectsConcatenatingArraysUniquely(
+        {},
+        {
+          a: {
+            b: {
+              c: 3,
+              d: {
+                e: 4,
+              },
+              array: [5, 1, 2, 3, 4],
+            },
+            other: {
+              field: 7,
+            },
+          },
+        },
+        {
+          a: {
+            b: {
+              array: [4, 4, 5],
+              d: {
+                e: 5,
+              },
+            },
+          },
+        },
+      ),
+    ).toEqual({
+      a: {
+        b: {
+          c: 3,
+          array: [5, 1, 2, 3, 4],
+          d: {
+            e: 5,
+          },
+        },
+        other: {
+          field: 7,
+        },
+      },
+    });
+  });
+});
+
+describe('aspectRatioToStyle', () => {
+  it('default', () => {
+    expect(aspectRatioToStyle()).toEqual({ 'aspect-ratio': 'auto' });
+  });
+  it('default static', () => {
+    expect(aspectRatioToStyle({ defaultStatic: true })).toEqual({
+      'aspect-ratio': '16 / 9',
+    });
+  });
+  it('valid ratio', () => {
+    expect(aspectRatioToStyle({ ratio: [4, 3] })).toEqual({ 'aspect-ratio': '4 / 3' });
+  });
+  it('invalid ratio', () => {
+    expect(aspectRatioToStyle({ ratio: [4] })).toEqual({ 'aspect-ratio': 'auto' });
+  });
+});
+
+describe('desparsifyArrays', () => {
+  it('number', () => {
+    expect(desparsifyArrays(1)).toBe(1);
+  });
+  it('string', () => {
+    expect(desparsifyArrays('foo')).toBe('foo');
+  });
+  describe('array', () => {
+    it('simple', () => {
+      expect(desparsifyArrays([1, 2, undefined, 3])).toEqual([1, 2, 3]);
+    });
+    it('nested', () => {
+      expect(
+        desparsifyArrays([
+          1,
+          2,
+          undefined,
+          {
+            subArray: [undefined, 3],
+          },
+          4,
+        ]),
+      ).toEqual([1, 2, { subArray: [3] }, 4]);
+    });
+  });
+  describe('object', () => {
+    it('simple', () => {
+      expect(
+        desparsifyArrays({ foo: [1, 2, undefined, 3], bar: [undefined, 4] }),
+      ).toEqual({
+        foo: [1, 2, 3],
+        bar: [4],
+      });
+    });
+    it('nested', () => {
+      expect(
+        desparsifyArrays({ foo: { bar: [1, undefined, 2], empty: [undefined] } }),
+      ).toEqual({
+        foo: {
+          bar: [1, 2],
+          empty: [],
+        },
+      });
+    });
+  });
+});
+
+describe('arefloatsApproximatelyEqual', () => {
+  describe('without precision', () => {
+    it('equals', () => {
+      expect(arefloatsApproximatelyEqual(1.1, 1.2)).toBeTruthy();
+    });
+    it('not equals', () => {
+      expect(arefloatsApproximatelyEqual(0.5, 1.5)).toBeFalsy();
+    });
+  });
+  describe('with precision', () => {
+    it('equals', () => {
+      expect(arefloatsApproximatelyEqual(1.00001, 1.00002, 4)).toBeTruthy();
+    });
+    it('not equals', () => {
+      expect(arefloatsApproximatelyEqual(0.5, 1.5, 4)).toBeFalsy();
+    });
+  });
+});
+
+describe('generateFloatApproximatelyEqualsCustomizer', () => {
+  describe('with incorrect types', () => {
+    it('undefined a', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(4)(undefined, 1.2),
+      ).toBeUndefined();
+    });
+    it('undefined b', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(4)(1.2, undefined),
+      ).toBeUndefined();
+    });
+    it('strings', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(4)('foo', 'bar'),
+      ).toBeUndefined();
+    });
+  });
+  describe('with correct types', () => {
+    it('equals', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(4)(1.00001, 1.00002),
+      ).toBeTruthy();
+    });
+    it('not equals', () => {
+      expect(
+        generateFloatApproximatelyEqualsCustomizer(5)(1.00001, 1.00002),
+      ).toBeFalsy();
+    });
   });
 });

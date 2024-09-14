@@ -1,4 +1,4 @@
-import { HASSDomEvent, HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import {
   CSSResultGroup,
   html,
@@ -8,32 +8,28 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { localize } from '../localize/localize.js';
-import elementsStyle from '../scss/elements.scss';
-import ptzStyle from '../scss/elements-ptz.scss';
 import {
-  Actions,
-  ActionsConfig,
-  FrigateCardError,
-  FrigateCardPTZConfig,
+  ConditionsManagerEpoch,
+  evaluateConditionViaEvent,
+} from '../card-controller/conditions-manager.js';
+import {
   FrigateConditional,
-  MenuButton,
   MenuIcon,
+  MenuItem,
   MenuStateIcon,
   MenuSubmenu,
   MenuSubmenuSelect,
   PictureElements,
-} from '../types.js';
-import { dispatchFrigateCardEvent } from '../utils/basic.js';
+  StatusBarIcon,
+  StatusBarImage,
+  StatusBarItem,
+  StatusBarString,
+} from '../config/types.js';
+import { localize } from '../localize/localize.js';
+import elementsStyle from '../scss/elements.scss';
+import { FrigateCardError } from '../types.js';
+import { dispatchFrigateCardEvent, errorToConsole } from '../utils/basic.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
-import { actionHandler } from '../action-handler-directive.js';
-import {
-  frigateCardHandleActionConfig,
-  frigateCardHasAction,
-  getActionConfigGivenAction,
-} from '../utils/action.js';
-import { classMap } from 'lit/directives/class-map.js';
-import { ConditionControllerEpoch, evaluateConditionViaEvent } from '../conditions.js';
 
 /* A note on picture element rendering:
  *
@@ -78,14 +74,14 @@ interface HuiConditionalElement extends HTMLElement {
 @customElement('frigate-card-elements-core')
 export class FrigateCardElementsCore extends LitElement {
   @property({ attribute: false })
-  public elements: PictureElements;
+  public elements?: PictureElements;
 
   /**
    * Need to ensure card re-renders when conditions change, hence having it as a
    * property even though it is not currently directly used by this class.
    */
   @property({ attribute: false })
-  public conditionControllerEpoch?: ConditionControllerEpoch;
+  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   protected _root: HuiConditionalElement | null = null;
 
@@ -119,7 +115,7 @@ export class FrigateCardElementsCore extends LitElement {
     try {
       element.setConfig(config);
     } catch (e) {
-      console.error(e);
+      errorToConsole(e as Error, console.error);
       throw new FrigateCardError(localize('error.invalid_elements_config'));
     }
     return element;
@@ -167,66 +163,78 @@ export class FrigateCardElements extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public conditionControllerEpoch?: ConditionControllerEpoch;
+  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   @property({ attribute: false })
   public elements: PictureElements;
 
-  protected _boundMenuRemoveHandler = this._menuRemoveHandler.bind(this);
-
-  /**
-   * Handle a picture element to be removed from the menu.
-   * @param ev The event.
-   */
-  protected _menuRemoveHandler(ev: Event): void {
-    // Re-dispatch event from this element (instead of the disconnected one, as
-    // there is no parent of the disconnected element).
-    dispatchFrigateCardEvent<MenuButton>(
-      this,
-      'menu-remove',
-      (ev as CustomEvent).detail,
-    );
+  protected _addHandler(
+    target: EventTarget,
+    eventName: string,
+    handler: (ev: Event) => void,
+  ) {
+    // Ensure listener is only attached 1 time by removing it first.
+    target.removeEventListener(eventName, handler);
+    target.addEventListener(eventName, handler);
   }
 
-  /**
-   * Handle a picture element to be added to the menu.
-   * @param ev The event.
-   */
-  protected _menuAddHandler(ev: Event): void {
-    ev = ev as CustomEvent<MenuButton>;
+  protected _menuRemoveHandler = (ev: Event): void => {
+    // Re-dispatch event from this element (instead of the disconnected one, as
+    // there is no parent of the disconnected element).
+    dispatchFrigateCardEvent<MenuItem>(this, 'menu:remove', (ev as CustomEvent).detail);
+  };
+
+  protected _statusBarRemoveHandler = (ev: Event): void => {
+    // Re-dispatch event from this element (instead of the disconnected one, as
+    // there is no parent of the disconnected element).
+    dispatchFrigateCardEvent<StatusBarItem>(
+      this,
+      'status-bar:remove',
+      (ev as CustomEvent).detail,
+    );
+  };
+
+  protected _menuAddHandler = (ev: Event): void => {
+    ev = ev as CustomEvent<MenuItem>;
     const path = ev.composedPath();
     if (!path.length) {
       return;
     }
+    this._addHandler(path[0], 'frigate-card:menu:remove', this._menuRemoveHandler);
+  };
 
-    // See 'A note on custom elements' above to explain what's going on here.
-
-    // Ensure listener is only attached 1 time by removing it first.
-    path[0].removeEventListener(
-      'frigate-card:menu-remove',
-      this._boundMenuRemoveHandler,
+  protected _statusBarAddHandler = (ev: Event): void => {
+    ev = ev as CustomEvent<MenuItem>;
+    const path = ev.composedPath();
+    if (!path.length) {
+      return;
+    }
+    this._addHandler(
+      path[0],
+      'frigate-card:status-bar:add',
+      this._statusBarRemoveHandler,
     );
-
-    path[0].addEventListener('frigate-card:menu-remove', this._boundMenuRemoveHandler);
-  }
+  };
 
   connectedCallback(): void {
     super.connectedCallback();
 
-    // Catch icons being added to the menu (so their removal can be subsequently
-    // handled).
-    this.addEventListener('frigate-card:menu-add', this._menuAddHandler);
+    // Catch icons being added to the menu or status-bar (so their removal can
+    // be subsequently handled).
+    this.addEventListener('frigate-card:menu:add', this._menuAddHandler);
+    this.addEventListener('frigate-card:status-bar:add', this._statusBarAddHandler);
   }
 
   disconnectedCallback(): void {
-    this.removeEventListener('frigate-card:menu-add', this._menuAddHandler);
+    this.removeEventListener('frigate-card:menu:add', this._menuAddHandler);
+    this.addEventListener('frigate-card:status-bar:add', this._statusBarAddHandler);
     super.disconnectedCallback();
   }
 
   protected render(): TemplateResult {
     return html`<frigate-card-elements-core
       .hass=${this.hass}
-      .conditionControllerEpoch=${this.conditionControllerEpoch}
+      .conditionsManagerEpoch=${this.conditionsManagerEpoch}
       .elements=${this.elements}
     >
     </frigate-card-elements-core>`;
@@ -287,10 +295,10 @@ export class FrigateCardElementsConditional extends LitElement {
    * Render the card.
    */
   protected render(): TemplateResult | void {
-    if (evaluateConditionViaEvent(this, this._config.conditions)) {
+    if (evaluateConditionViaEvent(this, this._config?.conditions)) {
       return html` <frigate-card-elements-core
         .hass=${this.hass}
-        .elements=${this._config.elements}
+        .elements=${this._config?.elements}
       >
       </frigate-card-elements-core>`;
     }
@@ -298,168 +306,94 @@ export class FrigateCardElementsConditional extends LitElement {
 }
 
 // A base class for rendering menu icons / menu state icons.
-export class FrigateCardElementsBaseMenuIcon<T> extends LitElement {
-  @state()
-  protected _config: T | null = null;
+export class FrigateCardElementsBaseItem<ConfigType> extends LitElement {
+  protected _eventCategory: string;
 
-  /**
-   * Set the card config.
-   * @param config The configuration.
-   */
-  public setConfig(config: T): void {
+  constructor(eventCategory: string) {
+    super();
+    this._eventCategory = eventCategory;
+  }
+
+  @state()
+  protected _config: ConfigType | null = null;
+
+  public setConfig(config: ConfigType): void {
     this._config = config;
   }
 
-  /**
-   * Connected callback.
-   */
   connectedCallback(): void {
     super.connectedCallback();
     if (this._config) {
-      dispatchFrigateCardEvent<T>(this, 'menu-add', this._config);
+      dispatchFrigateCardEvent<ConfigType>(
+        this,
+        `${this._eventCategory}:add`,
+        this._config,
+      );
     }
   }
 
-  /**
-   * Disconnected callback.
-   */
   disconnectedCallback(): void {
     if (this._config) {
-      dispatchFrigateCardEvent<T>(this, 'menu-remove', this._config);
+      dispatchFrigateCardEvent<ConfigType>(
+        this,
+        `${this._eventCategory}:remove`,
+        this._config,
+      );
     }
     super.disconnectedCallback();
   }
 }
 
-@customElement('frigate-card-menu-icon')
-export class FrigateCardElementsMenuIcon extends FrigateCardElementsBaseMenuIcon<MenuIcon> {}
-
-@customElement('frigate-card-menu-state-icon')
-export class FrigateCardElementsMenuStateIcon extends FrigateCardElementsBaseMenuIcon<MenuStateIcon> {}
-
-@customElement('frigate-card-menu-submenu')
-export class FrigateCardElementsMenuSubmenu extends FrigateCardElementsBaseMenuIcon<MenuSubmenu> {}
-
-@customElement('frigate-card-menu-submenu-select')
-export class FrigateCardElementsMenuSubmenuSelect extends FrigateCardElementsBaseMenuIcon<MenuSubmenuSelect> {}
-
-@customElement('frigate-card-ptz')
-export class FrigateCardPTZ extends LitElement {
-  @property({ attribute: false })
-  public hass?: HomeAssistant;
-
-  @state()
-  protected _config: FrigateCardPTZConfig | null = null;
-
-  /**
-   * Set the card config.
-   * @param config The configuration.
-   */
-  public setConfig(config: FrigateCardPTZConfig): void {
-    this._config = config;
-  }
-
-  /**
-   * Called before each update.
-   */
-  protected willUpdate(changedProps: PropertyValues): void {
-    if (changedProps.has('_config')) {
-      this.setAttribute('data-orientation', this._config?.orientation ?? 'vertical');
-    }
-  }
-
-  /**
-   * Handle a PTZ action.
-   * @param ev The actionHandler event.
-   * @param config The action configuration.
-   */
-  protected _actionHandler(
-    ev: HASSDomEvent<{ action: string }>,
-    config?: ActionsConfig,
-  ): void {
-    // Nothing else has the configuration for this action, so don't let it
-    // propagate further.
-    ev.stopPropagation();
-
-    const interaction: string = ev.detail.action;
-    const action = getActionConfigGivenAction(interaction, config);
-    if (config && action && this.hass) {
-      frigateCardHandleActionConfig(this, this.hass, config, interaction, action);
-    }
-  }
-
-  /**
-   * Render the elements.
-   * @returns A rendered template or void.
-   */
-  protected render(): TemplateResult | void {
-    if (!this._config) {
-      return;
-    }
-    const renderIcon = (
-      name: string,
-      icon: string,
-      actions?: Actions,
-    ): TemplateResult => {
-      const hasHold = frigateCardHasAction(actions?.hold_action);
-      const hasDoubleClick = frigateCardHasAction(actions?.double_tap_action);
-      const classes = {
-        [name]: true,
-        disabled: !actions,
-      };
-
-      return html`<ha-icon
-        class=${classMap(classes)}
-        icon=${icon}
-        .actionHandler=${actionHandler({
-          hasHold: hasHold,
-          hasDoubleClick: hasDoubleClick,
-        })}
-        .title=${localize(`elements.ptz.${name}`)}
-        @action=${(ev) => this._actionHandler(ev, actions)}
-      ></ha-icon>`;
-    };
-
-    return html` <div class="ptz">
-      <div class="ptz-move">
-        ${renderIcon('right', 'mdi:arrow-right', this._config.actions_right)}
-        ${renderIcon('left', 'mdi:arrow-left', this._config.actions_left)}
-        ${renderIcon('up', 'mdi:arrow-up', this._config.actions_up)}
-        ${renderIcon('down', 'mdi:arrow-down', this._config.actions_down)}
-      </div>
-      ${this._config.actions_zoom_in || this._config.actions_zoom_out
-        ? html` <div class="ptz-zoom">
-            ${renderIcon('zoom_in', 'mdi:plus', this._config.actions_zoom_in)}
-            ${renderIcon('zoom_out', 'mdi:minus', this._config.actions_zoom_out)}
-          </div>`
-        : html``}
-      ${this._config.actions_home
-        ? html`
-            <div class="ptz-home">
-              ${renderIcon('home', 'mdi:home', this._config.actions_home)}
-            </div>
-          `
-        : html``}
-    </div>`;
-  }
-
-  /**
-   * Return compiled CSS styles.
-   */
-  static get styles(): CSSResultGroup {
-    return unsafeCSS(ptzStyle);
+export class FrigateCardElementsBaseMenuItem<
+  ConfigType,
+> extends FrigateCardElementsBaseItem<ConfigType> {
+  constructor() {
+    super('menu');
   }
 }
+
+@customElement('frigate-card-menu-icon')
+export class FrigateCardElementsMenuIcon extends FrigateCardElementsBaseMenuItem<MenuIcon> {}
+
+@customElement('frigate-card-menu-state-icon')
+export class FrigateCardElementsMenuStateIcon extends FrigateCardElementsBaseMenuItem<MenuStateIcon> {}
+
+@customElement('frigate-card-menu-submenu')
+export class FrigateCardElementsMenuSubmenu extends FrigateCardElementsBaseMenuItem<MenuSubmenu> {}
+
+@customElement('frigate-card-menu-submenu-select')
+export class FrigateCardElementsMenuSubmenuSelect extends FrigateCardElementsBaseMenuItem<MenuSubmenuSelect> {}
+
+export class FrigateCardElementsBaseStatusBarItem<
+  ConfigType,
+> extends FrigateCardElementsBaseItem<ConfigType> {
+  constructor() {
+    super('status-bar');
+  }
+}
+
+@customElement('frigate-card-status-bar-icon')
+export class FrigateCardElementsStatusBarIcon extends FrigateCardElementsBaseStatusBarItem<StatusBarIcon> {}
+
+@customElement('frigate-card-status-bar-image')
+export class FrigateCardElementsStatusBarImage extends FrigateCardElementsBaseStatusBarItem<StatusBarImage> {}
+
+@customElement('frigate-card-status-bar-string')
+export class FrigateCardElementsStatusBarString extends FrigateCardElementsBaseStatusBarItem<StatusBarString> {}
 
 declare global {
   interface HTMLElementTagNameMap {
     'frigate-card-conditional': FrigateCardElementsConditional;
     'frigate-card-elements': FrigateCardElements;
-    'frigate-card-menu-submenu-select': FrigateCardElementsMenuSubmenuSelect;
-    'frigate-card-menu-submenu': FrigateCardElementsMenuSubmenu;
-    'frigate-card-menu-state-icon': FrigateCardElementsMenuStateIcon;
-    'frigate-card-menu-icon': FrigateCardElementsMenuIcon;
     'frigate-card-elements-core': FrigateCardElementsCore;
-    'frigate-card-ptz': FrigateCardPTZ;
+
+    'frigate-card-menu-icon': FrigateCardElementsMenuIcon;
+    'frigate-card-menu-state-icon': FrigateCardElementsMenuStateIcon;
+    'frigate-card-menu-submenu': FrigateCardElementsMenuSubmenu;
+    'frigate-card-menu-submenu-select': FrigateCardElementsMenuSubmenuSelect;
+
+    'frigate-card-status-bar-icon': FrigateCardElementsStatusBarIcon;
+    'frigate-card-status-bar-image': FrigateCardElementsStatusBarImage;
+    'frigate-card-status-bar-string': FrigateCardElementsStatusBarString;
   }
 }

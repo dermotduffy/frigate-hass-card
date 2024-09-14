@@ -1,11 +1,12 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import liveImageStyle from '../../scss/live-image.scss';
-import { CameraConfig, FrigateCardMediaPlayer } from '../../types.js';
+import { CameraConfig } from '../../config/types';
+import basicBlockStyle from '../../scss/basic-block.scss';
+import { FrigateCardMediaPlayer } from '../../types.js';
+import { getStateObjOrDispatchError } from '../../utils/get-state-obj';
 import '../image.js';
-import { getStateObjOrDispatchError } from './live.js';
 
 @customElement('frigate-card-live-image')
 export class FrigateCardLiveImage extends LitElement implements FrigateCardMediaPlayer {
@@ -50,7 +51,7 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
   }
 
   public async getScreenshotURL(): Promise<string | null> {
-    return await this._refImage.value?.getScreenshotURL() ?? null;
+    return (await this._refImage.value?.getScreenshotURL()) ?? null;
   }
 
   protected render(): TemplateResult | void {
@@ -60,24 +61,19 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
 
     getStateObjOrDispatchError(this, this.hass, this.cameraConfig);
 
-    return html` <frigate-card-image
-      ${ref(this._refImage)}
-      .imageConfig=${{
-        mode: this.cameraConfig.image.url ? ('url' as const) : ('camera' as const),
-        refresh_seconds: this.cameraConfig.image.refresh_seconds,
-        url: this.cameraConfig.image.url,
-
-        // The live provider will take care of zoom and layout options.
-        zoomable: false,
-      }}
-      .hass=${this.hass}
-      .cameraConfig=${this.cameraConfig}
-    >
-    </frigate-card-image>`;
+    return html`
+      <frigate-card-image
+        ${ref(this._refImage)}
+        .hass=${this.hass}
+        .imageConfig=${this.cameraConfig.image}
+        .cameraConfig=${this.cameraConfig}
+      >
+      </frigate-card-image>
+    `;
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(liveImageStyle);
+    return unsafeCSS(basicBlockStyle);
   }
 }
 

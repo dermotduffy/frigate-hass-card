@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import {
-    deepRemoveDefaults,
-    getParseErrorKeys,
-    getParseErrorPaths,
+  deepRemoveDefaults,
+  getParseErrorKeys,
+  getParseErrorPaths,
 } from '../../src/utils/zod';
 
 describe('deepRemoveDefaults', () => {
@@ -49,6 +49,23 @@ describe('deepRemoveDefaults', () => {
     const result = deepRemoveDefaults(schema).parse({ string: 'moo' });
     expect(result.string).toBe('moo');
   });
+  describe('should still enforce array length', () => {
+    it('min', () => {
+      const schema = z.number().array().min(1);
+      const result = deepRemoveDefaults(schema).safeParse([]);
+      expect(result.success).toBeFalsy();
+    });
+    it('max', () => {
+      const schema = z.number().array().max(1);
+      const result = deepRemoveDefaults(schema).safeParse([1, 2]);
+      expect(result.success).toBeFalsy();
+    });
+    it('exact', () => {
+      const schema = z.number().array().length(1);
+      const result = deepRemoveDefaults(schema).safeParse([]);
+      expect(result.success).toBeFalsy();
+    });
+  });
 });
 
 describe('getParseErrorKeys', () => {
@@ -87,5 +104,8 @@ describe('getParseErrorPaths', () => {
     expect(getParseErrorPaths(result.error)).toEqual(
       new Set(['array[0] -> type', 'array[0] -> data']),
     );
+  });
+  it('should get no paths for empty error', () => {
+    expect(getParseErrorPaths(new ZodError([]))).toEqual(new Set());
   });
 });

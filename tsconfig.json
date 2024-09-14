@@ -5,6 +5,7 @@
     "moduleResolution": "node",
     "lib": ["es2021", "dom", "dom.iterable"],
     "noEmit": true,
+    "noErrorTruncation": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -22,17 +23,17 @@
         // These tags are provided by the HA frontend and [almost all] cannot be
         // imported by a custom card directly.
         "globalTags": [
-          "ha-card",
-          "ha-combo-box",
-          "ha-icon",
-          "ha-icon-button",
           "ha-button-menu",
+          "ha-button",
+          "ha-card",
           "ha-circular-progress",
+          "ha-combo-box",
+          "ha-icon-button",
+          "ha-icon",
           "ha-selector",
           "ha-svg-icon",
           "mwc-button",
-          "mwc-list-item",
-          "paper-toast"
+          "mwc-list-item"
         ],
         "rules": {
           "no-unknown-tag-name": "error",

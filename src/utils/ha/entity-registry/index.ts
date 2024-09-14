@@ -1,4 +1,4 @@
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { homeAssistantWSRequest } from '..';
 import { EntityCache } from './cache';
 import { Entity, EntityList, entitySchema, entityListSchema } from './types.js';
