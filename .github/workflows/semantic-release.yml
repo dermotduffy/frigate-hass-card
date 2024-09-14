@@ -2,9 +2,9 @@
 name: Semantic Release
 
 permissions:
-  contents: write       # To be able to publish a GitHub release
-  issues: write         # To be able to comment on released issues
-  pull-requests: write  # To be able to comment on released pull requests
+  contents: write # To be able to publish a GitHub release
+  issues: write # To be able to comment on released issues
+  pull-requests: write # To be able to comment on released pull requests
 
 on:
   push:
