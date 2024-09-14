@@ -13,7 +13,7 @@
 [![HACS](https://img.shields.io/badge/HACS-default-orange.svg?style=flat-square)](https://hacs.xyz)
 [![Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86&style=flat-square)](https://github.com/sponsors/dermotduffy)
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/images/image-view.png" alt="Frigate Card" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/docs/images/image-view.png" alt="Frigate Card" width="400px">
 
 # Frigate Card
 
