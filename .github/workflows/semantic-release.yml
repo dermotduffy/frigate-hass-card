@@ -5,6 +5,9 @@ permissions:
   contents: read
 
 on:
+  # TODO: Remove once semantic-release is working and before the dry-run flag is
+  # removed.
+  pull_request:
   push:
     branches:
       - main
@@ -16,6 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: volta-cli/action@v4
+      - run: yarn install --immutable
       - run: npx semantic-release --dry-run
         id: get-next-version
         env:
@@ -30,11 +34,8 @@ jobs:
     needs: get-next-version
     if: needs.get-next-version.outputs.new-release-published == 'true'
     steps:
-      - uses: actions/checkout@v4
-      - uses: volta-cli/action@v4
       - run: echo "The new release version is ${{ needs.get-next-version.outputs.new-release-version }}"
       - run: echo "The new release git tag is ${{ needs.get-next-version.outputs.new-release-git-tag }}"
-      - run: yarn install --immutable
       - run: yarn run build
         env:
           RELEASE_VERSION: ${{ needs.get-next-version.outputs.new-release-version }}

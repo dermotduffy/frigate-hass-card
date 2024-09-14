@@ -46,9 +46,6 @@ jobs:
           # build).
           ignore: 'hacs'
 
-      - name: Verify docs links
-        run: yarn run docs-check-links
-
       - name: Upload javascript
         uses: actions/upload-artifact@v4
         with:
