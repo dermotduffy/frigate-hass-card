@@ -1,0 +1,54 @@
+---
+name: Semantic Release
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  get-next-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
+      - run: npx semantic-release --dry-run
+        id: get-next-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      new-release-published: ${{ steps.get-next-version.outputs.new-release-published }}
+      new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
+      new-release-git-tag: ${{ steps.get-next-version.outputs.new-release-git-tag }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: get-next-version
+    if: needs.get-next-version.outputs.new-release-published == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
+      - run: echo "The new release version is ${{ needs.get-next-version.outputs.new-release-version }}"
+      - run: echo "The new release git tag is ${{ needs.get-next-version.outputs.new-release-git-tag }}"
+      - run: yarn install --immutable
+      - run: yarn run build
+        env:
+          RELEASE_VERSION: ${{ needs.get-next-version.outputs.new-release-version }}
+          RELEASE_TAG: ${{ needs.get-next-version.outputs.new-release-git-tag }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: thedoctor0/zip-release@0.7.6
+        with:
+          type: zip
+          path: dist
+          filename: frigate-hass-card.zip
+      - run: npx semantic-release --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

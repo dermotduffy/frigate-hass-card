@@ -6,7 +6,6 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import 'web-dialog';
-import pkg from '../package.json';
 import { actionHandler } from './action-handler-directive.js';
 import { ConditionsEvaluateRequestEvent } from './card-controller/conditions-manager.js';
 import { CardController } from './card-controller/controller';
@@ -34,6 +33,7 @@ import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
 import { ExtendedHomeAssistant, MediaLoadedInfo, Message } from './types.js';
 import { frigateCardHasAction } from './utils/action.js';
+import { getReleaseVersion } from './utils/diagnostics';
 
 // ***************************************************************************
 //                         General Card-Wide Notes
@@ -70,10 +70,7 @@ import { frigateCardHasAction } from './utils/action.js';
 // ***************************************************************************
 
 console.info(
-  `%c FRIGATE-HASS-CARD \n` +
-    `%c ${localize('common.version')} ` +
-    `${pkg.version} ` +
-    `${process.env.NODE_ENV === 'development' ? `(${pkg['buildDate']})` : ''}`,
+  `%c FRIGATE-HASS-CARD \n` + `%c ${localize('common.version')} ` + getReleaseVersion(),
   'color: pink; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );

@@ -1,14 +1,13 @@
 import { HassConfig } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getLanguage } from '../../src/localize/localize';
-import { getDiagnostics } from '../../src/utils/diagnostics.js';
+import { getDiagnostics, getReleaseVersion } from '../../src/utils/diagnostics.js';
 import { getAllDevices } from '../../src/utils/ha/device-registry.js';
 import { createHASS } from '../test-utils';
 
 vi.mock('../../package.json', () => ({
   default: {
-    version: '5.2.0',
-    gitVersion: '5.2.0-dev+g4cf13b1',
+    gitAbbrevHash: 'g4cf13b1',
     buildDate: 'Tue, 19 Sep 2023 04:59:27 GMT',
     gitDate: 'Wed, 6 Sep 2023 21:27:28 -0700',
   },
@@ -16,6 +15,12 @@ vi.mock('../../package.json', () => ({
 vi.mock('../../src/utils/ha');
 vi.mock('../../src/localize/localize.js');
 vi.mock('../../src/utils/ha/device-registry');
+
+describe('getReleaseVersion', () => {
+  it('should get release version', () => {
+    expect(getReleaseVersion()).toBe('__FRIGATE_CARD_RELEASE_VERSION__');
+  });
+});
 
 // @vitest-environment jsdom
 describe('getDiagnostics', () => {
@@ -54,7 +59,7 @@ describe('getDiagnostics', () => {
       }),
     ).toEqual({
       browser: 'FrigateCardTest/1.0',
-      card_version: '5.2.0',
+      card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
       config: {
         cameras: [{ camera_entity: 'camera.office' }],
       },
@@ -64,8 +69,8 @@ describe('getDiagnostics', () => {
       },
       git: {
         build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
-        build_version: '5.2.0-dev+g4cf13b1',
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
+        hash: 'g4cf13b1',
       },
       date: now,
       lang: 'en',
@@ -77,11 +82,11 @@ describe('getDiagnostics', () => {
   it('should fetch diagnostics without hass or config', async () => {
     expect(await getDiagnostics()).toEqual({
       browser: 'FrigateCardTest/1.0',
-      card_version: '5.2.0',
+      card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
       git: {
         build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
-        build_version: '5.2.0-dev+g4cf13b1',
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
+        hash: 'g4cf13b1',
       },
       date: now,
       lang: 'en',
@@ -103,11 +108,11 @@ describe('getDiagnostics', () => {
 
     expect(await getDiagnostics(hass)).toEqual({
       browser: 'FrigateCardTest/1.0',
-      card_version: '5.2.0',
+      card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
       git: {
         build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
-        build_version: '5.2.0-dev+g4cf13b1',
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
+        hash: 'g4cf13b1',
       },
       ha_version: '2023.9.0',
       date: now,
@@ -121,11 +126,11 @@ describe('getDiagnostics', () => {
 
     expect(await getDiagnostics(hass)).toEqual({
       browser: 'FrigateCardTest/1.0',
-      card_version: '5.2.0',
+      card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
       git: {
         build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
-        build_version: '5.2.0-dev+g4cf13b1',
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
+        hash: 'g4cf13b1',
       },
       ha_version: '2023.9.0',
       date: now,
