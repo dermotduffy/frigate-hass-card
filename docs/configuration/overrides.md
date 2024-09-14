@@ -51,7 +51,7 @@ overrides:
 
 ### Examples
 
-Delete the 2nd camera:
+Delete the 3rd camera (it indexes from 0):
 
 ```yaml
 overrides:
