@@ -12,6 +12,16 @@ interface GitDiagnostics {
   commit_date?: string;
 }
 
+export const getReleaseVersion = (): string => {
+  const releaseVersion = '__FRIGATE_CARD_RELEASE_VERSION__';
+  /* istanbul ignore if: this path cannot be reached during tests as the value
+  is substituted by rollup -- @preserve */
+  if ((releaseVersion as unknown) === 'dev') {
+    return `${releaseVersion}+${pkg['gitAbbrevHash']} (${pkg['buildDate']})`;
+  }
+  return releaseVersion;
+};
+
 export interface Diagnostics {
   card_version: string;
   browser: string;
@@ -51,7 +61,7 @@ export const getDiagnostics = async (
   });
 
   return {
-    card_version: pkg.version,
+    card_version: getReleaseVersion(),
     browser: navigator.userAgent,
     date: new Date(),
     ...(frigateVersionMap.size && {
@@ -60,7 +70,7 @@ export const getDiagnostics = async (
     lang: getLanguage(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     git: {
-      ...(pkg['gitVersion'] && { build_version: pkg['gitVersion'] }),
+      ...(pkg['gitAbbrevHash'] && { hash: pkg['gitAbbrevHash'] }),
       ...(pkg['buildDate'] && { build_date: pkg['buildDate'] }),
       ...(pkg['gitDate'] && { commit_date: pkg['gitDate'] }),
     },

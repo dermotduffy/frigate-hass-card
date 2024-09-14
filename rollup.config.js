@@ -58,6 +58,7 @@ const plugins = [
     preventAssignment: true,
     values: {
       'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
+      __FRIGATE_CARD_RELEASE_VERSION__: process.env.RELEASE_VERSION ?? 'dev',
     },
   }),
   watch && serve(serveopts),

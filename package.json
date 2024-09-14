@@ -1,6 +1,6 @@
 {
   "name": "frigate-hass-card",
-  "version": "6.0.0-beta.1",
+  "version": "0.0.0-dev",
   "description": "Frigate Lovelace Card for Home Assistant",
   "keywords": [
     "frigate",
@@ -11,7 +11,7 @@
   ],
   "type": "module",
   "module": "frigate-hass-card.js",
-  "repository": "git@github.com:dermotduffy/frigate-hass-card.git",
+  "repository": "github:dermotduffy/frigate-hass-card",
   "author": "Dermot Duffy <dermot.duffy@gmail.com>",
   "license": "MIT",
   "dependencies": {
@@ -60,6 +60,7 @@
     "@rollup/plugin-replace": "^5.0.7",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@semantic-release/github": "^10.3.3",
     "@types/lodash-es": "^4.17.12",
     "@types/masonry-layout": "^4.2.8",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
@@ -79,11 +80,35 @@
     "rollup-plugin-styler": "^1.8.0",
     "rollup-plugin-visualizer": "^5.12.0",
     "sass": "patch:sass@npm%3A1.77.4#~/.yarn/patches/sass-npm-1.77.4-13b6910aea.patch",
+    "semantic-release": "^24.1.1",
+    "semantic-release-export-data": "^1.1.0",
     "ts-prune": "^0.10.3",
     "type-fest": "^4.20.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0",
     "vitest-mock-extended": "^1.3.1"
+  },
+  "release": {
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "semantic-release-export-data",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "dist/*.zip",
+              "label": "Zip distribution"
+            },
+            {
+              "path": "dist/*.js",
+              "label": "JS distribution"
+            }
+          ]
+        }
+      ]
+    ]
   },
   "scripts": {
     "start": "rollup -c --watch",
