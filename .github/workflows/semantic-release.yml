@@ -18,10 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Fetch all tags, so semantic-release can calculate the correct next release.
           fetch-depth: 0
-
-          # Do not remove credentials after checkout.
           persist-credentials: false
       - uses: volta-cli/action@v4
       - run: yarn install --immutable
@@ -34,22 +31,21 @@ jobs:
       new-release-version: ${{ steps.get-next-version.outputs.new-release-version }}
       new-release-git-tag: ${{ steps.get-next-version.outputs.new-release-git-tag }}
 
-  build:
+  release:
     runs-on: ubuntu-latest
     needs: get-next-version
     if: needs.get-next-version.outputs.new-release-published == 'true'
     steps:
-      - run: echo "The new release version is ${{ needs.get-next-version.outputs.new-release-version }}"
-      - run: echo "The new release git tag is ${{ needs.get-next-version.outputs.new-release-git-tag }}"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: volta-cli/action@v4
+      - run: yarn install --immutable
       - run: yarn run build
         env:
           RELEASE_VERSION: ${{ needs.get-next-version.outputs.new-release-version }}
           RELEASE_TAG: ${{ needs.get-next-version.outputs.new-release-git-tag }}
-
-  release:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - uses: thedoctor0/zip-release@0.7.6
         with:
           type: zip
