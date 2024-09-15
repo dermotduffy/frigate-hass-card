@@ -46,31 +46,31 @@ unless the action is targeted with a `CARD_ID` as shown above.
 
 Only a subset of all [actions](../configuration/actions/README.md) are supported in URL form.
 
-| Action                                 | Supported in URL         | Explanation                                                                                                         |
-| -------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `camera_select`                        | :white_check_mark:       |                                                                                                                     |
-| `camera_ui`                            | :white_check_mark:       |                                                                                                                     |
-| `clip`                                 | :white_check_mark:       |                                                                                                                     |
-| `clips`                                | :white_check_mark:       |                                                                                                                     |
-| `default`                              | :white_check_mark:       |                                                                                                                     |
-| `download`                             | :heavy_multiplication_x: | Latest media information is not available on initial render.                                                        |
-| `expand`                               | :white_check_mark:       |                                                                                                                     |
-| `fullscreen`                           | :heavy_multiplication_x: | Javascript does not support activating fullscreen without direct human interaction. Use `expand` as an alternative. |
-| `image`                                | :white_check_mark:       |                                                                                                                     |
-| `live_substream_select`                | :white_check_mark:       |                                                                                                                     |
-| `live`                                 | :white_check_mark:       |                                                                                                                     |
-| `media_player`                         | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this.                         |
-| `menu_toggle`                          | :white_check_mark:       |                                                                                                                     |
-| `microphone_mute`, `microphone_unmute` | :heavy_multiplication_x: |                                                                                                                     |
-| `mute`, `unmute`                       | :heavy_multiplication_x: |                                                                                                                     |
-| `play`, `pause`                        | :heavy_multiplication_x: |                                                                                                                     |
-| `ptz`                                  | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this.                         |
-| `recording`                            | :white_check_mark:       |                                                                                                                     |
-| `recordings`                           | :white_check_mark:       |                                                                                                                     |
-| `screenshot`                           | :heavy_multiplication_x: | Latest media information is not available on initial render.                                                        |
-| `ptz_controls`                         | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this.                         |
-| `snapshot`                             | :white_check_mark:       |                                                                                                                     |
-| `snapshots`                            | :white_check_mark:       |                                                                                                                     |
+| Action                                                          | Supported in URL         | Explanation                                                                                                         |
+| --------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `camera_select`                                                 | :white_check_mark:       |                                                                                                                     |
+| `camera_ui`                                                     | :white_check_mark:       |                                                                                                                     |
+| `clip`                                                          | :white_check_mark:       |                                                                                                                     |
+| `clips`                                                         | :white_check_mark:       |                                                                                                                     |
+| `default`                                                       | :white_check_mark:       |                                                                                                                     |
+| `download`                                                      | :heavy_multiplication_x: | Latest media information is not available on initial render.                                                        |
+| `expand`                                                        | :white_check_mark:       |                                                                                                                     |
+| `fullscreen`                                                    | :heavy_multiplication_x: | Javascript does not support activating fullscreen without direct human interaction. Use `expand` as an alternative. |
+| `image`                                                         | :white_check_mark:       |                                                                                                                     |
+| `live_substream_select`                                         | :white_check_mark:       |                                                                                                                     |
+| `live`                                                          | :white_check_mark:       |                                                                                                                     |
+| `media_player`                                                  | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this.                         |
+| `menu_toggle`                                                   | :white_check_mark:       |                                                                                                                     |
+| `microphone_disconnect`, `microphone_mute`, `microphone_unmute` | :heavy_multiplication_x: |                                                                                                                     |
+| `mute`, `unmute`                                                | :heavy_multiplication_x: |                                                                                                                     |
+| `play`, `pause`                                                 | :heavy_multiplication_x: |                                                                                                                     |
+| `ptz`                                                           | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this.                         |
+| `recording`                                                     | :white_check_mark:       |                                                                                                                     |
+| `recordings`                                                    | :white_check_mark:       |                                                                                                                     |
+| `screenshot`                                                    | :heavy_multiplication_x: | Latest media information is not available on initial render.                                                        |
+| `ptz_controls`                                                  | :heavy_multiplication_x: | Please [request](https://github.com/dermotduffy/frigate-hass-card/issues) if you need this.                         |
+| `snapshot`                                                      | :white_check_mark:       |                                                                                                                     |
+| `snapshots`                                                     | :white_check_mark:       |                                                                                                                     |
 
 ## Examples
 

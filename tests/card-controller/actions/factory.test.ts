@@ -10,6 +10,7 @@ import { GenericAction } from '../../../src/card-controller/actions/actions/gene
 import { LogAction } from '../../../src/card-controller/actions/actions/log';
 import { MediaPlayerAction } from '../../../src/card-controller/actions/actions/media-player';
 import { MenuToggleAction } from '../../../src/card-controller/actions/actions/menu-toggle';
+import { MicrophoneDisconnectAction } from '../../../src/card-controller/actions/actions/microphone-disconnect';
 import { MicrophoneMuteAction } from '../../../src/card-controller/actions/actions/microphone-mute';
 import { MicrophoneUnmuteAction } from '../../../src/card-controller/actions/actions/microphone-unmute';
 import { MuteAction } from '../../../src/card-controller/actions/actions/mute';
@@ -103,6 +104,10 @@ describe('ActionFactory', () => {
         MediaPlayerAction,
       ],
       [{ frigate_card_action: 'menu_toggle' as const }, MenuToggleAction],
+      [
+        { frigate_card_action: 'microphone_disconnect' as const },
+        MicrophoneDisconnectAction,
+      ],
       [{ frigate_card_action: 'microphone_mute' as const }, MicrophoneMuteAction],
       [{ frigate_card_action: 'microphone_unmute' as const }, MicrophoneUnmuteAction],
       [{ frigate_card_action: 'mute' as const }, MuteAction],
