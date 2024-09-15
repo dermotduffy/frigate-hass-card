@@ -267,8 +267,7 @@
         "static": "Relació d'aspecte estàtica",
         "unconstrained": "Relació d'aspecte sense restriccions"
       },
-      "max_height": "Alçada màxima de la targeta en unitats CSS (p. ex., '100vh')",
-      "min_height": "Alçada mínima de la targeta en unitats CSS (p. ex., '100 px')"
+      "height": ""
     },
     "live": {
       "auto_mute": "Silencia automàticament les càmeres en directe",

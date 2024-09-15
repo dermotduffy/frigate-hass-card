@@ -21,7 +21,6 @@ import {
 import { PTZControlAction } from '../../src/config/ptz';
 import {
   Actions,
-  PerformActionActionConfig,
   RawFrigateCardConfig,
   frigateCardConfigSchema,
 } from '../../src/config/types';
@@ -3313,7 +3312,7 @@ describe('should handle version specific upgrades', () => {
       });
     });
 
-    it('call-service -> perform-action', () => {
+    it('rename call-service -> perform-action', () => {
       const config = {
         type: 'custom:frigate-card',
         cameras: [{ camera_entity: 'camera.office' }],
@@ -3364,6 +3363,42 @@ describe('should handle version specific upgrades', () => {
             },
           },
         },
+      });
+      postUpgradeChecks(config);
+    });
+
+    it('rename dimensions.max_height -> dimensions.height', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        dimensions: {
+          max_height: '500px',
+        },
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        dimensions: {
+          height: '500px',
+        },
+      });
+      postUpgradeChecks(config);
+    });
+
+    it('delete dimensions.min_height', () => {
+      const config = {
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        dimensions: {
+          min_height: '100px',
+        },
+      };
+      expect(upgradeConfig(config)).toBeTruthy();
+      expect(config).toEqual({
+        type: 'custom:frigate-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        dimensions: {},
       });
       postUpgradeChecks(config);
     });

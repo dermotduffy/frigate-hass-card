@@ -267,8 +267,7 @@
         "static": "Proporção estática",
         "unconstrained": "Proporção irrestrita"
       },
-      "max_height": "",
-      "min_height": ""
+      "height": ""
     },
     "live": {
       "auto_mute": "Silenciar câmeras ao vivo automaticamente",

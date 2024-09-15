@@ -12,11 +12,7 @@
   // keeping the background-color within the radius.
   border-radius: var(--ha-card-border-radius, 4px);
 
-  // Necessary to ensure children adhere to height of outer container (without
-  // this gallery surround is not correctly positioned in the middle of the
-  // card, but rather the middle of the scrolling gallery container).
-  max-height: var(--frigate-card-max-height);
-  min-height: var(--frigate-card-min-height);
+  height: var(--frigate-card-height);
 
   // Ensure all clicks at the top level work.
   pointer-events: all;
@@ -30,8 +26,7 @@
   --frigate-card-expand-height: none;
   --frigate-card-expand-aspect-ratio: unset;
 
-  --frigate-card-max-height: none;
-  --frigate-card-min-height: none;
+  --frigate-card-height: auto;
 }
 
 :host([dark]) {

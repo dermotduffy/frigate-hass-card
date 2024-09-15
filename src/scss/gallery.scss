@@ -5,8 +5,9 @@
 }
 
 frigate-card-surround-basic {
-  // This must be re-specified (in addition to on the top card element) to
-  // ensure the filter 'tab' on the gallery drawer is correctly included on the
-  // non-scrolling part of the gallery.
-  max-height: var(--frigate-card-max-height);
+  // The gallery will grow indefinitely in the `unconstrained` aspect ratio
+  // modes, the surround height needs to be limited to something reasonable in
+  // order for the media filter to still display somewhere the user can
+  // easily/continually access.
+  max-height: 100dvh;
 }

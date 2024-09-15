@@ -86,8 +86,7 @@ import {
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
   CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
-  CONF_DIMENSIONS_MAX_HEIGHT,
-  CONF_DIMENSIONS_MIN_HEIGHT,
+  CONF_DIMENSIONS_HEIGHT,
   CONF_IMAGE_ENTITY,
   CONF_IMAGE_ENTITY_PARAMETERS,
   CONF_IMAGE_MODE,
@@ -2805,8 +2804,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 this._aspectRatioModes,
               )}
               ${this._renderStringInput(CONF_DIMENSIONS_ASPECT_RATIO)}
-              ${this._renderStringInput(CONF_DIMENSIONS_MAX_HEIGHT)}
-              ${this._renderStringInput(CONF_DIMENSIONS_MIN_HEIGHT)}
+              ${this._renderStringInput(CONF_DIMENSIONS_HEIGHT)}
             </div>`
           : ''}
         ${this._renderOptionSetHeader(
