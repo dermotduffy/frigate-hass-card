@@ -248,6 +248,15 @@ action: custom:frigate-card-action
 frigate_card_action: menu_toggle
 ```
 
+## `microphone_connect`
+
+Connect the microphone for [2-way audio](../../../usage/2-way-audio.md).
+
+```yaml
+action: custom:frigate-card-action
+frigate_card_action: microphone_connect
+```
+
 ## `microphone_disconnect`
 
 Disconnect the microphone during [2-way audio](../../../usage/2-way-audio.md).
