@@ -23,7 +23,7 @@ the user.
 
 For low end devices, the `low-performance` profile will adjust card defaults to attempt to increase performance.
 
-Principles used in the selection of options set by `low-profile` profile mode:
+Principles used in the selection of options set by `low-performance` profile mode:
 
 - Get 'out of the box' performance similar to the basic "Home Assistant Picture Glance" card.
 - Do not break the visual aesthetic of the card.
