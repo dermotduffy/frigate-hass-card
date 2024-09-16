@@ -258,7 +258,7 @@ class FrigateCard extends LitElement {
 
   protected _renderMenu(slot?: string): TemplateResult | void {
     const view = this._controller.getViewManager().getView();
-    if (!this._hass || !this._config || !view) {
+    if (!this._hass || !this._config) {
       return;
     }
     return html`
@@ -271,7 +271,6 @@ class FrigateCard extends LitElement {
           this._hass,
           this._config,
           this._controller.getCameraManager(),
-          view,
           {
             inExpandedMode: this._controller.getExpandManager().isExpanded(),
             inFullscreenMode: this._controller.getFullscreenManager().isInFullscreen(),
@@ -279,6 +278,7 @@ class FrigateCard extends LitElement {
             showCameraUIButton: this._controller.getCameraURLManager().hasCameraURL(),
             mediaPlayerController: this._controller.getMediaPlayerManager(),
             microphoneManager: this._controller.getMicrophoneManager(),
+            view: view,
             viewManager: this._controller.getViewManager(),
           },
         )}
