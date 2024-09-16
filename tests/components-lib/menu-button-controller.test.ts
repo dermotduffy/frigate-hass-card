@@ -2,6 +2,7 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import isEqual from 'lodash-es/isEqual';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { Capabilities } from '../../src/camera-manager/capabilities';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
@@ -23,9 +24,9 @@ import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
 import {
-  createCapabilities,
   createCameraConfig,
   createCameraManager,
+  createCapabilities,
   createCardAPI,
   createConfig,
   createHASS,
@@ -36,7 +37,6 @@ import {
   createView,
   TestViewMedia,
 } from '../test-utils';
-import { Capabilities } from '../../src/camera-manager/capabilities';
 
 vi.mock('../../src/utils/media-player-controller.js');
 vi.mock('../../src/card-controller/microphone-manager.js');
@@ -47,7 +47,7 @@ const calculateButtons = (
     hass?: HomeAssistant;
     config?: FrigateCardConfig;
     cameraManager?: CameraManager;
-    view?: View;
+    view?: View | null;
     viewManager?: ViewManager;
   },
 ): MenuItem[] => {
@@ -60,8 +60,11 @@ const calculateButtons = (
     options?.hass ?? createHASS(),
     options?.config ?? createConfig(),
     cameraManager,
-    options?.view ?? createView({ camera: 'camera-1' }),
-    options,
+    {
+      ...options,
+      view:
+        options?.view === undefined ? createView({ camera: 'camera-1' }) : options.view,
+    },
   );
 };
 
@@ -184,6 +187,19 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have substream button', () => {
+    it('with no view', () => {
+      const buttons = calculateButtons(controller, {
+        cameraManager: createCameraManager(),
+        view: null,
+      });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({
+          title: 'Substream(s)',
+        }),
+      );
+    });
+
     it('with no dependency', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(

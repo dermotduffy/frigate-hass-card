@@ -36,6 +36,7 @@ export interface MenuButtonControllerOptions {
   microphoneManager?: MicrophoneManager | null;
   mediaPlayerController?: MediaPlayerManager | null;
   viewManager?: ViewManager | null;
+  view?: View | null;
 }
 
 export class MenuButtonController {
@@ -62,20 +63,19 @@ export class MenuButtonController {
     hass: HomeAssistant,
     config: FrigateCardConfig,
     cameraManager: CameraManager,
-    view: View,
     options?: MenuButtonControllerOptions,
   ): MenuItem[] {
     return [
       this._getFrigateButton(config),
-      this._getCamerasButton(config, cameraManager, view),
-      this._getSubstreamsButton(config, cameraManager, view),
-      this._getLiveButton(config, view, options?.viewManager),
-      this._getClipsButton(config, view, options?.viewManager),
-      this._getSnapshotsButton(config, view, options?.viewManager),
-      this._getRecordingsButton(config, view, options?.viewManager),
-      this._getImageButton(config, view, options?.viewManager),
-      this._getTimelineButton(config, view, options?.viewManager),
-      this._getDownloadButton(config, cameraManager, view),
+      this._getCamerasButton(config, cameraManager, options?.view),
+      this._getSubstreamsButton(config, cameraManager, options?.view),
+      this._getLiveButton(config, options?.view, options?.viewManager),
+      this._getClipsButton(config, options?.view, options?.viewManager),
+      this._getSnapshotsButton(config, options?.view, options?.viewManager),
+      this._getRecordingsButton(config, options?.view, options?.viewManager),
+      this._getImageButton(config, options?.view, options?.viewManager),
+      this._getTimelineButton(config, options?.view, options?.viewManager),
+      this._getDownloadButton(config, cameraManager, options?.view),
       this._getCameraUIButton(config, options?.showCameraUIButton),
       this._getMicrophoneButton(
         config,
@@ -88,18 +88,18 @@ export class MenuButtonController {
         hass,
         config,
         cameraManager,
-        view,
+        options?.view,
         options?.mediaPlayerController,
       ),
       this._getPlayPauseButton(config, options?.currentMediaLoadedInfo),
       this._getMuteUnmuteButton(config, options?.currentMediaLoadedInfo),
       this._getScreenshotButton(config, options?.currentMediaLoadedInfo),
-      this._getDisplayModeButton(config, cameraManager, view),
-      this._getPTZControlsButton(config, cameraManager, view),
-      this._getPTZHomeButton(config, cameraManager, view),
+      this._getDisplayModeButton(config, cameraManager, options?.view),
+      this._getPTZControlsButton(config, cameraManager, options?.view),
+      this._getPTZHomeButton(config, cameraManager, options?.view),
 
       ...this._dynamicMenuButtons.map((button) => ({
-        style: this._getStyleFromActions(config, view, button, options),
+        style: this._getStyleFromActions(config, button, options),
         ...button,
       })),
     ].filter(isTruthy);
@@ -124,7 +124,7 @@ export class MenuButtonController {
   protected _getCamerasButton(
     config: FrigateCardConfig,
     cameraManager: CameraManager,
-    view: View,
+    view?: View | null,
   ): MenuItem | null {
     // Show all cameras in the menu rather than just cameras that support the
     // current view for a less surprising UX.
@@ -142,7 +142,7 @@ export class MenuButtonController {
             entity: config.camera_entity,
             state_color: true,
             title: metadata?.title,
-            selected: view.camera === cameraID,
+            selected: view?.camera === cameraID,
             ...(action && { tap_action: action }),
           };
         },
@@ -162,8 +162,12 @@ export class MenuButtonController {
   protected _getSubstreamsButton(
     config: FrigateCardConfig,
     cameraManager: CameraManager,
-    view: View,
+    view?: View | null,
   ): MenuItem | null {
+    if (!view) {
+      return null;
+    }
+
     const substreamCameraIDs = cameraManager
       .getStore()
       .getAllDependentCameras(view.camera, 'substream');
@@ -221,10 +225,10 @@ export class MenuButtonController {
 
   protected _getLiveButton(
     config: FrigateCardConfig,
-    view: View,
+    view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return viewManager?.isViewSupportedByCamera(view.camera, 'live')
+    return view && viewManager?.isViewSupportedByCamera(view.camera, 'live')
       ? {
           icon: 'mdi:cctv',
           ...config.menu.buttons.live,
@@ -238,10 +242,10 @@ export class MenuButtonController {
 
   protected _getClipsButton(
     config: FrigateCardConfig,
-    view: View,
+    view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return viewManager?.isViewSupportedByCamera(view.camera, 'clips')
+    return view && viewManager?.isViewSupportedByCamera(view.camera, 'clips')
       ? {
           icon: 'mdi:filmstrip',
           ...config.menu.buttons.clips,
@@ -256,10 +260,10 @@ export class MenuButtonController {
 
   protected _getSnapshotsButton(
     config: FrigateCardConfig,
-    view: View,
+    view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return viewManager?.isViewSupportedByCamera(view.camera, 'snapshots')
+    return view && viewManager?.isViewSupportedByCamera(view.camera, 'snapshots')
       ? {
           icon: 'mdi:camera',
           ...config.menu.buttons.snapshots,
@@ -274,10 +278,10 @@ export class MenuButtonController {
 
   protected _getRecordingsButton(
     config: FrigateCardConfig,
-    view: View,
+    view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return viewManager?.isViewSupportedByCamera(view.camera, 'recordings')
+    return view && viewManager?.isViewSupportedByCamera(view.camera, 'recordings')
       ? {
           icon: 'mdi:album',
           ...config.menu.buttons.recordings,
@@ -292,10 +296,10 @@ export class MenuButtonController {
 
   protected _getImageButton(
     config: FrigateCardConfig,
-    view: View,
+    view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return viewManager?.isViewSupportedByCamera(view.camera, 'image')
+    return view && viewManager?.isViewSupportedByCamera(view.camera, 'image')
       ? {
           icon: 'mdi:image',
           ...config.menu.buttons.image,
@@ -309,10 +313,10 @@ export class MenuButtonController {
 
   protected _getTimelineButton(
     config: FrigateCardConfig,
-    view: View,
+    view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
-    return viewManager?.isViewSupportedByCamera(view.camera, 'timeline')
+    return view && viewManager?.isViewSupportedByCamera(view.camera, 'timeline')
       ? {
           icon: 'mdi:chart-gantt',
           ...config.menu.buttons.timeline,
@@ -327,14 +331,14 @@ export class MenuButtonController {
   protected _getDownloadButton(
     config: FrigateCardConfig,
     cameraManager: CameraManager,
-    view: View,
+    view?: View | null,
   ): MenuItem | null {
-    const selectedMedia = view.queryResults?.getSelectedResult();
+    const selectedMedia = view?.queryResults?.getSelectedResult();
     const mediaCapabilities = selectedMedia
       ? cameraManager?.getMediaCapabilities(selectedMedia)
       : null;
     if (
-      view.isViewerView() &&
+      view?.isViewerView() &&
       mediaCapabilities?.canDownload &&
       !this._isBeingCasted()
     ) {
@@ -437,9 +441,12 @@ export class MenuButtonController {
     hass: HomeAssistant,
     config: FrigateCardConfig,
     cameraManager: CameraManager,
-    view: View,
+    view?: View | null,
     mediaPlayerController?: MediaPlayerManager | null,
   ): MenuItem | null {
+    if (!view) {
+      return null;
+    }
     const selectedCameraConfig = cameraManager.getStore().getCameraConfig(view.camera);
     if (
       mediaPlayerController?.hasMediaPlayers() &&
@@ -543,10 +550,16 @@ export class MenuButtonController {
   protected _getDisplayModeButton(
     config: FrigateCardConfig,
     cameraManager: CameraManager,
-    view: View,
+    view?: View | null,
   ): MenuItem | null {
-    const viewCameraIDs = getCameraIDsForViewName(cameraManager, view.view);
-    if (view.supportsMultipleDisplayModes() && viewCameraIDs.size > 1) {
+    const viewCameraIDs = view
+      ? getCameraIDsForViewName(cameraManager, view.view)
+      : null;
+    if (
+      view?.supportsMultipleDisplayModes() &&
+      viewCameraIDs &&
+      viewCameraIDs.size > 1
+    ) {
       const isGrid = view.isGrid();
       return {
         icon: isGrid ? 'mdi:grid-off' : 'mdi:grid',
@@ -565,15 +578,15 @@ export class MenuButtonController {
   protected _getPTZControlsButton(
     config: FrigateCardConfig,
     cameraManager: CameraManager,
-    view: View,
+    view?: View | null,
   ): MenuItem | null {
-    const ptzConfig = view.is('live')
+    const ptzConfig = view?.is('live')
       ? config.live.controls.ptz
-      : view.isViewerView()
+      : view?.isViewerView()
         ? config.media_viewer.controls.ptz
         : null;
 
-    if (!ptzConfig || ptzConfig.mode === 'off') {
+    if (!view || !ptzConfig || ptzConfig.mode === 'off') {
       return null;
     }
 
@@ -602,16 +615,18 @@ export class MenuButtonController {
   protected _getPTZHomeButton(
     config: FrigateCardConfig,
     cameraManager: CameraManager,
-    view: View,
+    view?: View | null,
   ): MenuItem | null {
-    const target = getPTZTarget(view, {
-      cameraManager: cameraManager,
-    });
+    const target = view
+      ? getPTZTarget(view, {
+          cameraManager: cameraManager,
+        })
+      : null;
 
     if (
       !target ||
       ((target.type === 'digital' &&
-        view.context?.zoom?.[target.targetID]?.observed?.isDefault) ??
+        view?.context?.zoom?.[target.targetID]?.observed?.isDefault) ??
         true)
     ) {
       return null;
@@ -652,7 +667,6 @@ export class MenuButtonController {
    */
   protected _getStyleFromActions(
     config: FrigateCardConfig,
-    view: View,
     button: MenuItem,
     options?: MenuButtonControllerOptions,
   ): StyleInfo {
@@ -679,14 +693,14 @@ export class MenuButtonController {
           FRIGATE_CARD_VIEWS_USER_SPECIFIED.some(
             (viewName) =>
               viewName === frigateCardAction.frigate_card_action &&
-              view?.is(frigateCardAction.frigate_card_action),
+              options?.view?.is(frigateCardAction.frigate_card_action),
           ) ||
           (frigateCardAction.frigate_card_action === 'default' &&
-            view.is(config.view.default)) ||
+            options?.view?.is(config.view.default)) ||
           (frigateCardAction.frigate_card_action === 'fullscreen' &&
             !!options?.inFullscreenMode) ||
           (frigateCardAction.frigate_card_action === 'camera_select' &&
-            view.camera === frigateCardAction.camera)
+            options?.view?.camera === frigateCardAction.camera)
         ) {
           return this._getEmphasizedStyle();
         }
