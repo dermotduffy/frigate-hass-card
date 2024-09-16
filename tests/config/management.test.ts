@@ -1,4 +1,7 @@
-import { CallServiceActionConfig } from '@dermotduffy/custom-card-helpers';
+import {
+  CallServiceActionConfig,
+  PerformActionActionConfig,
+} from '@dermotduffy/custom-card-helpers';
 import { describe, expect, it } from 'vitest';
 import {
   copyConfig,
