@@ -13,6 +13,7 @@ import { GenericAction } from './actions/generic';
 import { LogAction } from './actions/log';
 import { MediaPlayerAction } from './actions/media-player';
 import { MenuToggleAction } from './actions/menu-toggle';
+import { MicrophoneConnectAction } from './actions/microphone-connect';
 import { MicrophoneDisconnectAction } from './actions/microphone-disconnect';
 import { MicrophoneMuteAction } from './actions/microphone-mute';
 import { MicrophoneUnmuteAction } from './actions/microphone-unmute';
@@ -97,6 +98,8 @@ export class ActionFactory {
         return new SubstreamOnAction(context, frigateCardAction, options?.config);
       case 'media_player':
         return new MediaPlayerAction(context, frigateCardAction, options?.config);
+      case 'microphone_connect':
+        return new MicrophoneConnectAction(context, frigateCardAction, options?.config);
       case 'microphone_disconnect':
         return new MicrophoneDisconnectAction(
           context,
