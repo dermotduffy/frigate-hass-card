@@ -1857,8 +1857,7 @@ export type GalleryConfig = z.infer<typeof galleryConfigSchema>;
 const dimensionsConfigDefault = {
   aspect_ratio_mode: 'dynamic' as const,
   aspect_ratio: [16, 9],
-  max_height: '100vh',
-  min_height: '100px',
+  height: 'auto',
 };
 
 export const dimensionsConfigSchema = z
@@ -1867,8 +1866,7 @@ export const dimensionsConfigSchema = z
       .enum(['dynamic', 'static', 'unconstrained'])
       .default(dimensionsConfigDefault.aspect_ratio_mode),
     aspect_ratio: aspectRatioSchema.default(dimensionsConfigDefault.aspect_ratio),
-    max_height: z.string().default(dimensionsConfigDefault.max_height),
-    min_height: z.string().default(dimensionsConfigDefault.min_height),
+    height: z.string().default(dimensionsConfigDefault.height),
   })
   .default(dimensionsConfigDefault);
 

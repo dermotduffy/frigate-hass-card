@@ -11,6 +11,7 @@ import {
   CONF_CAMERAS_GLOBAL_JSMPEG,
   CONF_CAMERAS_GLOBAL_PTZ,
   CONF_CAMERAS_GLOBAL_WEBRTC_CARD,
+  CONF_DIMENSIONS_HEIGHT,
   CONF_ELEMENTS,
   CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
@@ -878,4 +879,6 @@ const UPGRADES = [
       typeof data === 'object' && data ? (data as RawFrigateCardConfig) : {},
     );
   },
+  upgradeMoveToWithOverrides('dimensions.max_height', CONF_DIMENSIONS_HEIGHT),
+  deleteWithOverrides('dimensions.min_height'),
 ];

@@ -55,8 +55,7 @@ describe('config defaults', () => {
       dimensions: {
         aspect_ratio: [16, 9],
         aspect_ratio_mode: 'dynamic',
-        max_height: '100vh',
-        min_height: '100px',
+        height: 'auto',
       },
       image: {
         mode: 'auto',

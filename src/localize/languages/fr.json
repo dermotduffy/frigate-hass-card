@@ -267,8 +267,7 @@
         "static": "Rapport hauteur/largeur statique",
         "unconstrained": "Rapport hauteur/largeur sans contrainte"
       },
-      "max_height": "Hauteur maximale de la carte en unités CSS (par exemple '100vh')",
-      "min_height": "Hauteur minimale de la carte en unités CSS (par exemple « 100 px »)"
+      "height": ""
     },
     "live": {
       "auto_mute": "Couper automatiquement le son des caméras en direct",

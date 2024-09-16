@@ -267,8 +267,7 @@
         "static": "Static aspect ratio",
         "unconstrained": "Unconstrained aspect ratio"
       },
-      "max_height": "Maximum card height in CSS units (e.g. '100vh')",
-      "min_height": "Minimum card height in CSS units (e.g. '100px')"
+      "height": "Card height in CSS units (e.g. '500px')"
     },
     "live": {
       "auto_mute": "Automatically mute live cameras",

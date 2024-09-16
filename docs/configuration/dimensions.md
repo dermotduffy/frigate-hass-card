@@ -13,12 +13,11 @@ dimensions:
   # [...]
 ```
 
-| Option              | Default   | Description                                                                                                                                                                                                                                                            |
-| ------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See below.                                                                                                                                                                      |
-| `aspect_ratio`      | `16:9`    | The aspect ratio to use. Acceptable values: `[W]:[H]` or `[W]/[H]`. See below.                                                                                                                                                                                         |
-| `max_height`        | `100vh`   | The maximum allowable height for the card. Specified in [CSS units](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units). Generally users should not need to change this setting unless they have set an `unconstrained` aspect ratio. |
-| `min_height`        | `100px`   | The minimum allowable height for the card. Specified in [CSS units](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units). Generally users should not need to change this setting.                                                      |
+| Option              | Default   | Description                                                                                                                                                                             |
+| ------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aspect_ratio_mode` | `dynamic` | The aspect ratio mode to use. Acceptable values: `dynamic`, `static`, `unconstrained`. See below.                                                                                       |
+| `aspect_ratio`      | `16:9`    | The aspect ratio to use. Acceptable values: `[W]:[H]` or `[W]/[H]`. See below.                                                                                                          |
+| `height`            | `auto`    | The height for the card. Specified in [CSS units](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_units). Generally users should not need to change this. |
 
 ### `aspect_ratio_mode`
 
@@ -42,6 +41,5 @@ dimensions:
 dimensions:
   aspect_ratio_mode: dynamic
   aspect_ratio: 16:9
-  max_height: 100vh
-  min_height: 100px
+  height: auto
 ```

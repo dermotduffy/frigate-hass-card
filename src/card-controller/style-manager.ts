@@ -62,8 +62,7 @@ export class StyleManager {
     const config = this._api.getConfigManager().getConfig();
     if (config) {
       const card = this._api.getCardElementManager().getElement();
-      card.style.setProperty('--frigate-card-min-height', config.dimensions.min_height);
-      card.style.setProperty('--frigate-card-max-height', config.dimensions.max_height);
+      card.style.setProperty('--frigate-card-height', config.dimensions.height);
     }
   }
 

@@ -267,8 +267,7 @@
         "static": "Proporzioni statiche",
         "unconstrained": "Proporzioni non vincolate"
       },
-      "max_height": "",
-      "min_height": ""
+      "height": ""
     },
     "live": {
       "auto_mute": "Muta automaticamente le telecamere in diretta",

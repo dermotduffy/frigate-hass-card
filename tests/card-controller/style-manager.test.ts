@@ -209,8 +209,7 @@ describe('StyleManager', () => {
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           dimensions: {
-            max_height: '800px',
-            min_height: '400px',
+            height: '800px',
           },
         }),
       );
@@ -218,8 +217,7 @@ describe('StyleManager', () => {
 
       manager.setMinMaxHeight();
 
-      expect(element.style.getPropertyValue('--frigate-card-min-height')).toBe('400px');
-      expect(element.style.getPropertyValue('--frigate-card-max-height')).toBe('800px');
+      expect(element.style.getPropertyValue('--frigate-card-height')).toBe('800px');
     });
   });
 
