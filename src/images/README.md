@@ -21,3 +21,9 @@
 $ convert -extent 2048x1152 -flop -gravity center 47543120431_b285c45ac8_k.jpg frigate-bird-in-sky.jpg
 $ mogrify -strip -interlace Plane -quality 85% -scale 492x277 frigate-bird-in-sky.jpg
 ```
+
+## camera-iris.svg
+
+**Link**: https://pictogrammers.com/library/mdi/icon/camera-iris/
+
+**License**: https://www.apache.org/licenses/LICENSE-2.0
