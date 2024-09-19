@@ -308,4 +308,39 @@ describe('CameraManagerStore', async () => {
     );
     expect(store.getCameraIDsWithCapability('clips')).toEqual(new Set(['one']));
   });
+
+  it('setCameras', async () => {
+    const store = new CameraManagerStore();
+    const camera_1 = new Camera(createCameraConfig({ id: 'camera-1' }), engineGeneric);
+    camera_1.destroy = vi.fn();
+
+    const camera_2 = new Camera(createCameraConfig({ id: 'camera-2' }), engineGeneric);
+    camera_2.destroy = vi.fn();
+
+    const camera_3 = new Camera(createCameraConfig({ id: 'camera-3' }), engineGeneric);
+    camera_3.destroy = vi.fn();
+
+    const camera_3_new = new Camera(
+      createCameraConfig({ id: 'camera-3' }),
+      engineGeneric,
+    );
+    camera_3_new.destroy = vi.fn();
+
+    const camera_4 = new Camera(createCameraConfig({ id: 'camera-4' }), engineGeneric);
+    camera_4.destroy = vi.fn();
+
+    await store.setCameras([camera_1, camera_2, camera_3]);
+    await store.setCameras([camera_2, camera_3_new, camera_4]);
+
+    expect(store.getCamera('camera-1')).toBeNull();
+    expect(store.getCamera('camera-2')).toBe(camera_2);
+    expect(store.getCamera('camera-3')).toBe(camera_3_new);
+    expect(store.getCamera('camera-4')).toBe(camera_4);
+
+    expect(camera_1.destroy).toBeCalled();
+    expect(camera_2.destroy).not.toBeCalled();
+    expect(camera_3.destroy).toBeCalled();
+    expect(camera_3_new.destroy).not.toBeCalled();
+    expect(camera_4.destroy).not.toBeCalled();
+  });
 });

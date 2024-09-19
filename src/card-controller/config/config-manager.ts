@@ -92,16 +92,20 @@ export class ConfigManager {
       camera: undefined,
     });
     this._api.getMediaLoadedInfoManager().clear();
+
+    this._api.getInitializationManager().uninitialize(InitializationAspect.VIEW);
     this._api.getViewManager().reset();
+
     this._api.getMessageManager().reset();
     this._api.getStyleManager().setPerformance();
-    this._api.getCardElementManager().update();
     this._api.getStatusBarItemManager().removeAllDynamicStatusBarItems();
 
     setKeyboardShortcutsFromConfig(this._api, this);
     setAutomationsFromConfig(this._api);
 
     this.computeOverrideConfig();
+
+    this._api.getCardElementManager().update();
   }
 
   public computeOverrideConfig(): void {
@@ -144,17 +148,18 @@ export class ConfigManager {
         .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
     }
 
-    if (
-      previousConfig &&
-      !isEqual(
-        previousConfig?.view.default_reset,
-        this._overriddenConfig?.view.default_reset,
-      )
-    ) {
-      this._api
-        .getInitializationManager()
-        .uninitialize(InitializationAspect.DEFAULT_RESET);
-    }
+    /* async */ this._initializeBackground(previousConfig);
+  }
+
+  /**
+   * Initialize config dependent items in the background. For items that the
+   * card hard requires, use InitializationManager instead.
+   */
+  protected async _initializeBackground(
+    previousConfig: FrigateCardConfig | null,
+  ): Promise<void> {
+    await this._api.getDefaultManager().initializeIfNecessary(previousConfig);
+    await this._api.getMediaPlayerManager().initializeIfNecessary(previousConfig);
 
     this._api.getCardElementManager().update();
   }

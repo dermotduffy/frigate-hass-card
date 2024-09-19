@@ -21,50 +21,23 @@ describe('InitializationManager', () => {
   describe('should correctly determine when mandatory initialization is required', () => {
     it('without config', () => {
       const api = createCardAPI();
-      const initializer = mock<Initializer>();
-      const manager = new InitializationManager(api, initializer);
+      const manager = new InitializationManager(api);
 
       expect(manager.isInitializedMandatory()).toBeFalsy();
     });
 
     it('without aspects', () => {
       const api = createCardAPI();
-      const initializer = mock<Initializer>();
-      const manager = new InitializationManager(api, initializer);
+      const manager = new InitializationManager(api);
 
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      initializer.isInitializedMultiple.mockReturnValue(false);
 
       expect(manager.isInitializedMandatory()).toBeFalsy();
-    });
-
-    it('without view', () => {
-      const api = createCardAPI();
-      const initializer = mock<Initializer>();
-      const manager = new InitializationManager(api, initializer);
-
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      initializer.isInitializedMultiple.mockReturnValue(true);
-
-      expect(manager.isInitializedMandatory()).toBeFalsy();
-    });
-
-    it('with aspects and view', () => {
-      const api = createCardAPI();
-      const initializer = mock<Initializer>();
-      const manager = new InitializationManager(api, initializer);
-
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      initializer.isInitializedMultiple.mockReturnValue(true);
-      vi.mocked(api.getViewManager().hasView).mockReturnValue(true);
-
-      expect(manager.isInitializedMandatory()).toBeTruthy();
     });
 
     it('with microphone if configured', () => {
       const api = createCardAPI();
-      const initializer = mock<Initializer>();
-      const manager = new InitializationManager(api, initializer);
+      const manager = new InitializationManager(api);
 
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
@@ -75,24 +48,25 @@ describe('InitializationManager', () => {
           },
         }),
       );
-      initializer.isInitializedMultiple.mockReturnValue(true);
-      vi.mocked(api.getViewManager().hasView).mockReturnValue(true);
 
-      expect(manager.isInitializedMandatory()).toBeTruthy();
+      expect(manager.isInitializedMandatory()).toBeFalsy();
     });
   });
 
   describe('should initialize mandatory', () => {
     it('without hass', async () => {
       const manager = new InitializationManager(createCardAPI());
-      expect(await manager.initializeMandatory()).toBeFalsy();
+      await manager.initializeMandatory();
     });
 
     it('without config', async () => {
       const api = createCardAPI();
       const manager = new InitializationManager(api);
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      expect(await manager.initializeMandatory()).toBeFalsy();
+      vi.mocked(loadLanguages).mockResolvedValue(true);
+      vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
+
+      await manager.initializeMandatory();
     });
 
     it('successfully', async () => {
@@ -103,15 +77,23 @@ describe('InitializationManager', () => {
       vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(
         false,
       );
+      vi.mocked(loadLanguages).mockResolvedValue(true);
+      vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
+      vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockResolvedValue(
+        true,
+      );
+      vi.mocked(api.getViewManager().initialize).mockResolvedValue(true);
+
       const manager = new InitializationManager(api);
 
-      expect(await manager.initializeMandatory()).toBeTruthy();
+      await manager.initializeMandatory();
 
       expect(loadLanguages).toBeCalled();
       expect(sideLoadHomeAssistantElements).toBeCalled();
       expect(api.getCameraManager().initializeCamerasFromConfig).toBeCalled();
-      expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
+      expect(api.getViewManager().initialize).toBeCalled();
       expect(api.getMicrophoneManager().connect).not.toBeCalled();
+      expect(api.getCardElementManager().update).toBeCalled();
     });
 
     it('successfully with microphone if configured', async () => {
@@ -126,23 +108,17 @@ describe('InitializationManager', () => {
           },
         }),
       );
+      vi.mocked(loadLanguages).mockResolvedValue(true);
+      vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
+      vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockResolvedValue(
+        true,
+      );
+
       const manager = new InitializationManager(api);
 
-      expect(await manager.initializeMandatory()).toBeTruthy();
+      await manager.initializeMandatory();
+
       expect(api.getMicrophoneManager().connect).toBeCalled();
-    });
-
-    it('successfully with querystring view', async () => {
-      const api = createCardAPI();
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(false);
-      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(true);
-      const manager = new InitializationManager(api);
-
-      expect(await manager.initializeMandatory()).toBeTruthy();
-
-      expect(api.getQueryStringManager().executeViewRelated).toBeCalled();
     });
 
     it('with message set during initialization', async () => {
@@ -153,12 +129,17 @@ describe('InitializationManager', () => {
       vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(
         false,
       );
+      vi.mocked(loadLanguages).mockResolvedValue(true);
+      vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
+      vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockResolvedValue(
+        true,
+      );
+
       const manager = new InitializationManager(api);
 
-      expect(await manager.initializeMandatory()).toBeTruthy();
+      await manager.initializeMandatory();
 
-      expect(api.getViewManager().setViewByParameters).not.toBeCalled();
-      expect(api.getViewManager().setViewDefault).not.toBeCalled();
+      expect(api.getViewManager().initialize).not.toBeCalled();
     });
 
     it('with languages and side load elements in progress', async () => {
@@ -168,7 +149,7 @@ describe('InitializationManager', () => {
       const manager = new InitializationManager(api, initializer);
       initializer.initializeMultipleIfNecessary.mockResolvedValue(false);
 
-      expect(await manager.initializeMandatory()).toBeFalsy();
+      await manager.initializeMandatory();
     });
 
     it('with cameras in progress', async () => {
@@ -182,100 +163,7 @@ describe('InitializationManager', () => {
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(false);
 
-      expect(await manager.initializeMandatory()).toBeFalsy();
-    });
-
-    it('with existing view', async () => {
-      const api = createCardAPI();
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
-      vi.mocked(api.getViewManager().hasView).mockReturnValue(true);
-
-      const initializer = mock<Initializer>();
-      const manager = new InitializationManager(api, initializer);
-      initializer.initializeMultipleIfNecessary
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true);
-
-      expect(await manager.initializeMandatory()).toBeTruthy();
-      expect(api.getCardElementManager().update).toBeCalled();
-    });
-  });
-
-  describe('should initialize background', () => {
-    it('without hass and config', async () => {
-      const manager = new InitializationManager(createCardAPI());
-      expect(await manager.initializeBackgroundIfNecessary()).toBeFalsy();
-    });
-
-    it('successfully when already initialized', async () => {
-      const api = createCardAPI();
-
-      const initializer = mock<Initializer>();
-      initializer.isInitializedMultiple.mockReturnValue(true);
-
-      const manager = new InitializationManager(api, initializer);
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          menu: {
-            buttons: {
-              media_player: {
-                enabled: false,
-              },
-            },
-          },
-        }),
-      );
-
-      expect(await manager.initializeBackgroundIfNecessary()).toBeTruthy();
-      expect(api.getMediaPlayerManager().initialize).not.toBeCalled();
-      expect(api.getDefaultManager().initialize).not.toBeCalled();
-      expect(api.getCardElementManager().update).not.toBeCalled();
-    });
-
-    it('successfully with all inititalizers', async () => {
-      const api = createCardAPI();
-      const manager = new InitializationManager(api);
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          menu: {
-            buttons: {
-              media_player: {
-                enabled: true,
-              },
-            },
-          },
-        }),
-      );
-
-      expect(await manager.initializeBackgroundIfNecessary()).toBeTruthy();
-      expect(api.getMediaPlayerManager().initialize).toBeCalled();
-      expect(api.getDefaultManager().initialize).toBeCalled();
-      expect(api.getCardElementManager().update).toBeCalled();
-    });
-
-    it('with initializers in progress', async () => {
-      const api = createCardAPI();
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          menu: {
-            buttons: {
-              media_player: {
-                enabled: true,
-              },
-            },
-          },
-        }),
-      );
-      const initializer = mock<Initializer>();
-
-      const manager = new InitializationManager(api, initializer);
-      initializer.initializeMultipleIfNecessary.mockResolvedValue(false);
-
-      expect(await manager.initializeBackgroundIfNecessary()).toBeFalsy();
+      await manager.initializeMandatory();
     });
   });
 

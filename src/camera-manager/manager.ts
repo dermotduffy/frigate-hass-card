@@ -111,7 +111,6 @@ export class CameraManager {
   protected _api: CardCameraAPI;
   protected _engineFactory: CameraManagerEngineFactory;
   protected _store: CameraManagerStore;
-  protected _initializationLimit = new PQueue({ concurrency: 1 });
   protected _requestLimit = new PQueue();
 
   constructor(
@@ -147,16 +146,8 @@ export class CameraManager {
       recursivelyMergeObjectsNotArrays({}, cloneDeep(config?.cameras_global), camera),
     );
 
-    const resetAndInitialize = async () => {
-      await this._reset();
-      await this._initializeCameras(cameras);
-    };
-
     try {
-      // This concurrency limit prevents multiple rapidly arriving configs from
-      // generating reset-n-initialize race conditions (e.g. changing values
-      // rapidly in the config editor).
-      await this._initializationLimit.add(resetAndInitialize);
+      await this._initializeCameras(cameras);
     } catch (e: unknown) {
       this._api
         .getMessageManager()
@@ -166,7 +157,7 @@ export class CameraManager {
     return true;
   }
 
-  protected async _reset(): Promise<void> {
+  public async reset(): Promise<void> {
     await this._store.reset();
   }
 
@@ -246,6 +237,8 @@ export class CameraManager {
       async ([cameraConfig, engine]) => await engine.createCamera(hass, cameraConfig),
     );
 
+    const cameraIDs: Set<string> = new Set();
+
     // Do the additions based off the result-order, to ensure the map order is
     // preserved.
     cameras.forEach((camera) => {
@@ -258,7 +251,7 @@ export class CameraManager {
         );
       }
 
-      if (this._store.hasCameraID(cameraID)) {
+      if (cameraIDs.has(cameraID)) {
         throw new CameraInitializationError(
           localize('error.duplicate_camera_id'),
           camera.getConfig(),
@@ -267,8 +260,10 @@ export class CameraManager {
 
       // Always ensure the actual ID used in the card is in the configuration itself.
       camera.setID(cameraID);
-      this._store.addCamera(camera);
+      cameraIDs.add(cameraID);
     });
+
+    await this._store.setCameras(cameras);
 
     log(
       this._api.getConfigManager().getCardWideConfig(),

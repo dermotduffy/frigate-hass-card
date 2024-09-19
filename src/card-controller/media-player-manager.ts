@@ -1,4 +1,4 @@
-import { CameraConfig } from '../config/types';
+import { CameraConfig, FrigateCardConfig } from '../config/types';
 import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA } from '../const';
 import { localize } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
@@ -25,9 +25,23 @@ export class MediaPlayerManager {
     return this._mediaPlayers.length > 0;
   }
 
+  public async initializeIfNecessary(
+    previousConfig: FrigateCardConfig | null,
+  ): Promise<void> {
+    if (
+      previousConfig?.menu.buttons.media_player.enabled !==
+      this._api.getConfigManager().getConfig()?.menu.buttons.media_player.enabled
+    ) {
+      await this.initialize();
+    }
+  }
+
   public async initialize(): Promise<boolean> {
     const hass = this._api.getHASSManager().getHASS();
-    if (!hass) {
+    if (
+      !hass ||
+      !this._api.getConfigManager().getConfig()?.menu.buttons.media_player.enabled
+    ) {
       return false;
     }
 

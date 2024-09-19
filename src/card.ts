@@ -188,10 +188,6 @@ class FrigateCard extends LitElement {
     return true;
   }
 
-  protected willUpdate(): void {
-    this._controller.getInitializationManager().initializeBackgroundIfNecessary();
-  }
-
   protected _renderMenuStatusContainer(
     position: 'top' | 'bottom' | 'overlay',
   ): TemplateResult | void {

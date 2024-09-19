@@ -1,6 +1,8 @@
 import {
   HomeAssistant,
+  LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
   Themes,
 } from '@dermotduffy/custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map.js';
@@ -86,12 +88,14 @@ export interface FrigateCardMediaPlayer {
   isPaused(): boolean;
 }
 
+export type LovelaceCardWithEditor = LovelaceCard & {
+  constructor: {
+    getConfigElement(): Promise<LovelaceCardEditor>;
+  };
+};
+
 export interface CardHelpers {
-  createCardElement(config: LovelaceCardConfig): Promise<{
-    constructor: {
-      getConfigElement(): HTMLElement;
-    };
-  }>;
+  createCardElement(config: LovelaceCardConfig): Promise<LovelaceCardWithEditor>;
 }
 
 export type PTZMovementType = 'relative' | 'continuous';

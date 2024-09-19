@@ -44,6 +44,30 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
     this._enginesByType.set(camera.getEngine().getEngineType(), camera.getEngine());
   }
 
+  public async setCameras(cameras: Camera[]): Promise<void> {
+    // In setting the store cameras, take great care to replace/add first before
+    // remove. Otherwise, there may be race conditions where the card attempts
+    // to render a view with (momentarily) no camera.
+    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1533
+
+    // Replace/Add the new cameras.
+    for (const camera of cameras) {
+      const oldCamera = this._cameras.get(camera.getID());
+      if (oldCamera !== camera) {
+        this.addCamera(camera);
+        await oldCamera?.destroy();
+      }
+    }
+
+    // Remove the old cameras.
+    for (const camera of this._cameras.values()) {
+      if (!cameras.includes(camera)) {
+        await camera.destroy();
+        this._cameras.delete(camera.getID());
+      }
+    }
+  }
+
   public async reset(): Promise<void> {
     await allPromises(this._cameras.values(), (camera) => camera.destroy());
     this._cameras.clear();

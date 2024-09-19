@@ -28,6 +28,7 @@ describe('DefaultManager', () => {
   describe('time based', () => {
     it('should set default view when allowed', async () => {
       const api = createCardAPIWithStateWatcher();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           view: {
@@ -62,7 +63,8 @@ describe('DefaultManager', () => {
     });
 
     it('should not set default view when not configured', () => {
-      const api = createCardAPI();
+      const api = createCardAPIWithStateWatcher();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           view: {
@@ -88,6 +90,7 @@ describe('DefaultManager', () => {
 
     it('should restart timer when reconfigured', async () => {
       const api = createCardAPIWithStateWatcher();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
         createConfig({
           view: {
@@ -98,9 +101,6 @@ describe('DefaultManager', () => {
         }),
       );
       vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
-
-      const hass = createHASS();
-      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
 
       vi.useFakeTimers();
 
@@ -120,6 +120,7 @@ describe('DefaultManager', () => {
 
   it('should set default view when state changed', async () => {
     const api = createCardAPIWithStateWatcher();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
         view: {
@@ -209,5 +210,48 @@ describe('DefaultManager', () => {
 
       expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(manager);
     });
+  });
+
+  it('should reinitialize when there is a config change', async () => {
+    const configOn = createConfig({
+      view: {
+        default_reset: {
+          every_seconds: 10,
+        },
+      },
+    });
+    const configOff = createConfig({
+      view: {
+        default_reset: {
+          every_seconds: 0,
+        },
+      },
+    });
+
+    const api = createCardAPIWithStateWatcher();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    vi.mocked(api.getInteractionManager().hasInteraction).mockReturnValue(false);
+
+    vi.useFakeTimers();
+
+    const manager = new DefaultManager(api);
+
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(configOn);
+    await manager.initializeIfNecessary(null);
+
+    vi.runOnlyPendingTimers();
+    expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
+
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(configOff);
+    await manager.initializeIfNecessary(configOn);
+
+    vi.runOnlyPendingTimers();
+    expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
+
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(configOff);
+    await manager.initializeIfNecessary(configOff);
+
+    vi.runOnlyPendingTimers();
+    expect(api.getViewManager().setViewDefault).toBeCalledTimes(1);
   });
 });

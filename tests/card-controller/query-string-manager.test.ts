@@ -16,13 +16,13 @@ describe('QueryStringManager', () => {
     global.window.location = mock<Location>();
   });
 
-  it('should reject malformed query string', () => {
+  it('should reject malformed query string', async () => {
     setQueryString('BOGUS_KEY=BOGUS_VALUE');
     const api = createCardAPI();
     vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
-    manager.executeAll();
+    await manager.executeAll();
 
     expect(manager.hasViewRelatedActions()).toBeFalsy();
     expect(api.getActionsManager().executeActions).not.toBeCalled();
@@ -41,7 +41,7 @@ describe('QueryStringManager', () => {
       ['snapshot' as const],
       ['snapshots' as const],
       ['timeline' as const],
-    ])('%s', (viewName: string) => {
+    ])('%s', async (viewName: string) => {
       setQueryString(`?frigate-card-action.id.${viewName}=`);
       const api = createCardAPI();
 
@@ -49,7 +49,7 @@ describe('QueryStringManager', () => {
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
       const manager = new QueryStringManager(api);
 
-      manager.executeAll();
+      await manager.executeAll();
 
       expect(manager.hasViewRelatedActions()).toBeTruthy();
       expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
@@ -66,13 +66,13 @@ describe('QueryStringManager', () => {
       ['download' as const],
       ['expand' as const],
       ['menu_toggle' as const],
-    ])('%s', (action: string) => {
+    ])('%s', async (action: string) => {
       setQueryString(`?frigate-card-action.id.${action}=`);
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
-      manager.executeAll();
+      await manager.executeAll();
 
       expect(manager.hasViewRelatedActions()).toBeFalsy();
       expect(api.getActionsManager().executeActions).toBeCalledWith([
@@ -85,7 +85,7 @@ describe('QueryStringManager', () => {
     });
   });
 
-  it('should execute view default action', () => {
+  it('should execute view default action', async () => {
     setQueryString('?frigate-card-action.id.default=');
     const api = createCardAPI();
     // View actions do not need the card to have been updated.
@@ -93,7 +93,7 @@ describe('QueryStringManager', () => {
 
     const manager = new QueryStringManager(api);
 
-    manager.executeAll();
+    await manager.executeAll();
 
     expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalled();
 
@@ -102,13 +102,13 @@ describe('QueryStringManager', () => {
     expect(api.getViewManager().setViewByParameters).not.toBeCalled();
   });
 
-  it('should execute camera_select action', () => {
+  it('should execute camera_select action', async () => {
     setQueryString('?frigate-card-action.id.camera_select=camera.office');
     const api = createCardAPI();
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
-    manager.executeAll();
+    await manager.executeAll();
 
     expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
       params: {
@@ -121,13 +121,13 @@ describe('QueryStringManager', () => {
     expect(api.getViewManager().setViewDefault).not.toBeCalled();
   });
 
-  it('should execute live_substream_select action', () => {
+  it('should execute live_substream_select action', async () => {
     setQueryString('?frigate-card-action.id.live_substream_select=camera.office_hd');
     const api = createCardAPI();
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
-    manager.executeAll();
+    await manager.executeAll();
 
     expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
       modifiers: [expect.any(SubstreamSelectViewModifier)],
@@ -142,13 +142,13 @@ describe('QueryStringManager', () => {
   describe('should ignore action without value', () => {
     it.each([['camera_select' as const], ['live_substream_select' as const]])(
       '%s',
-      (action: string) => {
+      async (action: string) => {
         setQueryString(`?frigate-card-action.id.${action}=`);
         const api = createCardAPI();
         vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
         const manager = new QueryStringManager(api);
 
-        manager.executeAll();
+        await manager.executeAll();
 
         expect(manager.hasViewRelatedActions()).toBeFalsy();
         expect(api.getActionsManager().executeActions).not.toBeCalled();
@@ -158,7 +158,7 @@ describe('QueryStringManager', () => {
     );
   });
 
-  it('should handle unknown action', () => {
+  it('should handle unknown action', async () => {
     const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
     setQueryString('?frigate-card-action.id.not_an_action=value');
@@ -166,7 +166,7 @@ describe('QueryStringManager', () => {
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
 
-    manager.executeAll();
+    await manager.executeAll();
 
     expect(manager.hasViewRelatedActions()).toBeFalsy();
     expect(api.getActionsManager().executeActions).not.toBeCalled();
@@ -187,13 +187,13 @@ describe('QueryStringManager', () => {
       ['snapshot' as const],
       ['snapshots' as const],
       ['timeline' as const],
-    ])('%s', (viewName: string) => {
+    ])('%s', async (viewName: string) => {
       setQueryString(`?frigate-card-action.id.${viewName}=`);
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
-      manager.executeAll();
+      await manager.executeAll();
 
       expect(manager.hasViewRelatedActions()).toBeTruthy();
       expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
@@ -210,13 +210,13 @@ describe('QueryStringManager', () => {
       ['download' as const],
       ['expand' as const],
       ['menu_toggle' as const],
-    ])('%s', (action: string) => {
+    ])('%s', async (action: string) => {
       setQueryString(`?frigate-card-action.id.${action}=value`);
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
       const manager = new QueryStringManager(api);
 
-      manager.executeAll();
+      await manager.executeAll();
 
       expect(api.getActionsManager().executeActions).not.toBeCalled();
       expect(api.getViewManager().setViewDefault).not.toBeCalled();
@@ -225,7 +225,7 @@ describe('QueryStringManager', () => {
   });
 
   describe('should handle conflicting but valid actions', () => {
-    it('view and default with camera and substream specified', () => {
+    it('view and default with camera and substream specified', async () => {
       setQueryString(
         '?frigate-card-action.id.clips=' +
           '&frigate-card-action.id.live_substream_select=camera.kitchen_hd' +
@@ -236,7 +236,7 @@ describe('QueryStringManager', () => {
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
-      manager.executeAll();
+      await manager.executeAll();
 
       expect(api.getViewManager().setViewDefaultWithNewQuery).toBeCalledWith({
         params: {
@@ -247,7 +247,7 @@ describe('QueryStringManager', () => {
       expect(api.getViewManager().setViewByParametersWithNewQuery).not.toBeCalled();
     });
 
-    it('multiple cameras specified', () => {
+    it('multiple cameras specified', async () => {
       setQueryString(
         '?frigate-card-action.id.camera_select=camera.kitchen' +
           '&frigate-card-action.id.camera_select=camera.office',
@@ -256,7 +256,7 @@ describe('QueryStringManager', () => {
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
-      manager.executeAll();
+      await manager.executeAll();
 
       expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
         params: {
@@ -279,13 +279,13 @@ describe('QueryStringManager', () => {
       ['snapshot' as const],
       ['snapshots' as const],
       ['timeline' as const],
-    ])('%s', (viewName: string) => {
+    ])('%s', async (viewName: string) => {
       setQueryString(`?frigate-card-action.id.${viewName}=`);
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
-      manager.executeNonViewRelated();
+      await manager.executeNonViewRelated();
 
       expect(api.getViewManager().setViewByParameters).not.toBeCalled();
       expect(api.getViewManager().setViewDefault).not.toBeCalled();
@@ -298,13 +298,13 @@ describe('QueryStringManager', () => {
       ['download' as const],
       ['expand' as const],
       ['menu_toggle' as const],
-    ])('%s', (viewName: string) => {
+    ])('%s', async (viewName: string) => {
       setQueryString(`?frigate-card-action.id.${viewName}=`);
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
 
-      manager.executeViewRelated();
+      await manager.executeViewRelated();
 
       expect(api.getActionsManager().executeActions).not.toBeCalled();
     });

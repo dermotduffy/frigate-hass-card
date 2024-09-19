@@ -8,6 +8,7 @@ import {
   createCameraConfig,
   createCameraManager,
   createCardAPI,
+  createConfig,
   createHASS,
   createRegistryEntity,
   createStateEntity,
@@ -75,6 +76,17 @@ describe('MediaPlayerManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
         createHASSWithMediaPlayers(),
       );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          menu: {
+            buttons: {
+              media_player: {
+                enabled: true,
+              },
+            },
+          },
+        }),
+      );
       vi.mocked(api.getEntityRegistryManager).mockReturnValue(entityRegistryManager);
       const manager = new MediaPlayerManager(api);
 
@@ -108,6 +120,17 @@ describe('MediaPlayerManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
         createHASSWithMediaPlayers(),
       );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          menu: {
+            buttons: {
+              media_player: {
+                enabled: true,
+              },
+            },
+          },
+        }),
+      );
       vi.mocked(api.getEntityRegistryManager).mockReturnValue(entityRegistryManager);
       const manager = new MediaPlayerManager(api);
 
@@ -120,6 +143,39 @@ describe('MediaPlayerManager', () => {
       ]);
       expect(manager.hasMediaPlayers()).toBeTruthy();
       expect(spy).toBeCalled();
+    });
+
+    it('should reinitialize when there is a config change', async () => {
+      const entityRegistryManager = mock<EntityRegistryManager>();
+      entityRegistryManager.getEntities.mockResolvedValue(
+        new Map([
+          ['media_player.ok1', createRegistryEntity({ hidden_by: '' })],
+          ['media_player.ok2', createRegistryEntity({ hidden_by: 'user' })],
+        ]),
+      );
+
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
+        createHASSWithMediaPlayers(),
+      );
+      const config = createConfig({
+        menu: {
+          buttons: {
+            media_player: {
+              enabled: true,
+            },
+          },
+        },
+      });
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(config);
+      vi.mocked(api.getEntityRegistryManager).mockReturnValue(entityRegistryManager);
+      const manager = new MediaPlayerManager(api);
+
+      await manager.initializeIfNecessary(null);
+      expect(manager.hasMediaPlayers()).toBeTruthy();
+
+      await manager.initializeIfNecessary(config);
+      expect(manager.hasMediaPlayers()).toBeTruthy();
     });
   });
 
