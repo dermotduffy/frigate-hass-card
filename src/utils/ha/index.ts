@@ -11,6 +11,7 @@ import {
   CardHelpers,
   ExtendedHomeAssistant,
   FrigateCardError,
+  LovelaceCardWithEditor,
   SignedPath,
   signedPathSchema,
   StateParameters,
@@ -316,17 +317,21 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const helpers: CardHelpers = await (window as any).loadCardHelpers();
 
-  // The picture-glance editor loads everything this card needs.
-  const pictureGlance = await helpers.createCardElement({
+  // This bizarre combination of hacks creates a dummy picture glance card, then
+  // waits for it to be fully loaded/upgraded as a custom element, so it will
+  // have the getConfigElement() method which is necessary to load all the
+  // elements this card requires.
+  await helpers.createCardElement({
     type: 'picture-glance',
     entities: [],
     camera_image: 'dummy-to-load-editor-components',
   });
-  if (pictureGlance.constructor.getConfigElement) {
-    await pictureGlance.constructor.getConfigElement();
-    return true;
-  }
-  return false;
+
+  const pgcConstructor = await customElements.whenDefined('hui-picture-glance-card');
+  const pgc = new pgcConstructor() as LovelaceCardWithEditor;
+
+  await pgc.constructor.getConfigElement();
+  return true;
 };
 
 /**

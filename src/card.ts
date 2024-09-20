@@ -15,7 +15,7 @@ import { FrigateCardElements } from './components/elements.js';
 import './components/menu.js';
 import { FrigateCardMenu } from './components/menu.js';
 import './components/message.js';
-import { renderMessage, renderProgressIndicator } from './components/message.js';
+import { renderMessage } from './components/message.js';
 import './components/overlay.js';
 import { FrigateCardOverlay } from './components/overlay.js';
 import './components/status-bar';
@@ -186,10 +186,6 @@ class FrigateCard extends LitElement {
       return false;
     }
     return true;
-  }
-
-  protected willUpdate(): void {
-    this._controller.getInitializationManager().initializeBackgroundIfNecessary();
   }
 
   protected _renderMenuStatusContainer(
@@ -373,37 +369,32 @@ class FrigateCard extends LitElement {
         ${this._renderMenuStatusContainer('top')}
         <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
           ${this._renderMenuStatusContainer('overlay')}
-          ${!cameraManager.isInitialized() &&
-          !this._controller.getMessageManager().hasMessage()
-            ? renderProgressIndicator({
-                cardWideConfig: this._controller.getConfigManager().getCardWideConfig(),
-              })
-            : // Always want to render <frigate-card-views> even if there's a message, to
-              // ensure live preload is always present (even if not displayed).
-              html`<frigate-card-views
-                ${ref(this._refViews)}
-                .hass=${this._hass}
-                .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
-                .cameraManager=${cameraManager}
-                .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
-                .nonOverriddenConfig=${this._controller
-                  .getConfigManager()
-                  .getNonOverriddenConfig()}
-                .overriddenConfig=${this._controller.getConfigManager().getConfig()}
-                .cardWideConfig=${this._controller
-                  .getConfigManager()
-                  .getCardWideConfig()}
-                .rawConfig=${this._controller.getConfigManager().getRawConfig()}
-                .configManager=${this._controller.getConfigManager()}
-                .conditionsManagerEpoch=${this._controller
-                  .getConditionsManager()
-                  ?.getEpoch()}
-                .hide=${!!this._controller.getMessageManager().hasMessage()}
-                .microphoneManager=${this._controller.getMicrophoneManager()}
-                .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
-                  ? this._controller.getTriggersManager().getTriggeredCameraIDs()
-                  : undefined}
-              ></frigate-card-views>`}
+          ${
+            // Always want to render <frigate-card-views> even if there's a message, to
+            // ensure live preload is always present (even if not displayed).
+            html`<frigate-card-views
+              ${ref(this._refViews)}
+              .hass=${this._hass}
+              .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
+              .cameraManager=${cameraManager}
+              .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
+              .nonOverriddenConfig=${this._controller
+                .getConfigManager()
+                .getNonOverriddenConfig()}
+              .overriddenConfig=${this._controller.getConfigManager().getConfig()}
+              .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
+              .rawConfig=${this._controller.getConfigManager().getRawConfig()}
+              .configManager=${this._controller.getConfigManager()}
+              .conditionsManagerEpoch=${this._controller
+                .getConditionsManager()
+                ?.getEpoch()}
+              .hide=${!!this._controller.getMessageManager().hasMessage()}
+              .microphoneManager=${this._controller.getMicrophoneManager()}
+              .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
+                ? this._controller.getTriggersManager().getTriggeredCameraIDs()
+                : undefined}
+            ></frigate-card-views>`
+          }
           ${
             // Keep message rendering to last to show messages that may have been
             // generated during the render.

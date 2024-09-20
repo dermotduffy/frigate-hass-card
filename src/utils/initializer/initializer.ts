@@ -1,21 +1,14 @@
 import { allPromises } from '../basic';
 
-enum InitializationState {
-  INITIALIZING = 'initializing',
-  INITIALIZED = 'initialized',
-}
-
 type InitializationCallback = () => Promise<boolean>;
 
 /**
- * Manages initialization state & calling initializers.
+ * Manages initialization state & calling initializers. There is no guarantee
+ * something will not be initialized twice unless there are concurrency controls
+ * applied to the usage of this class.
  */
 export class Initializer {
-  protected _state: Map<string, InitializationState>;
-
-  constructor() {
-    this._state = new Map();
-  }
+  protected _initialized: Set<string> = new Set();
 
   public async initializeMultipleIfNecessary(
     aspects: Record<string, InitializationCallback>,
@@ -27,43 +20,30 @@ export class Initializer {
     return results.every(Boolean);
   }
 
-  /**
-   *
-   * @param aspect The aspect to initialize.
-   * @param initializer The initializer to call.
-   * @returns `true` if the state is confirmed as initialized, `false`
-   * otherwise (i.e. initializing).
-   */
   public async initializeIfNecessary(
     aspect: string,
     initializer?: InitializationCallback,
   ): Promise<boolean> {
-    const state = this._state.get(aspect);
-    if (state !== InitializationState.INITIALIZED) {
-      if (state !== InitializationState.INITIALIZING) {
-        if (initializer) {
-          this._state.set(aspect, InitializationState.INITIALIZING);
-          if (await initializer()) {
-            this._state.set(aspect, InitializationState.INITIALIZED);
-          } else {
-            this.uninitialize(aspect);
-          }
-        } else {
-          this._state.set(aspect, InitializationState.INITIALIZED);
-        }
-        return true;
-      }
-      return false;
+    if (this._initialized.has(aspect)) {
+      return true;
     }
-    return true;
+    if (!initializer) {
+      this._initialized.add(aspect);
+      return true;
+    }
+    if (await initializer()) {
+      this._initialized.add(aspect);
+      return true;
+    }
+    return false;
   }
 
-  public uninitialize(aspect: string) {
-    return this._state.delete(aspect);
+  public uninitialize(aspect: string): void {
+    this._initialized.delete(aspect);
   }
 
   public isInitialized(aspect: string): boolean {
-    return this._state.get(aspect) == InitializationState.INITIALIZED;
+    return this._initialized.has(aspect);
   }
 
   public isInitializedMultiple(aspects: string[]): boolean {

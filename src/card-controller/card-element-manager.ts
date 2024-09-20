@@ -67,7 +67,12 @@ export class CardElementManager {
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
     this._api.getKeyboardStateManager().initialize();
+
+    // These initializers are called when the config is updated, but on initial
+    // creation of the card hass is not yet available when the config is first
+    // loaded.
     this._api.getDefaultManager().initialize();
+    this._api.getMediaPlayerManager().initialize();
 
     this._api
       .getHASSManager()
@@ -146,6 +151,8 @@ export class CardElementManager {
     // reconnection, to ensure the state subscription/unsubscription works
     // correctly for triggers.
     this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
+    this._api.getCameraManager().reset();
+
     this._element.removeEventListener(
       'mousemove',
       this._api.getInteractionManager().reportInteraction,

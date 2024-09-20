@@ -27,6 +27,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/endpoint.ts',
   'utils/ha/entity-registry/types.ts',
   'utils/ha/types.ts',
+  'utils/initializer.ts',
   'utils/interaction-mode.ts',
   'utils/media-info.ts',
   'utils/media-layout.ts',

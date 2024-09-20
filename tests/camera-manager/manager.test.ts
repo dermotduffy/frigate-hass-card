@@ -1289,4 +1289,19 @@ describe('CameraManager', async () => {
       expect(await manager.getMediaSeekTime(media, middleTime)).toBeNull();
     });
   });
+
+  it('should reset', async () => {
+    const api = createCardAPI();
+    const engine = mock<CameraManagerEngine>();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+    const manager = createCameraManager(api, engine);
+
+    expect(await manager.initializeCamerasFromConfig()).toBeTruthy();
+
+    expect(manager.getStore().getCameraCount()).toBe(1);
+
+    await manager.reset();
+
+    expect(manager.getStore().getCameraCount()).toBe(0);
+  });
 });

@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-import { frigateCardConfigSchema } from '../../../src/config/types';
 import { getOverriddenConfig } from '../../../src/card-controller/conditions-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
-import { createCardAPI, createConfig } from '../../test-utils';
+import { frigateCardConfigSchema } from '../../../src/config/types';
+import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
 
 vi.mock('../../../src/card-controller/conditions-manager.js');
 
@@ -229,7 +229,9 @@ describe('ConfigManager', () => {
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
 
       manager.setConfig(config_1);
-      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
+        InitializationAspect.VIEW,
+      );
 
       const config_2 = {
         type: 'custom:frigate-card',
@@ -238,7 +240,7 @@ describe('ConfigManager', () => {
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
       manager.computeOverrideConfig();
 
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
         InitializationAspect.CAMERAS,
       );
     });
@@ -253,7 +255,9 @@ describe('ConfigManager', () => {
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
 
       manager.setConfig(config_1);
-      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
+        InitializationAspect.VIEW,
+      );
 
       const config_2 = {
         ...config_1,
@@ -264,7 +268,7 @@ describe('ConfigManager', () => {
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
       manager.computeOverrideConfig();
 
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
         InitializationAspect.CAMERAS,
       );
     });
@@ -284,7 +288,9 @@ describe('ConfigManager', () => {
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
 
       manager.setConfig(config_1);
-      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
+        InitializationAspect.VIEW,
+      );
 
       const config_2 = {
         ...config_1,
@@ -297,42 +303,26 @@ describe('ConfigManager', () => {
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
       manager.computeOverrideConfig();
 
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
+      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
         InitializationAspect.MICROPHONE_CONNECT,
       );
     });
+  });
 
-    it('view.default_reset', () => {
-      const api = createCardAPI();
-      const manager = new ConfigManager(api);
-      const config_1 = {
-        type: 'custom:frigate-card',
-        cameras: [{ camera_entity: 'camera.office' }],
-        view: {
-          default_reset: {
-            every_seconds: 1,
-          },
-        },
-      };
-      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
+  it('should initialize background items', async () => {
+    const api = createCardAPI();
+    const manager = new ConfigManager(api);
+    const config = {
+      type: 'custom:frigate-card',
+      cameras: [{ camera_entity: 'camera.office' }],
+    };
+    vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config));
 
-      manager.setConfig(config_1);
-      expect(api.getInitializationManager().uninitialize).not.toBeCalled();
+    manager.setConfig(config);
 
-      const config_2 = {
-        ...config_1,
-        view: {
-          default_reset: {
-            every_seconds: 2,
-          },
-        },
-      };
-      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
-      manager.computeOverrideConfig();
+    await flushPromises();
 
-      expect(api.getInitializationManager().uninitialize).toBeCalledWith(
-        InitializationAspect.DEFAULT_RESET,
-      );
-    });
+    expect(api.getDefaultManager().initializeIfNecessary).toBeCalledWith(null);
+    expect(api.getMediaPlayerManager().initializeIfNecessary).toBeCalledWith(null);
   });
 });

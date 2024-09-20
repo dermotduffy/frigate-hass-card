@@ -1,4 +1,5 @@
-import PQueue from 'p-queue';
+import { isEqual } from 'lodash-es';
+import { FrigateCardConfig } from '../config/types';
 import { createGeneralAction } from '../utils/action';
 import { isActionAllowedBasedOnInteractionState } from '../utils/interaction-mode';
 import { Timer } from '../utils/timer';
@@ -10,20 +11,45 @@ import { CardDefaultManagerAPI } from './types';
 export class DefaultManager {
   protected _timer = new Timer();
   protected _api: CardDefaultManagerAPI;
-  protected _initializationLimit = new PQueue({ concurrency: 1 });
 
   constructor(api: CardDefaultManagerAPI) {
     this._api = api;
   }
 
+  public async initializeIfNecessary(
+    previousConfig: FrigateCardConfig | null,
+  ): Promise<void> {
+    if (
+      !isEqual(
+        previousConfig?.view.default_reset,
+        this._api.getConfigManager().getConfig()?.view.default_reset,
+      )
+    ) {
+      await this.initialize();
+    }
+  }
+
   /**
-   * Initialize the default manager. Requires both hass and configuration to be
-   * effective (so cannot be called from just the configuration manager, as hass
-   * will not be available yet)
+   * This needs to be public since the first initialization requires both hass
+   * and the config, so it is not suitable from calling exclusively from the
+   * config manager.
    */
   public async initialize(): Promise<boolean> {
-    const result = await this._initializationLimit.add(() => this._reconfigure());
-    this._startTimer();
+    this.uninitialize();
+
+    const config = this._api.getConfigManager().getConfig()?.view.default_reset;
+    if (config?.entities.length) {
+      this._api
+        .getHASSManager()
+        .getStateWatcher()
+        .subscribe(this._stateChangeHandler, config.entities);
+    }
+
+    const timerSeconds = this._api.getConfigManager().getConfig()?.view
+      .default_reset.every_seconds;
+    if (timerSeconds) {
+      this._timer.startRepeated(timerSeconds, () => this._setToDefaultIfAllowed());
+    }
 
     if (this._api.getConfigManager().getConfig()?.view.default_reset.after_interaction) {
       this._api.getAutomationsManager().addAutomations([
@@ -40,35 +66,13 @@ export class DefaultManager {
       ]);
     }
 
-    return !!result;
+    return true;
   }
 
   public uninitialize(): void {
     this._timer.stop();
     this._api.getHASSManager().getStateWatcher().unsubscribe(this._stateChangeHandler);
     this._api.getAutomationsManager().deleteAutomations(this);
-  }
-
-  protected async _reconfigure(): Promise<boolean> {
-    const hass = this._api.getHASSManager().getHASS();
-    const config = this._api.getConfigManager().getConfig()?.view.default_reset;
-    if (!hass || !config) {
-      return false;
-    }
-
-    this._api.getHASSManager().getStateWatcher().unsubscribe(this._stateChangeHandler);
-    this._api
-      .getHASSManager()
-      .getStateWatcher()
-      .subscribe(this._stateChangeHandler, config.entities);
-
-    // If the timer is running, restart it with the newly configured timer.
-    if (this._timer.isRunning()) {
-      this._timer.stop();
-      this._startTimer();
-    }
-
-    return true;
   }
 
   protected _stateChangeHandler = (): void => {
@@ -91,13 +95,5 @@ export class DefaultManager {
         this._api.getInteractionManager().hasInteraction(),
       )
     );
-  }
-
-  protected _startTimer(): void {
-    const timerSeconds = this._api.getConfigManager().getConfig()?.view
-      .default_reset.every_seconds;
-    if (timerSeconds) {
-      this._timer.startRepeated(timerSeconds, () => this._setToDefaultIfAllowed());
-    }
   }
 }

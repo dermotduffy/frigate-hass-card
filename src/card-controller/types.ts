@@ -91,6 +91,7 @@ export interface CardConfigAPI {
   getDefaultManager(): DefaultManager;
   getInitializationManager(): InitializationManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
+  getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getStyleManager(): StyleManager;
@@ -201,6 +202,7 @@ export interface CardMediaLoadedAPI {
 
 export interface CardMediaPlayerAPI {
   getCameraManager(): CameraManager;
+  getConfigManager(): ConfigManager;
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;
   getMessageManager(): MessageManager;
@@ -257,6 +259,7 @@ export interface CardViewAPI {
   getHASSManager(): HASSManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMessageManager(): MessageManager;
+  getQueryStringManager(): QueryStringManager;
   getStyleManager(): StyleManager;
   getTriggersManager(): TriggersManager;
 }

@@ -4,6 +4,8 @@ import { mock } from 'vitest-mock-extended';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
 import { FrigateCardView } from '../../../src/config/types';
+import { ViewMedia } from '../../../src/view/media';
+import { MediaQueriesResults } from '../../../src/view/media-queries-results';
 import {
   createCameraManager,
   createCapabilities,
@@ -11,8 +13,6 @@ import {
   createStore,
   createView,
 } from '../../test-utils';
-import { ViewMedia } from '../../../src/view/media';
-import { MediaQueriesResults } from '../../../src/view/media-queries-results';
 
 describe('should act correctly when view is set', () => {
   it('basic view', () => {
@@ -359,5 +359,34 @@ describe('hasMajorMediaChange', () => {
     expect(
       manager.hasMajorMediaChange(createView({ queryResults: queryResults_2 })),
     ).toBeFalsy();
+  });
+
+  describe('should initialize', () => {
+    it('without querystring', async () => {
+      const api = createCardAPI();
+      const factory = mock<ViewFactory>();
+      const manager = new ViewManager(api, factory);
+
+      const view = createView({
+        view: 'live',
+        camera: 'camera',
+      });
+      factory.getViewDefaultWithNewQuery.mockResolvedValue(view);
+
+      expect(await manager.initialize()).toBeTruthy();
+
+      expect(manager.getView()).toBe(view);
+    });
+
+    it('with querystring', async () => {
+      const api = createCardAPI();
+      const factory = mock<ViewFactory>();
+      const manager = new ViewManager(api, factory);
+      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(true);
+
+      expect(await manager.initialize()).toBeTruthy();
+
+      expect(api.getQueryStringManager().executeViewRelated).toBeCalled();
+    });
   });
 });
