@@ -212,8 +212,10 @@ export class ConditionsManager {
     };
 
     const conditions = getAllConditions();
-    this._hasHAStateConditions = conditions.some((conditionObj) =>
-      ['state', 'numeric_state', 'user'].includes(conditionObj.condition),
+    this._hasHAStateConditions = conditions.some(
+      (conditionObj) =>
+        !conditionObj.condition ||
+        ['state', 'numeric_state', 'user'].includes(conditionObj.condition),
     );
     conditions.forEach((conditionObj) => {
       if (conditionObj.condition === 'screen') {
@@ -263,16 +265,7 @@ export class ConditionsManager {
     };
 
     switch (conditionObj.condition) {
-      case 'view':
-        return !!state?.view && conditionObj.views.includes(state.view);
-      case 'fullscreen':
-        return (
-          state.fullscreen !== undefined && conditionObj.fullscreen === state.fullscreen
-        );
-      case 'expand':
-        return state.expand !== undefined && conditionObj.expand === state.expand;
-      case 'camera':
-        return !!state.camera && conditionObj.cameras.includes(state.camera);
+      case undefined:
       case 'state':
         return (
           !!state.state &&
@@ -289,6 +282,16 @@ export class ConditionsManager {
                     )
                   : conditionObj.state_not !== state.state[conditionObj.entity].state))))
         );
+      case 'view':
+        return !!state?.view && conditionObj.views.includes(state.view);
+      case 'fullscreen':
+        return (
+          state.fullscreen !== undefined && conditionObj.fullscreen === state.fullscreen
+        );
+      case 'expand':
+        return state.expand !== undefined && conditionObj.expand === state.expand;
+      case 'camera':
+        return !!state.camera && conditionObj.cameras.includes(state.camera);
       case 'numeric_state':
         return (
           !!state.state &&

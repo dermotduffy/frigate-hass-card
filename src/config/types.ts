@@ -518,7 +518,10 @@ const imageSchema = elementsBaseSchema.extend({
 
 // https://www.home-assistant.io/dashboards/conditional/#state
 const stateConditionSchema = z.object({
-  condition: z.literal('state'),
+  // If the condition is not specified, a state condition is assumed. This
+  // allows the syntax to match a picture elements conditional:
+  // https://www.home-assistant.io/dashboards/picture-elements/#conditional-element
+  condition: z.literal('state').optional(),
   entity: z.string(),
   state: z.string().or(z.string().array()).optional(),
   state_not: z.string().or(z.string().array()).optional(),
