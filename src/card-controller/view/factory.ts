@@ -245,7 +245,6 @@ export class ViewFactory {
     } else {
       switch (view.view) {
         case 'live':
-          this._setTimelineWindowToLive(view);
           if (config.live.controls.thumbnails.mode !== 'none') {
             await executeMediaQuery(
               config.live.controls.thumbnails.media_type === 'recordings'
@@ -282,6 +281,7 @@ export class ViewFactory {
       }
     }
 
+    this._setOrRemoveTimelineWindow(view);
     this._setOrRemoveSeekTime(
       view,
       options?.queryExecutorOptions?.selectResult?.time?.time,
@@ -289,29 +289,37 @@ export class ViewFactory {
     return view;
   }
 
-  protected _setTimelineWindowToLive(view: View): void {
-    const now = new Date();
-    const liveConfig = this._api.getConfigManager().getConfig()?.live;
+  protected _setOrRemoveTimelineWindow(view: View): void {
+    if (view.is('live')) {
+      // For live views, always force the timeline to now, regardless of
+      // presence or not of events.
+      const now = new Date();
+      const liveConfig = this._api.getConfigManager().getConfig()?.live;
 
-    /* istanbul ignore if: this if branch cannot be reached as if the config is
-       empty this function is never called -- @preserve */
-    if (!liveConfig) {
-      return;
-    }
+      /* istanbul ignore if: this if branch cannot be reached as if the config is
+         empty this function is never called -- @preserve */
+      if (!liveConfig) {
+        return;
+      }
 
-    view.mergeInContext({
-      // Force the window to start at the most recent time, not
-      // necessarily when the most recent event/recording was:
-      // https://github.com/dermotduffy/frigate-hass-card/issues/1301
-      timeline: {
-        window: {
-          start: sub(now, {
-            seconds: liveConfig.controls.timeline.window_seconds,
-          }),
-          end: now,
+      view.mergeInContext({
+        // Force the window to start at the most recent time, not
+        // necessarily when the most recent event/recording was:
+        // https://github.com/dermotduffy/frigate-hass-card/issues/1301
+        timeline: {
+          window: {
+            start: sub(now, {
+              seconds: liveConfig.controls.timeline.window_seconds,
+            }),
+            end: now,
+          },
         },
-      },
-    });
+      });
+    } else {
+      // For non-live views stick to default timeline behavior (will select and
+      // scroll to event).
+      view.removeContextProperty('timeline', 'window');
+    }
   }
 
   protected _setOrRemoveSeekTime(view: View, time?: Date): void {

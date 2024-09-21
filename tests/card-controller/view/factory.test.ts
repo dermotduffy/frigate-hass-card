@@ -17,6 +17,7 @@ import {
   createCardAPI,
   createConfig,
   createStore,
+  createView,
 } from '../../test-utils';
 import { createPopulatedAPI } from './test-utils';
 
@@ -340,22 +341,46 @@ describe('getViewByParametersWithNewQuery', () => {
       vi.useRealTimers();
     });
 
-    it('should set timeline window', async () => {
-      const executor = mock<QueryExecutor>();
-      const factory = new ViewFactory(createPopulatedAPI(), executor);
-      const view = await factory.getViewByParametersWithNewQuery({
-        params: {
-          view: 'live',
-        },
+    describe('should set timeline window', async () => {
+      it('should set timeline to now for live views', async () => {
+        const executor = mock<QueryExecutor>();
+        const factory = new ViewFactory(createPopulatedAPI(), executor);
+        const view = await factory.getViewByParametersWithNewQuery({
+          params: {
+            view: 'live',
+          },
+        });
+
+        expect(view?.context).toEqual({
+          timeline: {
+            window: {
+              start: new Date('2024-07-21T12:22:06.000Z'),
+              end: new Date('2024-07-21T13:22:06.000Z'),
+            },
+          },
+        });
       });
 
-      expect(view?.context).toEqual({
-        timeline: {
-          window: {
-            start: new Date('2024-07-21T12:22:06.000Z'),
-            end: new Date('2024-07-21T13:22:06.000Z'),
+      it('should unset timeline for non-live views', async () => {
+        const executor = mock<QueryExecutor>();
+        const factory = new ViewFactory(createPopulatedAPI(), executor);
+        const view = await factory.getViewByParametersWithNewQuery({
+          baseView: createView({
+            context: {
+              timeline: {
+                window: {
+                  start: new Date('2024-07-21T12:22:06.000Z'),
+                  end: new Date('2024-07-21T13:22:06.000Z'),
+                },
+              },
+            },
+          }),
+          params: {
+            view: 'clip',
           },
-        },
+        });
+
+        expect(view?.context).toEqual({ timeline: {} });
       });
     });
 
