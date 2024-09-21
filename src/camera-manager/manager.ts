@@ -237,14 +237,18 @@ export class CameraManager {
       async ([cameraConfig, engine]) => await engine.createCamera(hass, cameraConfig),
     );
 
+    const destroyCameras = async () => {
+      cameras.forEach((camera) => camera.destroy());
+    };
     const cameraIDs: Set<string> = new Set();
 
     // Do the additions based off the result-order, to ensure the map order is
     // preserved.
-    cameras.forEach((camera) => {
+    for (const camera of cameras) {
       const cameraID = getCameraID(camera.getConfig());
 
       if (!cameraID) {
+        await destroyCameras();
         throw new CameraInitializationError(
           localize('error.no_camera_id'),
           camera.getConfig(),
@@ -252,6 +256,7 @@ export class CameraManager {
       }
 
       if (cameraIDs.has(cameraID)) {
+        await destroyCameras();
         throw new CameraInitializationError(
           localize('error.duplicate_camera_id'),
           camera.getConfig(),
@@ -261,7 +266,7 @@ export class CameraManager {
       // Always ensure the actual ID used in the card is in the configuration itself.
       camera.setID(cameraID);
       cameraIDs.add(cameraID);
-    });
+    }
 
     await this._store.setCameras(cameras);
 
