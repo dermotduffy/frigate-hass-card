@@ -485,7 +485,9 @@ export class FrigateCardGalleryCore extends LitElement {
         // ... and there is a thumbnail rendered that is selected.
         this._refSelected.value
       ) {
-        this._refSelected.value.scrollIntoView();
+        this._refSelected.value.scrollIntoView({
+          block: 'center',
+        });
       }
     });
   }
