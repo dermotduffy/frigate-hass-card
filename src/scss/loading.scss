@@ -1,0 +1,40 @@
+:host {
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  pointer-events: none;
+
+  transition: opacity 1s;
+}
+
+:host([show]) {
+  opacity: 1;
+}
+
+:host(:not([show])) {
+  opacity: 0;
+}
+
+img {
+  width: 40%;
+  height: 40%;
+
+  opacity: 0.2;
+
+  filter: invert(100%);
+
+  animation: rotate 8s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

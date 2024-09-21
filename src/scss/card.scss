@@ -13,6 +13,7 @@
   border-radius: var(--ha-card-border-radius, 4px);
 
   height: var(--frigate-card-height);
+  min-height: 100px;
 
   // Ensure all clicks at the top level work.
   pointer-events: all;
@@ -27,6 +28,12 @@
   --frigate-card-expand-aspect-ratio: unset;
 
   --frigate-card-height: auto;
+}
+
+frigate-card-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 :host([dark]) {

@@ -57,6 +57,7 @@ describe('InitializationManager', () => {
     it('without hass', async () => {
       const manager = new InitializationManager(createCardAPI());
       await manager.initializeMandatory();
+      expect(manager.wasEverInitialized()).toBeFalsy();
     });
 
     it('without config', async () => {
@@ -67,6 +68,7 @@ describe('InitializationManager', () => {
       vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
 
       await manager.initializeMandatory();
+      expect(manager.wasEverInitialized()).toBeFalsy();
     });
 
     it('successfully', async () => {
@@ -94,6 +96,8 @@ describe('InitializationManager', () => {
       expect(api.getViewManager().initialize).toBeCalled();
       expect(api.getMicrophoneManager().connect).not.toBeCalled();
       expect(api.getCardElementManager().update).toBeCalled();
+
+      expect(manager.wasEverInitialized()).toBeTruthy();
     });
 
     it('successfully with microphone if configured', async () => {
