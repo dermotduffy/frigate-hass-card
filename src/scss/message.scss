@@ -57,6 +57,5 @@ div.message div.icon {
 
 .message pre {
   margin-top: 20px;
-  white-space: pre-wrap;
-  word-break: break-all;
+  overflow-x: scroll
 }

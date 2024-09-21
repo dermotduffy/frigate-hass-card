@@ -1,3 +1,4 @@
+import yaml from 'js-yaml';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ClassInfo, classMap } from 'lit/directives/class-map.js';
@@ -42,8 +43,8 @@ export class FrigateCardMessage extends LitElement {
                   : ''}`
               : ''}
           </span>
-          ${this.context && typeof this.context !== 'string'
-            ? html`<pre>${JSON.stringify(this.context, null, 2)}</pre>`
+          ${this.context && typeof this.context === 'object'
+            ? html`<pre>${yaml.dump(this.context)}</pre>`
             : ''}
         </div>
       </div>
