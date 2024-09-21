@@ -12,6 +12,7 @@ import { CardController } from './card-controller/controller';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/elements.js';
 import { FrigateCardElements } from './components/elements.js';
+import './components/loading.js';
 import './components/menu.js';
 import { FrigateCardMenu } from './components/menu.js';
 import './components/message.js';
@@ -183,7 +184,6 @@ class FrigateCard extends LitElement {
 
     if (!this._controller.getInitializationManager().isInitializedMandatory()) {
       this._controller.getInitializationManager().initializeMandatory();
-      return false;
     }
     return true;
   }
@@ -338,6 +338,11 @@ class FrigateCard extends LitElement {
 
     const actions = this._controller.getActionsManager().getMergedActions();
     const cameraManager = this._controller.getCameraManager();
+    const renderLoadingSpinner =
+      this._config?.performance?.features.animated_progress_indicator !== false;
+    const showLoadingSpinner =
+      !this._controller.getInitializationManager().wasEverInitialized() &&
+      !this._controller.getMessageManager().hasMessage();
 
     // Caution: Keep the main div and the menu next to one another in order to
     // ensure the hover menu styling continues to work.
@@ -366,35 +371,35 @@ class FrigateCard extends LitElement {
         }
         @frigate-card:focus=${() => this.focus()}
       >
+        ${renderLoadingSpinner
+          ? html`<frigate-card-loading .show=${showLoadingSpinner}>
+            </frigate-card-loading>`
+          : ''}
         ${this._renderMenuStatusContainer('top')}
         <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
           ${this._renderMenuStatusContainer('overlay')}
-          ${
-            // Always want to render <frigate-card-views> even if there's a message, to
-            // ensure live preload is always present (even if not displayed).
-            html`<frigate-card-views
-              ${ref(this._refViews)}
-              .hass=${this._hass}
-              .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
-              .cameraManager=${cameraManager}
-              .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
-              .nonOverriddenConfig=${this._controller
-                .getConfigManager()
-                .getNonOverriddenConfig()}
-              .overriddenConfig=${this._controller.getConfigManager().getConfig()}
-              .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
-              .rawConfig=${this._controller.getConfigManager().getRawConfig()}
-              .configManager=${this._controller.getConfigManager()}
-              .conditionsManagerEpoch=${this._controller
-                .getConditionsManager()
-                ?.getEpoch()}
-              .hide=${!!this._controller.getMessageManager().hasMessage()}
-              .microphoneManager=${this._controller.getMicrophoneManager()}
-              .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
-                ? this._controller.getTriggersManager().getTriggeredCameraIDs()
-                : undefined}
-            ></frigate-card-views>`
-          }
+          <frigate-card-views
+            ${ref(this._refViews)}
+            .hass=${this._hass}
+            .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
+            .cameraManager=${cameraManager}
+            .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
+            .nonOverriddenConfig=${this._controller
+              .getConfigManager()
+              .getNonOverriddenConfig()}
+            .overriddenConfig=${this._controller.getConfigManager().getConfig()}
+            .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
+            .rawConfig=${this._controller.getConfigManager().getRawConfig()}
+            .configManager=${this._controller.getConfigManager()}
+            .conditionsManagerEpoch=${this._controller
+              .getConditionsManager()
+              ?.getEpoch()}
+            .hide=${!!this._controller.getMessageManager().hasMessage()}
+            .microphoneManager=${this._controller.getMicrophoneManager()}
+            .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
+              ? this._controller.getTriggersManager().getTriggeredCameraIDs()
+              : undefined}
+          ></frigate-card-views>
           ${
             // Keep message rendering to last to show messages that may have been
             // generated during the render.

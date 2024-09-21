@@ -31,10 +31,15 @@ export class InitializationManager {
   // initialization" (above) are followed.
   protected _initializationQueue = new PQueue({ concurrency: 1 });
   protected _initializer: Initializer;
+  protected _everInitialized = false;
 
   constructor(api: CardInitializerAPI, initializer?: Initializer) {
     this._api = api;
     this._initializer = initializer ?? new Initializer();
+  }
+
+  public wasEverInitialized(): boolean {
+    return this._everInitialized;
   }
 
   public isInitializedMandatory(): boolean {
@@ -113,6 +118,7 @@ export class InitializationManager {
       return;
     }
 
+    this._everInitialized = true;
     this._api.getCardElementManager().update();
   }
 
