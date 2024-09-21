@@ -125,7 +125,6 @@ div.opposing {
 :host([data-style*='hover']),
 :host([data-style='hidden'][expanded]) {
   overflow: visible;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
 }
 
 :host([data-style='overlay'][data-position='top']),
@@ -136,6 +135,9 @@ div.opposing {
 :host([data-style='hidden'][data-position='bottom'][expanded]) {
   width: 100%;
   height: auto;
+
+  // Linear fade left to right.
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
 }
 
 :host([data-style='overlay'][data-position='left']),
@@ -146,4 +148,7 @@ div.opposing {
 :host([data-style='hidden'][data-position='right'][expanded]) {
   width: auto;
   height: 100%;
+
+    // Linear fade top to bottom.
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
 }
