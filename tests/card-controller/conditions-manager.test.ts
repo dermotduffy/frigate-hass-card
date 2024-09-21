@@ -457,20 +457,37 @@ describe('ConditionsManager', () => {
       expect(manager.hasHAStateConditions()).toBeFalsy();
     });
 
-    it('with HA state conditions', () => {
-      const api = createCardAPI();
-      const numericConfig = createSuitableConfig([
-        {
-          condition: 'state' as const,
-          entity: 'binary_sensor.foo',
-          state: 'on',
-        },
-      ]);
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(numericConfig);
-      const manager = new ConditionsManager(api);
-      manager.setConditionsFromConfig();
+    describe('with HA state conditions', () => {
+      it('explicitly stated', () => {
+        const api = createCardAPI();
+        const numericConfig = createSuitableConfig([
+          {
+            condition: 'state' as const,
+            entity: 'binary_sensor.foo',
+            state: 'on',
+          },
+        ]);
+        vi.mocked(api.getConfigManager().getConfig).mockReturnValue(numericConfig);
+        const manager = new ConditionsManager(api);
+        manager.setConditionsFromConfig();
 
-      expect(manager.hasHAStateConditions()).toBeTruthy();
+        expect(manager.hasHAStateConditions()).toBeTruthy();
+      });
+
+      it('implicitly assumed', () => {
+        const api = createCardAPI();
+        const numericConfig = createSuitableConfig([
+          {
+            entity: 'binary_sensor.foo',
+            state: 'on',
+          },
+        ]);
+        vi.mocked(api.getConfigManager().getConfig).mockReturnValue(numericConfig);
+        const manager = new ConditionsManager(api);
+        manager.setConditionsFromConfig();
+
+        expect(manager.hasHAStateConditions()).toBeTruthy();
+      });
     });
 
     it('with HA numeric_state conditions', () => {
@@ -656,6 +673,23 @@ describe('ConditionsManager', () => {
             state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
           });
           expect(manager.evaluateConditions(conditions)).toBeTruthy();
+        });
+
+        it('implicit state condition', () => {
+          const manager = new ConditionsManager(createCardAPI());
+          const conditions = [
+            {
+              entity: 'binary_sensor.foo',
+              state: 'on',
+            },
+          ];
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
+          manager.setState({ state: { 'binary_sensor.foo': createStateEntity() } });
+          expect(manager.evaluateConditions(conditions)).toBeTruthy();
+          manager.setState({
+            state: { 'binary_sensor.foo': createStateEntity({ state: 'off' }) },
+          });
+          expect(manager.evaluateConditions(conditions)).toBeFalsy();
         });
       });
 
