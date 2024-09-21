@@ -39,7 +39,7 @@ Explain what the issue is, and how things should look/behave. If possible provid
 On the card, hold down the Frigate menu button for a few seconds then paste the diagnostics below:
 -->
 
-```json
+```yaml
 
 ```
 

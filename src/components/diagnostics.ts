@@ -22,11 +22,15 @@ export class FrigateCardDiagnostics extends LitElement {
     this._diagnostics = await getDiagnostics(this.hass, this.rawConfig);
   }
 
-  protected render(): TemplateResult | void {
+  protected shouldUpdate(): boolean {
     if (!this._diagnostics) {
       this._fetchDiagnostics().then(() => this.requestUpdate());
-      return;
+      return false;
     }
+    return true;
+  }
+
+  protected render(): TemplateResult | void {
     return renderMessage({
       message: localize('error.diagnostics'),
       type: 'diagnostics',

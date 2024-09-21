@@ -2088,6 +2088,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/js-yaml@npm:^4":
+  version: 4.0.9
+  resolution: "@types/js-yaml@npm:4.0.9"
+  checksum: 10c0/24de857aa8d61526bbfbbaa383aa538283ad17363fcd5bb5148e2c7f604547db36646440e739d78241ed008702a8920665d1add5618687b6743858fae00da211
+  languageName: node
+  linkType: hard
+
 "@types/json5@npm:^0.0.29":
   version: 0.0.29
   resolution: "@types/json5@npm:0.0.29"
@@ -5131,6 +5138,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^11.1.6"
     "@semantic-release/github": "npm:^10.3.3"
     "@types/bluebird": "npm:^3.5.42"
+    "@types/js-yaml": "npm:^4"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/masonry-layout": "npm:^4.2.8"
     "@typescript-eslint/eslint-plugin": "npm:^7.13.0"
@@ -5148,6 +5156,7 @@ __metadata:
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
     home-assistant-js-websocket: "npm:^9.4.0"
+    js-yaml: "npm:^4.1.0"
     jsdom: "npm:^21.1.2"
     keycharm: "npm:^0.4.0"
     lit: "npm:^3.1.4"
