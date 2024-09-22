@@ -4,10 +4,7 @@ import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/st
 import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
-import {
-  errorToConsole,
-  recursivelyMergeObjectsConcatenatingArraysUniquely,
-} from '../../utils/basic';
+import { errorToConsole } from '../../utils/basic';
 import { EntityRegistryManager } from '../../utils/ha/entity-registry';
 import { Entity } from '../../utils/ha/entity-registry/types';
 import { Camera, CameraInitializationOptions } from '../camera';
@@ -125,14 +122,11 @@ export class FrigateCamera extends Camera {
 
     const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(this.getConfig());
     const frigatePTZCapabilities = await this._getPTZCapabilities(hass, config);
-    const combinedPTZCapabilities =
-      configPTZCapabilities || frigatePTZCapabilities
-        ? recursivelyMergeObjectsConcatenatingArraysUniquely(
-            {},
-            configPTZCapabilities,
-            frigatePTZCapabilities,
-          )
-        : null;
+
+    const combinedPTZCapabilities: PTZCapabilities = {
+      ...frigatePTZCapabilities,
+      ...configPTZCapabilities,
+    };
 
     const birdseye = isBirdseye(config);
     this._capabilities = new Capabilities(

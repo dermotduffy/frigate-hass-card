@@ -203,6 +203,11 @@ to allow for precise/smooth controls, and if unavailable will translate multiple
 `relative` steps with optional delays between each step. Manually configured
 [actions](../actions/README.md) may be configured to call either variety.
 
+When PTZ actions are manually set in the config, they will replace the
+auto-detected actions. For example if `actions_left` is set for a Frigate
+camera, it will be used for all `left` PTZ actions even though Frigate cameras
+natively support continuous actions (`actions_left_start`, `actions_left_stop`).
+
 ?> Frigate auto-detected PTZ actions will always be `continuous` as this is what
 the integration currently offers.
 

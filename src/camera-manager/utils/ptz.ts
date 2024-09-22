@@ -70,13 +70,15 @@ export const getPTZCapabilitiesFromCameraConfig = (
     zoomOut?.length ||
     presets?.length
     ? {
-        left: left ?? undefined,
-        right: right ?? undefined,
-        up: up ?? undefined,
-        down: down ?? undefined,
-        zoomIn: zoomIn ?? undefined,
-        zoomOut: zoomOut ?? undefined,
-        presets: presets,
+        // Only return keys with some capability (to aid with action merging
+        // later).
+        ...(left ? { left } : {}),
+        ...(right ? { right } : {}),
+        ...(up ? { up } : {}),
+        ...(down ? { down } : {}),
+        ...(zoomIn ? { zoomIn } : {}),
+        ...(zoomOut ? { zoomOut } : {}),
+        ...(presets ? { presets } : {}),
       }
     : null;
 };

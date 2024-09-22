@@ -163,11 +163,9 @@ describe('getPTZCapabilitiesFromCameraConfig', () => {
             },
           }),
         ),
-      )?.toEqual(
-        expect.objectContaining({
-          [capabilityName]: ['relative'],
-        }),
-      );
+      )?.toEqual({
+        [capabilityName]: ['relative'],
+      });
     });
   });
 
@@ -182,10 +180,8 @@ describe('getPTZCapabilitiesFromCameraConfig', () => {
           },
         }),
       ),
-    )?.toEqual(
-      expect.objectContaining({
-        presets: ['window'],
-      }),
-    );
+    )?.toEqual({
+      presets: ['window'],
+    });
   });
 });
