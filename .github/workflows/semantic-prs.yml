@@ -9,10 +9,6 @@ on:
       - synchronize
       - reopened
 
-permissions:
-  pull-requests: read
-  issues: write
-
 jobs:
   main:
     name: Validate PR title
