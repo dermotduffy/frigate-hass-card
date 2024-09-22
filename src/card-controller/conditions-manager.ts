@@ -1,5 +1,6 @@
 import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities } from 'home-assistant-js-websocket';
+import { isEqual } from 'lodash-es';
 import merge from 'lodash-es/merge';
 import { ZodSchema } from 'zod';
 import {
@@ -10,10 +11,10 @@ import {
 } from '../config/management';
 import {
   FrigateCardCondition,
-  RawFrigateCardConfig,
-  ViewDisplayMode,
   frigateConditionalSchema,
   Overrides,
+  RawFrigateCardConfig,
+  ViewDisplayMode,
 } from '../config/types';
 import { desparsifyArrays } from '../utils/basic';
 import { CardConditionAPI, KeysState } from './types';
@@ -227,6 +228,13 @@ export class ConditionsManager {
   }
 
   public setState(state: Partial<ConditionState>): void {
+    // Performance: Compare the new state with the existing state and only
+    // trigger a change if the new state is different. Only the new keys are
+    // compared, since some of the values (e.g. 'state') will be large.
+    if (Object.keys(state).every((key) => isEqual(state[key], this._state[key]))) {
+      return;
+    }
+
     this._state = {
       ...this._state,
       ...state,
