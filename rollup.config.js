@@ -1,13 +1,13 @@
-import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import terser from '@rollup/plugin-terser';
-import serve from 'rollup-plugin-serve';
-import json from '@rollup/plugin-json';
-import styles from 'rollup-plugin-styler';
 import image from '@rollup/plugin-image';
+import json from '@rollup/plugin-json';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
+import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 import gitInfo from 'rollup-plugin-git-info';
+import serve from 'rollup-plugin-serve';
+import styles from 'rollup-plugin-styler';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 const watch = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
@@ -58,7 +58,8 @@ const plugins = [
     preventAssignment: true,
     values: {
       'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
-      __FRIGATE_CARD_RELEASE_VERSION__: process.env.RELEASE_VERSION ?? 'dev',
+      __FRIGATE_CARD_RELEASE_VERSION__:
+        process.env.RELEASE_VERSION ?? (dev ? 'dev' : 'pkg'),
     },
   }),
   watch && serve(serveopts),
