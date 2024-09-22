@@ -113,11 +113,17 @@ export class ConfigManager {
     if (!this._config) {
       return;
     }
-    const overriddenConfig = getOverriddenConfig(conditionsManager, this._config, {
-      configOverrides: this._config.overrides,
-      schema: frigateCardConfigSchema,
-      logOnParseError: !!this.getCardWideConfig()?.debug?.logging,
-    }) as FrigateCardConfig;
+
+    let overriddenConfig: FrigateCardConfig | null = null;
+    try {
+      overriddenConfig = getOverriddenConfig(conditionsManager, this._config, {
+        configOverrides: this._config.overrides,
+        schema: frigateCardConfigSchema,
+      });
+    } catch (ev) {
+      this._api.getMessageManager().setErrorIfHigherPriority(ev);
+      return;
+    }
 
     // Save on Lit re-rendering costs by only updating the configuration if it
     // actually changes.

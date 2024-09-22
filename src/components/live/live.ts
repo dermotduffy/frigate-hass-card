@@ -21,6 +21,7 @@ import {
 import { ReadonlyMicrophoneManager } from '../../card-controller/microphone-manager.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LiveController } from '../../components-lib/live/live-controller.js';
+import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import {
   PartialZoomSettings,
@@ -56,12 +57,11 @@ import { playMediaMutingIfNecessary } from '../../utils/media.js';
 import { getStreamCameraID } from '../../utils/substream.js';
 import { View } from '../../view/view.js';
 import { EmblaCarouselPlugins } from '../carousel.js';
-import { renderMessage } from '../message.js';
+import { dispatchFrigateCardErrorEvent, renderMessage } from '../message.js';
 import '../next-prev-control.js';
 import '../ptz.js';
 import { FrigateCardPTZ } from '../ptz.js';
 import '../surround.js';
-import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 
 const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
 
@@ -483,20 +483,26 @@ export class FrigateCardLiveCarousel extends LitElement {
     ) {
       return;
     }
-    // The condition controller object contains the currently live camera, which
-    // (in the carousel for example) is not necessarily the live camera *this*
-    // <frigate-card-live-provider> is rendering right now, so we provide a
-    // stateOverride to evaluate the condition in that context.
-    const liveConfig = getOverriddenConfig(
-      this.conditionsManagerEpoch.manager,
-      { live: this.nonOverriddenLiveConfig },
-      {
-        configOverrides: this.overrides,
-        stateOverrides: { camera: cameraID },
-        schema: liveConfigAbsoluteRootSchema,
-        logOnParseError: !!this.cardWideConfig?.debug?.logging,
-      },
-    ).live as LiveConfig;
+
+    let liveConfig: LiveConfig | null = null;
+
+    try {
+      // The condition controller object contains the currently live camera, which
+      // (in the carousel for example) is not necessarily the live camera *this*
+      // <frigate-card-live-provider> is rendering right now, so we provide a
+      // stateOverride to evaluate the condition in that context.
+      liveConfig = getOverriddenConfig(
+        this.conditionsManagerEpoch.manager,
+        { live: this.nonOverriddenLiveConfig },
+        {
+          configOverrides: this.overrides,
+          stateOverrides: { camera: cameraID },
+          schema: liveConfigAbsoluteRootSchema,
+        },
+      ).live;
+    } catch (ev) {
+      return dispatchFrigateCardErrorEvent(this, ev);
+    }
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
     const view = this.viewManagerEpoch?.manager.getView();

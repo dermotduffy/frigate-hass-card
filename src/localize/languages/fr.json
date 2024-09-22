@@ -586,6 +586,7 @@
     "image_load_error": "L'image n'a pas pu être chargée",
     "invalid_configuration": "Configuration invalide",
     "invalid_configuration_no_hint": "Aucune indication de localisation disponible (type incorrect ou manquant ?)",
+    "invalid_configuration_override": "",
     "invalid_elements_config": "Configuration des éléments d'image invalide",
     "invalid_response": "Réponse non valide reçue de Home Assistant pour la demande",
     "jsmpeg_no_player": "Impossible de démarrer le lecteur JSMPEG",

@@ -1,12 +1,15 @@
 import { expect, it } from 'vitest';
+import { setProfiles } from '../../../src/config/profiles';
 import { LOW_PERFORMANCE_PROFILE } from '../../../src/config/profiles/low-performance';
+import { frigateCardConfigSchema } from '../../../src/config/types';
+import { createRawConfig } from '../../test-utils';
 
-it('low performance profile', () => {
+it('should contain expected defaults', () => {
   expect(LOW_PERFORMANCE_PROFILE).toEqual({
     'cameras_global.image.refresh_seconds': 10,
     'cameras_global.live_provider': 'image',
     'cameras_global.triggers.occupancy': false,
-    'live.auto_mute': 'never',
+    'live.auto_mute': [],
     'live.controls.thumbnails.mode': 'none',
     'live.controls.thumbnails.show_details': false,
     'live.controls.thumbnails.show_download_control': false,
@@ -14,16 +17,16 @@ it('low performance profile', () => {
     'live.controls.thumbnails.show_timeline_control': false,
     'live.controls.timeline.show_recordings': false,
     'live.draggable': false,
-    'live.lazy_unload': 'all',
+    'live.lazy_unload': ['unselected', 'hidden'],
     'live.show_image_during_load': false,
     'live.transition_effect': 'none',
     'media_gallery.controls.thumbnails.show_details': false,
     'media_gallery.controls.thumbnails.show_download_control': false,
     'media_gallery.controls.thumbnails.show_favorite_control': false,
     'media_gallery.controls.thumbnails.show_timeline_control': false,
-    'media_viewer.auto_mute': 'never',
-    'media_viewer.auto_pause': 'never',
-    'media_viewer.auto_play': 'never',
+    'media_viewer.auto_mute': [],
+    'media_viewer.auto_pause': [],
+    'media_viewer.auto_play': [],
     'media_viewer.controls.next_previous.style': 'chevrons',
     'media_viewer.controls.thumbnails.mode': 'none',
     'media_viewer.controls.thumbnails.show_details': false,
@@ -52,4 +55,15 @@ it('low performance profile', () => {
     'timeline.show_recordings': false,
     'view.triggers.actions.trigger': 'none',
   });
+});
+
+it('should be parseable after application', () => {
+  const rawInputConfig = createRawConfig();
+  const parsedConfig = frigateCardConfigSchema.parse(rawInputConfig);
+
+  setProfiles(rawInputConfig, parsedConfig, ['low-performance']);
+
+  // Reparse the config to ensure the profile did not introduce errors.
+  const parseResult = frigateCardConfigSchema.safeParse(parsedConfig);
+  expect(parseResult.success, parseResult.error?.toString()).toBeTruthy();
 });

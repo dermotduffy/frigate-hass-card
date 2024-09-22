@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash-es';
+import isEqual from 'lodash-es/isEqual';
 import { FrigateCardConfig } from '../config/types';
 import { createGeneralAction } from '../utils/action';
 import { isActionAllowedBasedOnInteractionState } from '../utils/interaction-mode';

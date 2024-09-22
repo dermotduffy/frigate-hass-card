@@ -1,6 +1,7 @@
 import { HASSDomEvent } from '@dermotduffy/custom-card-helpers';
 import { LitElement } from 'lit';
-import { isEqual, orderBy } from 'lodash-es';
+import isEqual from 'lodash-es/isEqual';
+import orderBy from 'lodash-es/orderBy';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request';
 import {
   ActionsConfig,

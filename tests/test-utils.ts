@@ -81,12 +81,18 @@ export const createCondition = (
   return frigateCardConditionSchema.parse(condition ?? {});
 };
 
-export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig => {
-  return frigateCardConfigSchema.parse({
+export const createRawConfig = (
+  config?: Partial<RawFrigateCardConfig>,
+): RawFrigateCardConfig => {
+  return {
     type: 'frigate-hass-card',
     cameras: [{}],
     ...config,
-  });
+  };
+};
+
+export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig => {
+  return frigateCardConfigSchema.parse(createRawConfig(config));
 };
 
 export const createCamera = (

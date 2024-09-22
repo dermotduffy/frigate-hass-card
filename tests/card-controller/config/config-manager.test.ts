@@ -218,6 +218,24 @@ describe('ConfigManager', () => {
     expect(manager.getConfig()).not.toEqual(manager.getNonOverriddenConfig());
   });
 
+  it('should set error on invalid override', () => {
+    const api = createCardAPI();
+    const manager = new ConfigManager(api);
+    manager.setConfig({
+      type: 'custom:frigate-card',
+      cameras: [{ camera_entity: 'camera.office' }],
+    });
+
+    const error = new Error('Invalid override configuration');
+    vi.mocked(getOverriddenConfig).mockImplementation(() => {
+      throw error;
+    });
+
+    manager.computeOverrideConfig();
+
+    expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(error);
+  });
+
   describe('should uninitialize on override', () => {
     it('cameras', () => {
       const api = createCardAPI();
