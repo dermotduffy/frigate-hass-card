@@ -347,7 +347,7 @@ describe('getOverriddenConfig', () => {
       const manager = new ConditionsManager(createCardAPI());
       manager.setState({ fullscreen: true });
 
-      expect(
+      expect(() =>
         getOverriddenConfig(manager, config, {
           configOverrides: [
             {
@@ -364,40 +364,7 @@ describe('getOverriddenConfig', () => {
           ],
           schema: testSchema,
         }),
-      ).toEqual(config);
-    });
-
-    it('failing and logging', () => {
-      const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
-
-      const manager = new ConditionsManager(createCardAPI());
-      manager.setState({ fullscreen: true });
-
-      expect(
-        getOverriddenConfig(manager, config, {
-          configOverrides: [
-            {
-              conditions: [
-                {
-                  condition: 'fullscreen' as const,
-                  fullscreen: true,
-                },
-              ],
-              set: {
-                'menu.style': 'NOT_A_STYLE',
-              },
-            },
-          ],
-          schema: testSchema,
-          logOnParseError: true,
-        }),
-      ).toEqual(config);
-
-      expect(consoleSpy).toBeCalledWith(
-        'Cannot parse overridden configuration',
-        expect.anything(),
-        expect.anything(),
-      );
+      ).toThrowError(/Invalid override configuration/);
     });
   });
 });

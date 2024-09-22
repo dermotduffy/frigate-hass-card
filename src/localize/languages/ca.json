@@ -586,6 +586,7 @@
     "image_load_error": "No s'ha pogut carregar la imatge",
     "invalid_configuration": "Configuració no vàlida",
     "invalid_configuration_no_hint": "No hi ha cap indicació d'ubicació disponible (tipus dolent o faltant?)",
+    "invalid_configuration_override": "",
     "invalid_elements_config": "La configuració dels elements de la imatge no és vàlida",
     "invalid_response": "S'ha rebut una resposta no vàlida de Home Assistant per a la sol·licitud",
     "jsmpeg_no_player": "No s'ha pogut iniciar el reproductor JSMPEG",

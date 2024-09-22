@@ -61,13 +61,13 @@ export const LOW_PERFORMANCE_PROFILE = {
   [CONF_TIMELINE_SHOW_RECORDINGS]: false,
 
   // Take no automatic media actions.
-  [CONF_LIVE_AUTO_MUTE]: 'never' as const,
-  [CONF_MEDIA_VIEWER_AUTO_PLAY]: 'never' as const,
-  [CONF_MEDIA_VIEWER_AUTO_PAUSE]: 'never' as const,
-  [CONF_MEDIA_VIEWER_AUTO_MUTE]: 'never' as const,
+  [CONF_LIVE_AUTO_MUTE]: [],
+  [CONF_MEDIA_VIEWER_AUTO_PLAY]: [],
+  [CONF_MEDIA_VIEWER_AUTO_PAUSE]: [],
+  [CONF_MEDIA_VIEWER_AUTO_MUTE]: [],
 
   // Always unload resources that are lazily loaded.
-  [CONF_LIVE_LAZY_UNLOAD]: 'all' as const,
+  [CONF_LIVE_LAZY_UNLOAD]: ['unselected', 'hidden'],
 
   // Media carousels do not drag.
   [CONF_LIVE_DRAGGABLE]: false,

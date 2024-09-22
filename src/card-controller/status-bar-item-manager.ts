@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash-es';
+import isEqual from 'lodash-es/isEqual';
 import { CameraManager } from '../camera-manager/manager';
 import { StatusBarConfig, StatusBarItem } from '../config/types';
 import { MediaLoadedInfo } from '../types';

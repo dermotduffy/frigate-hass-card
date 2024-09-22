@@ -585,6 +585,7 @@
     "failed_sign": "Could not sign Home Assistant URL",
     "image_load_error": "The image could not be loaded",
     "invalid_configuration": "Invalid configuration",
+    "invalid_configuration_override": "Invalid override configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
     "invalid_elements_config": "Invalid picture elements configuration",
     "invalid_response": "Received invalid response from Home Assistant for request",

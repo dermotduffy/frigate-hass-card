@@ -58,4 +58,6 @@ div.message div.icon {
 .message pre {
   margin-top: 20px;
   overflow-x: auto;
+  border: 1px dotted var(--divider-color);
+  padding: 1em;
 }

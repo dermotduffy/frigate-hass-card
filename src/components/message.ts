@@ -30,6 +30,11 @@ export class FrigateCardMessage extends LitElement {
     const classes = {
       dotdotdot: !!this.dotdotdot,
     };
+
+    const renderContext = (contextItem: unknown): TemplateResult => {
+      return html`<pre>${yaml.dump(contextItem)}</pre>`;
+    };
+
     return html` <div class="wrapper">
       <div class="message padded">
         <div class="icon">
@@ -43,9 +48,11 @@ export class FrigateCardMessage extends LitElement {
                   : ''}`
               : ''}
           </span>
-          ${this.context && typeof this.context === 'object'
-            ? html`<pre>${yaml.dump(this.context)}</pre>`
-            : ''}
+          ${this.context && Array.isArray(this.context)
+            ? this.context.map((contextItem) => renderContext(contextItem))
+            : typeof this.context === 'object'
+              ? renderContext(this.context)
+              : ''}
         </div>
       </div>
     </div>`;

@@ -1,6 +1,6 @@
 import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities } from 'home-assistant-js-websocket';
-import { isEqual } from 'lodash-es';
+import isEqual from 'lodash-es/isEqual';
 import merge from 'lodash-es/merge';
 import { ZodSchema } from 'zod';
 import {
@@ -16,6 +16,8 @@ import {
   RawFrigateCardConfig,
   ViewDisplayMode,
 } from '../config/types';
+import { localize } from '../localize/localize';
+import { FrigateCardError } from '../types';
 import { desparsifyArrays } from '../utils/basic';
 import { CardConditionAPI, KeysState } from './types';
 
@@ -38,6 +40,8 @@ interface ConditionState {
   user?: CurrentUser;
   keys?: KeysState;
 }
+
+class OverrideConfigurationError extends FrigateCardError {}
 
 export class ConditionsEvaluateRequestEvent extends Event {
   public conditions: FrigateCardCondition[];
@@ -82,16 +86,15 @@ export function evaluateConditionViaEvent(
   return evaluateEvent.evaluation ?? false;
 }
 
-export function getOverriddenConfig(
+export function getOverriddenConfig<RT extends RawFrigateCardConfig>(
   manager: Readonly<ConditionsManager>,
-  config: Readonly<RawFrigateCardConfig>,
+  config: Readonly<RT>,
   options?: {
     configOverrides?: Readonly<Overrides>;
     stateOverrides?: Partial<ConditionState>;
     schema?: ZodSchema;
-    logOnParseError?: boolean;
   },
-): RawFrigateCardConfig {
+): RT {
   let output = copyConfig(config);
   let overridden = false;
   if (options?.configOverrides) {
@@ -132,14 +135,13 @@ export function getOverriddenConfig(
 
   if (options?.schema) {
     const parseResult = options.schema.safeParse(output);
-    if (options.logOnParseError && !parseResult.success) {
-      console.warn(
-        `Cannot parse overridden configuration`,
-        output,
-        parseResult.error.message,
+    if (!parseResult.success) {
+      throw new OverrideConfigurationError(
+        localize('error.invalid_configuration_override'),
+        [parseResult.error.errors, output],
       );
     }
-    return parseResult.success ? parseResult.data : config;
+    return parseResult.data;
   }
   return output;
 }
