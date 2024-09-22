@@ -14,13 +14,17 @@ interface GitDiagnostics {
 
 export const getReleaseVersion = (): string => {
   const releaseVersion = '__FRIGATE_CARD_RELEASE_VERSION__';
+
   /* istanbul ignore if: depends on rollup substitution -- @preserve */
   if ((releaseVersion as unknown) === 'pkg') {
     return pkg.version;
-    /* istanbul ignore else: depends on rollup substitution -- @preserve */
-  } else if ((releaseVersion as unknown) === 'dev') {
+  }
+
+  /* istanbul ignore if: depends on rollup substitution -- @preserve */
+  if ((releaseVersion as unknown) === 'dev') {
     return `${releaseVersion}+${pkg['gitAbbrevHash']} (${pkg['buildDate']})`;
   }
+
   return releaseVersion;
 };
 
