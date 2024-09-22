@@ -17,6 +17,7 @@ jobs:
     name: Validate PR title
     runs-on: ubuntu-latest
     steps:
-      - uses: amannn/action-semantic-pull-request@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ytanikin/PRConventionalCommits@1.2.0
+        with:
+          task_types: '["feat","fix","docs","test","ci","refactor","perf","chore"]'
+          custom_labels: '{"feat": "feature", "fix": "bug", "docs": "documentation", "test": "testing", "ci": "ci", "refactor": "refactoring", "perf": "performance", "chore": "chore"}'
