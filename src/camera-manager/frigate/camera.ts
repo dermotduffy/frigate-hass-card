@@ -123,10 +123,13 @@ export class FrigateCamera extends Camera {
     const configPTZCapabilities = getPTZCapabilitiesFromCameraConfig(this.getConfig());
     const frigatePTZCapabilities = await this._getPTZCapabilities(hass, config);
 
-    const combinedPTZCapabilities: PTZCapabilities = {
-      ...frigatePTZCapabilities,
-      ...configPTZCapabilities,
-    };
+    const combinedPTZCapabilities: PTZCapabilities | null =
+      configPTZCapabilities || frigatePTZCapabilities
+        ? {
+            ...frigatePTZCapabilities,
+            ...configPTZCapabilities,
+          }
+        : null;
 
     const birdseye = isBirdseye(config);
     this._capabilities = new Capabilities(

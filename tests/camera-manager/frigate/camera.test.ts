@@ -210,8 +210,9 @@ describe('FrigateCamera', () => {
           entityRegistryManager: mock<EntityRegistryManager>(),
           stateWatcher: mock<StateWatcher>(),
           frigateEventWatcher: mock<FrigateEventWatcher>(),
-        }),
-          expect(camera.getCapabilities()?.has('ptz')).toBeFalsy();
+        });
+
+        expect(camera.getCapabilities()?.has('ptz')).toBeFalsy();
         expect(camera.getCapabilities()?.hasPTZCapability()).toBeFalsy();
         expect(consoleSpy).toBeCalled();
       });
