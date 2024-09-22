@@ -27,6 +27,33 @@ describe('getViewDefault', () => {
     expect(factory.getViewDefault()).toBeNull();
   });
 
+  it('should return null if no cameras support view', () => {
+    const api = createCardAPI();
+    vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+    vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
+
+    // No cameras support live.
+    vi.mocked(api.getCameraManager().getStore).mockReturnValue(
+      createStore([
+        {
+          cameraID: 'camera.office',
+          capabilities: createCapabilities({
+            live: false,
+          }),
+        },
+        {
+          cameraID: 'camera.kitchen',
+          capabilities: createCapabilities({
+            live: false,
+          }),
+        },
+      ]),
+    );
+
+    const factory = new ViewFactory(api);
+    expect(factory.getViewDefault()).toBeNull();
+  });
+
   it('should create view', () => {
     const factory = new ViewFactory(createPopulatedAPI());
     const view = factory.getViewDefault();
@@ -64,16 +91,30 @@ describe('getViewDefault', () => {
     expect(view?.camera).toBe('camera.office');
   });
 
-  it('should respect parameters', () => {
+  it('should use default camera when camera unspecified', () => {
+    // Even though baseView has a camera, since default is called it should
+    // use that camera.
+
     const factory = new ViewFactory(createPopulatedAPI());
+    const baseView = createView({ camera: 'camera.kitchen' });
     const view = factory.getViewDefault({
-      params: {
-        camera: 'camera.office',
-      },
+      baseView: baseView,
     });
 
     expect(view?.is('live')).toBeTruthy();
     expect(view?.camera).toBe('camera.office');
+  });
+
+  it('should respect parameters', () => {
+    const factory = new ViewFactory(createPopulatedAPI());
+    const view = factory.getViewDefault({
+      params: {
+        camera: 'camera.kitchen',
+      },
+    });
+
+    expect(view?.is('live')).toBeTruthy();
+    expect(view?.camera).toBe('camera.kitchen');
   });
 });
 
