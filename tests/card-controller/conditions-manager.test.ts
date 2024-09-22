@@ -429,6 +429,60 @@ describe('ConditionsManager', () => {
     expect(manager.getState()).toEqual(state);
   });
 
+  describe('should set state', () => {
+    it('should set and be able to get it again', () => {
+      const state = {
+        fullscreen: true,
+      };
+
+      const manager = new ConditionsManager(createCardAPI());
+
+      manager.setState(state);
+      expect(manager.getState()).toEqual(state);
+    });
+
+    it('should set but only trigger when necessary', () => {
+      const state_1 = {
+        fullscreen: true,
+        state: {
+          'binary_sensor.foo': createStateEntity(),
+        },
+      };
+
+      const listener = vi.fn();
+      const manager = new ConditionsManager(createCardAPI(), listener);
+
+      manager.setState(state_1);
+      expect(listener).toBeCalledTimes(1);
+
+      manager.setState(state_1);
+      expect(listener).toBeCalledTimes(1);
+
+      manager.setState({ fullscreen: true });
+      expect(listener).toBeCalledTimes(1);
+
+      manager.setState({
+        state: {
+          'binary_sensor.foo': createStateEntity(),
+        },
+      });
+      expect(listener).toBeCalledTimes(1);
+
+      manager.setState({ fullscreen: false });
+      expect(listener).toBeCalledTimes(2);
+
+      manager.setState({ fullscreen: false });
+      expect(listener).toBeCalledTimes(2);
+
+      manager.setState({
+        state: {
+          'binary_sensor.foo': createStateEntity({ state: 'off' }),
+        },
+      });
+      expect(listener).toBeCalledTimes(3);
+    });
+  });
+
   describe('should handle hasHAStateConditions', () => {
     beforeEach(() => {
       vi.spyOn(window, 'matchMedia').mockReturnValueOnce({
