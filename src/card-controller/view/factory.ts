@@ -35,27 +35,37 @@ export class ViewFactory {
       return null;
     }
 
-    let forceCameraID: string | null = options?.params?.camera ?? null;
+    // Neither options.baseView.camera nor options.baseView.view are respected
+    // here, since this is the default view / camera.
+    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1564
+
+    let cameraID: string | null = null;
     const viewName = options?.params?.view ?? config.view.default;
 
-    if (
-      !forceCameraID &&
-      options?.baseView?.camera &&
-      config.view.default_cycle_camera
-    ) {
+    if (options?.params?.camera) {
+      cameraID = options.params.camera;
+    } else {
       const cameraIDs = [
         ...getCameraIDsForViewName(this._api.getCameraManager(), viewName),
       ];
-      const currentIndex = cameraIDs.indexOf(options?.baseView?.camera);
-      const targetIndex = currentIndex + 1 >= cameraIDs.length ? 0 : currentIndex + 1;
-      forceCameraID = cameraIDs[targetIndex];
+      if (!cameraIDs.length) {
+        return null;
+      }
+
+      if (options?.baseView?.camera && config.view.default_cycle_camera) {
+        const currentIndex = cameraIDs.indexOf(options.baseView.camera);
+        const targetIndex = currentIndex + 1 >= cameraIDs.length ? 0 : currentIndex + 1;
+        cameraID = cameraIDs[targetIndex];
+      } else {
+        cameraID = cameraIDs[0];
+      }
     }
 
     return this.getViewByParameters({
       params: {
         ...options?.params,
         view: viewName,
-        ...(forceCameraID && { camera: forceCameraID }),
+        camera: cameraID,
       },
       baseView: options?.baseView,
     });
