@@ -3,9 +3,7 @@ categories:
   - title: ':boom: Breaking Changes'
     label: 'breaking'
   - title: ':rocket: Features'
-    label: 'enhancement'
-  - title: ':fire: Removals and Deprecations'
-    label: 'removal'
+    label: 'feature'
   - title: ':bug: Fixes'
     label: 'bug'
   - title: ':racehorse: Performance'
@@ -18,12 +16,9 @@ categories:
     label: 'documentation'
   - title: ':hammer: Refactoring'
     label: 'refactoring'
-  - title: ':lipstick: Style'
-    label: 'style'
-  - title: ':package: Dependencies'
-    labels:
-      - 'dependencies'
-      - 'build'
+  - title: ':wrench: Chore'
+    label: 'chore'
+
 template: |
   ## Changes
 
