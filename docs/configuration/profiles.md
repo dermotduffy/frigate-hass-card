@@ -14,10 +14,21 @@ the user.
 
 ?> Profiles are applied top to bottom. If multiple profiles change a configuration default, then the last one "wins"
 
-| Profile name      | Purpose                    |
-| ----------------- | -------------------------- |
-| `low-performance` | Increase card performance. |
-| `scrubbing`       | Allow media "scrubbing".   |
+| Profile name      | Purpose                                        |
+| ----------------- | ---------------------------------------------- |
+| `casting`         | Configure the card to be casted.               |
+| `low-performance` | Configure the card for lower end devices.      |
+| `scrubbing`       | Configure the card to allow "video scrubbing". |
+
+## `casting`
+
+To aid casting the card to Chromecast devices, the `casting` profile will adjust card defaults to better suit casting. You may wish to combine this the `low-performance` profile below, since Chromecast devices tend to lower performance. To combine, list `low-performance` first, to allow `casting` to take precedence:
+
+```yaml
+profiles:
+  - low-performance
+  - casting
+```
 
 ## `low-performance`
 
@@ -42,6 +53,7 @@ See the [source code](https://github.com/dermotduffy/frigate-hass-card/blob/dev/
 
 ```yaml
 profiles:
+  - casting
   - low-performance
   - scrubbing
 ```

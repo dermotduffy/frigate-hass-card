@@ -611,6 +611,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _profiles: EditorSelectOption[] = [
     { value: '', label: '' },
+    { value: 'casting', label: localize('config.profiles.casting') },
     { value: 'low-performance', label: localize('config.profiles.low-performance') },
     { value: 'scrubbing', label: localize('config.profiles.scrubbing') },
   ];

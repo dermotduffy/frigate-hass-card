@@ -1973,7 +1973,7 @@ export interface CardWideConfig {
 // *************************************************************************
 //                      *** Profile Configuration ***
 // *************************************************************************
-const PROFILES = ['low-performance', 'scrubbing'] as const;
+const PROFILES = ['casting', 'low-performance', 'scrubbing'] as const;
 export type ProfileType = (typeof PROFILES)[number];
 export const profilesSchema = z.enum(PROFILES).array().optional();
 
