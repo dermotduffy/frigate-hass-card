@@ -38,10 +38,22 @@ slot[name='right'] {
 slot[name='top'],
 slot[name='bottom'] {
   width: 100%;
+  flex-direction: column;
 }
 slot[name='left'],
 slot[name='right'] {
   height: 100%;
+  flex-direction: row;
+}
+
+slot[name='top'],
+slot[name='left'] {
+  justify-content: flex-start;
+}
+
+slot[name='bottom'],
+slot[name='right'] {
+  justify-content: flex-end;
 }
 
 /*******************************
