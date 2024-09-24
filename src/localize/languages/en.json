@@ -413,6 +413,7 @@
       "warning": "This card is in low profile mode so defaults have changed to optimize performance"
     },
     "profiles": {
+      "casting": "Casting",
       "editor_label": "Configuration profiles",
       "low-performance": "Low performance",
       "scrubbing": "Video scrubbing"

@@ -413,6 +413,7 @@
       "warning": "Aquesta targeta està en mode de perfil baix, de manera que els valors predeterminats han canviat per optimitzar el rendiment"
     },
     "profiles": {
+      "casting": "",
       "editor_label": "",
       "low-performance": "",
       "scrubbing": ""

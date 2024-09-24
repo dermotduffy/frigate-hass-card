@@ -413,6 +413,7 @@
       "warning": "Questa scheda è in modalità basso profilo, quindi le impostazioni predefinite sono state modificate per ottimizzare le prestazioni"
     },
     "profiles": {
+      "casting": "",
       "editor_label": "",
       "low-performance": "",
       "scrubbing": ""

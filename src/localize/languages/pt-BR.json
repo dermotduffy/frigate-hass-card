@@ -413,6 +413,7 @@
       "warning": "Este cartão está no modo de baixo desempenho, então os padrões foram alterados para otimizar o desempenho"
     },
     "profiles": {
+      "casting": "",
       "editor_label": "",
       "low-performance": "",
       "scrubbing": ""

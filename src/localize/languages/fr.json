@@ -413,6 +413,7 @@
       "warning": "Cette carte est en mode profil bas, les paramètres par défaut ont donc été modifiés pour optimiser les performances."
     },
     "profiles": {
+      "casting": "",
       "editor_label": "Configuration des profils",
       "low-performance": "Basse performance",
       "scrubbing": "Balayage vidéo"

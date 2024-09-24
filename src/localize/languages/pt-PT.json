@@ -413,6 +413,7 @@
       "warning": "Avisos"
     },
     "profiles": {
+      "casting": "",
       "editor_label": "",
       "low-performance": "",
       "scrubbing": ""
