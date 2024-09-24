@@ -382,11 +382,13 @@ describe('hasMajorMediaChange', () => {
       const api = createCardAPI();
       const factory = mock<ViewFactory>();
       const manager = new ViewManager(api, factory);
-      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(true);
+      vi.mocked(api.getQueryStringManager().hasViewRelatedActionsToRun).mockReturnValue(
+        true,
+      );
 
       expect(await manager.initialize()).toBeTruthy();
 
-      expect(api.getQueryStringManager().executeViewRelated).toBeCalled();
+      expect(manager.hasView()).toBeFalsy();
     });
   });
 });

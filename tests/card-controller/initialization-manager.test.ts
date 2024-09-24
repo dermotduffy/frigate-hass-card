@@ -71,7 +71,7 @@ describe('InitializationManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(false);
-      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(
+      vi.mocked(api.getQueryStringManager().hasViewRelatedActionsToRun).mockReturnValue(
         false,
       );
       vi.mocked(loadLanguages).mockResolvedValue(true);
@@ -120,7 +120,7 @@ describe('InitializationManager', () => {
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
       vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(true);
-      vi.mocked(api.getQueryStringManager().hasViewRelatedActions).mockReturnValue(
+      vi.mocked(api.getQueryStringManager().hasViewRelatedActionsToRun).mockReturnValue(
         false,
       );
       vi.mocked(loadLanguages).mockResolvedValue(true);
