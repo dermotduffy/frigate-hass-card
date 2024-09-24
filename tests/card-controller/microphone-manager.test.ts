@@ -3,10 +3,19 @@ import { mock } from 'vitest-mock-extended';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
 import { createCardAPI, createConfig } from '../test-utils';
 
-const navigatorMock = {
+const navigatorMock: Navigator = {
+  ...mock<Navigator>(),
   mediaDevices: {
+    ...mock<MediaDevices>(),
     getUserMedia: vi.fn(),
   },
+};
+
+const medialessNavigatorMock: Navigator = {
+  ...navigatorMock,
+
+  // Some browser will set mediaDevices to undefined when access over http.
+  mediaDevices: undefined as unknown as MediaDevices,
 };
 
 // @vitest-environment jsdom
@@ -19,6 +28,7 @@ describe('MicrophoneManager', () => {
   afterEach(() => {
     vi.resetAllMocks();
     vi.unstubAllGlobals;
+    navigator.mediaDevices;
   });
 
   const createMockStream = (mute?: boolean): MediaStream => {
@@ -45,7 +55,7 @@ describe('MicrophoneManager', () => {
     const manager = new MicrophoneManager(api);
 
     const stream = createMockStream();
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(stream);
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
 
     await manager.connect();
 
@@ -55,13 +65,35 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toBeCalled();
   });
 
+  it('should be unsupported without browser support', () => {
+    vi.stubGlobal('navigator', medialessNavigatorMock);
+
+    const manager = new MicrophoneManager(createCardAPI());
+
+    expect(manager.isSupported()).toBeFalsy();
+  });
+
+  it('should not connect when not supported', async () => {
+    vi.stubGlobal('navigator', medialessNavigatorMock);
+
+    const api = createCardAPI();
+    const manager = new MicrophoneManager(api);
+
+    const stream = createMockStream();
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
+
+    await manager.connect();
+
+    expect(manager.isConnected()).toBeFalsy();
+  });
+
   it('should be forbidden when permission denied', async () => {
     // Don't actually log messages to the console during the test.
     vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    navigatorMock.mediaDevices.getUserMedia.mockRejectedValue(new Error());
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockRejectedValue(new Error());
 
     expect(await manager.connect()).toBeFalsy();
 
@@ -73,7 +105,9 @@ describe('MicrophoneManager', () => {
   it('should mute and unmute', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(createMockStream());
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
 
     await manager.connect();
     expect(manager.isMuted()).toBeTruthy();
@@ -91,7 +125,7 @@ describe('MicrophoneManager', () => {
   it('should not unmute when microphone forbidden', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(null);
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockRejectedValue(new Error());
 
     await manager.connect();
 
@@ -103,10 +137,23 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toBeCalledTimes(1);
   });
 
+  it('should not unmute when not supported', async () => {
+    vi.stubGlobal('navigator', medialessNavigatorMock);
+
+    const manager = new MicrophoneManager(createCardAPI());
+
+    await manager.unmute();
+
+    expect(manager.isConnected()).toBeFalsy();
+    expect(manager.isMuted()).toBeTruthy();
+  });
+
   it('should connect on unmute', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(createMockStream());
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
 
     expect(manager.isConnected()).toBeFalsy();
 
@@ -122,7 +169,9 @@ describe('MicrophoneManager', () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
 
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(createMockStream());
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
 
     await manager.connect();
     expect(manager.isConnected()).toBeTruthy();
@@ -139,7 +188,9 @@ describe('MicrophoneManager', () => {
     const disconnectSeconds = 10;
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(createMockStream());
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
 
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
@@ -168,7 +219,9 @@ describe('MicrophoneManager', () => {
     const disconnectSeconds = 10;
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(createMockStream());
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
 
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
@@ -191,10 +244,64 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toBeCalledTimes(1);
   });
 
+  describe('should require initialization', async () => {
+    it('when configured and supported', async () => {
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              always_connected: true,
+            },
+          },
+        }),
+      );
+
+      await manager.connect();
+
+      expect(manager.shouldConnectOnInitialization()).toBeTruthy();
+    });
+
+    it('when configured but not supported', async () => {
+      vi.stubGlobal('navigator', medialessNavigatorMock);
+
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
+        createConfig({
+          live: {
+            microphone: {
+              always_connected: true,
+            },
+          },
+        }),
+      );
+
+      await manager.connect();
+
+      expect(manager.shouldConnectOnInitialization()).toBeFalsy();
+    });
+
+    it('when neither configured nor supported', async () => {
+      vi.stubGlobal('navigator', medialessNavigatorMock);
+
+      const api = createCardAPI();
+      const manager = new MicrophoneManager(api);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+
+      await manager.connect();
+
+      expect(manager.shouldConnectOnInitialization()).toBeFalsy();
+    });
+  });
+
   it('should respect listeners', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(createMockStream());
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
 
     const listener = vi.fn();
     manager.addListener(listener);
@@ -235,7 +342,9 @@ describe('MicrophoneManager', () => {
   it('should set condition state', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    navigatorMock.mediaDevices.getUserMedia.mockReturnValue(createMockStream());
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
+      createMockStream(),
+    );
 
     expect(api.getConditionsManager().setState).not.toBeCalled();
 

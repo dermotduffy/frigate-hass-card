@@ -903,7 +903,11 @@ describe('MenuButtonController', () => {
 
   describe('should have microphone button', () => {
     it('with suitable loaded media', () => {
-      const microphoneManager = new MicrophoneManager(createCardAPI());
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+
       const buttons = calculateButtons(controller, {
         microphoneManager: microphoneManager,
         currentMediaLoadedInfo: createMediaLoadedInfo({
@@ -935,7 +939,11 @@ describe('MenuButtonController', () => {
     });
 
     it('without suitable loaded media', () => {
-      const microphoneManager = new MicrophoneManager(createCardAPI());
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+
       const buttons = calculateButtons(controller, {
         microphoneManager: microphoneManager,
         currentMediaLoadedInfo: createMediaLoadedInfo({
@@ -951,8 +959,9 @@ describe('MenuButtonController', () => {
     });
 
     it('with forbidden microphone', () => {
-      const microphoneManager = new MicrophoneManager(createCardAPI());
-      mock<MicrophoneManager>(microphoneManager).isForbidden.mockReturnValue(true);
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(true);
+
       const buttons = calculateButtons(controller, {
         microphoneManager: microphoneManager,
         currentMediaLoadedInfo: createMediaLoadedInfo({
@@ -973,8 +982,11 @@ describe('MenuButtonController', () => {
     });
 
     it('with muted microphone', () => {
-      const microphoneManager = new MicrophoneManager(createCardAPI());
-      mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(true);
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+
       const buttons = calculateButtons(controller, {
         microphoneManager: microphoneManager,
         currentMediaLoadedInfo: createMediaLoadedInfo({
@@ -1002,9 +1014,37 @@ describe('MenuButtonController', () => {
       });
     });
 
+    it('with unsupported microphone', () => {
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(false);
+
+      const buttons = calculateButtons(controller, {
+        microphoneManager: microphoneManager,
+        currentMediaLoadedInfo: createMediaLoadedInfo({
+          capabilities: {
+            supports2WayAudio: true,
+          },
+        }),
+      });
+
+      expect(buttons).toContainEqual({
+        icon: 'mdi:microphone-message-off',
+        enabled: false,
+        priority: 50,
+        type: 'custom:frigate-card-menu-icon',
+        title: 'Microphone',
+        style: {},
+      });
+    });
+
     it('with muted toggle type microphone', () => {
-      const microphoneManager = new MicrophoneManager(createCardAPI());
-      mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(true);
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(true);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+
       const buttons = calculateButtons(controller, {
         microphoneManager: microphoneManager,
         currentMediaLoadedInfo: createMediaLoadedInfo({
@@ -1032,8 +1072,11 @@ describe('MenuButtonController', () => {
     });
 
     it('with unmuted toggle type microphone', () => {
-      const microphoneManager = new MicrophoneManager(createCardAPI());
-      mock<MicrophoneManager>(microphoneManager).isMuted.mockReturnValue(false);
+      const microphoneManager = mock<MicrophoneManager>();
+      vi.mocked(microphoneManager.isForbidden).mockReturnValue(false);
+      vi.mocked(microphoneManager.isMuted).mockReturnValue(false);
+      vi.mocked(microphoneManager.isSupported).mockReturnValue(true);
+
       const buttons = calculateButtons(controller, {
         microphoneManager: microphoneManager,
         currentMediaLoadedInfo: createMediaLoadedInfo({

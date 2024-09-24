@@ -33,7 +33,27 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
     this._setConditionState();
   }
 
+  public shouldConnectOnInitialization(): boolean {
+    return (
+      !!this._api.getConfigManager().getConfig()?.live.microphone?.always_connected &&
+      // If it won't be possible to connect the microphone at all, we do not
+      // block the initialization of the card (the microphone just won't work)
+      this.isSupported()
+    );
+  }
+
+  public isSupported(): boolean {
+    // Some browsers will have mediaDevices/getUserMedia as undefined if
+    // accessed over http.
+    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1543
+    return !!navigator.mediaDevices?.getUserMedia;
+  }
+
   public async connect(): Promise<boolean> {
+    if (!this.isSupported()) {
+      return false;
+    }
+
     try {
       this._stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -76,6 +96,10 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
   }
 
   public async unmute(): Promise<void> {
+    if (!this.isSupported()) {
+      return;
+    }
+
     const wasUnmuted = !this.isMuted();
 
     const unmute = (): void => {

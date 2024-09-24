@@ -52,7 +52,7 @@ export class InitializationManager {
       InitializationAspect.LANGUAGES,
       InitializationAspect.SIDE_LOAD_ELEMENTS,
       InitializationAspect.CAMERAS,
-      ...(config.live.microphone.always_connected
+      ...(this._api.getMicrophoneManager().shouldConnectOnInitialization()
         ? [InitializationAspect.MICROPHONE_CONNECT]
         : []),
       InitializationAspect.VIEW,
@@ -99,7 +99,7 @@ export class InitializationManager {
         // avoid issues with some cameras that only allow 2-way audio on the
         // first stream initialized. See:
         // https://github.com/dermotduffy/frigate-hass-card/issues/1235
-        ...(config.live.microphone.always_connected && {
+        ...(this._api.getMicrophoneManager().shouldConnectOnInitialization() && {
           [InitializationAspect.MICROPHONE_CONNECT]: async () =>
             await this._api.getMicrophoneManager().connect(),
         }),
