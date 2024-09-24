@@ -39,15 +39,10 @@ describe('InitializationManager', () => {
       const api = createCardAPI();
       const manager = new InitializationManager(api);
 
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          live: {
-            microphone: {
-              always_connected: true,
-            },
-          },
-        }),
-      );
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      vi.mocked(
+        api.getMicrophoneManager().shouldConnectOnInitialization,
+      ).mockReturnValue(true);
 
       expect(manager.isInitializedMandatory()).toBeFalsy();
     });
@@ -103,15 +98,10 @@ describe('InitializationManager', () => {
     it('successfully with microphone if configured', async () => {
       const api = createCardAPI();
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
-        createConfig({
-          live: {
-            microphone: {
-              always_connected: true,
-            },
-          },
-        }),
-      );
+      vi.mocked(
+        api.getMicrophoneManager().shouldConnectOnInitialization,
+      ).mockReturnValue(true);
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
       vi.mocked(loadLanguages).mockResolvedValue(true);
       vi.mocked(sideLoadHomeAssistantElements).mockResolvedValue(true);
       vi.mocked(api.getCameraManager().initializeCamerasFromConfig).mockResolvedValue(

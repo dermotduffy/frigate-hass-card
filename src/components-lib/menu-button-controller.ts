@@ -374,11 +374,12 @@ export class MenuButtonController {
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
     if (microphoneManager && currentMediaLoadedInfo?.capabilities?.supports2WayAudio) {
-      const forbidden = microphoneManager.isForbidden();
+      const unavailable =
+        microphoneManager.isForbidden() || !microphoneManager.isSupported();
       const muted = microphoneManager.isMuted();
       const buttonType = config.menu.buttons.microphone.type;
       return {
-        icon: forbidden
+        icon: unavailable
           ? 'mdi:microphone-message-off'
           : muted
             ? 'mdi:microphone-off'
@@ -386,8 +387,8 @@ export class MenuButtonController {
         ...config.menu.buttons.microphone,
         type: 'custom:frigate-card-menu-icon',
         title: localize('config.menu.buttons.microphone'),
-        style: forbidden || muted ? {} : this._getEmphasizedStyle(true),
-        ...(!forbidden &&
+        style: unavailable || muted ? {} : this._getEmphasizedStyle(true),
+        ...(!unavailable &&
           buttonType === 'momentary' && {
             start_tap_action: createGeneralAction(
               'microphone_unmute',
@@ -396,7 +397,7 @@ export class MenuButtonController {
               'microphone_mute',
             ) as FrigateCardCustomAction,
           }),
-        ...(!forbidden &&
+        ...(!unavailable &&
           buttonType === 'toggle' && {
             tap_action: createGeneralAction(
               muted ? 'microphone_unmute' : 'microphone_mute',
