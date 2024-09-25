@@ -302,9 +302,10 @@ class FrigateCard extends LitElement {
     `;
   }
 
-  protected firstUpdated(): void {
-    // Execute query string actions after first render is complete.
-    this._controller.getQueryStringManager().executeNonViewRelated();
+  protected updated(): void {
+    if (this._controller.getInitializationManager().isInitializedMandatory()) {
+      this._controller.getQueryStringManager().executeIfNecessary();
+    }
   }
 
   protected _renderInDialogIfNecessary(contents: TemplateResult): TemplateResult | void {

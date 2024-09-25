@@ -134,18 +134,11 @@ export class ViewManager implements ViewManagerInterface {
   }
 
   public initialize = async (): Promise<boolean> => {
-    // Set a view on initial load. However, if the query string contains a view
-    // related action, we don't set any view here and allow that content to be
-    // triggered by the firstUpdated() call that runs query string actions. To
-    // do otherwise may cause a race condition between the default view and the
-    // querystring view, see:
-    // https://github.com/dermotduffy/frigate-hass-card/issues/1200
-    const hasViewRelatedActions = this._api
-      .getQueryStringManager()
-      .hasViewRelatedActions();
-    if (hasViewRelatedActions) {
-      await this._api.getQueryStringManager().executeViewRelated();
-    } else {
+    // If the query string contains a view related action, we don't set any view
+    // here and allow that action to be triggered by the next call of to execute
+    // query actions (called at least once per render cycle).
+    // Related: https://github.com/dermotduffy/frigate-hass-card/issues/1200
+    if (!this._api.getQueryStringManager().hasViewRelatedActionsToRun()) {
       await this.setViewDefaultWithNewQuery({ failSafe: true });
     }
     return true;

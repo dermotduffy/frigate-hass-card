@@ -14,27 +14,27 @@ interface QueryStringViewIntent {
 
 export class QueryStringManager {
   protected _api: CardQueryStringAPI;
+  protected _shouldRun = true;
 
   constructor(api: CardQueryStringAPI) {
     this._api = api;
   }
 
-  public hasViewRelatedActions(): boolean {
-    return !!this._calculateIntent().view;
+  public hasViewRelatedActionsToRun(): boolean {
+    return !!this._calculateIntent().view && this._shouldRun;
   }
 
-  public executeNonViewRelated = async (): Promise<void> => {
-    await this._executeNonViewRelated(this._calculateIntent());
+  public requestExecution = (): void => {
+    this._shouldRun = true;
+    this._api.getCardElementManager().update();
   };
 
-  public executeViewRelated = async (): Promise<void> => {
-    await this._executeViewRelated(this._calculateIntent());
-  };
-
-  public executeAll = async (): Promise<void> => {
-    const intent = this._calculateIntent();
-    await this._executeViewRelated(intent);
-    await this._executeNonViewRelated(intent);
+  public executeIfNecessary = async (): Promise<void> => {
+    if (this._shouldRun) {
+      this._shouldRun = false;
+      await this._executeViewRelated(this._calculateIntent());
+      await this._executeNonViewRelated(this._calculateIntent());
+    }
   };
 
   protected async _executeViewRelated(intent: QueryStringViewIntent): Promise<void> {
@@ -63,15 +63,9 @@ export class QueryStringManager {
   }
 
   protected async _executeNonViewRelated(intent: QueryStringViewIntent): Promise<void> {
-    if (
-      // Only execute non-view actions when the card has rendered at least once.
-      !this._api.getCardElementManager().hasUpdated() ||
-      !intent.other?.length
-    ) {
-      return;
+    if (intent.other) {
+      await this._api.getActionsManager().executeActions(intent.other);
     }
-
-    await this._api.getActionsManager().executeActions(intent.other);
   }
 
   protected _calculateIntent(): QueryStringViewIntent {

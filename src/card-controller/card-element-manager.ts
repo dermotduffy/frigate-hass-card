@@ -2,9 +2,9 @@ import { LitElement, ReactiveControllerHost } from 'lit';
 import { ActionEventTarget } from '../action-handler-directive';
 import { setOrRemoveAttribute } from '../utils/basic';
 import { isCardInPanel } from '../utils/ha';
+import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 import { InitializationAspect } from './initialization-manager';
 import { CardElementAPI } from './types';
-import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 
 export type ScrollCallback = () => void;
 export type MenuToggleCallback = () => void;
@@ -120,16 +120,19 @@ export class CardElementManager {
     // See: https://github.com/home-assistant/frontend/blob/273992c8e9c3062c6e49481b6d7d688a07067232/src/common/navigate.ts#L43
     window.addEventListener(
       'location-changed',
-      this._api.getQueryStringManager().executeAll,
+      this._api.getQueryStringManager().requestExecution,
     );
 
     // Listen for history state changes (i.e. user using the browser
     // back/forward controls).
-    window.addEventListener('popstate', this._api.getQueryStringManager().executeAll);
+    window.addEventListener(
+      'popstate',
+      this._api.getQueryStringManager().requestExecution,
+    );
 
-    // Manually call the location change handler as the card will be
+    // Manually request query string execute as the card will be
     // disconnected/reconnected when dashboard 'tab' changes happen within HA.
-    this._api.getQueryStringManager().executeAll();
+    this._api.getQueryStringManager().requestExecution();
 
     // Make sure reconnections call the initialization code.
     this._element.requestUpdate();
@@ -180,8 +183,11 @@ export class CardElementManager {
 
     window.removeEventListener(
       'location-changed',
-      this._api.getQueryStringManager().executeAll,
+      this._api.getQueryStringManager().requestExecution,
     );
-    window.removeEventListener('popstate', this._api.getQueryStringManager().executeAll);
+    window.removeEventListener(
+      'popstate',
+      this._api.getQueryStringManager().requestExecution,
+    );
   }
 }
