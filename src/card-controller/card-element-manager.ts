@@ -54,10 +54,6 @@ export class CardElementManager {
     return this._element.hasUpdated;
   }
 
-  public getCardHeight(): number {
-    return this._element.getBoundingClientRect().height;
-  }
-
   public elementConnected(): void {
     // Set initial condition state. Must be done after the element is connected to
     // allow callbacks to interact with the card.

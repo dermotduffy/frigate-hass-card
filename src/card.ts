@@ -455,8 +455,15 @@ class FrigateCard extends LitElement {
   }
 
   public getCardSize(): number {
-    // Lovelace card size is expressed in units of 50px.
-    return this._controller.getCardElementManager().getCardHeight() / 50;
+    // This method is called before the card is rendered. As such, we don't
+    // actually know what height the card will end up being, and for this card
+    // it may change significantly with usage. As such, we just return a fixed
+    // size guess (stock HA cards, such as the picture glance card, do similar).
+
+    // Lovelace card size is expressed in units of 50px. A 16:9 aspect-ratio
+    // camera will likely render as a 276.75px height masonary card => 5.52
+    // units of 50, round up to 6.
+    return 6;
   }
 }
 
