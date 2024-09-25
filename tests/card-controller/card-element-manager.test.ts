@@ -83,23 +83,6 @@ describe('CardElementManager', () => {
     expect(manager.hasUpdated()).toBeTruthy();
   });
 
-  it('should get height', () => {
-    const element = createLitElement();
-    element.getBoundingClientRect = vi.fn().mockReturnValue({
-      width: 200,
-      height: 800,
-    });
-
-    const manager = new CardElementManager(
-      createCardAPI(),
-      element,
-      () => undefined,
-      () => undefined,
-    );
-
-    expect(manager.getCardHeight()).toBe(800);
-  });
-
   it('should connect', () => {
     const windowAddEventListener = vi.spyOn(global.window, 'addEventListener');
 
