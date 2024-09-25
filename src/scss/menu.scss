@@ -131,24 +131,54 @@ div.opposing {
 :host([data-style='overlay'][data-position='bottom']),
 :host([data-style*='hover'][data-position='top']),
 :host([data-style*='hover'][data-position='bottom']),
-:host([data-style='hidden'][data-position='top'][expanded]),
-:host([data-style='hidden'][data-position='bottom'][expanded]) {
+:host([data-style='hidden'][data-position='top']),
+:host([data-style='hidden'][data-position='bottom']) {
   width: 100%;
   height: auto;
+}
 
-  // Linear fade left to right.
+:host([data-style='overlay'][data-position='top'][data-alignment='left']),
+:host([data-style='overlay'][data-position='bottom'][data-alignment='left']),
+:host([data-style*='hover'][data-position='top'][data-alignment='left']),
+:host([data-style*='hover'][data-position='bottom'][data-alignment='left']),
+:host([data-style='hidden'][data-position='top'][data-alignment='left'][expanded]),
+:host([data-style='hidden'][data-position='bottom'][data-alignment='left'][expanded]) {
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+}
+
+:host([data-style='overlay'][data-position='top'][data-alignment='right']),
+:host([data-style='overlay'][data-position='bottom'][data-alignment='right']),
+:host([data-style*='hover'][data-position='top'][data-alignment='right']),
+:host([data-style*='hover'][data-position='bottom'][data-alignment='right']),
+:host([data-style='hidden'][data-position='top'][data-alignment='right'][expanded]),
+:host([data-style='hidden'][data-position='bottom'][data-alignment='right'][expanded]) {
+  background: linear-gradient(270deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
 }
 
 :host([data-style='overlay'][data-position='left']),
 :host([data-style='overlay'][data-position='right']),
 :host([data-style*='hover'][data-position='left']),
 :host([data-style*='hover'][data-position='right']),
-:host([data-style='hidden'][data-position='left'][expanded]),
-:host([data-style='hidden'][data-position='right'][expanded]) {
+:host([data-style='hidden'][data-position='left']),
+:host([data-style='hidden'][data-position='right']) {
   width: auto;
   height: 100%;
+}
 
-  // Linear fade top to bottom.
+:host([data-style='overlay'][data-position='left'][data-alignment='top']),
+:host([data-style='overlay'][data-position='right'][data-alignment='top']),
+:host([data-style*='hover'][data-position='left'][data-alignment='top']),
+:host([data-style*='hover'][data-position='right'][data-alignment='top']),
+:host([data-style='hidden'][data-position='left'][data-alignment='top'][expanded]),
+:host([data-style='hidden'][data-position='right'][data-alignment='top'][expanded]) {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+}
+
+:host([data-style='overlay'][data-position='left'][data-alignment='bottom']),
+:host([data-style='overlay'][data-position='right'][data-alignment='bottom']),
+:host([data-style*='hover'][data-position='left'][data-alignment='bottom']),
+:host([data-style*='hover'][data-position='right'][data-alignment='bottom']),
+:host([data-style='hidden'][data-position='left'][data-alignment='bottom'][expanded]),
+:host([data-style='hidden'][data-position='right'][data-alignment='bottom'][expanded]) {
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
 }
