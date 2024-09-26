@@ -88,6 +88,18 @@ export class CarouselController {
 
   public selectSlide(index: number): void {
     this._carousel.scrollTo(index, this._transitionEffect === 'none');
+
+    // This event exists to allow the caller to know the difference between
+    // programatically force slide selections and user-driven slide selections
+    // (e.g. carousel drags). See the note in auto-media-loaded-info.ts on how
+    // this is used.
+    const newSlide = this.getSlide(index);
+    if (newSlide) {
+      dispatchFrigateCardEvent<CarouselSelected>(this._parent, 'carousel:force-select', {
+        index: index,
+        element: newSlide,
+      });
+    }
   }
 
   protected _refreshCarouselContents = (): void => {
@@ -162,17 +174,6 @@ export class CarouselController {
     };
 
     carousel.on('select', () => selectSlide());
-    carousel.on('settle', () => {
-      const carouselSelected = getCarouselSelectedObject();
-      if (carouselSelected) {
-        dispatchFrigateCardEvent<CarouselSelected>(
-          this._parent,
-          'carousel:settle',
-          carouselSelected,
-        );
-      }
-    });
-
     return carousel;
   }
 }
