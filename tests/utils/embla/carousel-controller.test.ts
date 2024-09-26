@@ -110,24 +110,35 @@ describe('CarouselController', () => {
   it('should select given slide', () => {
     const children = createTestSlideNodes();
     const parent = createParent({ children: children });
+
+    const forceSelectListener = vi.fn();
+    parent.addEventListener('frigate-card:carousel:force-select', forceSelectListener);
+
     const carousel = new CarouselController(createRoot(), parent);
 
     carousel.selectSlide(4);
 
     expect(getEmblaApi()?.scrollTo).toBeCalledWith(4, false);
+    expect(forceSelectListener).toBeCalledWith(
+      expect.objectContaining({
+        detail: { index: 4, element: children[4] },
+      }),
+    );
   });
 
-  it('should dispatch settle event', () => {
-    const children = createTestSlideNodes();
+  it('should not select non-existent slide', () => {
+    const children = createTestSlideNodes({ n: 10 });
     const parent = createParent({ children: children });
-    new CarouselController(createRoot(), parent);
 
-    const settleHandler = vi.fn();
-    parent.addEventListener('frigate-card:carousel:settle', settleHandler);
+    const forceSelectListener = vi.fn();
+    parent.addEventListener('frigate-card:carousel:force-select', forceSelectListener);
 
-    callEmblaHandler(getEmblaApi(), 'settle');
+    const carousel = new CarouselController(createRoot(), parent);
 
-    expect(settleHandler).toBeCalled();
+    carousel.selectSlide(11);
+
+    expect(getEmblaApi()?.scrollTo).toBeCalledWith(11, false);
+    expect(forceSelectListener).not.toBeCalled();
   });
 
   it('should dispatch select event', () => {

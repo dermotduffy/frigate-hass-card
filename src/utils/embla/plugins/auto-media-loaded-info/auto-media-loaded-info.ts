@@ -13,6 +13,30 @@ declare module 'embla-carousel/components/Plugins' {
   }
 }
 
+/**
+ * On the relationship between carousel:select and carousel:force-select:
+ *
+ * There is a complex interplay here. `carousel:force-select` is an event
+ * dispatched by the carousel when it is forced to select a particular slide
+ * (i.e. the view has changed). `carousel:select` is dispatched for any
+ * selection -- forced or human (e.g. the user dragging the carousel).
+ *
+ * The media info should only be dispatched _after_ the view object has been
+ * updated (since the view will clear the loaded media info). The setting of the
+ * view (trigged by `carousel:select`) may require async fetches and may take a
+ * while -- and so if the card dispatched media on `carousel:selecte` then the
+ * media info may be dispatched before the view is set (which could result in
+ * the dispatched media immediately being cleared by the view).
+ *
+ * It is fine to have media info dispatched from the `carousel:init` event,
+ * since the carousel will be initialized based on a particular view object. In
+ * practice, the carousel will be initialized before the media is loaded, so
+ * there may not be anything to dispatch at that point.
+ *
+ * When media is loaded, that media loaded info will always be allowed to
+ * propogate upwards as long as it is selected.
+ */
+
 type AutoMediaLoadedInfoType = CreatePluginType<LoosePluginType, LooseOptionsType>;
 
 function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
@@ -30,7 +54,9 @@ function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
     }
 
     emblaApi.on('init', slideSelectHandler);
-    emblaApi.on('select', slideSelectHandler);
+    emblaApi
+      .containerNode()
+      .addEventListener('frigate-card:carousel:force-select', slideSelectHandler);
   }
 
   function destroy(): void {
@@ -40,7 +66,9 @@ function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
     }
 
     emblaApi.off('init', slideSelectHandler);
-    emblaApi.off('select', slideSelectHandler);
+    emblaApi
+      .containerNode()
+      .removeEventListener('frigate-card:carousel:force-select', slideSelectHandler);
   }
 
   function mediaLoadedInfoHandler(ev: CustomEvent<MediaLoadedInfo>): void {

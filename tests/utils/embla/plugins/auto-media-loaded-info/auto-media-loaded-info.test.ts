@@ -6,7 +6,6 @@ import {
 } from '../../../../../src/utils/media-info';
 import { createMediaLoadedInfo, createParent } from '../../../../test-utils';
 import {
-  callEmblaHandler,
   createEmblaApiInstance,
   createTestEmblaOptionHandler,
   createTestSlideNodes,
@@ -30,7 +29,6 @@ describe('AutoMediaLoadedInfo', () => {
     plugin.destroy();
 
     expect(emblaApi.off).toBeCalledWith('init', expect.anything());
-    expect(emblaApi.off).toBeCalledWith('select', expect.anything());
   });
 
   describe('should correctly propogate media load/unload depending on whether media is currently selected', () => {
@@ -82,11 +80,15 @@ describe('AutoMediaLoadedInfo', () => {
     dispatchExistingMediaLoadedInfoAsEvent(children[5], createMediaLoadedInfo());
 
     vi.mocked(emblaApi.selectedScrollSnap).mockReturnValue(4);
-    callEmblaHandler(emblaApi, 'select');
+    emblaApi
+      .containerNode()
+      .dispatchEvent(new Event('frigate-card:carousel:force-select'));
     expect(mediaLoadedHandler).not.toBeCalled();
 
     vi.mocked(emblaApi.selectedScrollSnap).mockReturnValue(5);
-    callEmblaHandler(emblaApi, 'select');
+    emblaApi
+      .containerNode()
+      .dispatchEvent(new Event('frigate-card:carousel:force-select'));
     expect(mediaLoadedHandler).toBeCalled();
   });
 });
