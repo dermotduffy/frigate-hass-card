@@ -25,6 +25,10 @@
 
   // Don't let the drawer exceed 90% of the full width of the relative parent.
   max-width: 90%;
+
+  // Drawer renders behind the menu/status-bar overlay (otherwise the drawer
+  // controls render on top of menu items)
+  z-index: 10;
 }
 
 :host([location='right']) #d {

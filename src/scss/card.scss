@@ -48,7 +48,9 @@ frigate-card-loading {
 
 div.main {
   position: relative;
-  overflow: auto;
+
+  // Some elements (such as submenus) may need to extend beyond the card boundary.
+  overflow: visible;
   width: 100%;
   height: 100%;
   margin: auto;
@@ -185,15 +187,20 @@ web-dialog::part(dialog) {
  * Overlay styles
  ****************/
 frigate-card-overlay {
-  z-index: 10;
+  // Higher than the drawer (menu renders over drawer).
+  z-index: 20;
 }
 
 /*******************
  * Menu hover styles
  *******************/
 
+frigate-card-menu {
+  // z-index is within the overlay stacking context.
+  z-index: 1;
+}
+
 frigate-card-menu[data-style*='hover'] {
-  z-index: 20;
   transition: opacity 0.5s ease;
   opacity: 0;
 }
