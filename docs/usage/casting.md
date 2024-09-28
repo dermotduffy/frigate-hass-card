@@ -23,6 +23,16 @@ Casting Home Assistant dashboards comes with a number of caveats:
 - The Javascript fullscreen API does not work (so the fullscreen button does not
   work, but see below for an equivalent).
 
+## The `casting` profile
+
+The optional [casting profile](../configuration/profiles.md?id=casting) provides
+some defaults to improve your casting experience. Use it like:
+
+```yaml
+profiles:
+  - casting
+```
+
 ## Recommended configuration for Nest Hub
 
 Using a `panel` dashboard with the following base configuration will result in
@@ -38,6 +48,8 @@ cameras:
 dimensions:
   aspect_ratio: 1024:600
   aspect_ratio_mode: static
+profile:
+  - casting
 ```
 
 ### Result

@@ -12,7 +12,6 @@ it('should contain expected defaults', () => {
     'live.controls.builtin': false,
     'live.show_image_during_load': true,
     'media_viewer.controls.builtin': false,
-    'menu.style': 'none',
   });
 });
 
