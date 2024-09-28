@@ -35,9 +35,6 @@
 - name: question
   description: Further information is requested
   color: d876e3
-- name: votes needed
-  description: Vote for this feature to encourage prioritization!
-  color: e2ed82
 - name: waiting
   description: Waiting for something
   color: daa036
