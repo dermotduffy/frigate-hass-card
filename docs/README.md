@@ -12,7 +12,7 @@ Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
 
 - Click `Download this repository with HACS`.
 
-See [Advanced Installation](advanced-installation.md) for other installation resources.
+See [Advanced Installation](advanced-installation.md) for other installation resources, or [Rolling Back](./rolling-back.md) to rollback to prior versions.
 
 ## Adding your card
 
