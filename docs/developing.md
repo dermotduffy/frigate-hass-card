@@ -25,7 +25,19 @@ instructions](advanced-installation.md?id=manual-installation).
 
 ## Releasing
 
-1. Merge a PR that contains only a `package.json` and `const.ts` version number bump (see [this example](https://github.com/dermotduffy/frigate-hass-card/commit/a854187d4a354f8841ad284d75b0afbed7b634c4)).
+### Release Philosophy
+
+Post `v6.0.0`, all releases are automated with ([semantic-release](https://github.com/semantic-release/semantic-release)) after every merged commit. This significantly reduces the time between merge and ability for users to try the change, but also entirely removes the "emotional notion" that a new major release version (i.e. `v6` -> `v7`) contains major new features. Rather it may simply contain a single backwards incompatible change.
+
+Releases follow [Semantic Versioning](https://semver.org/) with the following definitions:
+
+- **MAJOR** version changes for any backwards incompatible changes. This means any change that would _require_ users to update their card config, regardless of whether that update is automated or manual.
+- **MINOR** version changes for any functionality added in a backwards compatible manner. This may mean new features or behavioral changes that do not require a card update.
+- **PATCH** version changes for backward compatible bug fixes
+
+### Manual Releases
+
+1. Merge a PR that contains only a `package.json` version number bump.
 1. Go to the [releases page](https://github.com/dermotduffy/frigate-hass-card/releases).
 1. A release draft will automatically have been created, click 'Edit'.
 1. Use the same version number for the release title and tag.
