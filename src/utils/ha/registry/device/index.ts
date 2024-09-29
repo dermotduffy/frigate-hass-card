@@ -1,14 +1,6 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { z } from 'zod';
-import { homeAssistantWSRequest } from '.';
-
-const deviceSchema = z.object({
-  model: z.string().nullable(),
-  config_entries: z.string().array(),
-  manufacturer: z.string().nullable(),
-});
-const deviceListSchema = deviceSchema.array();
-export type DeviceList = z.infer<typeof deviceListSchema>;
+import { homeAssistantWSRequest } from '../..';
+import { DeviceList, deviceListSchema } from './types';
 
 /**
  * Get a list of all entities from the entity registry. May throw.

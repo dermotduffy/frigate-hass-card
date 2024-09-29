@@ -3,7 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
 import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA } from '../../src/const';
 import { ExtendedHomeAssistant } from '../../src/types';
-import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
+import { EntityRegistryManager } from '../../src/utils/ha/registry/entity';
 import {
   createCameraConfig,
   createCameraManager,

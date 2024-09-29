@@ -55,8 +55,8 @@ import {
 } from '../src/config/types';
 import { CapabilitiesRaw, ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
 import { HassStateDifference } from '../src/utils/ha';
-import { EntityRegistryManager } from '../src/utils/ha/entity-registry';
-import { Entity } from '../src/utils/ha/entity-registry/types';
+import { EntityRegistryManager } from '../src/utils/ha/registry/entity';
+import { Entity } from '../src/utils/ha/registry/entity/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
 import { MediaQueriesResults } from '../src/view/media-queries-results';
 import { View, ViewParameters } from '../src/view/view';

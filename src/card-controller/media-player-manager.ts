@@ -2,7 +2,7 @@ import { CameraConfig, FrigateCardConfig } from '../config/types';
 import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA } from '../const';
 import { localize } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
-import { Entity } from '../utils/ha/entity-registry/types';
+import { Entity } from '../utils/ha/registry/entity/types';
 import { supportsFeature } from '../utils/ha/update';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';

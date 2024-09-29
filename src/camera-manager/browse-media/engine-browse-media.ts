@@ -10,7 +10,7 @@ import {
   MEDIA_CLASS_VIDEO,
   RichBrowseMedia,
 } from '../../utils/ha/browse-media/types';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
+import { EntityRegistryManager } from '../../utils/ha/registry/entity';
 import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media';
 import { ViewMedia } from '../../view/media';
 import { RequestCache } from '../cache';

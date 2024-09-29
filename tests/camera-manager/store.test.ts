@@ -5,10 +5,10 @@ import { Capabilities } from '../../src/camera-manager/capabilities.js';
 import { CameraManagerEngineFactory } from '../../src/camera-manager/engine-factory.js';
 import { CameraManagerStore } from '../../src/camera-manager/store.js';
 import { Engine } from '../../src/camera-manager/types.js';
-import { EntityRegistryManager } from '../../src/utils/ha/entity-registry/index.js';
+import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
+import { EntityRegistryManager } from '../../src/utils/ha/registry/entity/index.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media.js';
 import { TestViewMedia, createCameraConfig } from '../test-utils.js';
-import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 
 describe('CameraManagerStore', async () => {
   const configVisible = createCameraConfig({

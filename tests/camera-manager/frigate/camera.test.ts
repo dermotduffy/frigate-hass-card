@@ -7,8 +7,8 @@ import { getPTZInfo } from '../../../src/camera-manager/frigate/requests';
 import { FrigateEventChange } from '../../../src/camera-manager/frigate/types';
 import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { CameraTriggerEventType } from '../../../src/config/types';
-import { EntityRegistryManager } from '../../../src/utils/ha/entity-registry';
-import { Entity } from '../../../src/utils/ha/entity-registry/types';
+import { EntityRegistryManager } from '../../../src/utils/ha/registry/entity';
+import { Entity } from '../../../src/utils/ha/registry/entity/types';
 import { createCameraConfig, createHASS, createRegistryEntity } from '../../test-utils';
 
 vi.mock('../../../src/camera-manager/frigate/requests');
@@ -54,7 +54,7 @@ describe('FrigateCamera', () => {
           mock<CameraManagerEngine>(),
         );
         const entityRegistryManager = mock<EntityRegistryManager>();
-        entityRegistryManager.getEntity.mockRejectedValue(null);
+        entityRegistryManager.getEntity.mockResolvedValue(null);
 
         expect(
           async () =>

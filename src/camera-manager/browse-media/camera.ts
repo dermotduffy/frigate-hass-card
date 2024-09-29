@@ -1,7 +1,7 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { localize } from '../../localize/localize';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { Entity } from '../../utils/ha/entity-registry/types';
+import { EntityRegistryManager } from '../../utils/ha/registry/entity';
+import { Entity } from '../../utils/ha/registry/entity/types';
 import { Camera, CameraInitializationOptions } from '../camera';
 import { CameraInitializationError } from '../error';
 

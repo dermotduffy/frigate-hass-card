@@ -2,7 +2,8 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import pkg from '../../package.json';
 import { RawFrigateCardConfig } from '../config/types';
 import { getLanguage } from '../localize/localize';
-import { DeviceList, getAllDevices } from './ha/device-registry';
+import { getAllDevices } from './ha/registry/device';
+import { DeviceList } from './ha/registry/device/types';
 
 type FrigateVersions = Record<string, string>;
 

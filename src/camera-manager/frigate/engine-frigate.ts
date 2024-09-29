@@ -15,7 +15,7 @@ import {
   runWhenIdleIfSupported,
 } from '../../utils/basic';
 import { getEntityTitle } from '../../utils/ha';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
+import { EntityRegistryManager } from '../../utils/ha/registry/entity';
 import { ViewMedia } from '../../view/media';
 import { ViewMediaClassifier } from '../../view/media-classifier';
 import { RecordingSegmentsCache, RequestCache } from '../cache';

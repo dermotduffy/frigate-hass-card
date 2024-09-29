@@ -1,6 +1,6 @@
 import type { CameraManager } from '../camera-manager/manager';
 import type { Automation } from '../config/types';
-import type { EntityRegistryManager } from '../utils/ha/entity-registry';
+import type { EntityRegistryManager } from '../utils/ha/registry/entity';
 import type { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import type { ActionsManager } from './actions/actions-manager';
 import type { AutomationsManager } from './automations-manager';

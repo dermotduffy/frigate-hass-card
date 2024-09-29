@@ -4,8 +4,7 @@ import { CameraConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
 import { BrowseMedia } from '../utils/ha/browse-media/types';
-import { EntityRegistryManager } from '../utils/ha/entity-registry';
-import { Entity } from '../utils/ha/entity-registry/types';
+import { EntityRegistryManager } from '../utils/ha/registry/entity';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import { MemoryRequestCache, RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
@@ -81,10 +80,8 @@ export class CameraManagerEngineFactory {
       const cameraEntity = getCameraEntityFromConfig(cameraConfig);
 
       if (cameraEntity) {
-        let entity: Entity | null;
-        try {
-          entity = await this._entityRegistryManager.getEntity(hass, cameraEntity);
-        } catch (e) {
+        const entity = await this._entityRegistryManager.getEntity(hass, cameraEntity);
+        if (!entity) {
           // If the camera is not in the registry, but is in the HA states it is
           // assumed to be a generic camera.
           if (hass.states[cameraEntity]) {

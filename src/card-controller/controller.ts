@@ -2,11 +2,12 @@ import { LovelaceCardEditor } from '@dermotduffy/custom-card-helpers';
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
 import { FrigateCardConfig } from '../config/types';
-import { EntityRegistryManager } from '../utils/ha/entity-registry';
-import { EntityCache } from '../utils/ha/entity-registry/cache';
+import {
+  createEntityRegistryCache,
+  EntityRegistryManager,
+} from '../utils/ha/registry/entity';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
 import { ActionsManager } from './actions/actions-manager';
-import { DefaultManager } from './default-manager';
 import { AutomationsManager } from './automations-manager';
 import { CameraURLManager } from './camera-url-manager';
 import {
@@ -17,12 +18,14 @@ import {
 } from './card-element-manager';
 import { ConditionsManager, ConditionsManagerListener } from './conditions-manager';
 import { ConfigManager } from './config/config-manager';
+import { DefaultManager } from './default-manager';
 import { DownloadManager } from './download-manager';
 import { ExpandManager } from './expand-manager';
 import { FullscreenManager } from './fullscreen-manager';
 import { HASSManager } from './hass/hass-manager';
 import { InitializationManager } from './initialization-manager';
 import { InteractionManager } from './interaction-manager';
+import { KeyboardStateManager } from './keyboard-state-manager';
 import { MediaLoadedInfoManager } from './media-info-manager';
 import { MediaPlayerManager } from './media-player-manager';
 import { MessageManager } from './message-manager';
@@ -57,7 +60,6 @@ import {
   CardViewAPI,
 } from './types';
 import { ViewManager } from './view/view-manager';
-import { KeyboardStateManager } from './keyboard-state-manager';
 
 export class CardController
   implements
@@ -88,7 +90,9 @@ export class CardController
 {
   // These properties may be used in the construction of 'managers' (and should
   // be created first).
-  protected _entityRegistryManager = new EntityRegistryManager(new EntityCache());
+  protected _entityRegistryManager = new EntityRegistryManager(
+    createEntityRegistryCache(),
+  );
   protected _resolvedMediaCache = new ResolvedMediaCache();
 
   protected _actionsManager = new ActionsManager(this);

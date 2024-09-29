@@ -1,7 +1,10 @@
-import { Entity } from './types.js';
+export class RegistryCache<T> {
+  protected _cache: Map<string, T> = new Map();
+  protected _keyCallback: (_data: T) => string;
 
-export class EntityCache {
-  protected _cache: Map<string, Entity> = new Map();
+  constructor(keyCallback: (_data: T) => string) {
+    this._keyCallback = keyCallback;
+  }
 
   /**
    * Determine if the cache has a given entity_id.
@@ -17,11 +20,7 @@ export class EntityCache {
    * @param func A callback function that returns a boolean.
    * @returns The first matching value.
    */
-  // public getFirstMatch(func: (arg: T) => boolean): T | null {
-  //   return [...this._cache.values()].find(func) ?? null;
-  // }
-
-  public getMatches(func: (arg: Entity) => boolean): Entity[] {
+  public getMatches(func: (arg: T) => boolean): T[] {
     return [...this._cache.values()].filter(func);
   }
 
@@ -30,16 +29,16 @@ export class EntityCache {
    * @param id The entity id.
    * @returns The entity for this id.
    */
-  public get(id: string): Entity | undefined {
-    return this._cache.get(id);
+  public get(id: string): T | null {
+    return this._cache.get(id) ?? null;
   }
 
   /**
    * Add a given entity to the cache.
    * @param input The entity.
    */
-  public set(input: Entity | Entity[]): void {
-    const _set = (entity: Entity) => this._cache.set(entity.entity_id, entity);
+  public add(input: T | T[]): void {
+    const _set = (arg: T) => this._cache.set(this._keyCallback(arg), arg);
 
     if (Array.isArray(input)) {
       input.forEach(_set);
