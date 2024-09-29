@@ -60,19 +60,26 @@ slot[name='right'] {
  * Match rounded corners to card
  *******************************/
 
-slot[name='top'],
-slot[name='left'] {
+// Style is set on the children themselves, to avoid the need for the parent
+// outlay to prevent overflow (which needs to be enabled to menu items to be
+// visible). See similar approach in card.scss for outerlay.
+
+::slotted([slot='top']:first-child),
+::slotted([slot='left']:first-child) {
   border-top-left-radius: var(--ha-card-border-radius, 4px);
 }
-slot[name='top'],
-slot[name='right'] {
+
+::slotted([slot='top']:first-child),
+::slotted([slot='right']:first-child) {
   border-top-right-radius: var(--ha-card-border-radius, 4px);
 }
-slot[name='bottom'],
-slot[name='left'] {
+
+::slotted([slot='bottom']:last-child),
+::slotted([slot='left']:last-child) {
   border-bottom-left-radius: var(--ha-card-border-radius, 4px);
 }
-slot[name='bottom'],
-slot[name='right'] {
+
+::slotted([slot='bottom']:last-child),
+::slotted([slot='right']:last-child) {
   border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
