@@ -19,8 +19,8 @@ import {
   stopEventFromActivatingCardWideActions,
 } from '../utils/action.js';
 import { isHassDifferent, refreshDynamicStateParameters } from '../utils/ha';
-import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
 import { getEntityStateTranslation } from '../utils/ha/entity-state-translation.js';
+import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
 import { domainIcon } from '../utils/icons/domain-icon.js';
 
 @customElement('frigate-card-submenu')

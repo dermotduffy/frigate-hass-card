@@ -8,7 +8,7 @@ import { MenuController } from '../components-lib/menu-controller.js';
 import type { MenuConfig, MenuItem } from '../config/types.js';
 import menuStyle from '../scss/menu.scss';
 import { frigateCardHasAction } from '../utils/action.js';
-import { EntityRegistryManager } from '../utils/ha/entity-registry/index.js';
+import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
 import './submenu.js';
 
 @customElement('frigate-card-menu')

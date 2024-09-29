@@ -2,7 +2,7 @@ import { HassConfig } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getLanguage } from '../../src/localize/localize';
 import { getDiagnostics, getReleaseVersion } from '../../src/utils/diagnostics.js';
-import { getAllDevices } from '../../src/utils/ha/device-registry.js';
+import { getAllDevices } from '../../src/utils/ha/registry/device/index.js';
 import { createHASS } from '../test-utils';
 
 vi.mock('../../package.json', () => ({
@@ -14,7 +14,7 @@ vi.mock('../../package.json', () => ({
 }));
 vi.mock('../../src/utils/ha');
 vi.mock('../../src/localize/localize.js');
-vi.mock('../../src/utils/ha/device-registry');
+vi.mock('../../src/utils/ha/registry/device/index.js');
 
 describe('getReleaseVersion', () => {
   it('should get release version', () => {
@@ -37,6 +37,7 @@ describe('getDiagnostics', () => {
 
     vi.mocked(getAllDevices).mockResolvedValue([
       {
+        id: 'id',
         model: '4.0.0/0.13.0-aded314',
         config_entries: [
           'ac4e79d258449a83bc0cf6d47a021c46',
@@ -97,6 +98,7 @@ describe('getDiagnostics', () => {
   it('should fetch diagnostics without device model', async () => {
     vi.mocked(getAllDevices).mockResolvedValue([
       {
+        id: 'id',
         model: null,
         config_entries: [
           'ac4e79d258449a83bc0cf6d47a021c46',

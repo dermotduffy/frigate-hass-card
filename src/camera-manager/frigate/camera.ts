@@ -5,8 +5,8 @@ import { CameraConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { PTZCapabilities, PTZMovementType } from '../../types';
 import { errorToConsole } from '../../utils/basic';
-import { EntityRegistryManager } from '../../utils/ha/entity-registry';
-import { Entity } from '../../utils/ha/entity-registry/types';
+import { EntityRegistryManager } from '../../utils/ha/registry/entity';
+import { Entity } from '../../utils/ha/registry/entity/types';
 import { Camera, CameraInitializationOptions } from '../camera';
 import { Capabilities } from '../capabilities';
 import { CameraManagerEngine } from '../engine';
@@ -67,9 +67,8 @@ export class FrigateCamera extends Camera {
     // Entity information is required if the Frigate camera name is missing, or
     // if the entity requires automatic resolution of motion/occupancy sensors.
     if (cameraEntity && (!hasCameraName || hasAutoTriggers)) {
-      try {
-        entity = await entityRegistryManager.getEntity(hass, cameraEntity);
-      } catch (e) {
+      entity = await entityRegistryManager.getEntity(hass, cameraEntity);
+      if (!entity) {
         throw new CameraInitializationError(localize('error.no_camera_entity'), config);
       }
     }

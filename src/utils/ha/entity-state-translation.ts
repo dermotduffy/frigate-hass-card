@@ -1,6 +1,6 @@
 import { computeDomain, HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
-import { Entity } from './entity-registry/types';
+import { Entity } from './registry/entity/types';
 
 /**
  * Get the translation of an entity state. Inspired by:

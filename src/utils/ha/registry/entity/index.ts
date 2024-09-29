@@ -1,17 +1,21 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { homeAssistantWSRequest } from '..';
-import { EntityCache } from './cache';
+import { homeAssistantWSRequest } from '../..';
 import { Entity, EntityList, entitySchema, entityListSchema } from './types.js';
+import { RegistryCache } from '../cache';
+
+export const createEntityRegistryCache = (): RegistryCache<Entity> => {
+  return new RegistryCache<Entity>((entity) => entity.entity_id);
+};
 
 // This class manages interactions with entities, caching results and fetching
 // as necessary. Some calls require every entity to be fetched, which may be
-// non-trivial in size (after which it is cached forever).
+// non-trivial in size (after which they are cached forever).
 
 export class EntityRegistryManager {
-  protected _cache: EntityCache;
+  protected _cache: RegistryCache<Entity>;
   protected _fetchedEntityList = false;
 
-  constructor(cache: EntityCache) {
+  constructor(cache: RegistryCache<Entity>) {
     this._cache = cache;
   }
 
@@ -21,11 +25,16 @@ export class EntityRegistryManager {
       return cachedEntity;
     }
 
-    const entity = await homeAssistantWSRequest<Entity>(hass, entitySchema, {
-      type: 'config/entity_registry/get',
-      entity_id: entityID,
-    });
-    this._cache.set(entity);
+    let entity: Entity | null = null;
+    try {
+      entity = await homeAssistantWSRequest<Entity>(hass, entitySchema, {
+        type: 'config/entity_registry/get',
+        entity_id: entityID,
+      });
+    } catch {
+      return null;
+    }
+    this._cache.add(entity);
     return entity;
   }
 
@@ -43,15 +52,11 @@ export class EntityRegistryManager {
   ): Promise<Map<string, Entity>> {
     const output: Map<string, Entity> = new Map();
     const _storeEntity = async (entityID: string): Promise<void> => {
-      let entity: Entity | null = null;
-      try {
-        entity = await this.getEntity(hass, entityID);
-      } catch {
+      const entity = await this.getEntity(hass, entityID);
+
+      if (entity) {
         // When asked to fetch multiple entities, ignore missing entities (they
         // will just not feature in the output).
-        return;
-      }
-      if (entity) {
         output.set(entityID, entity);
       }
     };
@@ -66,7 +71,7 @@ export class EntityRegistryManager {
     const entityList = await homeAssistantWSRequest<EntityList>(hass, entityListSchema, {
       type: 'config/entity_registry/list',
     });
-    this._cache.set(entityList);
+    this._cache.add(entityList);
     this._fetchedEntityList = true;
   }
 }

@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { BrowseMediaCamera } from '../../../src/camera-manager/browse-media/camera';
 import { CameraManagerEngine } from '../../../src/camera-manager/engine';
-import { EntityRegistryManager } from '../../../src/utils/ha/entity-registry';
-import { Entity } from '../../../src/utils/ha/entity-registry/types';
-import { createCameraConfig, createHASS } from '../../test-utils';
 import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
+import { EntityRegistryManager } from '../../../src/utils/ha/registry/entity';
+import { Entity } from '../../../src/utils/ha/registry/entity/types';
+import { createCameraConfig, createHASS } from '../../test-utils';
 
 describe('BrowseMediaCamera', () => {
   describe('should initialize', () => {

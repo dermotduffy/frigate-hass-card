@@ -28,7 +28,7 @@ import { StyleManager } from '../../src/card-controller/style-manager';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
 import { FrigateCardEditor } from '../../src/editor';
-import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
+import { EntityRegistryManager } from '../../src/utils/ha/registry/entity';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
 
 vi.mock('../../src/camera-manager/manager');
@@ -55,7 +55,7 @@ vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
 vi.mock('../../src/card-controller/triggers-manager');
 vi.mock('../../src/card-controller/view/view-manager');
-vi.mock('../../src/utils/ha/entity-registry');
+vi.mock('../../src/utils/ha/registry/entity');
 vi.mock('../../src/utils/ha/resolved-media');
 
 const createCardElement = (): CardHTMLElement => {

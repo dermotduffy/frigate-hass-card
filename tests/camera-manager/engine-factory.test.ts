@@ -7,8 +7,10 @@ import { MotionEyeCameraManagerEngine } from '../../src/camera-manager/motioneye
 import { Engine } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
 import { CardWideConfig } from '../../src/config/types.js';
-import { EntityRegistryManager } from '../../src/utils/ha/entity-registry';
-import { EntityCache } from '../../src/utils/ha/entity-registry/cache';
+import {
+  createEntityRegistryCache,
+  EntityRegistryManager,
+} from '../../src/utils/ha/registry/entity/index.js';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
 import {
   createCameraConfig,
@@ -25,7 +27,8 @@ const createFactory = (options?: {
   cardWideConfig?: CardWideConfig;
 }): CameraManagerEngineFactory => {
   return new CameraManagerEngineFactory(
-    options?.entityRegistryManager ?? new EntityRegistryManager(new EntityCache()),
+    options?.entityRegistryManager ??
+      new EntityRegistryManager(createEntityRegistryCache()),
   );
 };
 
@@ -40,7 +43,9 @@ describe('getEngineForCamera()', () => {
 
     it('from auto detection', async () => {
       const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-      const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+      const entityRegistryManager = new EntityRegistryManager(
+        createEntityRegistryCache(),
+      );
 
       entityRegistryManager.getEntity = vi
         .fn()
@@ -75,7 +80,9 @@ describe('getEngineForCamera()', () => {
 
     it('from auto detection', async () => {
       const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-      const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+      const entityRegistryManager = new EntityRegistryManager(
+        createEntityRegistryCache(),
+      );
 
       entityRegistryManager.getEntity = vi
         .fn()
@@ -101,7 +108,9 @@ describe('getEngineForCamera()', () => {
 
     it('from auto detection', async () => {
       const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-      const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+      const entityRegistryManager = new EntityRegistryManager(
+        createEntityRegistryCache(),
+      );
 
       entityRegistryManager.getEntity = vi
         .fn()
@@ -121,9 +130,11 @@ describe('getEngineForCamera()', () => {
         engine: 'auto',
         webrtc_card: { entity: 'camera.foo' },
       });
-      const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+      const entityRegistryManager = new EntityRegistryManager(
+        createEntityRegistryCache(),
+      );
 
-      entityRegistryManager.getEntity = vi.fn().mockRejectedValue(new Error());
+      entityRegistryManager.getEntity = vi.fn().mockResolvedValue(null);
 
       expect(
         await createFactory({
@@ -135,6 +146,24 @@ describe('getEngineForCamera()', () => {
           config,
         ),
       ).toBe(Engine.Generic);
+    });
+
+    it('from entity not in registry and not in state', async () => {
+      const config = createCameraConfig({
+        engine: 'auto',
+        webrtc_card: { entity: 'camera.foo' },
+      });
+      const entityRegistryManager = new EntityRegistryManager(
+        createEntityRegistryCache(),
+      );
+      entityRegistryManager.getEntity = vi.fn().mockResolvedValue(null);
+
+      expect(
+        async () =>
+          await createFactory({
+            entityRegistryManager: entityRegistryManager,
+          }).getEngineForCamera(createHASS(), config),
+      ).rejects.toThrow(/Could not find camera entity/);
     });
 
     it('from webrtc-card url', async () => {
@@ -167,7 +196,7 @@ describe('getEngineForCamera()', () => {
 
   it('should throw error on invalid entity', async () => {
     const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
-    const entityRegistryManager = new EntityRegistryManager(new EntityCache());
+    const entityRegistryManager = new EntityRegistryManager(createEntityRegistryCache());
 
     entityRegistryManager.getEntity = vi.fn().mockRejectedValue(new Error());
 
