@@ -49,8 +49,9 @@ frigate-card-loading {
 div.main {
   position: relative;
 
-  // Some elements (such as submenus) may need to extend beyond the card boundary.
-  overflow: visible;
+  // Required to keep curved corners on the card.
+  overflow: auto;
+
   width: 100%;
   height: 100%;
   margin: auto;
@@ -173,12 +174,16 @@ web-dialog::part(dialog) {
  * "Outside" style for menu/status bar
  *************************************/
 
-.outerlay[data-position='top'] {
+// Style is set on the children themselves, to avoid the need for the parent
+// outlay to prevent overflow (which needs to be enabled to menu items to be
+// visible). See similar approach in overlay.scss for overlay.
+
+.outerlay[data-position='top'] > *:first-child {
   border-top-left-radius: var(--ha-card-border-radius, 4px);
   border-top-right-radius: var(--ha-card-border-radius, 4px);
 }
 
-.outerlay[data-position='bottom'] {
+.outerlay[data-position='bottom'] > *:last-child {
   border-bottom-left-radius: var(--ha-card-border-radius, 4px);
   border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }

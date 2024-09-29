@@ -377,8 +377,8 @@ class FrigateCard extends LitElement {
             </frigate-card-loading>`
           : ''}
         ${this._renderMenuStatusContainer('top')}
+        ${this._renderMenuStatusContainer('overlay')}
         <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
-          ${this._renderMenuStatusContainer('overlay')}
           <frigate-card-views
             ${ref(this._refViews)}
             .hass=${this._hass}
