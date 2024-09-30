@@ -19,9 +19,11 @@ import {
 } from '../config/types.js';
 import viewsStyle from '../scss/views.scss';
 import { ExtendedHomeAssistant } from '../types.js';
+import { DeviceRegistryManager } from '../utils/ha/registry/device/index.js';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media.js';
 
-// As a special case: Diagnostics is not dynamically loaded in case something goes wrong.
+// As a special case: The diagnostics view is not dynamically loaded in case
+// something goes wrong.
 import './diagnostics.js';
 
 @customElement('frigate-card-views')
@@ -61,6 +63,9 @@ export class FrigateCardViews extends LitElement {
 
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
+
+  @property({ attribute: false })
+  public deviceRegistryManager?: DeviceRegistryManager;
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewManagerEpoch') || changedProps.has('config')) {
@@ -215,6 +220,7 @@ export class FrigateCardViews extends LitElement {
         ? html` <frigate-card-diagnostics
             .hass=${this.hass}
             .rawConfig=${this.rawConfig}
+            .deviceRegistryManager=${this.deviceRegistryManager}
           >
           </frigate-card-diagnostics>`
         : ``}

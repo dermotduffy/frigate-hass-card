@@ -28,6 +28,7 @@ import { StyleManager } from '../../src/card-controller/style-manager';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
 import { FrigateCardEditor } from '../../src/editor';
+import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
 import { EntityRegistryManager } from '../../src/utils/ha/registry/entity';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
 
@@ -55,6 +56,7 @@ vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
 vi.mock('../../src/card-controller/triggers-manager');
 vi.mock('../../src/card-controller/view/view-manager');
+vi.mock('../../src/utils/ha/registry/device');
 vi.mock('../../src/utils/ha/registry/entity');
 vi.mock('../../src/utils/ha/resolved-media');
 
@@ -146,6 +148,12 @@ describe('CardController', () => {
     it('getConfigManager', () => {
       expect(createController().getConfigManager()).toBe(
         vi.mocked(ConfigManager).mock.instances[0],
+      );
+    });
+
+    it('getDeviceRegistryManager', () => {
+      expect(createController().getDeviceRegistryManager()).toBe(
+        vi.mocked(DeviceRegistryManager).mock.instances[0],
       );
     });
 

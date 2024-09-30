@@ -7,6 +7,7 @@ import {
 import { createHASS, createRegistryEntity } from '../../../../test-utils.js';
 
 vi.mock('../../../../../src/utils/ha');
+vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
 describe('EntityRegistryManager', () => {
   afterEach(() => {
@@ -44,10 +45,12 @@ describe('EntityRegistryManager', () => {
 
       const manager = new EntityRegistryManager(createEntityRegistryCache());
       expect(await manager.getEntity(createHASS(), 'missing')).toBeNull();
+
+      vi.mocked(expect(console.warn)).toBeCalledWith('Not found');
     });
   });
 
-  it('getEntities', () => {
+  it('getEntities', async () => {
     const cachedEntity = createRegistryEntity({ entity_id: 'cached' });
     const notCachedEntity = createRegistryEntity({ entity_id: 'not-cached' });
 
@@ -59,34 +62,53 @@ describe('EntityRegistryManager', () => {
     vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Not found'));
 
     expect(
-      manager.getEntities(createHASS(), ['cached', 'not-cached', 'missing']),
-    ).resolves.toEqual(
+      await manager.getEntities(createHASS(), ['cached', 'not-cached', 'missing']),
+    ).toEqual(
       new Map([
         ['cached', cachedEntity],
         ['not-cached', notCachedEntity],
       ]),
     );
+
+    vi.mocked(expect(console.warn)).toBeCalledWith('Not found');
   });
 
-  it('fetchEntityList', async () => {
-    const hass = createHASS();
-    const entity = createRegistryEntity({ entity_id: 'cached' });
-    vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce([entity]);
+  describe('fetchEntityList', async () => {
+    it('should fetch entire entity list once', async () => {
+      const hass = createHASS();
+      const entity = createRegistryEntity({ entity_id: 'cached' });
+      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce([entity]);
 
-    const manager = new EntityRegistryManager(createEntityRegistryCache());
+      const manager = new EntityRegistryManager(createEntityRegistryCache());
 
-    await manager.fetchEntityList(hass);
+      await manager.fetchEntityList(hass);
 
-    expect(homeAssistantWSRequest).toBeCalledTimes(1);
-    expect(homeAssistantWSRequest).toBeCalledWith(expect.anything(), expect.anything(), {
-      type: 'config/entity_registry/list',
+      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      expect(homeAssistantWSRequest).toBeCalledWith(
+        expect.anything(),
+        expect.anything(),
+        {
+          type: 'config/entity_registry/list',
+        },
+      );
+
+      expect(await manager.getEntity(hass, 'cached')).toEqual(entity);
+      expect(homeAssistantWSRequest).toBeCalledTimes(1);
+
+      await manager.fetchEntityList(hass);
+      expect(homeAssistantWSRequest).toBeCalledTimes(1);
     });
 
-    expect(await manager.getEntity(hass, 'cached')).toEqual(entity);
-    expect(homeAssistantWSRequest).toBeCalledTimes(1);
+    it('should log to console on error', async () => {
+      const hass = createHASS();
+      vi.mocked(homeAssistantWSRequest).mockRejectedValueOnce(new Error('Fetch error'));
 
-    await manager.fetchEntityList(hass);
-    expect(homeAssistantWSRequest).toBeCalledTimes(1);
+      const manager = new EntityRegistryManager(createEntityRegistryCache());
+
+      await manager.fetchEntityList(hass);
+
+      vi.mocked(expect(console.warn)).toBeCalledWith('Fetch error');
+    });
   });
 
   it('getMatchingEntities', async () => {

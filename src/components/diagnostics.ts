@@ -6,11 +6,15 @@ import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { Diagnostics, getDiagnostics } from '../utils/diagnostics';
 import { renderMessage } from './message';
+import { DeviceRegistryManager } from '../utils/ha/registry/device';
 
 @customElement('frigate-card-diagnostics')
 export class FrigateCardDiagnostics extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
+
+  @property({ attribute: false })
+  public deviceRegistryManager?: DeviceRegistryManager;
 
   @property({ attribute: false })
   public rawConfig?: RawFrigateCardConfig;
@@ -19,7 +23,11 @@ export class FrigateCardDiagnostics extends LitElement {
   protected _diagnostics: Diagnostics | null = null;
 
   protected async _fetchDiagnostics(): Promise<void> {
-    this._diagnostics = await getDiagnostics(this.hass, this.rawConfig);
+    this._diagnostics = await getDiagnostics(
+      this.hass,
+      this.deviceRegistryManager,
+      this.rawConfig,
+    );
   }
 
   protected shouldUpdate(): boolean {

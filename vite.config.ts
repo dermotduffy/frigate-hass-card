@@ -25,7 +25,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/download.ts',
   'utils/embla/**/*.ts',
   'utils/endpoint.ts',
-  'utils/ha/registry/entity/**/*.ts',
+  'utils/ha/registry/**/*.ts',
   'utils/ha/types.ts',
   'utils/initializer.ts',
   'utils/interaction-mode.ts',
