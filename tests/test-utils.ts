@@ -55,6 +55,7 @@ import {
 } from '../src/config/types';
 import { CapabilitiesRaw, ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
 import { HassStateDifference } from '../src/utils/ha';
+import { Device } from '../src/utils/ha/registry/device/types';
 import { EntityRegistryManager } from '../src/utils/ha/registry/entity';
 import { Entity } from '../src/utils/ha/registry/entity/types';
 import { ViewMedia, ViewMediaType } from '../src/view/media';
@@ -127,6 +128,15 @@ export const createUser = (user?: Partial<CurrentUser>): CurrentUser => ({
   mfa_modules: [],
   ...user,
 });
+
+export const createRegistryDevice = (device?: Partial<Device>): Device => {
+  return {
+    id: device?.id ?? 'id',
+    model: device?.model ?? null,
+    config_entries: device?.config_entries ?? [],
+    manufacturer: device?.manufacturer ?? null,
+  };
+};
 
 export const createRegistryEntity = (entity?: Partial<Entity>): Entity => {
   return {

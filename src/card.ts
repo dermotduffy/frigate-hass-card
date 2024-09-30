@@ -400,6 +400,7 @@ class FrigateCard extends LitElement {
             .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
               ? this._controller.getTriggersManager().getTriggeredCameraIDs()
               : undefined}
+            .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
           ></frigate-card-views>
           ${
             // Keep message rendering to last to show messages that may have been

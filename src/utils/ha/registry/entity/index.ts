@@ -1,7 +1,8 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { homeAssistantWSRequest } from '../..';
-import { Entity, EntityList, entitySchema, entityListSchema } from './types.js';
+import { errorToConsole } from '../../../basic';
 import { RegistryCache } from '../cache';
+import { Entity, EntityList, entityListSchema, entitySchema } from './types.js';
 
 export const createEntityRegistryCache = (): RegistryCache<Entity> => {
   return new RegistryCache<Entity>((entity) => entity.entity_id);
@@ -31,7 +32,8 @@ export class EntityRegistryManager {
         type: 'config/entity_registry/get',
         entity_id: entityID,
       });
-    } catch {
+    } catch (e) {
+      errorToConsole(e as Error);
       return null;
     }
     this._cache.add(entity);
@@ -68,9 +70,16 @@ export class EntityRegistryManager {
     if (this._fetchedEntityList) {
       return;
     }
-    const entityList = await homeAssistantWSRequest<EntityList>(hass, entityListSchema, {
-      type: 'config/entity_registry/list',
-    });
+
+    let entityList: EntityList | null = null;
+    try {
+      entityList = await homeAssistantWSRequest<EntityList>(hass, entityListSchema, {
+        type: 'config/entity_registry/list',
+      });
+    } catch (e) {
+      errorToConsole(e as Error);
+      return;
+    }
     this._cache.add(entityList);
     this._fetchedEntityList = true;
   }

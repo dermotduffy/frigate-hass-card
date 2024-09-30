@@ -3,6 +3,10 @@ import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
 import { FrigateCardConfig } from '../config/types';
 import {
+  createDeviceRegistryCache,
+  DeviceRegistryManager,
+} from '../utils/ha/registry/device';
+import {
   createEntityRegistryCache,
   EntityRegistryManager,
 } from '../utils/ha/registry/entity';
@@ -90,6 +94,9 @@ export class CardController
 {
   // These properties may be used in the construction of 'managers' (and should
   // be created first).
+  protected _deviceRegistryManager = new DeviceRegistryManager(
+    createDeviceRegistryCache(),
+  );
   protected _entityRegistryManager = new EntityRegistryManager(
     createEntityRegistryCache(),
   );
@@ -176,6 +183,10 @@ export class CardController
 
   public getDefaultManager(): DefaultManager {
     return this._defaultManager;
+  }
+
+  public getDeviceRegistryManager(): DeviceRegistryManager {
+    return this._deviceRegistryManager;
   }
 
   public getDownloadManager(): DownloadManager {

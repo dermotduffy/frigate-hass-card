@@ -2,8 +2,7 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import pkg from '../../package.json';
 import { RawFrigateCardConfig } from '../config/types';
 import { getLanguage } from '../localize/localize';
-import { getAllDevices } from './ha/registry/device';
-import { DeviceList } from './ha/registry/device/types';
+import { DeviceRegistryManager } from './ha/registry/device';
 
 type FrigateVersions = Record<string, string>;
 
@@ -44,20 +43,19 @@ export interface Diagnostics {
 
 export const getDiagnostics = async (
   hass?: HomeAssistant,
+  deviceRegistryManager?: DeviceRegistryManager,
   rawConfig?: RawFrigateCardConfig,
 ): Promise<Diagnostics> => {
-  let devices: DeviceList | undefined = [];
-  if (hass) {
-    try {
-      devices = await getAllDevices(hass);
-    } catch (e) {
-      // Pass. This is optional.
-    }
-  }
-
   // Get the Frigate devices in order to extract the Frigate integration and
   // server version numbers.
-  const frigateDevices = devices?.filter((device) => device.manufacturer === 'Frigate');
+  const frigateDevices =
+    hass && deviceRegistryManager
+      ? await deviceRegistryManager.getMatchingDevices(
+          hass,
+          (device) => device.manufacturer === 'Frigate',
+        )
+      : [];
+
   const frigateVersionMap: Map<string, string> = new Map();
   frigateDevices?.forEach((device) => {
     device.config_entries.forEach((configEntry) => {

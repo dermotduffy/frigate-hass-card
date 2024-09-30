@@ -1,9 +1,10 @@
 import { HassConfig } from 'home-assistant-js-websocket';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import { getLanguage } from '../../src/localize/localize';
 import { getDiagnostics, getReleaseVersion } from '../../src/utils/diagnostics.js';
-import { getAllDevices } from '../../src/utils/ha/registry/device/index.js';
-import { createHASS } from '../test-utils';
+import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
+import { createHASS, createRegistryDevice } from '../test-utils';
 
 vi.mock('../../package.json', () => ({
   default: {
@@ -34,18 +35,6 @@ describe('getDiagnostics', () => {
 
     vi.mocked(getLanguage).mockReturnValue('en');
     vi.stubGlobal('navigator', { userAgent: 'FrigateCardTest/1.0' });
-
-    vi.mocked(getAllDevices).mockResolvedValue([
-      {
-        id: 'id',
-        model: '4.0.0/0.13.0-aded314',
-        config_entries: [
-          'ac4e79d258449a83bc0cf6d47a021c46',
-          'b03e70c659d58ae2ce7f2dc76fed2929',
-        ],
-        manufacturer: 'Frigate',
-      },
-    ]);
   });
 
   afterEach(() => {
@@ -54,8 +43,27 @@ describe('getDiagnostics', () => {
   });
 
   it('should fetch diagnostics', async () => {
+    const deviceRegistryManager = mock<DeviceRegistryManager>();
+    deviceRegistryManager.getMatchingDevices.mockResolvedValue([
+      createRegistryDevice({
+        id: 'id1',
+        model: '4.0.0/0.13.0-aded314',
+        config_entries: ['ac4e79d258449a83bc0cf6d47a021c46'],
+      }),
+      createRegistryDevice({
+        id: 'id2',
+        model: '4.0.0/0.13.0-aded314',
+        config_entries: ['b03e70c659d58ae2ce7f2dc76fed2929'],
+      }),
+      createRegistryDevice({
+        id: 'no-model',
+        model: null,
+        config_entries: ['b03e70c659d58ae2ce7f2dc76fed2920'],
+      }),
+    ]);
+
     expect(
-      await getDiagnostics(hass, {
+      await getDiagnostics(hass, deviceRegistryManager, {
         cameras: [{ camera_entity: 'camera.office' }],
       }),
     ).toEqual({
@@ -80,6 +88,27 @@ describe('getDiagnostics', () => {
     });
   });
 
+  it('should use correct device registry matcher', async () => {
+    const deviceRegistryManager = mock<DeviceRegistryManager>();
+    deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
+
+    await getDiagnostics(hass, deviceRegistryManager, {
+      cameras: [{ camera_entity: 'camera.office' }],
+    });
+
+    // Verify the matcher passed into the deviceRegistryManager correctly filters
+    // Frigate cameras.
+    const matcher = deviceRegistryManager.getMatchingDevices.mock.calls[0][1];
+    expect(matcher(createRegistryDevice())).toBe(false);
+    expect(
+      matcher(
+        createRegistryDevice({
+          manufacturer: 'Frigate',
+        }),
+      ),
+    ).toBe(true);
+  });
+
   it('should fetch diagnostics without hass or config', async () => {
     expect(await getDiagnostics()).toEqual({
       browser: 'FrigateCardTest/1.0',
@@ -96,37 +125,10 @@ describe('getDiagnostics', () => {
   });
 
   it('should fetch diagnostics without device model', async () => {
-    vi.mocked(getAllDevices).mockResolvedValue([
-      {
-        id: 'id',
-        model: null,
-        config_entries: [
-          'ac4e79d258449a83bc0cf6d47a021c46',
-          'b03e70c659d58ae2ce7f2dc76fed2929',
-        ],
-        manufacturer: 'Frigate',
-      },
-    ]);
+    const deviceRegistryManager = mock<DeviceRegistryManager>();
+    deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
 
-    expect(await getDiagnostics(hass)).toEqual({
-      browser: 'FrigateCardTest/1.0',
-      card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
-      git: {
-        build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
-        commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
-        hash: 'g4cf13b1',
-      },
-      ha_version: '2023.9.0',
-      date: now,
-      lang: 'en',
-      timezone: expect.anything(),
-    });
-  });
-
-  it('should fetch diagnostics if getAllDevices errors', async () => {
-    vi.mocked(getAllDevices).mockRejectedValue(new Error());
-
-    expect(await getDiagnostics(hass)).toEqual({
+    expect(await getDiagnostics(hass, deviceRegistryManager)).toEqual({
       browser: 'FrigateCardTest/1.0',
       card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
       git: {
