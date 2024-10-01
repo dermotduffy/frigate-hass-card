@@ -327,7 +327,15 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
     camera_image: 'dummy-to-load-editor-components',
   });
 
-  const pgcConstructor = await customElements.whenDefined('hui-picture-glance-card');
+  // Some cast devices have a bug that causes whenDefined to return
+  // undefined instead of a constructor.
+  // See related: https://issues.chromium.org/issues/40846966
+  await customElements.whenDefined('hui-picture-glance-card');
+  const pgcConstructor = customElements.get('hui-picture-glance-card');
+  if (!pgcConstructor) {
+    return false;
+  }
+
   const pgc = new pgcConstructor() as LovelaceCardWithEditor;
 
   await pgc.constructor.getConfigElement();
