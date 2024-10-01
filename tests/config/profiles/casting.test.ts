@@ -7,11 +7,17 @@ import { CASTING_PROFILE } from '../../../src/config/profiles/casting';
 it('should contain expected defaults', () => {
   expect(CASTING_PROFILE).toEqual({
     'cameras_global.image.refresh_seconds': 1,
+    'dimensions.aspect_ratio_mode': 'static',
     'dimensions.aspect_ratio': '16:9',
     'live.auto_unmute': ['selected', 'visible'],
     'live.controls.builtin': false,
     'live.show_image_during_load': true,
     'media_viewer.controls.builtin': false,
+    'menu.buttons.fullscreen.enabled': false,
+    'menu.buttons.media_player.enabled': false,
+    'menu.buttons.mute.enabled': true,
+    'menu.buttons.play.enabled': true,
+    'menu.style': 'none',
   });
 });
 

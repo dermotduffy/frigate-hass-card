@@ -330,6 +330,9 @@ export const CONF_MENU_BUTTONS = `${CONF_MENU}.buttons` as const;
 
 export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;
 export const CONF_MENU_BUTTONS_CAMERA_UI = `${CONF_MENU}.buttons.camera_ui` as const;
+export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU}.buttons.fullscreen` as const;
+export const CONF_MENU_BUTTONS_PLAY = `${CONF_MENU}.buttons.play` as const;
+export const CONF_MENU_BUTTONS_MUTE = `${CONF_MENU}.buttons.mute` as const;
 export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
   `${CONF_MENU}.buttons.media_player` as const;
 export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU}.buttons.timeline` as const;
