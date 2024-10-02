@@ -1,6 +1,6 @@
 # Casting
 
-This card allows casting a camera stream to a Chromecast device. You can enable the cast button with:
+This card allows casting a camera stream to a Google Cast device. You can enable the cast button with:
 
 ```yaml
 type: custom:frigate-card
@@ -12,7 +12,7 @@ menu:
     enabled: true
 ```
 
-Clicking this button will allow you to choose a Chromecast device to cast the camera stream to, or the clip that is currently playing.
+Clicking this button will allow you to choose a Google Cast device to cast the camera stream to, or the clip that is currently playing.
 
 There are two different casting methods for cameras: `standard` and `dashboard` (see below).
 
@@ -32,9 +32,9 @@ menu:
     enabled: true
 ```
 
-This will send the camera stream to the Google Cast device through the use of the [`media_player.play_media` Home Assistant action](https://www.home-assistant.io/integrations/media_source/#playing-media-from-a-media-source) 
+This will send the camera stream to the Google Cast device through the use of the [`media_player.play_media` Home Assistant action](https://www.home-assistant.io/integrations/media_source/#playing-media-from-a-media-source).
 
-The main disadvanatage of this method is that the stream will be played through HLS which has a **delay of around 10 seconds**, making it sub-optimal for live monitoring.
+The main disadvantage of this method is that the stream will be played through HLS which has a **delay of around 10 seconds**, making it sub-optimal for live monitoring.
 
 ## Dashboard Casting
 
