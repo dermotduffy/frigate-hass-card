@@ -1,6 +1,6 @@
 # Casting
 
-This card aids to cast a camera stream to a Chromecast device. You can enable the cast button with:
+This card allows casting a camera stream to a Chromecast device. You can enable the cast button with:
 
 ```yaml
 type: custom:frigate-card
@@ -14,7 +14,7 @@ menu:
 
 Clicking this button will allow you to choose a Chromecast device to cast the camera stream to, or the clip that is currently playing.
 
-There are however two different casting methods for cameras:
+There are two different casting methods for cameras: `standard` and `dashboard` (see below).
 
 ## Standard Casting
 
@@ -32,9 +32,9 @@ menu:
     enabled: true
 ```
 
-It will send the camera stream to the Google Cast device through [Media Browser](https://www.home-assistant.io/integrations/media_source/#playing-media-from-a-media-source) (the `media_player.play_media` action).
+This will send the camera stream to the Google Cast device through the use of the [`media_player.play_media` Home Assistant action](https://www.home-assistant.io/integrations/media_source/#playing-media-from-a-media-source) 
 
-The main disavanatage of this method is that the stream will be played through HLS, which has a **delay of around 10 seconds**. Not ideal for live monitoring.
+The main disadvanatage of this method is that the stream will be played through HLS which has a **delay of around 10 seconds**, making it sub-optimal for live monitoring.
 
 ## Dashboard Casting
 
@@ -64,11 +64,11 @@ data:
 
 Which in turn will cast the specified Home Assistant dashboard (and view) to the Google Cast device.
 
-For the example above to work, a dashboard with `dashboard-cast` slug must exist:
+For the example above to work, a dashboard with `dashboard-cast` URL must exist:
 
 ![image](https://github.com/user-attachments/assets/67f0e145-df05-412a-8c6d-897feb5439d2)
 
-And a view inside of it with `office` slug must exist. Inside the view, you can place the Frigate card configured for that camera for a proper full-screen casting experience:
+Within that dashboard, create an `office` view and finally within that view you can place the Frigate card configured for that camera for a proper full-screen casting experience:
 
 ```yaml
 views:
@@ -85,9 +85,7 @@ views:
           - casting
 ```
 
-The `casting` profile pre-configures the card to be casted to a 16:9 screen (such as a TV), including hiding all interactive elements and the menu.
-
-The `low-performance` profile is also recommended, as normally casting devices have limited hardware capabilities.
+The `casting` profile pre-configures the card to be casted to a 16:9 screen (such as a TV), including hiding all interactive elements and the menu. The `low-performance` profile is also recommended, as normally casting devices have limited hardware capabilities.
 
 ![](https://github.com/user-attachments/assets/bd96c4ad-36f5-4501-9018-23b496e7edc5)
 
@@ -107,7 +105,7 @@ dimensions:
   aspect_ratio: 1024:600
 ```
 
-Which restores the menu, and sets the aspect ratio to 1024:600, which is the resolution of the Nest Hub.
+This restores the menu and sets the aspect ratio to 1024:600, which is the resolution of the Nest Hub.
 
 ![](../images/card-on-nest-hub.jpg 'Casting on a Nest Hub :size=400')
 
