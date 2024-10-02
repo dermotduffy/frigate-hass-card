@@ -38,7 +38,7 @@ The main disadvantage of this method is that the stream will be played through H
 
 ## Dashboard Casting
 
-This method requires further configuration, but allows a **real-time experience**. This utilizes [Home Assistant Cast](https://cast.home-assistant.io).
+This method is powered by [Home Assistant Cast](https://cast.home-assistant.io) and requires additional configuration, but allows **low latency streaming** with go2rtc.
 
 ```yaml
 type: custom:frigate-card
@@ -117,5 +117,5 @@ Casting Home Assistant dashboards comes with a number of caveats:
   ([source](https://cast.home-assistant.io/faq.html)). This means clips playing
   and the `ha` live provider can not work. Other live providers such as `jsmpeg`
   and `webrtc-card` function correctly.
-- The Javascript fullscreen API does not work (so the fullscreen button does not
+- The Javascript fullscreen API does not work, so the fullscreen button does not
   work (use a `panel` view instead).
