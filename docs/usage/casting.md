@@ -118,4 +118,4 @@ Casting Home Assistant dashboards comes with a number of caveats:
   and the `ha` live provider can not work. Other live providers such as `jsmpeg`
   and `webrtc-card` function correctly.
 - The Javascript fullscreen API does not work (so the fullscreen button does not
-  work, but not a problem if using a `panel` view).
+  work (use a `panel` view instead).
