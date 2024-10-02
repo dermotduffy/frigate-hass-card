@@ -100,7 +100,7 @@ profiles:
   - low-performance
   - casting
 menu:
-  style: outside
+  style: hidden
 dimensions:
   aspect_ratio: 1024:600
 ```
