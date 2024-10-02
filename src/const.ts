@@ -360,7 +360,9 @@ export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.b
 
 export const CONF_PROFILES = 'profiles' as const;
 
-// Taken from https://github.dev/home-assistant/frontend/blob/b5861869e39290fd2e15737e89571dfc543b3ad3/src/data/media-player.ts#L93
+// Taken from https://github.com/home-assistant/frontend/blob/a759767d794f02527d127802831e68d3caf0cb7a/src/data/media-player.ts#L82
+export const MEDIA_PLAYER_SUPPORT_TURN_OFF = 256;
+export const MEDIA_PLAYER_SUPPORT_STOP = 4096;
 export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
 
 // The number of media items to fetch at a time (for clips/snapshot views, and
