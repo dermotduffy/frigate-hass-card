@@ -328,11 +328,14 @@ export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
 export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
 export const CONF_MENU_BUTTONS = `${CONF_MENU}.buttons` as const;
 
-export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU}.buttons.frigate` as const;
-export const CONF_MENU_BUTTONS_CAMERA_UI = `${CONF_MENU}.buttons.camera_ui` as const;
+export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU_BUTTONS}.frigate` as const;
+export const CONF_MENU_BUTTONS_CAMERA_UI = `${CONF_MENU_BUTTONS}.camera_ui` as const;
+export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU_BUTTONS}.fullscreen` as const;
+export const CONF_MENU_BUTTONS_PLAY = `${CONF_MENU_BUTTONS}.play` as const;
+export const CONF_MENU_BUTTONS_MUTE = `${CONF_MENU_BUTTONS}.mute` as const;
 export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
-  `${CONF_MENU}.buttons.media_player` as const;
-export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU}.buttons.timeline` as const;
+  `${CONF_MENU_BUTTONS}.media_player` as const;
+export const CONF_MENU_BUTTONS_TIMELINE = `${CONF_MENU_BUTTONS}.timeline` as const;
 
 export const CONF_STATUS_BAR = 'status_bar' as const;
 export const CONF_STATUS_BAR_POSITION = `${CONF_STATUS_BAR}.position` as const;
