@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
-import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA } from '../../src/const';
+import {
+  MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
+  MEDIA_PLAYER_SUPPORT_STOP,
+  MEDIA_PLAYER_SUPPORT_TURN_OFF,
+} from '../../src/const';
 import { ExtendedHomeAssistant } from '../../src/types';
 import { EntityRegistryManager } from '../../src/utils/ha/registry/entity';
 import {
@@ -179,21 +183,84 @@ describe('MediaPlayerManager', () => {
     });
   });
 
-  it('should stop', async () => {
-    const api = createCardAPI();
-    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+  describe('should stop', () => {
+    it('should call media_stop when device supports it', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
+        createHASS({
+          'media_player.foo': createStateEntity({
+            entity_id: 'media_player.foo',
+            attributes: {
+              supported_features: MEDIA_PLAYER_SUPPORT_STOP,
+            },
+          }),
+        }),
+      );
 
-    const manager = new MediaPlayerManager(api);
+      const manager = new MediaPlayerManager(api);
 
-    await manager.stop('media_player.foo');
+      await manager.stop('media_player.foo');
 
-    expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
-      'media_player',
-      'media_stop',
-      {
-        entity_id: 'media_player.foo',
-      },
-    );
+      expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+        'media_player',
+        'media_stop',
+        {
+          entity_id: 'media_player.foo',
+        },
+      );
+    });
+
+    it('should call turn_off when device does supports it', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
+        createHASS({
+          'media_player.foo': createStateEntity({
+            entity_id: 'media_player.foo',
+            attributes: {
+              supported_features: MEDIA_PLAYER_SUPPORT_TURN_OFF,
+            },
+          }),
+        }),
+      );
+
+      const manager = new MediaPlayerManager(api);
+
+      await manager.stop('media_player.foo');
+
+      expect(api.getHASSManager().getHASS()?.callService).toBeCalledWith(
+        'media_player',
+        'turn_off',
+        {
+          entity_id: 'media_player.foo',
+        },
+      );
+    });
+
+    it('should do nothing without some supported feature', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(
+        createHASS({
+          'media_player.foo': createStateEntity({
+            entity_id: 'media_player.foo',
+          }),
+        }),
+      );
+      const manager = new MediaPlayerManager(api);
+
+      await manager.stop('media_player.foo');
+
+      expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
+    });
+
+    it('should do nothing without hass state', async () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
+      const manager = new MediaPlayerManager(api);
+
+      await manager.stop('media_player.foo');
+
+      expect(api.getHASSManager().getHASS()?.callService).not.toBeCalled();
+    });
   });
 
   describe('should play', () => {

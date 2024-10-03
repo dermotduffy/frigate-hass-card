@@ -90,11 +90,7 @@ export class MediaPlayerManager {
 
   public async stop(mediaPlayer: string): Promise<void> {
     const hass = this._api.getHASSManager().getHASS();
-    if (!hass) {
-      return;
-    }
-
-    const stateObj = hass.states[mediaPlayer];
+    const stateObj = hass?.states[mediaPlayer];
     if (!stateObj) {
       return;
     }
