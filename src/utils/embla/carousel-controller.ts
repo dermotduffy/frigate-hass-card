@@ -128,10 +128,7 @@ export class CarouselController {
         // This controller manages slide changes (including shadow DOM
         // assignments, which the stock watcher does not handle).
         watchSlides: false,
-
-        // We use the auto-size plugin to manage resizes without carousel resets
-        // mid-scroll.
-        watchResize: false,
+        watchResize: true,
         watchDrag: this._draggable,
       },
       [

@@ -59,9 +59,16 @@ describe('AutoSize', () => {
     // First intersection handler call sets the state only.
     callIntersectionHandler(true);
 
+    // When not visible, will not re-init.
     callIntersectionHandler(false);
     callIntersectionHandler(false);
     callIntersectionHandler(false);
+
+    expect(emblaApi.reInit).not.toBeCalled();
+
+    // When visible, will re-initialize once.
+    callIntersectionHandler(true);
+    callIntersectionHandler(true);
 
     expect(emblaApi.reInit).toBeCalledTimes(1);
   });

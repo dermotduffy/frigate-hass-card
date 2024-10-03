@@ -38,9 +38,13 @@ function AutoSize(): AutoSizeType {
     intersectionHandler,
   );
 
-  const debouncedSetContainerHeight = debounce(() => setContainerHeight(), 200, {
-    trailing: true,
-  });
+  const debouncedSetContainerHeight = debounce(
+    () => setContainerHeightAndReInit(),
+    200,
+    {
+      trailing: true,
+    },
+  );
 
   function init(emblaApiInstance: EmblaCarouselType): void {
     emblaApi = emblaApiInstance;
@@ -87,8 +91,9 @@ function AutoSize(): AutoSizeType {
 
     if (isContainerIntersectingNow !== previousContainerIntersecting) {
       // Don't reinitialize on first call (intersectionHandler is always called
-      // on initial observation).
-      const callReInit = previousContainerIntersecting !== null;
+      // on initial observation), nor when the viewport is not intersecting.
+      const callReInit =
+        isContainerIntersectingNow && previousContainerIntersecting !== null;
       previousContainerIntersecting = isContainerIntersectingNow;
       if (callReInit) {
         reInitController?.reinit();
@@ -122,7 +127,7 @@ function AutoSize(): AutoSizeType {
     }
   }
 
-  function setContainerHeight(): void {
+  function setContainerHeightAndReInit(): void {
     const {
       slideRegistry,
       options: { axis },

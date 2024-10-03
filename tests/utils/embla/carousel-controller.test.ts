@@ -207,7 +207,7 @@ describe('CarouselController', () => {
         loop: true,
         containScroll: 'trimSnaps',
         watchSlides: false,
-        watchResize: false,
+        watchResize: true,
         watchDrag: false,
       },
       plugins,
