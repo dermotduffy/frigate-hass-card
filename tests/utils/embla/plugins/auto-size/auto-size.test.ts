@@ -64,7 +64,7 @@ describe('AutoSize', () => {
     callIntersectionHandler(false);
     callIntersectionHandler(false);
 
-    expect(emblaApi.reInit).not.toBeCalled()
+    expect(emblaApi.reInit).not.toBeCalled();
 
     // When visible, will re-initialize once.
     callIntersectionHandler(true);
