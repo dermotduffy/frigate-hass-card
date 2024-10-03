@@ -1,5 +1,9 @@
 import { CameraConfig, FrigateCardConfig } from '../config/types';
-import { MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA } from '../const';
+import {
+  MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
+  MEDIA_PLAYER_SUPPORT_STOP,
+  MEDIA_PLAYER_SUPPORT_TURN_OFF,
+} from '../const';
 import { localize } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
 import { Entity } from '../utils/ha/registry/entity/types';
@@ -85,12 +89,26 @@ export class MediaPlayerManager {
   }
 
   public async stop(mediaPlayer: string): Promise<void> {
-    await this._api
-      .getHASSManager()
-      .getHASS()
-      ?.callService('media_player', 'media_stop', {
-        entity_id: mediaPlayer,
-      });
+    const hass = this._api.getHASSManager().getHASS();
+    const stateObj = hass?.states[mediaPlayer];
+    if (!stateObj) {
+      return;
+    }
+
+    let service: string;
+    if (supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_STOP)) {
+      service = 'media_stop';
+    } else if (supportsFeature(stateObj, MEDIA_PLAYER_SUPPORT_TURN_OFF)) {
+      // Google Cast devices don't support media_stop, but turning off has the
+      // same effect.
+      service = 'turn_off';
+    } else {
+      return;
+    }
+
+    await hass.callService('media_player', service, {
+      entity_id: mediaPlayer,
+    });
   }
 
   public async playLive(mediaPlayer: string, cameraID: string): Promise<void> {
