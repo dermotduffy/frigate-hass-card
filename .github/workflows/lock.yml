@@ -1,0 +1,22 @@
+name: Lock
+
+# yamllint disable-line rule:truthy
+on:
+  schedule:
+    - cron: '23 13 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: lock
+
+jobs:
+  lock:
+    if: github.repository_owner == 'dermotduffy'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/lock-threads@v5.0.1
+        with:
+          issue-inactive-days: '30'
+          issue-lock-reason: ''
+          pr-inactive-days: '30'
+          pr-lock-reason: ''
