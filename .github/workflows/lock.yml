@@ -6,9 +6,6 @@ on:
     - cron: '23 13 * * *'
   workflow_dispatch:
 
-concurrency:
-  group: lock
-
 jobs:
   lock:
     if: github.repository_owner == 'dermotduffy'
@@ -16,7 +13,9 @@ jobs:
     steps:
       - uses: dessant/lock-threads@v5.0.1
         with:
+          github-token: ${{ github.token }}
           issue-inactive-days: '30'
           issue-lock-reason: ''
           pr-inactive-days: '30'
           pr-lock-reason: ''
+          log-output: true
