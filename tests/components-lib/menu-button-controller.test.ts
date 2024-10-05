@@ -27,7 +27,6 @@ import {
   createCameraConfig,
   createCameraManager,
   createCapabilities,
-  createCardAPI,
   createConfig,
   createHASS,
   createMediaCapabilities,
@@ -115,7 +114,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have cameras menu', () => {
-    it('with multiple cameras', () => {
+    it('should have cameras menu with multiple cameras', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
@@ -167,13 +166,18 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('without a visible camera', () => {
+    it('should not have cameras menu with <= 1 camera', () => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([
-          { cameraID: 'camera-1', config: createCameraConfig({ hide: true }) },
+          { cameraID: 'camera-1', capabilities: createCapabilities({ menu: true }) },
+          { cameraID: 'camera-3', capabilities: createCapabilities({ menu: false }) },
         ]),
       );
+      vi.mocked(cameraManager).getCameraMetadata.mockReturnValue({
+        title: 'title',
+        icon: 'icon',
+      });
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
       expect(buttons).not.toEqual(

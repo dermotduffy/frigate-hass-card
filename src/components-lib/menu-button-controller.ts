@@ -129,7 +129,7 @@ export class MenuButtonController {
     // Show all cameras in the menu rather than just cameras that support the
     // current view for a less surprising UX.
     const menuCameraIDs = cameraManager.getStore().getCameraIDsWithCapability('menu');
-    if (menuCameraIDs.size) {
+    if (menuCameraIDs.size > 1) {
       const menuItems = Array.from(
         cameraManager.getStore().getCameraConfigEntries(menuCameraIDs),
         ([cameraID, config]) => {
