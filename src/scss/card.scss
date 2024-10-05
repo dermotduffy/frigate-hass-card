@@ -209,9 +209,9 @@ frigate-card-menu[data-style*='hover']:hover,
  * Status bar hover styles
  *************************/
 
- frigate-card-status-bar {
+frigate-card-status-bar {
   z-index: 1;
- }
+}
 
 frigate-card-status-bar[data-style*='hover'] {
   transition: opacity 0.5s ease;
