@@ -13,26 +13,27 @@ import {
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 
 /**
- * Video player for go2rtc streaming application.
+ * VideoRTC v1.6.0 - Video player for go2rtc streaming application.
  *
  * All modern web technologies are supported in almost any browser except Apple Safari.
  *
  * Support:
+ * - ECMAScript 2017 (ES8) = ES6 + async
  * - RTCPeerConnection for Safari iOS 11.0+
  * - IntersectionObserver for Safari iOS 12.2+
+ * - ManagedMediaSource for Safari 17+
  *
  * Doesn't support:
- * - MediaSource for Safari iOS all
- * - Customized built-in elements (extends HTMLVideoElement) because all Safari
- * - Public class fields because old Safari (before 14.0)
- * - Autoplay for Safari
+ * - MediaSource for Safari iOS
+ * - Customized built-in elements (extends HTMLVideoElement) because Safari
+ * - Autoplay for WebRTC in Safari
  */
 export class VideoRTC extends HTMLElement {
   constructor() {
     super();
 
     this.DISCONNECT_TIMEOUT = 5000;
-    this.RECONNECT_TIMEOUT = 30000;
+    this.RECONNECT_TIMEOUT = 15000;
 
     this.CODECS = [
       'avc1.640029', // H.264 high 4.1 (Chromecast 1st and 2nd Gen)
@@ -46,10 +47,16 @@ export class VideoRTC extends HTMLElement {
     ];
 
     /**
-     * [config] Supported modes (webrtc, mse, mp4, mjpeg).
+     * [config] Supported modes (webrtc, webrtc/tcp, mse, hls, mp4, mjpeg).
      * @type {string}
      */
-    this.mode = 'webrtc,mse,mp4,mjpeg';
+    this.mode = 'webrtc,mse,hls,mjpeg';
+
+    /**
+     * [Config] Requested medias (video, audio, microphone).
+     * @type {string}
+     */
+    this.media = 'video,audio';
 
     /**
      * [config] Run stream when not displayed on the screen. Default `false`.
@@ -77,6 +84,7 @@ export class VideoRTC extends HTMLElement {
      * @type {RTCConfiguration}
      */
     this.pcConfig = {
+      bundlePolicy: 'max-bundle',
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       sdpSemantics: 'unified-plan', // important for Chromecast 1
     };
@@ -142,8 +150,8 @@ export class VideoRTC extends HTMLElement {
     this.ondata = null;
 
     /**
-     * [internal] Handlers list for receiving JSON from WebSocket
-     * @type {Object.<string,Function>}}
+     * [internal] Handlers list for receiving JSON from WebSocket.
+     * @type {Object.<string,Function>}
      */
     this.onmessage = null;
 
@@ -216,12 +224,13 @@ export class VideoRTC extends HTMLElement {
     if (this.ws) this.ws.send(JSON.stringify(value));
   }
 
-  codecs(type) {
-    const test =
-      type === 'mse'
-        ? (codec) => MediaSource.isTypeSupported(`video/mp4; codecs="${codec}"`)
-        : (codec) => this.video.canPlayType(`video/mp4; codecs="${codec}"`);
-    return this.CODECS.filter(test).join();
+  /** @param {Function} isSupported */
+  codecs(isSupported) {
+    return this.CODECS.filter(
+      (codec) => this.media.indexOf(codec.indexOf('vc1') > 0 ? 'video' : 'audio') >= 0,
+    )
+      .filter((codec) => isSupported(`video/mp4; codecs="${codec}"`))
+      .join();
   }
 
   /**
@@ -282,6 +291,24 @@ export class VideoRTC extends HTMLElement {
     this.video.style.height = '100%';
 
     this.appendChild(this.video);
+
+    this.video.addEventListener('error', (ev) => {
+      // For Frigate Card, we avoid log spam here from errors, and also don't
+      // attempt to close the websocket unless the connection is open (otherwise
+      // on reconnect() an exception will be thrown here that we're attempting
+      // to close a connection that's not open)
+
+      // console.warn(ev);
+      if (this.ws && this.wsState === WebSocket.OPEN) this.ws.close(); // run reconnect for broken MSE stream
+    });
+
+    // all Safari lies about supported audio codecs
+    const m = window.navigator.userAgent.match(/Version\/(\d+).+Safari/);
+    if (m) {
+      // AAC from v13, FLAC from v14, OPUS - unsupported
+      const skip = m[1] < '13' ? 'mp4a.40.2' : m[1] < '14' ? 'flac' : 'opus';
+      this.CODECS.splice(this.CODECS.indexOf(skip));
+    }
 
     if (this.background) return;
 
@@ -366,9 +393,15 @@ export class VideoRTC extends HTMLElement {
 
     this.pcState = WebSocket.CLOSED;
     if (this.pc) {
+      this.pc.getSenders().forEach((sender) => {
+        if (sender.track) sender.track.stop();
+      });
       this.pc.close();
       this.pc = null;
     }
+
+    this.video.src = '';
+    this.video.srcObject = null;
   }
 
   /**
@@ -394,17 +427,24 @@ export class VideoRTC extends HTMLElement {
 
     const modes = [];
 
-    if (this.mode.indexOf('mse') >= 0 && 'MediaSource' in window) {
-      // iPhone
+    if (
+      this.mode.indexOf('mse') >= 0 &&
+      ('MediaSource' in window || 'ManagedMediaSource' in window)
+    ) {
       modes.push('mse');
       this.onmse();
+    } else if (
+      this.mode.indexOf('hls') >= 0 &&
+      this.video.canPlayType('application/vnd.apple.mpegurl')
+    ) {
+      modes.push('hls');
+      this.onhls();
     } else if (this.mode.indexOf('mp4') >= 0) {
       modes.push('mp4');
       this.onmp4();
     }
 
     if (this.mode.indexOf('webrtc') >= 0 && 'RTCPeerConnection' in window) {
-      // macOS Desktop app
       modes.push('webrtc');
       this.onwebrtc();
     }
@@ -446,18 +486,38 @@ export class VideoRTC extends HTMLElement {
   }
 
   onmse() {
-    const ms = new MediaSource();
-    ms.addEventListener(
-      'sourceopen',
-      () => {
-        URL.revokeObjectURL(this.video.src);
-        this.send({ type: 'mse', value: this.codecs('mse') });
-      },
-      { once: true },
-    );
+    /** @type {MediaSource} */
+    let ms;
 
-    this.video.src = URL.createObjectURL(ms);
-    this.video.srcObject = null;
+    if ('ManagedMediaSource' in window) {
+      const MediaSource = window.ManagedMediaSource;
+
+      ms = new MediaSource();
+      ms.addEventListener(
+        'sourceopen',
+        () => {
+          this.send({ type: 'mse', value: this.codecs(MediaSource.isTypeSupported) });
+        },
+        { once: true },
+      );
+
+      this.video.disableRemotePlayback = true;
+      this.video.srcObject = ms;
+    } else {
+      ms = new MediaSource();
+      ms.addEventListener(
+        'sourceopen',
+        () => {
+          URL.revokeObjectURL(this.video.src);
+          this.send({ type: 'mse', value: this.codecs(MediaSource.isTypeSupported) });
+        },
+        { once: true },
+      );
+
+      this.video.src = URL.createObjectURL(ms);
+      this.video.srcObject = null;
+    }
+
     this.play();
 
     this.mseCodecs = '';
@@ -514,32 +574,34 @@ export class VideoRTC extends HTMLElement {
   onwebrtc() {
     const pc = new RTCPeerConnection(this.pcConfig);
 
-    const video2 = document.createElement('video');
-    video2.addEventListener('loadeddata', (ev) => this.onpcvideo(ev), { once: true });
-
     pc.addEventListener('icecandidate', (ev) => {
+      if (
+        ev.candidate &&
+        this.mode.indexOf('webrtc/tcp') >= 0 &&
+        ev.candidate.protocol === 'udp'
+      )
+        return;
+
       const candidate = ev.candidate ? ev.candidate.toJSON().candidate : '';
       this.send({ type: 'webrtc/candidate', value: candidate });
     });
 
-    pc.addEventListener('track', (ev) => {
-      // when stream already init
-      if (video2.srcObject !== null) return;
-
-      // when audio track not exist in Chrome
-      if (ev.streams.length === 0) return;
-
-      // when audio track not exist in Firefox
-      if (ev.streams[0].id[0] === '{') return;
-
-      // Filter out tracks that are not video related.
-      if (ev.track.kind !== 'video') return;
-
-      video2.srcObject = ev.streams[0];
-    });
-
     pc.addEventListener('connectionstatechange', () => {
-      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+      if (pc.connectionState === 'connected') {
+        const tracks = pc
+          .getTransceivers()
+          .filter((tr) => tr.currentDirection === 'recvonly') // skip inactive
+          .map((tr) => tr.receiver.track);
+        /** @type {HTMLVideoElement} */
+        const video2 = document.createElement('video');
+        video2.addEventListener('loadeddata', () => this.onpcvideo(video2), {
+          once: true,
+        });
+        video2.srcObject = new MediaStream(tracks);
+      } else if (
+        pc.connectionState === 'failed' ||
+        pc.connectionState === 'disconnected'
+      ) {
         pc.close(); // stop next events
 
         this.pcState = WebSocket.CLOSED;
@@ -552,16 +614,17 @@ export class VideoRTC extends HTMLElement {
     this.onmessage['webrtc'] = (msg) => {
       switch (msg.type) {
         case 'webrtc/candidate':
-          pc.addIceCandidate({
-            candidate: msg.value,
-            sdpMid: '0',
-          }).catch(() => console.debug);
+          if (this.mode.indexOf('webrtc/tcp') >= 0 && msg.value.indexOf(' udp ') > 0)
+            return;
+
+          pc.addIceCandidate({ candidate: msg.value, sdpMid: '0' }).catch((er) => {
+            console.warn(er);
+          });
           break;
         case 'webrtc/answer':
-          pc.setRemoteDescription({
-            type: 'answer',
-            sdp: msg.value,
-          }).catch(() => console.debug);
+          pc.setRemoteDescription({ type: 'answer', sdp: msg.value }).catch((er) => {
+            console.warn(er);
+          });
           break;
         case 'error':
           if (msg.value.indexOf('webrtc/offer') < 0) return;
@@ -569,19 +632,8 @@ export class VideoRTC extends HTMLElement {
       }
     };
 
-    // Safari doesn't support "offerToReceiveVideo"
-    pc.addTransceiver('video', { direction: 'recvonly' });
-    pc.addTransceiver('audio', { direction: 'recvonly' });
-
-    // Must add microphone tracks prior to making the offer.
-    this.microphoneStream?.getTracks().forEach((track) => {
-      pc.addTransceiver(track, { direction: 'sendonly' });
-    });
-
-    pc.createOffer().then((offer) => {
-      pc.setLocalDescription(offer).then(() => {
-        this.send({ type: 'webrtc/offer', value: offer.sdp });
-      });
+    this.createOffer(pc).then((offer) => {
+      this.send({ type: 'webrtc/offer', value: offer.sdp });
     });
 
     this.pcState = WebSocket.CONNECTING;
@@ -589,43 +641,72 @@ export class VideoRTC extends HTMLElement {
   }
 
   /**
-   * @param ev {Event}
+   * @param pc {RTCPeerConnection}
+   * @return {Promise<RTCSessionDescriptionInit>}
    */
-  onpcvideo(ev) {
-    if (!this.pc) return;
+  async createOffer(pc) {
+    // Must add microphone tracks prior to making the offer.
+    this.microphoneStream?.getTracks().forEach((track) => {
+      pc.addTransceiver(track, { direction: 'sendonly' });
+    });
 
-    /** @type {HTMLVideoElement} */
-    const video2 = ev.target;
-    const state = this.pc.connectionState;
+    try {
+      if (this.media.indexOf('microphone') >= 0) {
+        const media = await navigator.mediaDevices.getUserMedia({ audio: true });
+        media.getTracks().forEach((track) => {
+          pc.addTransceiver(track, { direction: 'sendonly' });
+        });
+      }
+    } catch (e) {
+      console.warn(e);
+    }
 
-    // Firefox doesn't support pc.connectionState
-    if (state === 'connected' || state === 'connecting' || !state) {
+    for (const kind of ['video', 'audio']) {
+      if (this.media.indexOf(kind) >= 0) {
+        pc.addTransceiver(kind, { direction: 'recvonly' });
+      }
+    }
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    return offer;
+  }
+
+  /**
+   * @param video2 {HTMLVideoElement}
+   */
+  onpcvideo(video2) {
+    if (this.pc) {
       // Video+Audio > Video, H265 > H264, Video > Audio, WebRTC > MSE
       let rtcPriority = 0,
         msePriority = 0;
 
       /** @type {MediaStream} */
-      const ms = video2.srcObject;
-      if (ms.getVideoTracks().length > 0) rtcPriority += 0x220;
-      if (ms.getAudioTracks().length > 0) rtcPriority += 0x102;
+      const stream = video2.srcObject;
+      if (stream.getVideoTracks().length > 0) rtcPriority += 0x220;
+      if (stream.getAudioTracks().length > 0) rtcPriority += 0x102;
 
       if (this.mseCodecs.indexOf('hvc1.') >= 0) msePriority += 0x230;
       if (this.mseCodecs.indexOf('avc1.') >= 0) msePriority += 0x210;
       if (this.mseCodecs.indexOf('mp4a.') >= 0) msePriority += 0x101;
 
       if (rtcPriority >= msePriority) {
-        this.video.srcObject = ms;
+        this.video.srcObject = stream;
         this.play();
 
         this.pcState = WebSocket.OPEN;
 
         this.wsState = WebSocket.CLOSED;
-        this.ws.close();
-        this.ws = null;
+        if (this.ws) {
+          this.ws.close();
+          this.ws = null;
+        }
       } else {
         this.pcState = WebSocket.CLOSED;
-        this.pc.close();
-        this.pc = null;
+        if (this.pc) {
+          this.pc.close();
+          this.pc = null;
+        }
       }
     }
 
@@ -649,6 +730,22 @@ export class VideoRTC extends HTMLElement {
     };
 
     this.send({ type: 'mjpeg' });
+  }
+
+  onhls() {
+    this.onmessage['hls'] = (msg) => {
+      if (msg.type !== 'hls') return;
+
+      const url = 'http' + this.wsURL.substring(2, this.wsURL.indexOf('/ws')) + '/hls/';
+      const playlist = msg.value.replace('hls/', url);
+      this.video.src = 'data:application/vnd.apple.mpegurl;base64,' + btoa(playlist);
+      this.play();
+    };
+
+    this.send({
+      type: 'hls',
+      value: this.codecs((type) => this.video.canPlayType(type)),
+    });
   }
 
   onmp4() {
@@ -685,7 +782,7 @@ export class VideoRTC extends HTMLElement {
       video2.src = 'data:video/mp4;base64,' + VideoRTC.btoa(data);
     };
 
-    this.send({ type: 'mp4', value: this.codecs('mp4') });
+    this.send({ type: 'mp4', value: this.codecs(this.video.canPlayType) });
   }
 
   static btoa(buffer) {
