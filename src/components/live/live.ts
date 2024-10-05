@@ -581,10 +581,15 @@ export class FrigateCardLiveCarousel extends LitElement {
     const cameraMetadataPrevious = prevID
       ? this.cameraManager.getCameraMetadata(this._getSubstreamCameraID(prevID, view))
       : null;
-    const cameraID = this.viewFilterCameraID ?? view.camera;
     const cameraMetadataNext = nextID
       ? this.cameraManager.getCameraMetadata(this._getSubstreamCameraID(nextID, view))
       : null;
+    const forcePTZVisibility =
+      !this._mediaHasLoaded ||
+      this.viewFilterCameraID !== view.camera ||
+      view.context?.ptzControls?.enabled === false
+        ? false
+        : view.context?.ptzControls?.enabled;
 
     // Notes on the below:
     // - guard() is used to avoid reseting the carousel unless the
@@ -642,8 +647,8 @@ export class FrigateCardLiveCarousel extends LitElement {
       <frigate-card-ptz
         .config=${this.overriddenLiveConfig.controls.ptz}
         .cameraManager=${this.cameraManager}
-        .cameraID=${getStreamCameraID(view, cameraID)}
-        .forceVisibility=${this._mediaHasLoaded && view.context?.ptzControls?.enabled}
+        .cameraID=${getStreamCameraID(view, this.viewFilterCameraID)}
+        .forceVisibility=${forcePTZVisibility}
       >
       </frigate-card-ptz>
     `;
