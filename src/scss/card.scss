@@ -28,6 +28,10 @@
   --frigate-card-expand-aspect-ratio: unset;
 
   --frigate-card-height: auto;
+
+  // Baseline z-index, creates a fresh stacking context for the card.
+  // See: https://github.com/dermotduffy/frigate-hass-card/issues/1613
+  z-index: 0;
 }
 
 frigate-card-loading {
