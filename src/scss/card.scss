@@ -28,10 +28,6 @@
   --frigate-card-expand-aspect-ratio: unset;
 
   --frigate-card-height: auto;
-
-  // Baseline z-index, creates a fresh stacking context for the card.
-  // See: https://github.com/dermotduffy/frigate-hass-card/issues/1613
-  z-index: 0;
 }
 
 frigate-card-loading {
@@ -192,21 +188,12 @@ web-dialog::part(dialog) {
   border-bottom-right-radius: var(--ha-card-border-radius, 4px);
 }
 
-/****************
- * Overlay styles
- ****************/
-frigate-card-overlay {
-  // Higher than the drawer (menu renders over drawer).
-  z-index: 20;
-}
-
 /*******************
  * Menu hover styles
  *******************/
 
 frigate-card-menu {
-  // z-index is within the overlay stacking context.
-  z-index: 1;
+  z-index: 2;
 }
 
 frigate-card-menu[data-style*='hover'] {
@@ -221,6 +208,10 @@ frigate-card-menu[data-style*='hover']:hover,
 /*************************
  * Status bar hover styles
  *************************/
+
+ frigate-card-status-bar {
+  z-index: 1;
+ }
 
 frigate-card-status-bar[data-style*='hover'] {
   transition: opacity 0.5s ease;
