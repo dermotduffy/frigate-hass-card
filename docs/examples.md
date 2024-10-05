@@ -113,6 +113,35 @@ automations:
         frigate_card_action: clips
 ```
 
+## Cameras
+
+### `frigate` camera without a `camera_entity`
+
+In this example, there is no Home Assistant entity linked to the camera, just a `frigate` camera name:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - frigate:
+      camera_name: office
+    live_provider: go2rtc
+```
+
+### `go2rtc` stream without a `camera_entity`
+
+In this example, there is no Home Assistant entity linked to the camera, just a `go2rtc` stream.
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - live_provider: go2rtc
+    go2rtc:
+      stream: office
+      url: https://my.go2rtc.url:1984/
+```
+
+!> Browsers will reject [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content): if you access Home Assistant over `https`, you must also put `go2rtc` behind `https` and use that in the `url` parameter.
+
 ## `card-mod`
 
 This card allows the use of
