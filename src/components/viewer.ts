@@ -386,10 +386,21 @@ export class FrigateCardViewerCarousel extends LitElement {
         this._selected = newSelected;
       }
 
-      if (!newMedia) {
-        this._mediaActionsController.unselectAll();
+      if (!newMedia?.length) {
+        // No media will be rendered.
+        this._mediaActionsController.unsetTarget();
       } else {
-        this._mediaActionsController.select(newSelected);
+        if (this.viewFilterCameraID) {
+          this._mediaActionsController.setTarget(
+            newSelected,
+            // Camera in this carousel is only selected if the camera from the
+            // view matches the filtered camera.
+            view?.camera === this.viewFilterCameraID,
+          );
+        } else {
+          // Carousel is not filtered, so the targeted camera is always selected.
+          this._mediaActionsController.setTarget(newSelected, true);
+        }
       }
     }
   }

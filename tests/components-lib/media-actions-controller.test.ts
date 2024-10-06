@@ -90,7 +90,7 @@ describe('MediaActionsController', () => {
       const parent = createParent({ children: children });
 
       controller.initialize(parent);
-      await controller.select(0);
+      await controller.setTarget(0, true);
 
       expect(getPlayer(children[0], 'video')?.play).not.toBeCalled();
     });
@@ -112,7 +112,7 @@ describe('MediaActionsController', () => {
 
       await callMutationHandler();
 
-      await controller.select(1);
+      await controller.setTarget(1, true);
 
       expect(newPlayer.play).toBeCalled();
     });
@@ -132,13 +132,13 @@ describe('MediaActionsController', () => {
 
       controller.destroy();
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
 
       expect(getPlayer(children[0], 'video')?.play).not.toBeCalled();
     });
   });
 
-  describe('should respond to select', () => {
+  describe('should respond to setting target', () => {
     it.each([
       ['should play', { autoPlayConditions: ['selected' as const] }, 'play', true],
       ['should not play', { autoPlayConditions: [] }, 'play', false],
@@ -161,13 +161,13 @@ describe('MediaActionsController', () => {
         const children = createPlayerSlideNodes();
         controller.initialize(createParent({ children: children }));
 
-        await controller.select(0);
+        await controller.setTarget(0, true);
 
         expect(getPlayer(children[0], 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
       },
     );
 
-    it('should not re-select', async () => {
+    it('should not reselect previously selected target', async () => {
       const controller = new MediaActionsController();
       controller.setOptions({
         autoPlayConditions: ['selected' as const],
@@ -177,14 +177,14 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       controller.initialize(createParent({ children: children }));
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
       expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
       expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
     });
 
-    it('should unselect first', async () => {
+    it('should unselect before selecting a new target', async () => {
       const controller = new MediaActionsController();
       controller.setOptions({
         autoPauseConditions: ['unselected' as const],
@@ -195,16 +195,66 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       controller.initialize(createParent({ children: children }));
 
-      await controller.select(0);
-      await controller.select(1);
+      await controller.setTarget(0, true);
+      await controller.setTarget(1, true);
 
       expect(getPlayer(children[0], 'video')?.pause).toBeCalled();
       expect(getPlayer(children[0], 'video')?.mute).toBeCalled();
     });
+
+    it('should select after target was previously visible', async () => {
+      const controller = new MediaActionsController();
+      controller.setOptions({
+        autoPlayConditions: ['selected' as const],
+        autoUnmuteConditions: ['selected' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.initialize(createParent({ children: children }));
+
+      await controller.setTarget(0, false);
+
+      expect(getPlayer(children[0], 'video')?.play).not.toBeCalled();
+      expect(getPlayer(children[0], 'video')?.unmute).not.toBeCalled();
+
+      await controller.setTarget(0, true);
+
+      expect(getPlayer(children[0], 'video')?.play).toBeCalled();
+      expect(getPlayer(children[0], 'video')?.unmute).toBeCalled();
+    });
+  });
+
+  it('should take no action after target unset', async () => {
+    const controller = new MediaActionsController();
+    controller.setOptions({
+      autoPlayConditions: ['selected' as const, 'visible' as const],
+      autoUnmuteConditions: ['selected' as const, 'visible' as const],
+      playerSelector: 'video',
+    });
+
+    const children = createPlayerSlideNodes();
+    controller.initialize(createParent({ children: children }));
+
+    await controller.setTarget(0, true);
+
+    expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
+    expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
+
+    controller.unsetTarget();
+
+    getPlayer(children[0], 'video')?.dispatchEvent(
+      new Event('frigate-card:media:loaded'),
+    );
+    await flushPromises();
+
+    // Play/Mute will not have been called again.
+    expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
+    expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
   });
 
   describe('should respond to media loaded', () => {
-    it('should play', async () => {
+    it('should play after media load', async () => {
       const controller = new MediaActionsController();
       controller.setOptions({
         autoPlayConditions: ['selected' as const],
@@ -214,7 +264,7 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       controller.initialize(createParent({ children: children }));
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
       expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
@@ -226,7 +276,7 @@ describe('MediaActionsController', () => {
       expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(2);
     });
 
-    it('should unmute', async () => {
+    it('should unmute after media load', async () => {
       const controller = new MediaActionsController();
       controller.setOptions({
         autoUnmuteConditions: ['selected' as const],
@@ -236,7 +286,7 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       controller.initialize(createParent({ children: children }));
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
       expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
@@ -248,18 +298,18 @@ describe('MediaActionsController', () => {
       expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(2);
     });
 
-    it('should take no action on unselected media load', async () => {
+    it('should take no action on unrelated media load', async () => {
       const controller = new MediaActionsController();
       controller.setOptions({
-        autoPlayConditions: ['selected' as const],
-        autoUnmuteConditions: ['selected' as const],
+        autoPlayConditions: ['selected' as const, 'visible' as const],
+        autoUnmuteConditions: ['selected' as const, 'visible' as const],
         playerSelector: 'video',
       });
 
       const children = createPlayerSlideNodes();
       controller.initialize(createParent({ children: children }));
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
 
       getPlayer(children[9], 'video')?.dispatchEvent(
         new Event('frigate-card:media:loaded'),
@@ -270,9 +320,35 @@ describe('MediaActionsController', () => {
       expect(getPlayer(children[9], 'video')?.play).not.toBeCalled();
       expect(getPlayer(children[9], 'video')?.unmute).not.toBeCalled();
     });
+
+    it('should play and unmute on unselected but targeted media load', async () => {
+      const controller = new MediaActionsController();
+      controller.setOptions({
+        autoPlayConditions: ['visible' as const],
+        autoUnmuteConditions: ['visible' as const],
+        playerSelector: 'video',
+      });
+
+      const children = createPlayerSlideNodes();
+      controller.initialize(createParent({ children: children }));
+
+      await controller.setTarget(0, false);
+
+      expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
+      expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
+
+      getPlayer(children[0], 'video')?.dispatchEvent(
+        new Event('frigate-card:media:loaded'),
+      );
+
+      await flushPromises();
+
+      expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(2);
+      expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(2);
+    });
   });
 
-  describe('should respond to unselect', () => {
+  describe('should take action on unselect', () => {
     it.each([
       ['should pause', { autoPauseConditions: ['unselected' as const] }, 'pause', true],
       ['should not pause', { autoPauseConditions: [] }, 'pause', false],
@@ -295,47 +371,15 @@ describe('MediaActionsController', () => {
         const children = createPlayerSlideNodes();
         controller.initialize(createParent({ children: children }));
 
-        await controller.select(0);
-        await controller.unselect();
+        await controller.setTarget(0, true);
+        await controller.setTarget(0, false);
 
         expect(getPlayer(children[0], 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
       },
     );
   });
 
-  describe('should respond to unselect all', () => {
-    it.each([
-      ['should pause', { autoPauseConditions: ['unselected' as const] }, 'pause', true],
-      ['should not pause', { autoPauseConditions: [] }, 'pause', false],
-      ['should mute', { autoMuteConditions: ['unselected' as const] }, 'mute', true],
-      ['should not mute', { autoMuteConditions: [] }, 'mute', false],
-    ])(
-      '%s',
-      async (
-        _: string,
-        options: Partial<MediaActionsControllerOptions>,
-        func: string,
-        called: boolean,
-      ) => {
-        const controller = new MediaActionsController();
-        controller.setOptions({
-          playerSelector: 'video',
-          ...options,
-        });
-
-        const children = createPlayerSlideNodes();
-        controller.initialize(createParent({ children: children }));
-
-        await controller.unselectAll();
-
-        children.forEach((child) => {
-          expect(getPlayer(child, 'video')?.[func]).toBeCalledTimes(called ? 1 : 0);
-        });
-      },
-    );
-  });
-
-  describe('should respond to page being visible', () => {
+  describe('should take action on page being visible', () => {
     it.each([
       ['should play', { autoPlayConditions: ['visible' as const] }, 'play', true],
       ['should not play', { autoPlayConditions: [] }, 'play', false],
@@ -359,7 +403,7 @@ describe('MediaActionsController', () => {
 
         const children = createPlayerSlideNodes();
         controller.initialize(createParent({ children: children }));
-        await controller.select(0);
+        await controller.setTarget(0, true);
 
         // Not configured to take action on selection.
         expect(getPlayer(children[0], 'video')?.[func]).not.toBeCalled();
@@ -376,7 +420,7 @@ describe('MediaActionsController', () => {
     );
   });
 
-  describe('should respond to page being hiddne', () => {
+  describe('should take action on page being hiddne', () => {
     beforeAll(() => {
       vi.spyOn(global.document, 'addEventListener');
     });
@@ -402,7 +446,7 @@ describe('MediaActionsController', () => {
 
         const children = createPlayerSlideNodes();
         controller.initialize(createParent({ children: children }));
-        await controller.select(0);
+        await controller.setTarget(0, true);
 
         // Not configured to take action on selection.
         expect(getPlayer(children[0], 'video')?.[func]).not.toBeCalled();
@@ -419,7 +463,7 @@ describe('MediaActionsController', () => {
     );
   });
 
-  describe('should respond to page intersecting with viewport', () => {
+  describe('should take action on page intersecting with viewport', () => {
     it.each([
       ['should play', { autoPlayConditions: ['visible' as const] }, 'play', true],
       ['should not play', { autoPlayConditions: [] }, 'play', false],
@@ -441,7 +485,7 @@ describe('MediaActionsController', () => {
 
         const children = createPlayerSlideNodes();
         controller.initialize(createParent({ children: children }));
-        await controller.select(0);
+        await controller.setTarget(0, true);
 
         // Not configured to take action on selection.
         expect(getPlayer(children[0], 'video')?.[func]).not.toBeCalled();
@@ -458,7 +502,7 @@ describe('MediaActionsController', () => {
     );
   });
 
-  describe('should respond to page not intersecting with viewport', () => {
+  describe('should take action on page not intersecting with viewport', () => {
     it.each([
       ['should play', { autoPlayConditions: ['visible' as const] }, 'play', true],
       ['should not play', { autoPlayConditions: [] }, 'play', false],
@@ -480,7 +524,7 @@ describe('MediaActionsController', () => {
 
         const children = createPlayerSlideNodes();
         controller.initialize(createParent({ children: children }));
-        await controller.select(0);
+        await controller.setTarget(0, true);
 
         // Not configured to take action on selection.
         expect(getPlayer(children[0], 'video')?.[func]).not.toBeCalled();
@@ -497,7 +541,7 @@ describe('MediaActionsController', () => {
     );
   });
 
-  describe('should respond to microphone changes', () => {
+  describe('should take action on microphone changes', () => {
     beforeAll(() => {
       vi.useFakeTimers();
     });
@@ -519,7 +563,7 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       controller.initialize(createParent({ children: children }));
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
 
       callMicrophoneListener(microphoneManager, 'unmuted');
 
@@ -539,7 +583,7 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       controller.initialize(createParent({ children: children }));
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
 
       callMicrophoneListener(microphoneManager, 'muted');
 
@@ -561,7 +605,7 @@ describe('MediaActionsController', () => {
       const children = createPlayerSlideNodes();
       controller.initialize(createParent({ children: children }));
 
-      await controller.select(0);
+      await controller.setTarget(0, true);
 
       callMicrophoneListener(microphoneManager, 'muted');
 
