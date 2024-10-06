@@ -325,11 +325,15 @@ export class FrigateCardLiveCarousel extends LitElement {
   }
 
   protected _getSelectedCameraIndex(): number {
-    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
-    const view = this.viewManagerEpoch?.manager.getView();
-    if (!cameraIDs?.size || !view || this.viewFilterCameraID) {
+    if (this.viewFilterCameraID) {
       // If the carousel is limited to a single cameraID, the first (only)
       // element is always the selected one.
+      return 0;
+    }
+
+    const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
+    const view = this.viewManagerEpoch?.manager.getView();
+    if (!cameraIDs?.size || !view) {
       return 0;
     }
     return Math.max(0, Array.from(cameraIDs).indexOf(view.camera));
@@ -364,13 +368,19 @@ export class FrigateCardLiveCarousel extends LitElement {
     }
 
     if (changedProps.has('viewManagerEpoch')) {
-      if (
-        this.viewFilterCameraID &&
-        this.viewManagerEpoch?.manager.getView()?.camera !== this.viewFilterCameraID
-      ) {
-        this._mediaActionsController.unselectAll();
+      const view = this.viewManagerEpoch?.manager.getView();
+      const selectedCameraIndex = this._getSelectedCameraIndex();
+
+      if (this.viewFilterCameraID) {
+        this._mediaActionsController.setTarget(
+          selectedCameraIndex,
+          // Camera in this carousel is only selected if the camera from the
+          // view matches the filtered camera.
+          view?.camera === this.viewFilterCameraID,
+        );
       } else {
-        this._mediaActionsController.select(this._getSelectedCameraIndex());
+        // Carousel is not filtered, so the targeted camera is always selected.
+        this._mediaActionsController.setTarget(selectedCameraIndex, true);
       }
     }
   }

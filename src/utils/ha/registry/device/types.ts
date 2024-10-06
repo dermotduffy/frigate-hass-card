@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const deviceSchema = z.object({
+const deviceSchema = z.object({
   id: z.string(),
   model: z.string().nullable(),
   config_entries: z.string().array(),

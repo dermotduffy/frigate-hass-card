@@ -34,6 +34,11 @@ type PlayerElement = HTMLElement & FrigateCardMediaPlayer;
  * start the video.
  */
 
+type MediaActionsTarget = {
+  selected: boolean;
+  index: number;
+};
+
 export class MediaActionsController {
   protected _options: MediaActionsControllerOptions | null = null;
   protected _viewportIntersecting: boolean | null = null;
@@ -42,7 +47,7 @@ export class MediaActionsController {
 
   protected _eventListeners = new Map<HTMLElement, () => void>();
   protected _children: PlayerElement[] = [];
-  protected _selected: number | null = null;
+  protected _target: MediaActionsTarget | null = null;
   protected _mutationObserver = new MutationObserver(this._mutationHandler.bind(this));
   protected _intersectionObserver = new IntersectionObserver(
     this._intersectionHandler.bind(this),
@@ -67,59 +72,62 @@ export class MediaActionsController {
     this._root = null;
     this._removeChildHandlers();
     this._children = [];
-    this._selected = null;
+    this._target = null;
     this._mutationObserver.disconnect();
     this._intersectionObserver.disconnect();
     this._options?.microphoneManager?.removeListener(this._microphoneChangeHandler);
     document.removeEventListener('visibilitychange', this._visibilityHandler);
   }
 
-  public async select(index: number): Promise<void> {
-    if (this._selected === index) {
+  public async setTarget(index: number, selected: boolean): Promise<void> {
+    if (this._target?.index === index && this._target?.selected === selected) {
       return;
     }
-    if (this._selected !== null) {
-      await this.unselect();
+
+    // If there's already a selected target, unselect it.
+    if (!!this._target?.selected) {
+      await this._pauseTargetIfConfigured('unselected');
+      await this._muteTargetIfConfigured('unselected');
+      this._microphoneMuteTimer.stop();
     }
-    this._selected = index;
-    await this._unmuteSelectedIfConfigured('selected');
-    await this._playSelectedIfConfigured('selected');
+
+    this._target = {
+      selected,
+      index,
+    };
+
+    if (selected) {
+      await this._unmuteTargetIfConfigured('selected');
+      await this._playTargetIfConfigured('selected');
+    } else {
+      await this._unmuteTargetIfConfigured('visible');
+      await this._playTargetIfConfigured('visible');
+    }
   }
 
-  public async unselect(): Promise<void> {
-    await this._pauseSelectedIfConfigured('unselected');
-    await this._muteSelectedIfConfigured('unselected');
-    this._microphoneMuteTimer.stop();
-    this._selected = null;
+  public unsetTarget(): void {
+    this._target = null;
   }
 
-  public async unselectAll(): Promise<void> {
-    this._selected = null;
-    await this._pauseAllIfConfigured('unselected');
-    await this._muteAllIfConfigured('unselected');
-  }
-
-  protected async _playSelectedIfConfigured(
-    condition: AutoPlayCondition,
-  ): Promise<void> {
+  protected async _playTargetIfConfigured(condition: AutoPlayCondition): Promise<void> {
     if (
-      this._selected !== null &&
+      this._target !== null &&
       this._options?.autoPlayConditions?.includes(condition)
     ) {
-      await this._play(this._selected);
+      await this._play(this._target.index);
     }
   }
   protected async _play(index: number): Promise<void> {
     await this._children[index]?.play();
   }
-  protected async _unmuteSelectedIfConfigured(
+  protected async _unmuteTargetIfConfigured(
     condition: AutoUnmuteCondition,
   ): Promise<void> {
     if (
-      this._selected !== null &&
+      this._target !== null &&
       this._options?.autoUnmuteConditions?.includes(condition)
     ) {
-      await this._unmute(this._selected);
+      await this._unmute(this._target.index);
     }
   }
   protected async _unmute(index: number): Promise<void> {
@@ -133,14 +141,14 @@ export class MediaActionsController {
       }
     }
   }
-  protected async _pauseSelectedIfConfigured(
+  protected async _pauseTargetIfConfigured(
     condition: AutoPauseCondition,
   ): Promise<void> {
     if (
-      this._selected !== null &&
+      this._target !== null &&
       this._options?.autoPauseConditions?.includes(condition)
     ) {
-      await this._pause(this._selected);
+      await this._pause(this._target.index);
     }
   }
   protected async _pause(index: number): Promise<void> {
@@ -154,14 +162,12 @@ export class MediaActionsController {
       }
     }
   }
-  protected async _muteSelectedIfConfigured(
-    condition: AutoMuteCondition,
-  ): Promise<void> {
+  protected async _muteTargetIfConfigured(condition: AutoMuteCondition): Promise<void> {
     if (
-      this._selected !== null &&
+      this._target !== null &&
       this._options?.autoMuteConditions?.includes(condition)
     ) {
-      await this._mute(this._selected);
+      await this._mute(this._target.index);
     }
   }
   protected async _mute(index: number): Promise<void> {
@@ -178,11 +184,11 @@ export class MediaActionsController {
   }
 
   protected _mediaLoadedHandler = async (index: number): Promise<void> => {
-    if (this._selected !== index) {
+    if (this._target?.index !== index) {
       return;
     }
-    await this._unmuteSelectedIfConfigured('selected');
-    await this._playSelectedIfConfigured('selected');
+    await this._unmuteTargetIfConfigured(this._target.selected ? 'selected' : 'visible');
+    await this._playTargetIfConfigured(this._target.selected ? 'selected' : 'visible');
   };
 
   protected _removeChildHandlers(): void {
@@ -242,8 +248,8 @@ export class MediaActionsController {
 
   protected _changeVisibility = async (visible: boolean): Promise<void> => {
     if (visible) {
-      await this._unmuteSelectedIfConfigured('visible');
-      await this._playSelectedIfConfigured('visible');
+      await this._unmuteTargetIfConfigured('visible');
+      await this._playTargetIfConfigured('visible');
     } else {
       await this._pauseAllIfConfigured('hidden');
       await this._muteAllIfConfigured('hidden');
@@ -253,7 +259,7 @@ export class MediaActionsController {
     change: MicrophoneManagerListenerChange,
   ): Promise<void> => {
     if (change === 'unmuted') {
-      await this._unmuteSelectedIfConfigured('microphone');
+      await this._unmuteTargetIfConfigured('microphone');
     } else if (
       change === 'muted' &&
       this._options?.autoMuteConditions?.includes('microphone')
@@ -261,7 +267,7 @@ export class MediaActionsController {
       this._microphoneMuteTimer.start(
         this._options.microphoneMuteSeconds ?? 60,
         async () => {
-          await this._muteSelectedIfConfigured('microphone');
+          await this._muteTargetIfConfigured('microphone');
         },
       );
     }
