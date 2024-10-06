@@ -134,6 +134,7 @@ export interface CardElementAPI {
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMicrophoneManager(): MicrophoneManager;
+  getStyleManager(): StyleManager;
   getQueryStringManager(): QueryStringManager;
 }
 
