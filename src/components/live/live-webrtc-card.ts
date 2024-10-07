@@ -136,7 +136,16 @@ export class FrigateCardLiveWebRTCCard
         hass: HomeAssistant;
         setConfig: (config: Record<string, unknown>) => void;
       };
-      const config = { ...this.cameraConfig.webrtc_card };
+      const config = {
+        // By default, webrtc-card will stop the video when 50% of the video is
+        // hidden. This is incompatible with the card zoom support, since the
+        // video will easily stop if the user zooms in too much. Disable this
+        // feature by default.
+        // See: https://github.com/dermotduffy/frigate-hass-card/issues/1614
+        intersection: 0,
+
+        ...this.cameraConfig.webrtc_card,
+      };
       if (!config.url && !config.entity && this.cameraEndpoints?.webrtcCard) {
         // This will never need to be signed, it is just used internally by the
         // card as a stream name lookup.
