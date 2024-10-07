@@ -74,6 +74,8 @@ WebRTC Card support blends the use of the ultra-realtime [WebRTC card live
 view](https://github.com/AlexxIT/WebRTC) with convenient access to Frigate
 events/snapshots/UI. AlexxIT's WebRTC Integration/Card must be installed and configured separately (see [details](https://github.com/AlexxIT/WebRTC)) before it can be used with this card.
 
+?> The `webrtc_card` default configuration disables the WebRTC card's `intersection` parameter (which auto-stops the media when a certain fraction of the video is no longer visible), since it interferes with the card pan & zoom. Instead, see the [`auto_pause`](../live.md) parameter.
+
 ```yaml
 cameras:
   - camera_entity: camera.office
