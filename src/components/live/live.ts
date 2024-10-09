@@ -663,7 +663,7 @@ export class FrigateCardLiveCarousel extends LitElement {
     if (!this._mediaActionsController.hasRoot() && this._refCarousel.value) {
       this._mediaActionsController.initialize(this._refCarousel.value);
       initialized = true;
-    } 
+    }
 
     // If the view has changed, or if the media actions controller has just been
     // initialized, then call the necessary media action.
