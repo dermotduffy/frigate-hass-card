@@ -309,14 +309,6 @@ export class FrigateCardLiveCarousel extends LitElement {
     super.disconnectedCallback();
   }
 
-  updated(changedProperties: PropertyValues): void {
-    super.updated(changedProperties);
-
-    if (!this._mediaActionsController.hasRoot() && this._refCarousel.value) {
-      this._mediaActionsController.initialize(this._refCarousel.value);
-    }
-  }
-
   protected _getTransitionEffect(): TransitionEffect {
     return (
       this.overriddenLiveConfig?.transition_effect ??
@@ -365,23 +357,6 @@ export class FrigateCardLiveCarousel extends LitElement {
             this.overriddenLiveConfig.microphone.mute_after_microphone_mute_seconds,
         }),
       });
-    }
-
-    if (changedProps.has('viewManagerEpoch')) {
-      const view = this.viewManagerEpoch?.manager.getView();
-      const selectedCameraIndex = this._getSelectedCameraIndex();
-
-      if (this.viewFilterCameraID) {
-        this._mediaActionsController.setTarget(
-          selectedCameraIndex,
-          // Camera in this carousel is only selected if the camera from the
-          // view matches the filtered camera.
-          view?.camera === this.viewFilterCameraID,
-        );
-      } else {
-        // Carousel is not filtered, so the targeted camera is always selected.
-        this._mediaActionsController.setTarget(selectedCameraIndex, true);
-      }
     }
   }
 
@@ -662,6 +637,40 @@ export class FrigateCardLiveCarousel extends LitElement {
       >
       </frigate-card-ptz>
     `;
+  }
+
+  protected _setMediaTarget(): void {
+    const view = this.viewManagerEpoch?.manager.getView();
+    const selectedCameraIndex = this._getSelectedCameraIndex();
+
+    if (this.viewFilterCameraID) {
+      this._mediaActionsController.setTarget(
+        selectedCameraIndex,
+        // Camera in this carousel is only selected if the camera from the
+        // view matches the filtered camera.
+        view?.camera === this.viewFilterCameraID,
+      );
+    } else {
+      // Carousel is not filtered, so the targeted camera is always selected.
+      this._mediaActionsController.setTarget(selectedCameraIndex, true);
+    }
+  }
+
+  public updated(changedProperties: PropertyValues): void {
+    super.updated(changedProperties);
+
+    let initialized = false;
+    if (!this._mediaActionsController.hasRoot() && this._refCarousel.value) {
+      this._mediaActionsController.initialize(this._refCarousel.value);
+      initialized = true;
+    } 
+
+    // If the view has changed, or if the media actions controller has just been
+    // initialized, then call the necessary media action.
+    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1626
+    if (initialized || changedProperties.has('viewManagerEpoch')) {
+      this._setMediaTarget();
+    }
   }
 
   static get styles(): CSSResultGroup {
