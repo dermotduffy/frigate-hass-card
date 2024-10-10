@@ -571,7 +571,7 @@ export class FrigateCardLiveCarousel extends LitElement {
       : null;
     const forcePTZVisibility =
       !this._mediaHasLoaded ||
-      this.viewFilterCameraID !== view.camera ||
+      (!!this.viewFilterCameraID && this.viewFilterCameraID !== view.camera) ||
       view.context?.ptzControls?.enabled === false
         ? false
         : view.context?.ptzControls?.enabled;
