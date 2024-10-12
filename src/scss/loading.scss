@@ -1,28 +1,16 @@
 :host {
-  height: 100%;
-  width: 100%;
+  width: intrinsic;
+  height: intrinsic;
 
   display: flex;
   justify-content: center;
   align-items: center;
 
   pointer-events: none;
-
-  transition: opacity 1s;
-}
-
-:host([show]) {
-  opacity: 1;
-}
-
-:host(:not([show])) {
-  opacity: 0;
 }
 
 img {
   width: 10%;
-  height: 10%;
-
   animation: rotate 8s linear infinite;
 }
 
