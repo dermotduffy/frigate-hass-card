@@ -1,28 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StyleManager } from '../../src/card-controller/style-manager';
 import { FrigateCardView } from '../../src/config/types';
-import irisLogo from '../../src/images/camera-iris.svg';
 import { createCardAPI, createConfig, createHASS, createView } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('StyleManager', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-  });
-
-  describe('initialize should set common properties', () => {
-    it('should set media background', () => {
-      const api = createCardAPI();
-      const element = document.createElement('div');
-      vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
-      const manager = new StyleManager(api);
-
-      manager.initialize();
-
-      expect(
-        element.style.getPropertyValue('--frigate-card-media-background-image'),
-      ).toEqual(`url("${irisLogo}")`);
-    });
   });
 
   describe('setLightOrDarkMode', () => {

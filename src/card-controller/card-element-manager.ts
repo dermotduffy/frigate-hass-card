@@ -63,7 +63,6 @@ export class CardElementManager {
     this._api.getMediaLoadedInfoManager().initialize();
     this._api.getMicrophoneManager().initialize();
     this._api.getKeyboardStateManager().initialize();
-    this._api.getStyleManager().initialize();
 
     // These initializers are called when the config is updated, but on initial
     // creation of the card hass is not yet available when the config is first

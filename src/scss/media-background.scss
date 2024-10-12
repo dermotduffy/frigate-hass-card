@@ -1,6 +1,10 @@
+$bg-img: url('../images/camera-iris-transparent.svg');
+
 :host {
+  background-color: var(--primary-background-color);
   background-position: center;
   background-repeat: no-repeat;
-  background-image: var(--frigate-card-media-background-image);
-  background-size: 25%;
+  background-image: $bg-img;
+  background-size: 10%;
+  background-position: center;
 }
