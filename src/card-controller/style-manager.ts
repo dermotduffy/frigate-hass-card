@@ -1,6 +1,5 @@
 import { StyleInfo } from 'lit/directives/style-map';
 import { FrigateCardConfig } from '../config/types';
-import irisLogo from '../images/camera-iris.svg';
 import { aspectRatioToStyle, setOrRemoveAttribute } from '../utils/basic';
 import { View } from '../view/view';
 import { CardStyleAPI } from './types';
@@ -10,10 +9,6 @@ export class StyleManager {
 
   constructor(api: CardStyleAPI) {
     this._api = api;
-  }
-
-  public initialize(): void {
-    this._setCommonStyleProperties();
   }
 
   public setLightOrDarkMode = (): void => {
@@ -137,12 +132,5 @@ export class StyleManager {
       return aspectRatioToStyle({ ratio: config.dimensions.aspect_ratio });
     }
     return aspectRatioToStyle({ defaultStatic: true });
-  }
-
-  protected _setCommonStyleProperties(): void {
-    this._api
-      .getCardElementManager()
-      .getElement()
-      .style.setProperty('--frigate-card-media-background-image', `url("${irisLogo}")`);
   }
 }

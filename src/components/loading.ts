@@ -7,7 +7,7 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import irisLogo from '../images/camera-iris.svg';
+import irisLogo from '../images/camera-iris-transparent.svg';
 import controlStyle from '../scss/loading.scss';
 import { Timer } from '../utils/timer';
 
