@@ -591,6 +591,7 @@ const menuBaseSchema = z.object({
     .optional(),
   alignment: z.enum(['matching', 'opposing']).default('matching').optional(),
   icon: z.string().optional(),
+  permanent: z.boolean().default(false).optional(),
 });
 
 const menuIconSchema = menuBaseSchema.merge(iconSchema).extend({

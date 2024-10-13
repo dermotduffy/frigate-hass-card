@@ -363,6 +363,7 @@
         "media_player": "Envoyer au lecteur multimédia",
         "microphone": "Microphone",
         "mute": "Désactiver/Réactiver le son",
+        "permanent": "",
         "play": "Jouer / Pause",
         "priority": "Priorité",
         "ptz_controls": "",

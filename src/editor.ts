@@ -1292,6 +1292,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
             label: localize('config.menu.buttons.alignment'),
           },
         )}
+        ${this._renderSwitch(
+          `${CONF_MENU_BUTTONS}.${button}.permanent`,
+          this._defaults.menu.buttons[button]?.permanent ?? false,
+          {
+            label: localize('config.menu.buttons.permanent'),
+          },
+        )}
         ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
           max: FRIGATE_MENU_PRIORITY_MAX,
           default: this._defaults.menu.buttons[button]?.priority,

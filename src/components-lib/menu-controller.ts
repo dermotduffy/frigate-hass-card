@@ -1,11 +1,14 @@
 import { HASSDomEvent, HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { LitElement } from 'lit';
+import { orderBy } from 'lodash-es';
 import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
-import type {
-  ActionType,
-  ActionsConfig,
-  MenuConfig,
-  MenuItem,
+import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
+import {
+  FRIGATE_MENU_PRIORITY_MAX,
+  type ActionType,
+  type ActionsConfig,
+  type MenuConfig,
+  type MenuItem,
 } from '../config/types.js';
 import { FRIGATE_BUTTON_MENU_ICON } from '../const.js';
 import { StateParameters } from '../types.js';
@@ -15,7 +18,6 @@ import {
 } from '../utils/action';
 import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
 import { refreshDynamicStateParameters } from '../utils/ha/index.js';
-import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 
 export class MenuController {
   protected _host: LitElement;
@@ -59,8 +61,6 @@ export class MenuController {
   }
 
   public getButtons(alignment: 'matching' | 'opposing'): MenuItem[] {
-    const style = this._config?.style;
-
     const aligned = (button: MenuItem): boolean => {
       return (
         button.alignment === alignment || (alignment === 'matching' && !button.alignment)
@@ -71,16 +71,12 @@ export class MenuController {
       return button.enabled !== false;
     };
 
-    const suitableToShowIfHiddenMenu = (button: MenuItem): boolean => {
-      // If the hidden menu isn't expanded, only show the Frigate button.
-      return (
-        style !== 'hidden' || this._expanded || button.icon === FRIGATE_BUTTON_MENU_ICON
-      );
+    const show = (button: MenuItem): boolean => {
+      return !this._isHidingMenu() || this._expanded || !!button.permanent;
     };
 
     return this._buttons.filter(
-      (button) =>
-        enabled(button) && aligned(button) && suitableToShowIfHiddenMenu(button),
+      (button) => enabled(button) && aligned(button) && show(button),
     );
   }
 
@@ -126,7 +122,7 @@ export class MenuController {
     let menuToggle = false;
 
     const toggleLessActions = actions.filter(
-      (item) => isTruthy(item) && !this._isMenuToggleAction(item),
+      (item) => isTruthy(item) && !this._isUnknownActionMenuToggleAction(item),
     );
     if (toggleLessActions.length != actions.length) {
       menuToggle = true;
@@ -176,42 +172,27 @@ export class MenuController {
   }
 
   protected _sortButtons(): void {
-    const style = this._config?.style;
-    const sortButtons = (a: MenuItem, b: MenuItem): number => {
-      // If the menu is hidden, the Frigate button must come first.
-      if (style === 'hidden') {
-        if (a.icon === FRIGATE_BUTTON_MENU_ICON) {
-          return -1;
-        } else if (b.icon === FRIGATE_BUTTON_MENU_ICON) {
-          return 1;
-        }
-      }
-
-      // Otherwise sort by priority.
-      if (
-        a.priority === undefined ||
-        (b.priority !== undefined && b.priority > a.priority)
-      ) {
-        return 1;
-      }
-      if (
-        b.priority === undefined ||
-        (a.priority !== undefined && b.priority < a.priority)
-      ) {
-        return -1;
-      }
-      return 0;
-    };
-
-    this._buttons.sort(sortButtons);
+    this._buttons = orderBy(
+      this._buttons,
+      (button) => {
+        const priority = button.priority ?? 0;
+        // If the menu is hidden, the buttons that toggle the menu must come
+        // first.
+        return (
+          priority +
+          (this._isHidingMenu() && button.permanent ? FRIGATE_MENU_PRIORITY_MAX : 0)
+        );
+      },
+      ['desc'],
+    );
   }
 
   protected _isHidingMenu(): boolean {
-    return this._config?.style === 'hidden' ?? false;
+    return this._config?.style === 'hidden';
   }
 
-  protected _isMenuToggleAction(action: ActionType): boolean {
-    const frigateCardAction = convertActionToCardCustomAction(action);
-    return !!frigateCardAction && frigateCardAction.frigate_card_action == 'menu_toggle';
+  protected _isUnknownActionMenuToggleAction(action: ActionType): boolean {
+    const parsedAction = convertActionToCardCustomAction(action);
+    return !!parsedAction && parsedAction.frigate_card_action == 'menu_toggle';
   }
 }

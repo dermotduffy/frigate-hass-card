@@ -85,8 +85,6 @@ export class ActionFactory {
       case 'fullscreen':
         return new FullscreenAction(context, frigateCardAction, options?.config);
       case 'menu_toggle':
-        // This is a rare code path: this would only be used if someone has a
-        // menu toggle action configured outside of the menu itself.
         return new MenuToggleAction(context, frigateCardAction, options?.config);
       case 'camera_select':
         return new CameraSelectAction(context, frigateCardAction, options?.config);

@@ -363,6 +363,7 @@
         "media_player": "Send to media player",
         "microphone": "Microphone",
         "mute": "Mute / Unmute",
+        "permanent": "Show when the menu is hidden",
         "play": "Play / Pause",
         "priority": "Priority",
         "ptz_controls": "Show PTZ controls",
