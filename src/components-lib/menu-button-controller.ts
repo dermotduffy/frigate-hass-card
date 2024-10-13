@@ -66,7 +66,7 @@ export class MenuButtonController {
     options?: MenuButtonControllerOptions,
   ): MenuItem[] {
     return [
-      this._getFrigateButton(config),
+      this._getDefaultButton(config),
       this._getCamerasButton(config, cameraManager, options?.view),
       this._getSubstreamsButton(config, cameraManager, options?.view),
       this._getLiveButton(config, options?.view, options?.viewManager),
@@ -105,7 +105,7 @@ export class MenuButtonController {
     ].filter(isTruthy);
   }
 
-  protected _getFrigateButton(config: FrigateCardConfig): MenuItem {
+  protected _getDefaultButton(config: FrigateCardConfig): MenuItem {
     return {
       // Use a magic icon value that the menu will use to render the custom
       // Frigate icon.
@@ -113,6 +113,9 @@ export class MenuButtonController {
       ...config.menu.buttons.frigate,
       type: 'custom:frigate-card-menu-icon',
       title: localize('config.menu.buttons.frigate'),
+      // The default button always shows regardless of whether the menu is
+      // hidden or not.
+      permanent: true,
       tap_action:
         config.menu?.style === 'hidden'
           ? (createGeneralAction('menu_toggle') as FrigateCardCustomAction)

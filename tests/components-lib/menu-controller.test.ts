@@ -72,8 +72,14 @@ describe('MenuController', () => {
   });
 
   describe('should set and sort buttons', () => {
-    it('by priority', () => {
+    it('without a hidden menu', () => {
       const controller = new MenuController(createLitElement());
+      controller.setMenuConfig(
+        createMenuConfig({
+          style: 'overlay',
+        }),
+      );
+
       controller.setButtons([
         {
           type: 'custom:frigate-card-menu-icon',
@@ -97,6 +103,9 @@ describe('MenuController', () => {
           icon: 'mdi:horse',
           priority: 40,
           alignment: 'matching',
+
+          // Will have no effect without a hidden menu.
+          permanent: true,
         },
         {
           type: 'custom:frigate-card-menu-icon',
@@ -118,6 +127,7 @@ describe('MenuController', () => {
           icon: 'mdi:horse',
           priority: 40,
           alignment: 'matching',
+          permanent: true,
         },
         {
           alignment: 'matching',
@@ -139,7 +149,7 @@ describe('MenuController', () => {
       ]);
     });
 
-    it('with frigate button first', () => {
+    it('with an expanded hidden menu', () => {
       const controller = new MenuController(createLitElement());
       controller.setMenuConfig(
         createMenuConfig({
@@ -151,13 +161,14 @@ describe('MenuController', () => {
         {
           type: 'custom:frigate-card-menu-icon',
           icon: 'mdi:cow',
-          priority: 100,
+          priority: 99,
           alignment: 'matching',
         },
         {
           type: 'custom:frigate-card-menu-icon',
           icon: 'frigate',
           alignment: 'matching',
+          permanent: true,
         },
         {
           type: 'custom:frigate-card-menu-icon',
@@ -172,7 +183,32 @@ describe('MenuController', () => {
           type: 'custom:frigate-card-menu-icon',
           icon: 'frigate',
           alignment: 'matching',
+          permanent: true,
         },
+        {
+          type: 'custom:frigate-card-menu-icon',
+          icon: 'mdi:sheep',
+          priority: 100,
+          alignment: 'matching',
+        },
+        {
+          type: 'custom:frigate-card-menu-icon',
+          icon: 'mdi:cow',
+          priority: 99,
+          alignment: 'matching',
+        },
+      ]);
+    });
+
+    it('with a non-expanded hidden menu', () => {
+      const controller = new MenuController(createLitElement());
+      controller.setMenuConfig(
+        createMenuConfig({
+          style: 'hidden',
+        }),
+      );
+      controller.setExpanded(false);
+      controller.setButtons([
         {
           type: 'custom:frigate-card-menu-icon',
           icon: 'mdi:cow',
@@ -181,9 +217,38 @@ describe('MenuController', () => {
         },
         {
           type: 'custom:frigate-card-menu-icon',
+          icon: 'frigate',
+          alignment: 'matching',
+          permanent: true,
+        },
+        {
+          type: 'custom:frigate-card-menu-icon',
           icon: 'mdi:sheep',
           priority: 100,
           alignment: 'matching',
+        },
+        {
+          type: 'custom:frigate-card-menu-icon',
+          icon: 'mdi:cow',
+          alignment: 'matching',
+          priority: 100,
+          permanent: true,
+        },
+      ]);
+
+      expect(controller.getButtons('matching')).toEqual([
+        {
+          type: 'custom:frigate-card-menu-icon',
+          icon: 'mdi:cow',
+          alignment: 'matching',
+          priority: 100,
+          permanent: true,
+        },
+        {
+          type: 'custom:frigate-card-menu-icon',
+          icon: 'frigate',
+          alignment: 'matching',
+          permanent: true,
         },
       ]);
     });
@@ -266,6 +331,7 @@ describe('MenuController', () => {
         {
           type: 'custom:frigate-card-menu-icon',
           icon: 'frigate',
+          permanent: true,
         },
         {
           type: 'custom:frigate-card-menu-icon',
@@ -277,6 +343,7 @@ describe('MenuController', () => {
         {
           type: 'custom:frigate-card-menu-icon',
           icon: 'frigate',
+          permanent: true,
         },
       ]);
 
@@ -286,6 +353,7 @@ describe('MenuController', () => {
         {
           type: 'custom:frigate-card-menu-icon',
           icon: 'frigate',
+          permanent: true,
         },
         {
           type: 'custom:frigate-card-menu-icon',

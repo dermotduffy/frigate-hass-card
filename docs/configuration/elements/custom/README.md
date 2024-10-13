@@ -22,13 +22,27 @@ See the [conditional elements example](../../../examples.md?id=conditional-eleme
 
 ## `menu-icon`
 
-Add an arbitrary icon to the Frigate Card menu. Configuration is ~identical to that of the [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) except with a type name of `custom:frigate-card-menu-icon`.
+Add an arbitrary icon to the Frigate Card menu.
 
 ```yaml
 elements:
   - type: custom:frigate-card-menu-icon
     # [...]
 ```
+
+Configuration is similar to a stock [Picture Elements Icon](https://www.home-assistant.io/lovelace/picture-elements/#icon-element).
+
+| Parameter                                                                | Default | Description                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                                                                   |         | Must be `custom:frigate-card-menu-icon`.                                                                                                                                                                                                                              |
+| `enabled`                                                                | `true`  | Whether or not to show this menu item.                                                                                                                                                                                                                                |
+| `entity`                                                                 |         | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                               |
+| `icon`                                                                   |         | An required icon to display, e.g. `mdi:car`                                                                                                                                                                                                                           |
+| `permanent`                                                              | `false` | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                      |
+| `priority`                                                               | `50`    | The menu item priority. Higher priority item are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`, when the menu alignment is `left`). Minimum `0`, maximum `100`. |
+| `style`                                                                  |         | Position and style the element using CSS.                                                                                                                                                                                                                             |
+| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |         | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                     |
+| `title`                                                                  |         | An optional title to display.                                                                                                                                                                                                                                         |
 
 ## `menu-submenu`
 
@@ -40,12 +54,18 @@ elements:
     # [...]
 ```
 
-Parameters for this element are identical to the parameters of the [stock Home Assistant Icon Element](https://www.home-assistant.io/lovelace/picture-elements/#icon-element) with the exception of these parameters which differ:
-
-| Parameter | Description                                 |
-| --------- | ------------------------------------------- |
-| `type`    | Must be `custom:frigate-card-menu-submenu`. |
-| `items`   | A list of menu items, as described below.   |
+| Parameter                                                                | Default | Description                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                                                                   |         | Must be `custom:frigate-card-menu-submenu`.                                                                                                                                                                                                                           |
+| `enabled`                                                                | `true`  | Whether or not to show this menu item.                                                                                                                                                                                                                                |
+| `entity`                                                                 |         | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                               |
+| `icon`                                                                   |         | An required icon to display, e.g. `mdi:car`                                                                                                                                                                                                                           |
+| `items`                                                                  |         | A list of menu items, as described below.                                                                                                                                                                                                                             |
+| `permanent`                                                              | `false` | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                      |
+| `priority`                                                               | `50`    | The menu item priority. Higher priority item are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`, when the menu alignment is `left`). Minimum `0`, maximum `100`. |
+| `style`                                                                  |         | Position and style the element using CSS.                                                                                                                                                                                                                             |
+| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |         | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                     |
+| `title`                                                                  |         | An optional title to display.                                                                                                                                                                                                                                         |
 
 ### Submenu items
 
@@ -70,24 +90,45 @@ elements:
     # [...]
 ```
 
-Parameters for the `custom:frigate-card-menu-submenu-select` element are identical to the parameters of the [stock Home Assistant State Icon Element](https://www.home-assistant.io/dashboards/picture-elements/#state-icon) with the exception of these parameters which differ:
-
-| Parameter | Description                                                                                                                                                                                                                                                                        |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`    | Must be `custom:frigate-card-menu-submenu-select`.                                                                                                                                                                                                                                 |
-| `options` | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](./README.md?id=submenu-items) above. |
+| Parameter                                                                | Default | Description                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                                                                   |         | Must be `custom:frigate-card-menu-submenu-select`.                                                                                                                                                                                                                                 |
+| `enabled`                                                                | `true`  | Whether or not to show this menu item.                                                                                                                                                                                                                                             |
+| `entity`                                                                 |         | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                            |
+| `icon`                                                                   |         | An required icon to display, e.g. `mdi:car`                                                                                                                                                                                                                                        |
+| `options`                                                                |         | An optional dictionary of overrides keyed by the option name that the given select entity supports. These options can be used to set or override submenu item parameters on a per-option basis. The format is as described in [Submenu Items](./README.md?id=submenu-items) above. |
+| `permanent`                                                              | `false` | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                                   |
+| `priority`                                                               | `50`    | The menu item priority. Higher priority item are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`, when the menu alignment is `left`). Minimum `0`, maximum `100`.              |
+| `style`                                                                  |         | Position and style the element using CSS.                                                                                                                                                                                                                                          |
+| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |         | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                                  |
+| `title`                                                                  |         | An optional title to display.                                                                                                                                                                                                                                                      |
 
 See the `select` [submenu example](../../../examples.md?id=select-submenu).
 
 ## `state-icon`
 
-Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity. Configuration is ~identical to that of the [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon) except with a type name of `custom:frigate-card-menu-state-icon`.
+Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity.
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-icon
+  - type: custom:frigate-card-menu-state-icon
     # [...]
 ```
+
+Configuration is similar to a stock [Picture Elements State Icon](https://www.home-assistant.io/lovelace/picture-elements/#state-icon).
+
+| Parameter                                                                | Default | Description                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`                                                                   |         | Must be `custom:frigate-card-menu-state-icon`.                                                                                                                                                                                                                        |
+| `enabled`                                                                | `true`  | Whether or not to show this menu item.                                                                                                                                                                                                                                |
+| `entity`                                                                 |         | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                               |
+| `icon`                                                                   |         | An required icon to display, e.g. `mdi:car`                                                                                                                                                                                                                           |
+| `permanent`                                                              | `false` | If `false` the menu item is hidden when the menu has the `hidden` style and the menu is closed, otherwise it is shown (and sorted to the front).                                                                                                                      |
+| `priority`                                                               | `50`    | The menu item priority. Higher priority item are ordered closer to the start of the menu alignment (i.e. a button with priority `70` will order further to the left than a button with priority `60`, when the menu alignment is `left`). Minimum `0`, maximum `100`. |
+| `tap_action`, `double_tap_action`, `hold_action`, `start_tap`, `end_tap` |         | The [actions](../../actions/README.md) to take when this item is interacted with.                                                                                                                                                                                     |
+| `state_color`                                                            | `true`  | Set to true to have icons colored when entity is active.                                                                                                                                                                                                              |
+| `style`                                                                  |         | Position and style the element using CSS.                                                                                                                                                                                                                             |
+| `title`                                                                  |         | An optional title to display.                                                                                                                                                                                                                                         |
 
 ## `status-bar-icon`
 
@@ -154,44 +195,82 @@ elements:
 
 ## Fully expanded reference
 
-> [Actions](../../actions/README.md) are omitted for simplicity.
+?> [Actions](../../actions/README.md) are omitted for simplicity.
 
 [](../../common/expanded-warning.md ':include')
 
 ```yaml
 elements:
   - type: custom:frigate-card-menu-icon
+    enabled: true
+    entity: light.office_main_lights
     icon: mdi:car
+    permanent: false
+    priority: 50
+    style:
+      color: white
     title: Vroom
   - type: custom:frigate-card-menu-state-icon
+    enabled: true
     entity: light.office_main_lights
-    title: Office lights
     icon: mdi:chair-rolling
+    permanent: false
+    priority: 50
     state_color: true
+    style:
+      color: white
+    title: Office lights
   - type: custom:frigate-card-menu-submenu
+    enabled: true
+    entity: light.office_main_lights
     icon: mdi:menu
     items:
-      - title: Lights
-        icon: mdi:lightbulb
+      - enabled: true
         entity: light.office_main_lights
+        icon: mdi:lightbulb
+        selected: false
+        state_color: true
+        style:
+          color: white
         tap_action:
           action: toggle
-      - title: Google
+        title: Lights
+      - enabled: true
         icon: mdi:google
-        enabled: false
+        selected: false
+        style:
+          color: white
         tap_action:
           action: url
           url_path: https://www.google.com
+        title: Google
+    permanent: false
+    priority: 50
+    style:
+      color: white
+    title: Office lights
   - type: custom:frigate-card-menu-submenu-select
-    icon: mdi:lamps
+    enabled: true
     entity: input_select.kitchen_scene
+    icon: mdi:lamps
     options:
+    items:
       scene.kitchen_cooking_scene:
+        enabled: true
         icon: mdi:chef-hat
+        selected: false
+        state_color: true
+        style:
+          color: white
         title: Cooking time!
       scene.kitchen_tv_scene:
         icon: mdi:television
         title: TV!
+    permanent: false
+    priority: 50
+    style:
+      color: white
+    title: 'Kitchen Scene'
     # Show a pig icon if a variety of conditions are met.
   - type: custom:frigate-card-conditional
     elements:

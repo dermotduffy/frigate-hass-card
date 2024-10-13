@@ -363,6 +363,7 @@
         "media_player": "Enviar para o reprodutor de mídia",
         "microphone": "",
         "mute": "",
+        "permanent": "",
         "play": "",
         "priority": "Prioridade",
         "ptz_controls": "",

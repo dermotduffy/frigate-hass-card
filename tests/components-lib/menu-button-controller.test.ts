@@ -81,13 +81,14 @@ describe('MenuButtonController', () => {
     controller = new MenuButtonController();
   });
 
-  describe('should have frigate menu button', () => {
+  describe('should have default menu button', () => {
     it('with hidden menu style', () => {
       const buttons = calculateButtons(controller);
 
       expect(buttons).toContainEqual({
         icon: 'frigate',
         enabled: true,
+        permanent: true,
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Frigate menu / Default view',
@@ -104,6 +105,7 @@ describe('MenuButtonController', () => {
       expect(buttons).toContainEqual({
         icon: 'frigate',
         enabled: true,
+        permanent: true,
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Frigate menu / Default view',
