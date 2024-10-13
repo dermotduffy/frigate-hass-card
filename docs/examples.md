@@ -707,7 +707,7 @@ elements:
       opacity: 0.5
 ```
 
-![](images/picture-elements-temperature.png 'Picture elements temperature example :size=400')
+![Picture elements temperature example](images/picture-elements-temperature.png 'Picture elements temperature example :size=400')
 
 ## Static images
 
@@ -742,7 +742,7 @@ status_bar:
 
 This example shows an icon and a message on the status bar when a camera is triggered, replacing the existing contents of the status bar through the use of `exclusive`.
 
-![](images/dynamic-status.gif 'Dynamic Status Messages :size=400')
+![Dynamic Status Messages](images/dynamic-status.gif 'Dynamic Status Messages :size=400')
 
 ```yaml
 type: custom:frigate-card
@@ -1059,9 +1059,8 @@ cameras:
 card_id: main
 ```
 
-```
+```text
 https://ha.mydomain.org/lovelace-test/0?frigate-card-action.main.clips
-
 ```
 
 ### Choosing the camera from a separate picture elements card
@@ -1101,11 +1100,11 @@ elements:
       navigation_path: /lovelace-test/0?frigate-card-action.camera_select=camera.kitchen
 ```
 
-![](images/navigate-picture-elements.gif 'Taking card actions via the URL :size=400')
+![Taking card actions via the URL](images/navigate-picture-elements.gif 'Taking card actions via the URL :size=400')
 
 ### Selecting a camera in expanded mode via query string
 
-```
+```text
 https://ha.mydomain.org/lovelace-test/0?frigate-card-action.camera_select=kitchen&frigate-card-action.expand
 ```
 
@@ -1198,16 +1197,17 @@ automations:
         state: 'on'
     actions:
       - action: custom:frigate-card-action
-        frigate_card_action: change_zoom
+        frigate_card_action: ptz_digital
         target_id: camera.living_room
-        zoom: 4
-        pan:
-          x: 38
-          y: 20
+        absolute:
+          zoom: 4
+          pan:
+            x: 38
+            y: 20
     actions_not:
       - action: custom:frigate-card-action
-        frigate_card_action: change_zoom
+        frigate_card_action: ptz_digital
         target_id: camera.living_room
 ```
 
-![](images/zoom-automation.gif 'Zoom automation example :size=400')
+![Zoom automation example](images/zoom-automation.gif 'Zoom automation example :size=400')
