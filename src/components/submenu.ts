@@ -18,6 +18,7 @@ import {
   frigateCardHasAction,
   stopEventFromActivatingCardWideActions,
 } from '../utils/action.js';
+import { getCustomIconURL } from '../utils/custom-icons.js';
 import { isHassDifferent, refreshDynamicStateParameters } from '../utils/ha';
 import { getEntityStateTranslation } from '../utils/ha/entity-state-translation.js';
 import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
@@ -40,14 +41,23 @@ export class FrigateCardSubmenu extends LitElement {
     } as StateParameters);
     const getIcon = (stateParameters: StateParameters): TemplateResult => {
       if (stateParameters.icon) {
-        return html` <ha-icon
-          style="${styleMap(stateParameters.style || {})}"
-          data-domain=${ifDefined(stateParameters.data_domain)}
-          data-state=${ifDefined(stateParameters.data_state)}
-          slot="graphic"
-          icon="${stateParameters.icon || ''}"
-        >
-        </ha-icon>`;
+        const url = getCustomIconURL(stateParameters.icon);
+        return url
+          ? html`<img
+              style="${styleMap(stateParameters.style || {})}"
+              data-domain=${ifDefined(stateParameters.data_domain)}
+              data-state=${ifDefined(stateParameters.data_state)}
+              slot="graphic"
+              src=${url}
+            />`
+          : html` <ha-icon
+              style="${styleMap(stateParameters.style || {})}"
+              data-domain=${ifDefined(stateParameters.data_domain)}
+              data-state=${ifDefined(stateParameters.data_state)}
+              slot="graphic"
+              icon="${stateParameters.icon || ''}"
+            >
+            </ha-icon>`;
       }
       return html``;
     };

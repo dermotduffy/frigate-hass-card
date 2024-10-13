@@ -13,6 +13,7 @@ import { StatusBarController } from '../components-lib/status-bar-controller';
 import { StatusBarConfig, StatusBarItem } from '../config/types';
 import statusStyle from '../scss/status.scss';
 import { frigateCardHasAction } from '../utils/action';
+import { getCustomIconURL } from '../utils/custom-icons.js';
 
 @customElement('frigate-card-status-bar')
 export class FrigateCardStatusBar extends LitElement {
@@ -67,12 +68,20 @@ export class FrigateCardStatusBar extends LitElement {
               ${item.string}
             </div>`;
           } else if (item.type === 'custom:frigate-card-status-bar-icon') {
-            return html`<ha-icon
-              .actionHandler=${handler}
-              class="${classes}"
-              icon="${item.icon}"
-              @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
-            ></ha-icon>`;
+            const customIconURL = getCustomIconURL(item.icon);
+            return customIconURL
+              ? html`<img
+                  .actionHandler=${handler}
+                  class="${classes}"
+                  src="${customIconURL}"
+                  @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
+                />`
+              : html`<ha-icon
+                  .actionHandler=${handler}
+                  class="${classes}"
+                  icon="${item.icon}"
+                  @action=${(ev) => this._controller.actionHandler(ev, item.actions)}
+                ></ha-icon>`;
           } else if (item.type === 'custom:frigate-card-status-bar-image') {
             return html`<img
               .actionHandler=${handler}

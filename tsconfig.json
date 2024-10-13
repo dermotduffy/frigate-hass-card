@@ -31,7 +31,6 @@
           "ha-icon-button",
           "ha-icon",
           "ha-selector",
-          "ha-svg-icon",
           "mwc-button",
           "mwc-list-item"
         ],

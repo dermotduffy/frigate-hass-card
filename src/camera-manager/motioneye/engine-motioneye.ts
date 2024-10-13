@@ -41,7 +41,7 @@ import {
   QueryResultsType,
   QueryReturnType,
 } from '../types';
-import motioneyeLogo from './assets/motioneye-logo.svg';
+import motioneyeLogo from './assets/motioneye.svg';
 import { MotionEyeEventQueryResults } from './types';
 
 class MotionEyeQueryResultsClassifier {

@@ -8,6 +8,7 @@ import { MenuController } from '../components-lib/menu-controller.js';
 import type { MenuConfig, MenuItem } from '../config/types.js';
 import menuStyle from '../scss/menu.scss';
 import { frigateCardHasAction } from '../utils/action.js';
+import { getCustomIconURL } from '../utils/custom-icons.js';
 import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
 import './submenu.js';
 
@@ -72,7 +73,7 @@ export class FrigateCardMenu extends LitElement {
     //   (`data-state`). This looks up a CSS style in `menu.scss`.
 
     const buttonState = this._controller.getFreshButtonState(this.hass, button);
-    const svgPath = this._controller.getSVGPath(button);
+    const customImageURL = getCustomIconURL(buttonState.icon);
 
     return html` <ha-icon-button
       data-domain=${ifDefined(buttonState.data_domain)}
@@ -86,8 +87,8 @@ export class FrigateCardMenu extends LitElement {
       .label=${buttonState.title || ''}
       @action=${(ev) => this._controller.actionHandler(ev, button)}
     >
-      ${svgPath
-        ? html`<ha-svg-icon .path="${svgPath}"></ha-svg-icon>`
+      ${customImageURL
+        ? html`<img src="${customImageURL}" />`
         : html`<ha-icon
             icon="${buttonState.icon || 'mdi:gesture-tap-button'}"
           ></ha-icon>`}

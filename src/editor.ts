@@ -6,11 +6,6 @@ import {
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
-import { FRIGATE_ICON_SVG_PATH } from './camera-manager/frigate/icon.js';
-import {
-  MOTIONEYE_ICON_SVG_PATH,
-  MOTIONEYE_ICON_SVG_VIEWBOX,
-} from './camera-manager/motioneye/icon.js';
 import './components/key-assigner.js';
 import { KeyboardShortcut } from './config/keyboard-shortcuts.js';
 import {
@@ -230,6 +225,7 @@ import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
+import { getCustomIconURL } from './utils/custom-icons.js';
 import {
   getEntitiesFromHASS,
   getEntityTitle,
@@ -1100,7 +1096,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       MENU_VIEW_DEFAULT_RESET,
       true,
       `config.${CONF_VIEW_DEFAULT_RESET}.editor_label`,
-      { name: 'mdi:restart' },
+      'mdi:restart',
       html`
         ${this._renderSwitch(
           CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION,
@@ -1130,7 +1126,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       MENU_VIEW_TRIGGERS,
       true,
       `config.${CONF_VIEW_TRIGGERS}.editor_label`,
-      { name: 'mdi:target-account' },
+      'mdi:target-account',
       html`
         ${this._renderSwitch(
           CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
@@ -1153,7 +1149,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           MENU_VIEW_TRIGGERS_ACTIONS,
           true,
           `config.${CONF_VIEW_TRIGGERS_ACTIONS}.editor_label`,
-          { name: 'mdi:cogs' },
+          'mdi:cogs',
           html` ${this._renderOptionSelector(
             CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
             this._triggersActionsTrigger,
@@ -1198,7 +1194,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       MENU_VIEW_KEYBOARD_SHORTCUTS,
       true,
       `config.${CONF_VIEW_KEYBOARD_SHORTCUTS}.editor_label`,
-      { name: 'mdi:keyboard' },
+      'mdi:keyboard',
       html`
         ${this._renderSwitch(
           CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
@@ -1244,7 +1240,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       MENU_STATUS_BAR_ITEMS,
       item,
       `config.status_bar.items.${item}`,
-      { name: 'mdi:feature-search' },
+      'mdi:feature-search',
       html`
         ${this._renderSwitch(
           `${CONF_STATUS_BAR_ITEMS}.${item}.enabled`,
@@ -1276,7 +1272,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       MENU_MENU_BUTTONS,
       button,
       `config.menu.buttons.${button}`,
-      { name: 'mdi:gesture-tap-button' },
+      'mdi:gesture-tap-button',
       html`
         ${this._renderSwitch(
           `${CONF_MENU_BUTTONS}.${button}.enabled`,
@@ -1325,11 +1321,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     domain: string,
     key: unknown,
     labelPath: string,
-    icon: {
-      name?: string;
-      path?: string;
-      viewBox?: string;
-    },
+    icon: string,
     template: TemplateResult,
   ): TemplateResult {
     const selected = this._expandedMenus[domain] === key;
@@ -1338,6 +1330,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       selected: selected,
     };
 
+    const customIconURL = getCustomIconURL(icon);
     return html` <div class="${classMap(submenuClasses)}">
       <div
         class="submenu-header"
@@ -1345,13 +1338,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .domain=${domain}
         .key=${key}
       >
-        ${icon.name
-          ? html` <ha-icon .icon=${icon.name}></ha-icon> `
-          : icon.path
-            ? html`
-                <ha-svg-icon .viewBox=${icon.viewBox} .path="${icon.path}"></ha-svg-icon>
-              `
-            : ``}
+        ${customIconURL
+          ? html` <img src=${customIconURL} /> `
+          : html` <ha-icon .icon=${icon}></ha-icon> `}
         <span>${localize(labelPath)}</span>
       </div>
       ${selected ? html`<div class="values">${template}</div>` : ''}
@@ -1385,7 +1374,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       domain,
       true,
       labelPath,
-      { name: 'mdi:page-layout-body' },
+      'mdi:page-layout-body',
       html`
         ${this._renderNumberInput(configPathZoom, {
           min: 0,
@@ -1410,7 +1399,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           `${domain}.position`,
           true,
           'config.cameras.dimensions.layout.position.editor_label',
-          { name: 'mdi:aspect-ratio' },
+          'mdi:aspect-ratio',
           html` ${this._renderNumberInput(configPathPositionX, {
             min: 0,
             max: 100,
@@ -1426,7 +1415,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           `${domain}.view_box`,
           true,
           'config.cameras.dimensions.layout.view_box.editor_label',
-          { name: 'mdi:crop' },
+          'mdi:crop',
           html`
             ${this._renderNumberInput(configPathViewBoxTop, {
               min: 0,
@@ -1525,7 +1514,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       domain,
       true,
       'config.common.controls.timeline.editor_label',
-      { name: 'mdi:chart-gantt' },
+      'mdi:chart-gantt',
       html` ${this._renderOptionSelector(configPathMode, this._miniTimelineModes, {
         label: localize('config.common.controls.timeline.mode'),
       })}
@@ -1563,7 +1552,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       domain,
       true,
       'config.common.display.editor_label',
-      { name: 'mdi:palette-swatch' },
+      'mdi:palette-swatch',
       html`
         ${this._renderOptionSelector(configPathMode, this._displayModes, {
           label: localize('config.common.display.mode'),
@@ -1604,7 +1593,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       domain,
       true,
       'config.common.controls.next_previous.editor_label',
-      { name: 'mdi:arrow-right-bold-circle' },
+      'mdi:arrow-right-bold-circle',
       html`
         ${this._renderOptionSelector(
           configPathStyle,
@@ -1659,7 +1648,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       domain,
       true,
       'config.common.controls.thumbnails.editor_label',
-      { name: 'mdi:image-text' },
+      'mdi:image-text',
       html`
         ${options?.configPathMode
           ? html`${this._renderOptionSelector(
@@ -1735,7 +1724,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       domain,
       true,
       'config.common.controls.filter.editor_label',
-      { name: 'mdi:filter-cog' },
+      'mdi:filter-cog',
       html`
         ${configPathMode
           ? html`${this._renderOptionSelector(configPathMode, this._filterModes, {
@@ -1946,12 +1935,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_CAMERAS_ENGINE,
                 true,
                 'config.cameras.engines.editor_label',
-                { name: 'mdi:engine' },
+                'mdi:engine',
                 html`${this._putInSubmenu(
                   MENU_CAMERAS_FRIGATE,
                   cameraIndex,
                   'config.cameras.frigate.editor_label',
-                  { path: FRIGATE_ICON_SVG_PATH },
+                  'frigate',
                   html`
                     ${this._renderStringInput(
                       getArrayConfigPath(
@@ -1990,7 +1979,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   MENU_CAMERAS_MOTIONEYE,
                   cameraIndex,
                   'config.cameras.motioneye.editor_label',
-                  { path: MOTIONEYE_ICON_SVG_PATH, viewBox: MOTIONEYE_ICON_SVG_VIEWBOX },
+                  'motioneye',
                   html`
                     ${this._renderStringInput(
                       getArrayConfigPath(CONF_CAMERAS_ARRAY_MOTIONEYE_URL, cameraIndex),
@@ -2026,12 +2015,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_CAMERAS_LIVE_PROVIDER,
                 true,
                 'config.cameras.live_provider_options.editor_label',
-                { name: 'mdi:cctv' },
+                'mdi:cctv',
                 html` ${this._putInSubmenu(
                   MENU_CAMERAS_GO2RTC,
                   cameraIndex,
                   'config.cameras.go2rtc.editor_label',
-                  { name: 'mdi:alpha-g-circle' },
+                  'mdi:alpha-g-circle',
                   html`${this._renderOptionSelector(
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_MODES, cameraIndex),
                     this._go2rtcModes,
@@ -2048,7 +2037,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   MENU_CAMERAS_IMAGE,
                   true,
                   'config.cameras.image.editor_label',
-                  { name: 'mdi:image' },
+                  'mdi:image',
                   this._renderImageOptions(
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_MODE, cameraIndex),
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_IMAGE_URL, cameraIndex),
@@ -2067,7 +2056,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   MENU_CAMERAS_WEBRTC_CARD,
                   cameraIndex,
                   'config.cameras.webrtc_card.editor_label',
-                  { name: 'mdi:webrtc' },
+                  'mdi:webrtc',
                   html`${this._renderEntitySelector(
                     getArrayConfigPath(
                       CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
@@ -2084,7 +2073,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_CAMERAS_DEPENDENCIES,
                 cameraIndex,
                 'config.cameras.dependencies.editor_label',
-                { name: 'mdi:graph' },
+                'mdi:graph',
                 html` ${this._renderSwitch(
                   getArrayConfigPath(
                     CONF_CAMERAS_ARRAY_DEPENDENCIES_ALL_CAMERAS,
@@ -2107,7 +2096,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_CAMERAS_TRIGGERS,
                 cameraIndex,
                 'config.cameras.triggers.editor_label',
-                { name: 'mdi:magnify-scan' },
+                'mdi:magnify-scan',
                 html`
                   ${this._renderSwitch(
                     getArrayConfigPath(
@@ -2144,7 +2133,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_CAMERAS_CAST,
                 cameraIndex,
                 'config.cameras.cast.editor_label',
-                { name: 'mdi:cast' },
+                'mdi:cast',
                 html`
                   ${this._renderOptionSelector(
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_CAST_METHOD, cameraIndex),
@@ -2168,7 +2157,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_CAMERAS_DIMENSIONS,
                 cameraIndex,
                 'config.cameras.dimensions.editor_label',
-                { name: 'mdi:aspect-ratio' },
+                'mdi:aspect-ratio',
                 html`
                   ${this._renderStringInput(
                     getArrayConfigPath(
@@ -2226,7 +2215,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_CAMERAS_CAPABILITIES,
                 cameraIndex,
                 'config.cameras.capabilities.editor_label',
-                { name: 'mdi:cog-stop' },
+                'mdi:cog-stop',
                 html`
                   ${this._renderOptionSelector(
                     getArrayConfigPath(
@@ -2538,7 +2527,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   MENU_LIVE_CONTROLS,
                   true,
                   'config.live.controls.editor_label',
-                  { name: 'mdi:gamepad' },
+                  'mdi:gamepad',
                   html`
                     ${this._renderSwitch(
                       CONF_LIVE_CONTROLS_BUILTIN,
@@ -2585,7 +2574,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       MENU_LIVE_CONTROLS_PTZ,
                       true,
                       'config.live.controls.ptz.editor_label',
-                      { name: 'mdi:pan' },
+                      'mdi:pan',
                       html`
                         ${this._renderOptionSelector(
                           CONF_LIVE_CONTROLS_PTZ_MODE,
@@ -2628,7 +2617,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   MENU_LIVE_MICROPHONE,
                   true,
                   'config.live.microphone.editor_label',
-                  { name: 'mdi:microphone' },
+                  'mdi:microphone',
                   html`
                     ${this._renderNumberInput(CONF_LIVE_MICROPHONE_DISCONNECT_SECONDS)}
                     ${this._renderSwitch(
@@ -2723,7 +2712,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_MEDIA_VIEWER_CONTROLS,
                 true,
                 'config.media_viewer.controls.editor_label',
-                { name: 'mdi:gamepad' },
+                'mdi:gamepad',
                 html`
                   ${this._renderSwitch(
                     CONF_MEDIA_VIEWER_CONTROLS_BUILTIN,
@@ -2830,7 +2819,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_PERFORMANCE_FEATURES,
                 true,
                 'config.performance.features.editor_label',
-                { name: 'mdi:feature-search' },
+                'mdi:feature-search',
                 html`
                   ${this._renderSwitch(
                     CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
@@ -2851,7 +2840,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 MENU_PERFORMANCE_STYLE,
                 true,
                 'config.performance.style.editor_label',
-                { name: 'mdi:palette-swatch-variant' },
+                'mdi:palette-swatch-variant',
                 html`
                   ${this._renderSwitch(
                     CONF_PERFORMANCE_STYLE_BORDER_RADIUS,

@@ -1,6 +1,5 @@
 import { handleActionConfig } from '@dermotduffy/custom-card-helpers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FRIGATE_ICON_SVG_PATH } from '../../src/camera-manager/frigate/icon';
 import { MenuController } from '../../src/components-lib/menu-controller';
 import { MenuConfig, menuConfigSchema } from '../../src/config/types';
 import { StateParameters } from '../../src/types';
@@ -392,26 +391,6 @@ describe('MenuController', () => {
 
       expect(controller.getFreshButtonState(createHASS(), button)).toEqual(button);
       expect(vi.mocked(refreshDynamicStateParameters)).not.toBeCalled();
-    });
-  });
-
-  describe('should get svg path', () => {
-    it('frigate icon', () => {
-      const controller = new MenuController(createLitElement());
-      const button = {
-        type: 'custom:frigate-card-menu-icon' as const,
-        icon: 'frigate',
-      };
-      expect(controller.getSVGPath(button)).toEqual(FRIGATE_ICON_SVG_PATH);
-    });
-
-    it('non-frigate icon', () => {
-      const controller = new MenuController(createLitElement());
-      const button = {
-        type: 'custom:frigate-card-menu-icon' as const,
-        icon: 'mdi:cow',
-      };
-      expect(controller.getSVGPath(button)).toBeFalsy();
     });
   });
 

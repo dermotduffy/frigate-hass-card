@@ -306,7 +306,6 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
     'ha-icon',
     'ha-menu-button',
     'ha-selector',
-    'ha-svg-icon',
     'ha-web-rtc-player',
   ];
 
