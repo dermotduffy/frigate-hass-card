@@ -1,4 +1,4 @@
-![logo](images/frigate-logo.svg)
+![logo](images/icons/frigate.svg)
 
 # Frigate Card <small>6.0.0</small>
 

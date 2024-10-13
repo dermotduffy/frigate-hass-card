@@ -1,7 +1,6 @@
 import { HASSDomEvent, HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { LitElement } from 'lit';
 import { orderBy } from 'lodash-es';
-import { FRIGATE_ICON_SVG_PATH } from '../camera-manager/frigate/icon.js';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import {
   FRIGATE_MENU_PRIORITY_MAX,
@@ -10,7 +9,6 @@ import {
   type MenuConfig,
   type MenuItem,
 } from '../config/types.js';
-import { FRIGATE_BUTTON_MENU_ICON } from '../const.js';
 import { StateParameters } from '../types.js';
 import {
   convertActionToCardCustomAction,
@@ -165,10 +163,6 @@ export class MenuController {
     return hass && button.type === 'custom:frigate-card-menu-state-icon'
       ? refreshDynamicStateParameters(hass, stateParameters)
       : stateParameters;
-  }
-
-  public getSVGPath(button: MenuItem): string {
-    return button.icon === FRIGATE_BUTTON_MENU_ICON ? FRIGATE_ICON_SVG_PATH : '';
   }
 
   protected _sortButtons(): void {

@@ -58,7 +58,7 @@ import {
   RecordingSegmentsQueryResultsMap,
 } from '../types';
 import { getDefaultGo2RTCEndpoint } from '../utils/go2rtc-endpoint';
-import frigateLogo from './assets/frigate-logo-dark.svg';
+import frigateLogo from './assets/frigate.svg';
 import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateEventWatcher } from './event-watcher';
 import { FrigateViewMediaFactory } from './media';
