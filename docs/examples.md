@@ -620,29 +620,33 @@ overrides:
 
 ## PTZ control
 
-The card supports using PTZ controls to conveniently control pan, tilt and zoom for cameras. This example shows the PTZ controls on the `live` view. Note that if your camera engine supports it (e.g. `frigate`) this will just work out of the box with no configuration at all.
+The card supports using PTZ controls to conveniently control pan, tilt and zoom
+for cameras. If you're using a Frigate camera, and Frigate itself shows PTZ
+controls, this should work straight out of the box without any extra configuration:
 
 ```yaml
 type: custom:frigate-card
 cameras:
   - camera_entity: camera.office
-live:
-  ptz:
-    orientation: horizontal
-    service: sonoff.send_command
-    data_left:
-      device: '048123'
-      cmd: left
-    data_right:
-      device: '048123'
-      cmd: right
-    data_up:
-      device: '048123'
-      cmd: up
-    data_down:
-      device: '048123'
-      cmd: down
 ```
+
+If you're using a non-Frigate camera, or Frigate itself does not support the PTZ
+controls on your camera but Home Assistant does, you can still manually
+configure actions for the card to perform for each PTZ control:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.office
+    ptz:
+      actions_left:
+        action: perform-action
+        perform_action: homeassistant.toggle
+        target:
+          entity_id: switch.camera_move_left
+```
+
+See the full [Camera PTZ Configuration](./configuration/live.md?id=ptz) for more information.
 
 ## `screen` conditions
 
