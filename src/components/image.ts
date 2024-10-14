@@ -91,7 +91,7 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
   }
 
   public isPaused(): boolean {
-    return !this._cachedValueController?.hasTimer() ?? true;
+    return !this._cachedValueController?.hasTimer();
   }
 
   public async getScreenshotURL(): Promise<string | null> {

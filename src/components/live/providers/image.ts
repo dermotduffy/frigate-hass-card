@@ -2,11 +2,11 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
-import { CameraConfig } from '../../config/types';
-import basicBlockStyle from '../../scss/basic-block.scss';
-import { FrigateCardMediaPlayer } from '../../types.js';
-import { getStateObjOrDispatchError } from '../../utils/get-state-obj';
-import '../image.js';
+import { CameraConfig } from '../../../config/types';
+import basicBlockStyle from '../../../scss/basic-block.scss';
+import { FrigateCardMediaPlayer } from '../../../types.js';
+import { getStateObjOrDispatchError } from '../../../utils/get-state-obj';
+import '../../image.js';
 
 @customElement('frigate-card-live-image')
 export class FrigateCardLiveImage extends LitElement implements FrigateCardMediaPlayer {

@@ -2,27 +2,27 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { Task } from '@lit-labs/task';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { CameraEndpoints } from '../../camera-manager/types.js';
-import { getTechnologyForVideoRTC } from '../../components-lib/live/utils/get-technology-for-video-rtc.js';
-import { CameraConfig, CardWideConfig } from '../../config/types.js';
-import { localize } from '../../localize/localize.js';
-import liveWebRTCCardStyle from '../../scss/live-webrtc-card.scss';
-import { FrigateCardError, FrigateCardMediaPlayer } from '../../types.js';
-import { mayHaveAudio } from '../../utils/audio.js';
+import { CameraEndpoints } from '../../../camera-manager/types.js';
+import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
+import { CameraConfig, CardWideConfig } from '../../../config/types.js';
+import { localize } from '../../../localize/localize.js';
+import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
+import { FrigateCardError, FrigateCardMediaPlayer } from '../../../types.js';
+import { mayHaveAudio } from '../../../utils/audio.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
-} from '../../utils/media-info.js';
+} from '../../../utils/media-info.js';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
-} from '../../utils/media.js';
-import { screenshotMedia } from '../../utils/screenshot.js';
-import { renderTask } from '../../utils/task.js';
-import { dispatchErrorMessageEvent, renderProgressIndicator } from '../message.js';
+} from '../../../utils/media.js';
+import { screenshotMedia } from '../../../utils/screenshot.js';
+import { renderTask } from '../../../utils/task.js';
+import { dispatchErrorMessageEvent, renderProgressIndicator } from '../../message.js';
 import { VideoRTC } from './go2rtc/video-rtc.js';
 
 // Create a wrapper for AlexxIT's WebRTC card

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getTechnologyForVideoRTC } from '../../../../src/components-lib/live/utils/get-technology-for-video-rtc';
-import { VideoRTC } from '../../../../src/components/live/go2rtc/video-rtc';
+import { VideoRTC } from '../../../../src/components/live/providers/go2rtc/video-rtc';
 import { createLitElement } from '../../../test-utils';
 
 // @vitest-environment jsdom

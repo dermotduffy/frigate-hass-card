@@ -1,16 +1,16 @@
-import { mayHaveAudio } from '../../../utils/audio';
+import { mayHaveAudio } from '../../../../utils/audio';
 import {
   hideMediaControlsTemporarily,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
-} from '../../../utils/media';
+} from '../../../../utils/media';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
   dispatchMediaVolumeChangeEvent,
-} from '../../../utils/media-info';
-import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
+} from '../../../../utils/media-info';
+import { getTechnologyForVideoRTC } from '../../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 
 /**
  * VideoRTC v1.6.0 - Video player for go2rtc streaming application.
@@ -292,7 +292,8 @@ export class VideoRTC extends HTMLElement {
 
     this.appendChild(this.video);
 
-    this.video.addEventListener('error', (ev) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.video.addEventListener('error', (_ev) => {
       // For Frigate Card, we avoid log spam here from errors, and also don't
       // attempt to close the websocket unless the connection is open (otherwise
       // on reconnect() an exception will be thrown here that we're attempting
@@ -760,7 +761,8 @@ export class VideoRTC extends HTMLElement {
     video2.playsInline = true;
     video2.muted = true;
 
-    video2.addEventListener('loadeddata', (ev) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    video2.addEventListener('loadeddata', (_ev) => {
       if (!context) {
         canvas.width = video2.videoWidth;
         canvas.height = video2.videoHeight;
