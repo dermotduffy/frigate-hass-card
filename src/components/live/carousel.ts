@@ -38,6 +38,7 @@ import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-inf
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
 import { getStreamCameraID } from '../../utils/substream.js';
 import { View } from '../../view/view.js';
+import '../carousel';
 import { EmblaCarouselPlugins } from '../carousel.js';
 import { dispatchFrigateCardErrorEvent } from '../message.js';
 import '../next-prev-control.js';
