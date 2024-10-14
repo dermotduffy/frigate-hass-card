@@ -35,7 +35,6 @@ Explain what the issue is, and how things should look/behave. If possible provid
 
 **[OPTIONAL] Last working release (if known):**
 
-
 **[OPTIONAL] Javascript errors shown in the web inspector:**
 
 ```text

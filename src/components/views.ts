@@ -71,7 +71,7 @@ export class FrigateCardViews extends LitElement {
     if (changedProps.has('viewManagerEpoch') || changedProps.has('config')) {
       const view = this.viewManagerEpoch?.manager.getView();
       if (view?.is('live') || this._shouldLivePreload()) {
-        import('./live/live.js');
+        import('./live/index.js');
       }
       if (view?.isGalleryView()) {
         import('./gallery.js');

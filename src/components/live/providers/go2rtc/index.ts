@@ -7,17 +7,17 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { CameraEndpoints } from '../../camera-manager/types.js';
-import { CameraConfig, MicrophoneConfig } from '../../config/types.js';
-import { localize } from '../../localize/localize';
-import liveGo2RTCStyle from '../../scss/live-go2rtc.scss';
-import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
-import { getEndpointAddressOrDispatchError } from '../../utils/endpoint';
-import { setControlsOnVideo } from '../../utils/media.js';
-import { screenshotMedia } from '../../utils/screenshot.js';
-import '../image.js';
-import { dispatchErrorMessageEvent } from '../message';
-import { VideoRTC } from './go2rtc/video-rtc';
+import { CameraEndpoints } from '../../../../camera-manager/types.js';
+import { CameraConfig, MicrophoneConfig } from '../../../../config/types.js';
+import { localize } from '../../../../localize/localize.js';
+import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
+import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../../../types.js';
+import { getEndpointAddressOrDispatchError } from '../../../../utils/endpoint.js';
+import { setControlsOnVideo } from '../../../../utils/media.js';
+import { screenshotMedia } from '../../../../utils/screenshot.js';
+import '../../../image.js';
+import { dispatchErrorMessageEvent } from '../../../message.js';
+import { VideoRTC } from './video-rtc.js';
 
 customElements.define('frigate-card-live-go2rtc-player', VideoRTC);
 
