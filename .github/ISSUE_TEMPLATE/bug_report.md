@@ -1,52 +1,45 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help the card improve
 title: ''
 labels: bug
 assignees: ''
 ---
 
-<!-- READ THIS FIRST:
-- If you need additional help with this template please refer to https://www.home-assistant.io/help/reporting_issues/
-- Make sure you are running the latest version of Home Assistant before reporting an issue: https://github.com/home-assistant/home-assistant/releases
-- Provide as many details as possible. Do not delete any text from this template!
--->
+<!-- ====================================================================== -->
+<!-- ***               PLEASE DO NOT IGNORE THIS TEMPLATE               *** -->
+<!-- ***                                                                *** -->
+<!-- *** This is the smallest amount of information needed to help you! ***  -->
+<!-- ====================================================================== -->
 
 **Checklist:**
 
-- [ ] I updated to the latest version available
-- [ ] I cleared the cache of my browser
+- Please try updating to the [latest available version](https://github.com/dermotduffy/frigate-hass-card/releases).
+- Please try clearing your browser cache.
 
-**Release with the issue:**
-
-**Last working release (if known):**
-
-**Browser and Operating System:**
+**[REQUIRED] Card diagnostic information:**
 
 <!--
-Provide details about what browser (and version) you are seeing the issue in. And also which operating system this is on. If possible try to replicate the issue in other browsers and include your findings here.
--->
-
-**Description of problem:**
-
-<!--
-Explain what the issue is, and how things should look/behave. If possible provide a screenshot with a description.
--->
-
-**Frigate card diagnostic information**
-
-<!--
-On the card, hold down the Frigate menu button for a few seconds then paste the diagnostics below:
+On the card, hold down the Default/Frigate menu button for a few seconds then paste the diagnostics below. No help can be provided without this
 -->
 
 ```yaml
 
 ```
 
-**Javascript errors shown in the web inspector (if applicable):**
+**[REQUIRED] Description of problem:**
+
+<!--
+Explain what the issue is, and how things should look/behave. If possible provide a screenshot with a description.
+-->
+
+**[OPTIONAL] Last working release (if known):**
+
+
+**[OPTIONAL] Javascript errors shown in the web inspector:**
+
+```text
 
 ```
 
-```
-
-**Additional information:**
+**[OPTIONAL] Additional information:**
