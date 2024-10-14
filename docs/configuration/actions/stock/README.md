@@ -1,16 +1,5 @@
 # Stock Actions
 
-## `call-service`
-
-Call a service. See [Home Assistant actions documentation](https://www.home-assistant.io/dashboards/actions/).
-
-!> Home Assistant has deprecated the `call-service` action, please use [`perform-action`](#perform-action) instead.
-
-```yaml
-action: call-service
-# [...]
-```
-
 ## `more-info`
 
 Open the "more-info" dialog for an entity. See [Home Assistant actions documentation](https://www.home-assistant.io/dashboards/actions/).
