@@ -76,7 +76,7 @@ export class FrigateCardViews extends LitElement {
       if (view?.isGalleryView()) {
         import('./gallery.js');
       } else if (view?.isViewerView()) {
-        import('./viewer.js');
+        import('./viewer/index.js');
       } else if (view?.is('image')) {
         import('./image.js');
       } else if (view?.is('timeline')) {
