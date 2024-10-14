@@ -6,11 +6,11 @@ labels: bug
 assignees: ''
 ---
 
-<!-- ====================================================================== -->
-<!-- ***               PLEASE DO NOT IGNORE THIS TEMPLATE               *** -->
-<!-- ***                                                                *** -->
-<!-- *** This is the smallest amount of information needed to help you! ***  -->
-<!-- ====================================================================== -->
+<!-- =================================================================
+***               PLEASE DO NOT IGNORE THIS TEMPLATE
+***
+*** This is the smallest amount of information needed to help you!
+====================================================================== -->
 
 **Checklist:**
 
