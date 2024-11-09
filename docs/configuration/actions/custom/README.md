@@ -332,14 +332,14 @@ Execute a digital PTZ action.
 
 ```yaml
 action: custom:frigate-card-action
-frigate_card_action: ptz-digital
+frigate_card_action: ptz_digital
 # [...]
 ```
 
 | Parameter             | Default                                                                                       | Description                                                                                                                                                |
 | --------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `action`              |                                                                                               | Must be `custom:frigate-card-action`.                                                                                                                      |
-| `frigate_card_action` |                                                                                               | Must be `ptz-digital`.                                                                                                                                     |
+| `frigate_card_action` |                                                                                               | Must be `ptz_digital`.                                                                                                                                     |
 | `target_id`           | The currently selected camera or media                                                        | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
 | `ptz_action`          | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
 | `ptz_phase`           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
@@ -370,14 +370,14 @@ action), otherwise a digital PTZ action will be run (equivalent to using the
 
 ```yaml
 action: custom:frigate-card-action
-frigate_card_action: ptz-multi
+frigate_card_action: ptz_multi
 # [...]
 ```
 
 | Parameter             | Description                                                                                   |
 | --------------------- | --------------------------------------------------------------------------------------------- |
 | `action`              | Must be `custom:frigate-card-action`.                                                         |
-| `frigate_card_action` | Must be `ptz-digital`.                                                                        |
+| `frigate_card_action` | Must be `ptz_multi`.                                                                          |
 | `ptz_action`          | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
 | `ptz_phase`           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
 | `ptz_preset`          | Optional preset to execute when the `ptz_action` is `preset`.                                 |
