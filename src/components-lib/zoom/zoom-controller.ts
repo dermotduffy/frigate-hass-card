@@ -33,7 +33,7 @@ export class ZoomController {
   protected _settings: PartialZoomSettings | null;
 
   // These values should be suitably less than the value of STEP_DELAY_SECONDS
-  // in the ptz-digital action, in order to ensure smooth movements of the
+  // in the ptz_digital action, in order to ensure smooth movements of the
   // digital PTZ actions.
   protected _debouncedChangeHandler = throttle(this._changeHandler.bind(this), 50);
   protected _debouncedUpdater = throttle(this._updateBasedOnConfig.bind(this), 50);
