@@ -118,21 +118,24 @@ customElements.whenDefined('ha-hls-player').then(() => {
               );
             }
           }}
-          @loadeddata=${(ev) => {
-            dispatchMediaLoadedEvent(this, ev, {
-              player: this,
-              capabilities: {
-                supportsPause: true,
-                hasAudio: mayHaveAudio(this._video),
-              },
-              technology: ['hls'],
-            });
-          }}
+          @loadeddata=${(ev) => this._loadedDataHandler(ev)}
           @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
           @play=${() => dispatchMediaPlayEvent(this)}
           @pause=${() => dispatchMediaPauseEvent(this)}
         ></video>
       `;
+    }
+
+    private _loadedDataHandler(ev: Event) {
+      super._loadedData();
+      dispatchMediaLoadedEvent(this, ev, {
+        player: this,
+        capabilities: {
+          supportsPause: true,
+          hasAudio: mayHaveAudio(this._video),
+        },
+        technology: ['hls'],
+      });
     }
 
     static get styles(): CSSResultGroup {
