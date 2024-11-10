@@ -144,6 +144,10 @@ export class FrigateCardLiveWebRTCCard
         // See: https://github.com/dermotduffy/frigate-hass-card/issues/1614
         intersection: 0,
 
+        // Frigate card always starts muted (unlike webrtc-card).
+        // See: https://github.com/dermotduffy/frigate-hass-card/issues/1654
+        muted: true,
+
         ...this.cameraConfig.webrtc_card,
       };
       if (!config.url && !config.entity && this.cameraEndpoints?.webrtcCard) {
