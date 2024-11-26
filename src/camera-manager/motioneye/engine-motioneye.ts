@@ -8,20 +8,21 @@ import {
   BrowseMediaTarget,
 } from '../../utils/ha/browse-media/browse-media-manager';
 import {
-  BrowseMedia,
   BROWSE_MEDIA_CACHE_SECONDS,
+  BrowseMedia,
   MEDIA_CLASS_IMAGE,
   MEDIA_CLASS_VIDEO,
   RichBrowseMedia,
 } from '../../utils/ha/browse-media/types';
 import { ViewMedia } from '../../view/media';
 import { BrowseMediaCamera } from '../browse-media/camera';
-import {
-  BrowseMediaCameraManagerEngine,
-  getViewMediaFromBrowseMediaArray,
-  isMediaWithinDates,
-} from '../browse-media/engine-browse-media';
+import { BrowseMediaCameraManagerEngine } from '../browse-media/engine-browse-media';
 import { BrowseMediaMetadata } from '../browse-media/types';
+import { getViewMediaFromBrowseMediaArray } from '../browse-media/utils/browse-media-to-view-media';
+import { isMediaWithinDates } from '../browse-media/utils/within-dates';
+import { MemoryRequestCache } from '../cache';
+import { Camera } from '../camera';
+import { Capabilities } from '../capabilities';
 import { CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT } from '../engine';
 import { CameraManagerReadOnlyConfigStore } from '../store';
 import {
@@ -41,7 +42,9 @@ import {
   QueryResultsType,
   QueryReturnType,
 } from '../types';
+import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 import motioneyeLogo from './assets/motioneye.svg';
+import { MotionEyeCamera } from './camera';
 import { MotionEyeEventQueryResults } from './types';
 
 class MotionEyeQueryResultsClassifier {
@@ -65,8 +68,43 @@ const MOTIONEYE_REPL_SUBSTITUTIONS: Record<string, string> = {
 const MOTIONEYE_REPL_REGEXP = new RegExp(/(%Y|%m|%d|%H|%M|%S)/g);
 
 export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine {
+  protected _directoryCache = new MemoryRequestCache<string, BrowseMedia>();
+  protected _fileCache = new MemoryRequestCache<string, BrowseMedia>();
+
   public getEngineType(): Engine {
     return Engine.MotionEye;
+  }
+
+  public async createCamera(
+    hass: HomeAssistant,
+    cameraConfig: CameraConfig,
+  ): Promise<Camera> {
+    const camera = new MotionEyeCamera(cameraConfig, this, {
+      capabilities: new Capabilities(
+        {
+          'favorite-events': false,
+          'favorite-recordings': false,
+          clips: true,
+          live: true,
+          menu: true,
+          recordings: false,
+          seek: false,
+          snapshots: true,
+          substream: true,
+          ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
+        },
+        {
+          disable: cameraConfig.capabilities?.disable,
+          disableExcept: cameraConfig.capabilities?.disable_except,
+        },
+      ),
+      eventCallback: this._eventCallback,
+    });
+    return await camera.initialize({
+      entityRegistryManager: this._entityRegistryManager,
+      hass,
+      stateWatcher: this._stateWatcher,
+    });
   }
 
   protected _convertMotionEyeTimeFormatToDateFNS(part: string): string {
@@ -202,7 +240,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
           : []),
       ],
       {
-        useCache: engineOptions?.useCache,
+        ...(engineOptions?.useCache !== false && { cache: this._directoryCache }),
       },
     );
   }
@@ -251,6 +289,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
         cameraConfig.motioneye.images.file_pattern,
       );
 
+      const limit = perCameraQuery.limit ?? CAMERA_MANAGER_ENGINE_EVENT_LIMIT_DEFAULT;
       const media = await this._browseMediaManager.walkBrowseMedias(
         hass,
         [
@@ -275,12 +314,15 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
               }
               return null;
             },
+            earlyExit: (media) => media.length >= limit,
             matcher: (media: RichBrowseMedia<BrowseMediaMetadata>) =>
               !media.can_expand &&
               isMediaWithinDates(media, perCameraQuery.start, perCameraQuery.end),
           },
         ],
-        { useCache: engineOptions?.useCache },
+        {
+          ...(engineOptions?.useCache !== false && { cache: this._fileCache }),
+        },
       );
 
       // Sort by most recent then slice at the query limit.

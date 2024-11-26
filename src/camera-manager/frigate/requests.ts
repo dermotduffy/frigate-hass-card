@@ -1,7 +1,7 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { localize } from '../../localize/localize';
 import { FrigateCardError } from '../../types';
-import { homeAssistantWSRequest } from '../../utils/ha';
+import { homeAssistantWSRequest } from '../../utils/ha/ws-request';
 import { RecordingSegment } from '../types';
 import {
   EventSummary,

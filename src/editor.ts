@@ -32,10 +32,9 @@ import {
   THUMBNAIL_WIDTH_MIN,
 } from './config/types.js';
 import {
-  CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
+  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
   CONF_CAMERAS_ARRAY_CAST_METHOD,
@@ -61,8 +60,8 @@ import {
   CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
-  CONF_CAMERAS_ARRAY_IMAGE_ENTITY,
   CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS,
+  CONF_CAMERAS_ARRAY_IMAGE_ENTITY,
   CONF_CAMERAS_ARRAY_IMAGE_MODE,
   CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
   CONF_CAMERAS_ARRAY_IMAGE_URL,
@@ -72,6 +71,12 @@ import {
   CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_DIRECTORY_PATTERN,
   CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_FILE_PATTERN,
   CONF_CAMERAS_ARRAY_MOTIONEYE_URL,
+  CONF_CAMERAS_ARRAY_PROXY_DYNAMIC,
+  CONF_CAMERAS_ARRAY_PROXY_MEDIA,
+  CONF_CAMERAS_ARRAY_PROXY_SSL_CIPHERS,
+  CONF_CAMERAS_ARRAY_PROXY_SSL_VERIFICATION,
+  CONF_CAMERAS_ARRAY_REOLINK_MEDIA_RESOLUTION,
+  CONF_CAMERAS_ARRAY_REOLINK_URL,
   CONF_CAMERAS_ARRAY_TITLE,
   CONF_CAMERAS_ARRAY_TRIGGERS_ENTITIES,
   CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS,
@@ -79,11 +84,12 @@ import {
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
-  CONF_DIMENSIONS_ASPECT_RATIO,
+  CONF_CAMERAS,
   CONF_DIMENSIONS_ASPECT_RATIO_MODE,
+  CONF_DIMENSIONS_ASPECT_RATIO,
   CONF_DIMENSIONS_HEIGHT,
-  CONF_IMAGE_ENTITY,
   CONF_IMAGE_ENTITY_PARAMETERS,
+  CONF_IMAGE_ENTITY,
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
@@ -194,15 +200,14 @@ import {
   CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DARK_MODE,
-  CONF_VIEW_DEFAULT,
   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
-  CONF_VIEW_DEFAULT_RESET,
   CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION,
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
   CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
   CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+  CONF_VIEW_DEFAULT_RESET,
+  CONF_VIEW_DEFAULT,
   CONF_VIEW_INTERACTION_SECONDS,
-  CONF_VIEW_KEYBOARD_SHORTCUTS,
   CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME,
@@ -211,14 +216,15 @@ import {
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT,
-  CONF_VIEW_TRIGGERS,
-  CONF_VIEW_TRIGGERS_ACTIONS,
+  CONF_VIEW_KEYBOARD_SHORTCUTS,
   CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
+  CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
+  CONF_VIEW_TRIGGERS,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { localize } from './localize/localize.js';
@@ -244,6 +250,8 @@ const MENU_CAMERAS_GO2RTC = 'cameras.go2rtc';
 const MENU_CAMERAS_IMAGE = 'cameras.image';
 const MENU_CAMERAS_LIVE_PROVIDER = 'cameras.live_provider';
 const MENU_CAMERAS_MOTIONEYE = 'cameras.motioneye';
+const MENU_CAMERAS_PROXY = 'cameras.proxy';
+const MENU_CAMERAS_REOLINK = 'cameras.reolink';
 const MENU_CAMERAS_TRIGGERS = 'cameras.triggers';
 const MENU_CAMERAS_WEBRTC_CARD = 'cameras.webrtc_card';
 const MENU_LIVE_CONTROLS = 'live.controls';
@@ -281,7 +289,7 @@ interface EditorOptions {
 }
 
 interface EditorSelectOption {
-  value: string;
+  value: unknown;
   label: string;
 }
 
@@ -820,6 +828,74 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     },
   ];
 
+  protected _proxyMedia: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'auto',
+      label: localize('config.cameras.proxy.media.auto'),
+    },
+    {
+      value: true,
+      label: localize('config.cameras.proxy.media.true'),
+    },
+    {
+      value: false,
+      label: localize('config.cameras.proxy.media.false'),
+    },
+  ];
+
+  protected _proxySSLCiphers: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'auto',
+      label: localize('config.cameras.proxy.ssl_ciphers.auto'),
+    },
+    {
+      value: 'default',
+      label: localize('config.cameras.proxy.ssl_ciphers.default'),
+    },
+    {
+      value: 'insecure',
+      label: localize('config.cameras.proxy.ssl_ciphers.insecure'),
+    },
+    {
+      value: 'intermediate',
+      label: localize('config.cameras.proxy.ssl_ciphers.intermediate'),
+    },
+    {
+      value: 'modern',
+      label: localize('config.cameras.proxy.ssl_ciphers.modern'),
+    },
+  ];
+
+  protected _proxySSLVerification: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'auto',
+      label: localize('config.cameras.proxy.ssl_verification.auto'),
+    },
+    {
+      value: true,
+      label: localize('config.cameras.proxy.ssl_verification.true'),
+    },
+    {
+      value: false,
+      label: localize('config.cameras.proxy.ssl_verification.false'),
+    },
+  ];
+
+  protected _reolinkMediaResolution: EditorSelectOption[] = [
+    { value: '', label: '' },
+    {
+      value: 'high',
+      label: localize('config.cameras.reolink.media_resolution.high'),
+    },
+    {
+      value: 'low',
+      label: localize('config.cameras.reolink.media_resolution.low'),
+    },
+  ];
+
   protected _statusBarStyles: EditorSelectOption[] = [
     { value: '', label: '' },
     { value: 'hover', label: localize('config.status_bar.styles.hover') },
@@ -942,7 +1018,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   protected _renderOptionSelector(
     configPath: string,
-    options: string[] | { value: string; label: string }[] = [],
+    options: string[] | { value: unknown; label: string }[] = [],
     params?: {
       multiple?: boolean;
       label?: string;
@@ -1980,36 +2056,55 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   cameraIndex,
                   'config.cameras.motioneye.editor_label',
                   'motioneye',
-                  html`
-                    ${this._renderStringInput(
-                      getArrayConfigPath(CONF_CAMERAS_ARRAY_MOTIONEYE_URL, cameraIndex),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_DIRECTORY_PATTERN,
-                        cameraIndex,
+                  html` ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_MOTIONEYE_URL, cameraIndex),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_DIRECTORY_PATTERN,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_FILE_PATTERN,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_DIRECTORY_PATTERN,
+                      cameraIndex,
+                    ),
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_FILE_PATTERN,
+                      cameraIndex,
+                    ),
+                  )}`,
+                )}
+                ${this._putInSubmenu(
+                  MENU_CAMERAS_REOLINK,
+                  cameraIndex,
+                  'config.cameras.reolink.editor_label',
+                  'reolink',
+                  html` ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_REOLINK_URL, cameraIndex),
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_REOLINK_MEDIA_RESOLUTION,
+                      cameraIndex,
+                    ),
+                    this._reolinkMediaResolution,
+                    {
+                      label: localize(
+                        'config.cameras.reolink.media_resolution.editor_label',
                       ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_MOTIONEYE_IMAGES_FILE_PATTERN,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_DIRECTORY_PATTERN,
-                        cameraIndex,
-                      ),
-                    )}
-                    ${this._renderStringInput(
-                      getArrayConfigPath(
-                        CONF_CAMERAS_ARRAY_MOTIONEYE_MOVIES_FILE_PATTERN,
-                        cameraIndex,
-                      ),
-                    )}
-                  `,
-                )} `,
+                    },
+                  )}`,
+                )}`,
               )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_LIVE_PROVIDER,
@@ -2235,6 +2330,47 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     this._capabilities,
                     {
                       multiple: true,
+                    },
+                  )}
+                `,
+              )}
+              ${this._putInSubmenu(
+                MENU_CAMERAS_PROXY,
+                cameraIndex,
+                'config.cameras.proxy.editor_label',
+                'mdi:arrow-decision',
+                html`
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_MEDIA, cameraIndex),
+                    this._proxyMedia,
+                    {
+                      label: localize('config.cameras.proxy.media.editor_label'),
+                    },
+                  )}
+                  ${this._renderSwitch(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_PROXY_DYNAMIC, cameraIndex),
+                    this._defaults.cameras.proxy.dynamic,
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_PROXY_SSL_VERIFICATION,
+                      cameraIndex,
+                    ),
+                    this._proxySSLVerification,
+                    {
+                      label: localize(
+                        'config.cameras.proxy.ssl_verification.editor_label',
+                      ),
+                    },
+                  )}
+                  ${this._renderOptionSelector(
+                    getArrayConfigPath(
+                      CONF_CAMERAS_ARRAY_PROXY_SSL_CIPHERS,
+                      cameraIndex,
+                    ),
+                    this._proxySSLCiphers,
+                    {
+                      label: localize('config.cameras.proxy.ssl_ciphers.editor_label'),
                     },
                   )}
                 `,

@@ -38,7 +38,7 @@ class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMedia {
     return this._browseMedia._metadata?.startDate ?? null;
   }
   public getEndTime(): Date | null {
-    return null;
+    return this._browseMedia._metadata?.endDate ?? null;
   }
   public getVideoContentType(): VideoContentType | null {
     return VideoContentType.MP4;
@@ -79,7 +79,7 @@ export class BrowseMediaViewMediaFactory {
     mediaType: 'clip' | 'snapshot',
     browseMedia: RichBrowseMedia<BrowseMediaMetadata>,
     cameraID: string,
-  ): BrowseMediaEventViewMedia | null {
+  ): BrowseMediaEventViewMedia {
     return new BrowseMediaEventViewMedia(mediaType, cameraID, browseMedia);
   }
 }

@@ -38,9 +38,18 @@ describe('config defaults', () => {
             file_pattern: '%H-%M-%S',
           },
         },
+        proxy: {
+          dynamic: true,
+          media: 'auto',
+          ssl_verification: 'auto',
+          ssl_ciphers: 'auto',
+        },
         ptz: {
           c2r_delay_between_calls_seconds: 0.2,
           r2c_delay_between_calls_seconds: 0.5,
+        },
+        reolink: {
+          media_resolution: 'low',
         },
         triggers: {
           events: ['events', 'clips', 'snapshots'],

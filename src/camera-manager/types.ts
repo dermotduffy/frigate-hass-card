@@ -1,5 +1,5 @@
 import { CapabilityKey } from '../types';
-import { FrigateCardView } from '../config/types';
+import { FrigateCardView, SSLCiphers } from '../config/types';
 import { ViewMedia } from '../view/media';
 
 // ====
@@ -24,6 +24,7 @@ export enum Engine {
   Frigate = 'frigate',
   Generic = 'generic',
   MotionEye = 'motioneye',
+  Reolink = 'reolink',
 }
 
 export interface DataQuery {
@@ -124,6 +125,13 @@ export interface CameraEndpoints {
   go2rtc?: CameraEndpoint;
   jsmpeg?: CameraEndpoint;
   webrtcCard?: CameraEndpoint;
+}
+
+export interface CameraProxyConfig {
+  dynamic: boolean;
+  media: boolean;
+  ssl_verification: boolean;
+  ssl_ciphers: SSLCiphers;
 }
 
 export interface EngineOptions {

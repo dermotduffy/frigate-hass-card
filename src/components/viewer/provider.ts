@@ -6,7 +6,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
@@ -16,11 +16,24 @@ import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-
 import { CardWideConfig, ViewerConfig } from '../../config/types.js';
 import '../../patches/ha-hls-player.js';
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
-import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
+import {
+  ExtendedHomeAssistant,
+  FrigateCardMediaPlayer,
+  ResolvedMedia,
+} from '../../types.js';
 import { mayHaveAudio } from '../../utils/audio.js';
-import { aspectRatioToString } from '../../utils/basic.js';
-import { canonicalizeHAURL } from '../../utils/ha/index.js';
+import { aspectRatioToString, errorToConsole } from '../../utils/basic.js';
+import {
+  canonicalizeHAURL,
+  homeAssistantSignPath,
+  isHARelativeURL,
+} from '../../utils/ha/index.js';
 import { ResolvedMediaCache, resolveMedia } from '../../utils/ha/resolved-media.js';
+import {
+  addDynamicProxyURL,
+  getWebProxiedURL,
+  shouldUseWebProxy,
+} from '../../utils/ha/web-proxy.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
@@ -76,6 +89,9 @@ export class FrigateCardViewerProvider
     createRef();
   protected _refVideoProvider: Ref<HTMLVideoElement> = createRef();
   protected _refImageProvider: Ref<HTMLImageElement> = createRef();
+
+  @state()
+  protected _url: string | null = null;
 
   public async play(): Promise<void> {
     await playMediaMutingIfNecessary(
@@ -191,21 +207,77 @@ export class FrigateCardViewerProvider
     });
   }
 
-  protected willUpdate(changedProps: PropertyValues): void {
-    const mediaContentID = this.media ? this.media.getContentID() : null;
-
+  protected async _setURL(): Promise<void> {
+    const mediaContentID = this.media?.getContentID();
     if (
-      (changedProps.has('load') ||
-        changedProps.has('media') ||
-        changedProps.has('viewerConfig') ||
-        changedProps.has('resolvedMediaCache') ||
-        changedProps.has('hass')) &&
-      this.hass &&
-      mediaContentID &&
-      !this.resolvedMediaCache?.has(mediaContentID) &&
-      (!this.viewerConfig?.lazy_load || this.load)
+      !this.media ||
+      !mediaContentID ||
+      !this.hass ||
+      (this.viewerConfig?.lazy_load && !this.load)
     ) {
-      resolveMedia(this.hass, mediaContentID, this.resolvedMediaCache).then(() => {
+      return;
+    }
+
+    let resolvedMedia: ResolvedMedia | null =
+      this.resolvedMediaCache?.get(mediaContentID) ?? null;
+    if (!resolvedMedia) {
+      resolvedMedia = await resolveMedia(
+        this.hass,
+        mediaContentID,
+        this.resolvedMediaCache,
+      );
+    }
+
+    if (!resolvedMedia) {
+      return;
+    }
+
+    const unsignedURL = resolvedMedia.url;
+    if (isHARelativeURL(unsignedURL)) {
+      // No need to proxy or sign local resolved URLs.
+      this._url = canonicalizeHAURL(this.hass, unsignedURL);
+      return;
+    }
+
+    const camera = this.cameraManager?.getStore().getCamera(this.media.getCameraID());
+    const proxyConfig = camera?.getProxyConfig();
+
+    if (proxyConfig && shouldUseWebProxy(this.hass, proxyConfig, 'media')) {
+      if (proxyConfig.dynamic) {
+        // Don't use URL() parsing, since that will strip the port number if
+        // it's the default, just need to strip any hash part of the URL.
+        const urlWithoutQSorHash = unsignedURL.split(/#/)[0];
+        await addDynamicProxyURL(this.hass, urlWithoutQSorHash, {
+          sslVerification: proxyConfig.ssl_verification,
+          sslCiphers: proxyConfig.ssl_ciphers,
+
+          // The link may need to be opened multiple times.
+          openLimit: 0,
+        });
+      }
+
+      try {
+        this._url = await homeAssistantSignPath(
+          this.hass,
+          getWebProxiedURL(unsignedURL),
+        );
+      } catch (e) {
+        errorToConsole(e as Error);
+      }
+    } else {
+      this._url = unsignedURL;
+    }
+  }
+
+  protected willUpdate(changedProps: PropertyValues): void {
+    if (
+      changedProps.has('load') ||
+      changedProps.has('media') ||
+      changedProps.has('viewerConfig') ||
+      changedProps.has('resolvedMediaCache') ||
+      changedProps.has('hass')
+    ) {
+      this._setURL().then(() => {
         this.requestUpdate();
       });
     }
@@ -262,13 +334,7 @@ export class FrigateCardViewerProvider
       return;
     }
 
-    const mediaContentID = this.media.getContentID();
-    const resolvedMedia = mediaContentID
-      ? this.resolvedMediaCache?.get(mediaContentID)
-      : null;
-    if (!resolvedMedia) {
-      // Media will be resolved with the call in willUpdate() then this will be
-      // re-rendered.
+    if (!this._url) {
       return renderProgressIndicator({
         cardWideConfig: this.cardWideConfig,
       });
@@ -288,7 +354,7 @@ export class FrigateCardViewerProvider
               muted
               playsinline
               title="${this.media.getTitle() ?? ''}"
-              url=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
+              url=${this._url}
               .hass=${this.hass}
               ?controls=${this.viewerConfig.controls.builtin}
             >
@@ -325,16 +391,13 @@ export class FrigateCardViewerProvider
                 @play=${() => dispatchMediaPlayEvent(this)}
                 @pause=${() => dispatchMediaPauseEvent(this)}
               >
-                <source
-                  src=${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}
-                  type="video/mp4"
-                />
+                <source src=${this._url} type="video/mp4" />
               </video>
             `
         : html`<img
             ${ref(this._refImageProvider)}
             aria-label="${this.media.getTitle() ?? ''}"
-            src="${canonicalizeHAURL(this.hass, resolvedMedia?.url) ?? ''}"
+            src="${this._url}"
             title="${this.media.getTitle() ?? ''}"
             @click=${() => {
               if (this.viewerConfig?.snapshot_click_plays_clip) {

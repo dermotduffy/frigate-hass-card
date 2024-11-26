@@ -48,33 +48,30 @@ export class FrigateCardNextPreviousControl extends LitElement {
       return html``;
     }
 
+    const renderIcon =
+      !this.thumbnail ||
+      ['chevrons', 'icons'].includes(this._controlConfig.style);
+
     const classes = {
       controls: true,
       previous: this.direction === 'previous',
       next: this.direction === 'next',
-      thumbnails: this._controlConfig.style === 'thumbnails',
-      icons: ['chevrons', 'icons'].includes(this._controlConfig.style),
-      button: ['chevrons', 'icons'].includes(this._controlConfig.style),
+      thumbnails: !renderIcon,
+      icons: renderIcon,
+      button: renderIcon,
     };
 
-    if (['chevrons', 'icons'].includes(this._controlConfig.style)) {
-      let icon: string;
-      if (this._controlConfig.style === 'chevrons') {
-        icon = this.direction === 'previous' ? 'mdi:chevron-left' : 'mdi:chevron-right';
-      } else {
-        if (!this.icon) {
-          return html``;
-        }
-        icon = this.icon;
-      }
+    if (renderIcon) {
+      const icon =
+        !this.thumbnail || !this.icon || this._controlConfig.style === 'chevrons'
+          ? this.direction === 'previous'
+            ? 'mdi:chevron-left'
+            : 'mdi:chevron-right'
+          : this.icon;
 
       return html` <ha-icon-button class="${classMap(classes)}" .label=${this.label}>
         <ha-icon icon=${icon}></ha-icon>
       </ha-icon-button>`;
-    }
-
-    if (!this.thumbnail) {
-      return html``;
     }
 
     return renderTask(

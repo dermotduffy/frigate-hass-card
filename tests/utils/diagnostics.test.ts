@@ -5,6 +5,7 @@ import { getLanguage } from '../../src/localize/localize';
 import { getDiagnostics, getReleaseVersion } from '../../src/utils/diagnostics.js';
 import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
 import { createHASS, createRegistryDevice } from '../test-utils';
+import { homeAssistantWSRequest } from '../../src/utils/ha/ws-request';
 
 vi.mock('../../package.json', () => ({
   default: {
@@ -16,6 +17,7 @@ vi.mock('../../package.json', () => ({
 vi.mock('../../src/utils/ha');
 vi.mock('../../src/localize/localize.js');
 vi.mock('../../src/utils/ha/registry/device/index.js');
+vi.mock('../../src/utils/ha/ws-request.js');
 
 describe('getReleaseVersion', () => {
   it('should get release version', () => {
@@ -30,6 +32,8 @@ describe('getDiagnostics', () => {
   hass.config = { version: '2023.9.0' } as HassConfig;
 
   beforeEach(() => {
+    vi.resetAllMocks();
+
     vi.useFakeTimers();
     vi.setSystemTime(now);
 
@@ -62,6 +66,11 @@ describe('getDiagnostics', () => {
       }),
     ]);
 
+    vi.mocked(homeAssistantWSRequest).mockResolvedValue({
+      domain: 'domain',
+      version: '0.0.1',
+    });
+
     expect(
       await getDiagnostics(hass, deviceRegistryManager, {
         cameras: [{ camera_entity: 'camera.office' }],
@@ -72,14 +81,32 @@ describe('getDiagnostics', () => {
       config: {
         cameras: [{ camera_entity: 'camera.office' }],
       },
-      frigate_versions: {
-        ac4e79d258449a83bc0cf6d47a021c46: '4.0.0/0.13.0-aded314',
-        b03e70c659d58ae2ce7f2dc76fed2929: '4.0.0/0.13.0-aded314',
-      },
       git: {
         build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
         hash: 'g4cf13b1',
+      },
+      integrations: {
+        frigate: {
+          detected: true,
+          devices: {
+            ac4e79d258449a83bc0cf6d47a021c46: '4.0.0/0.13.0-aded314',
+            b03e70c659d58ae2ce7f2dc76fed2929: '4.0.0/0.13.0-aded314',
+          },
+          version: '0.0.1',
+        },
+        hass_web_proxy: {
+          detected: true,
+          version: '0.0.1',
+        },
+        motioneye: {
+          detected: true,
+          version: '0.0.1',
+        },
+        reolink: {
+          detected: true,
+          version: '0.0.1',
+        },
       },
       date: now,
       lang: 'en',
@@ -118,6 +145,20 @@ describe('getDiagnostics', () => {
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
         hash: 'g4cf13b1',
       },
+      integrations: {
+        frigate: {
+          detected: false,
+        },
+        hass_web_proxy: {
+          detected: false,
+        },
+        motioneye: {
+          detected: false,
+        },
+        reolink: {
+          detected: false,
+        },
+      },
       date: now,
       lang: 'en',
       timezone: expect.anything(),
@@ -135,6 +176,20 @@ describe('getDiagnostics', () => {
         build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
         hash: 'g4cf13b1',
+      },
+      integrations: {
+        frigate: {
+          detected: false,
+        },
+        hass_web_proxy: {
+          detected: false,
+        },
+        motioneye: {
+          detected: false,
+        },
+        reolink: {
+          detected: false,
+        },
       },
       ha_version: '2023.9.0',
       date: now,
