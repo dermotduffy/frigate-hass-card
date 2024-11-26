@@ -3,73 +3,25 @@ import {
   computeStateDomain,
   HomeAssistant,
 } from '@dermotduffy/custom-card-helpers';
-import { HassEntity, MessageBase } from 'home-assistant-js-websocket';
+import { HassEntity } from 'home-assistant-js-websocket';
 import { StyleInfo } from 'lit/directives/style-map.js';
-import { ZodSchema } from 'zod';
-import { localize } from '../../localize/localize.js';
 import {
   CardHelpers,
   ExtendedHomeAssistant,
-  FrigateCardError,
   LovelaceCardWithEditor,
   SignedPath,
   signedPathSchema,
   StateParameters,
 } from '../../types.js';
 import { domainIcon } from '../icons/domain-icon.js';
-import { getParseErrorKeys } from '../zod.js';
-
-/**
- * Make a HomeAssistant websocket request. May throw.
- * @param hass The HomeAssistant object to send the request with.
- * @param schema The expected Zod schema of the response.
- * @param request The request to make.
- * @returns The parsed valid response or null on malformed.
- */
-export async function homeAssistantWSRequest<T>(
-  hass: HomeAssistant,
-  schema: ZodSchema<T>,
-  request: MessageBase,
-  passthrough = false,
-): Promise<T> {
-  let response;
-  try {
-    response = await hass.callWS<T>(request);
-  } catch (e) {
-    if (!(e instanceof Error)) {
-      throw new FrigateCardError(localize('error.failed_response'), {
-        request: request,
-        response: e,
-      });
-    }
-    throw e;
-  }
-
-  if (!response) {
-    throw new FrigateCardError(localize('error.empty_response'), {
-      request: request,
-    });
-  }
-  // Some endpoints on the integration pass through JSON directly from Frigate
-  // These end up wrapped in a string and must be unwrapped first
-  const parseResult = passthrough
-    ? schema.safeParse(JSON.parse(response))
-    : schema.safeParse(response);
-  if (!parseResult.success) {
-    throw new FrigateCardError(localize('error.invalid_response'), {
-      request: request,
-      response: response,
-      invalid_keys: getParseErrorKeys<T>(parseResult.error),
-    });
-  }
-  return parseResult.data;
-}
+import { homeAssistantWSRequest } from './ws-request.js';
 
 /**
  * Request that HA sign a path. May throw.
  * @param hass The HomeAssistant object used to request the signature.
  * @param path The path to sign.
- * @param expires An optional number of seconds to sign the path for.
+ * @param expires An optional number of seconds to sign the path for (by default
+ * HA will sign for 30 seconds).
  * @returns The signed URL, or null if the response was malformed.
  */
 export async function homeAssistantSignPath(
@@ -379,6 +331,10 @@ export const isCardInPanel = (card: HTMLElement): boolean => {
   );
 };
 
+export function isHARelativeURL(url?: string): boolean {
+  return !!url?.startsWith('/');
+}
+
 /**
  * Ensure URLs use the correct HA URL (relevant for Chromecast where the default
  * location will be the Chromecast receiver, not HA).
@@ -388,8 +344,12 @@ export function canonicalizeHAURL(hass: ExtendedHomeAssistant, url: string): str
 export function canonicalizeHAURL(
   hass: ExtendedHomeAssistant,
   url?: string,
+): string | null;
+export function canonicalizeHAURL(
+  hass: ExtendedHomeAssistant,
+  url?: string,
 ): string | null {
-  if (hass && url && url.startsWith('/')) {
+  if (isHARelativeURL(url)) {
     return hass.hassUrl(url);
   }
   return url ?? null;

@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { homeAssistantWSRequest } from '../../../../../src/utils/ha';
-import { createHASS, createRegistryDevice } from '../../../../test-utils.js';
 import {
   createDeviceRegistryCache,
   DeviceRegistryManager,
 } from '../../../../../src/utils/ha/registry/device';
+import { homeAssistantWSRequest } from '../../../../../src/utils/ha/ws-request';
+import { createHASS, createRegistryDevice } from '../../../../test-utils.js';
 
-vi.mock('../../../../../src/utils/ha');
+vi.mock('../../../../../src/utils/ha/ws-request');
 vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
 describe('DeviceRegistryManager', () => {

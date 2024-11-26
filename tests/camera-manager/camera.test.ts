@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../../src/camera-manager/camera.js';
 import { GenericCameraManagerEngine } from '../../src/camera-manager/generic/engine-generic.js';
+import { CameraProxyConfig } from '../../src/camera-manager/types.js';
 import { StateWatcherSubscriptionInterface } from '../../src/card-controller/hass/state-watcher.js';
+import { ProxyConfig } from '../../src/config/types.js';
 import {
   callStateWatcherCallback,
   createCameraConfig,
@@ -134,6 +136,126 @@ describe('Camera', () => {
           cameraID: 'camera_1',
           type: eventType,
         });
+      },
+    );
+  });
+
+  describe('should get proxy config', () => {
+    it.each([
+      [
+        'when unspecified',
+        {},
+        {
+          dynamic: true,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when media set to true',
+        { media: true },
+        {
+          dynamic: true,
+          media: true,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when media set to false',
+        { media: false as const },
+        {
+          dynamic: true,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when media set to auto',
+        { media: 'auto' as const },
+        {
+          dynamic: true,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when ssl_verification is set to auto',
+        { ssl_verification: 'auto' as const },
+        {
+          dynamic: true,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when ssl_verification is set to true',
+        { ssl_verification: true },
+        {
+          dynamic: true,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when ssl_verification is set to false',
+        { ssl_verification: false },
+        {
+          dynamic: true,
+          media: false,
+          ssl_verification: false,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when ssl_ciphers is set to auto',
+        { ssl_ciphers: 'auto' as const },
+        {
+          dynamic: true,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+      [
+        'when ssl_ciphers is set to modern',
+        { ssl_ciphers: 'modern' as const },
+        {
+          dynamic: true,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'modern' as const,
+        },
+      ],
+      [
+        'when dynamic is set to false',
+        { dynamic: false },
+        {
+          dynamic: false,
+          media: false,
+          ssl_verification: true,
+          ssl_ciphers: 'default' as const,
+        },
+      ],
+    ])(
+      '%s',
+      (
+        _name: string,
+        proxyConfig: Partial<ProxyConfig>,
+        expectedResult: CameraProxyConfig,
+      ) => {
+        const camera = new Camera(
+          createCameraConfig({
+            proxy: proxyConfig,
+          }),
+          new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        );
+        expect(camera.getProxyConfig()).toEqual(expectedResult);
       },
     );
   });

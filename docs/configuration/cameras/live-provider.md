@@ -89,3 +89,56 @@ cameras:
 | `entity` |                                                                                                                                                                                                                     | The RTSP camera entity to pass to the WebRTC Card for this camera.                                                                                                                                                                                                                              |
 | `url`    | Depends on the camera engine (e.g. Frigate cameras will automatically use the camera name since this is the [recommended setup](https://deploy-preview-4055--frigate-docs.netlify.app/guides/configuring_go2rtc/)). | The RTSP url to pass to the WebRTC Card, e.g. `rtsp://USERNAME:PASSWORD@CAMERA:554/RTSP_PATH`                                                                                                                                                                                                   |
 | `*`      |                                                                                                                                                                                                                     | Any options specified in the `webrtc_card:` YAML dictionary are silently passed through to the AlexxIT's WebRTC Card. See [WebRTC Configuration](https://github.com/AlexxIT/WebRTC#configuration) for full details this external card provides, e.g. `ui: true` will enable the WebRTC Card UI. |
+
+## Fully expanded reference
+
+[](../common/expanded-warning.md ':include')
+
+```yaml
+cameras:
+  - camera_entity: camera.office_ha
+    live_provider: ha
+  - camera_entity: camera.office_webrtc_card
+    live_provider: webrtc-card
+    webrtc_card:
+      entity: camera.office_rtsp
+      url: 'rtsp://username:password@camera:554/av_stream/ch0'
+      # Arbitrary WebRTC Card options, see https://github.com/AlexxIT/WebRTC#configuration .
+      ui: true
+  - camera_entity: camera.office_go2rtc
+    live_provider: go2rtc
+    go2rtc:
+      modes:
+        - webrtc
+        - mse
+        - mp4
+        - mjpeg
+      stream: sitting_room
+      url: 'https://my.custom.go2rtc.backend'
+  - camera_entity: camera.office_jsmpeg
+    live_provider: jsmpeg
+    jsmpeg:
+      options:
+        audio: false
+        video: true
+        pauseWhenHidden: false
+        disableGl: false
+        disableWebAssembly: false
+        preserveDrawingBuffer: false
+        progressive: true
+        throttled: true
+        chunkSize: 1048576
+        maxAudioLag: 10
+        videoBufferSize: 524288
+        audioBufferSize: 131072
+  - camera_entity: camera.office_image
+    live_provider: image
+    image:
+      mode: auto
+      refresh_seconds: 1
+      url: 'https://path/to/image.png'
+      entity: image.office_person
+      entity_parameters: 'width=400&height=200'
+cameras_global:
+  live_provider: go2rtc
+```

@@ -11,11 +11,13 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
+import { CameraManagerCameraMetadata } from '../camera-manager/types.js';
+import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
-import thumbnailFeatureEventStyle from '../scss/thumbnail-feature-event.scss';
-import thumbnailFeatureRecordingStyle from '../scss/thumbnail-feature-recording.scss';
+import thumbnailFeatureTextStyle from '../scss/thumbnail-feature-text.scss';
+import thumbnailFeatureThumbnailStyle from '../scss/thumbnail-feature-thumbnail.scss';
 import thumbnailStyle from '../scss/thumbnail.scss';
 import type { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
@@ -31,13 +33,12 @@ import { createFetchThumbnailTask, FetchThumbnailTaskArgs } from '../utils/thumb
 import { ViewMediaClassifier } from '../view/media-classifier.js';
 import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
 import { dispatchFrigateCardErrorEvent } from './message.js';
-import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
 
-@customElement('frigate-card-thumbnail-feature-event')
-export class FrigateCardThumbnailFeatureEvent extends LitElement {
+@customElement('frigate-card-thumbnail-feature-thumbnail')
+export class FrigateCardThumbnailFeatureThumbnail extends LitElement {
   @property({ attribute: false })
   public thumbnail?: string;
 
@@ -101,13 +102,14 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    if (!this._embedThumbnailTask) {
-      return;
-    }
     const imageOff = html`<ha-icon
       icon="mdi:image-off"
       title=${localize('thumbnail.no_thumbnail')}
     ></ha-icon> `;
+
+    if (!this._embedThumbnailTask) {
+      return imageOff;
+    }
 
     return html`${this.thumbnail
       ? renderTask(
@@ -121,31 +123,41 @@ export class FrigateCardThumbnailFeatureEvent extends LitElement {
   }
 
   static get styles(): CSSResult {
-    return unsafeCSS(thumbnailFeatureEventStyle);
+    return unsafeCSS(thumbnailFeatureThumbnailStyle);
   }
 }
 
-@customElement('frigate-card-thumbnail-feature-recording')
-export class FrigateCardThumbnailFeatureRecording extends LitElement {
+@customElement('frigate-card-thumbnail-feature-text')
+export class FrigateCardThumbnailFeatureText extends LitElement {
   @property({ attribute: false })
   public date?: Date;
 
   @property({ attribute: false })
-  public cameraTitle?: string;
+  public cameraMetadata?: CameraManagerCameraMetadata;
+
+  @property({ attribute: false })
+  public showCameraTitle?: boolean;
 
   protected render(): TemplateResult | void {
     if (!this.date) {
       return;
     }
     return html`
-      <div class="title">${format(this.date, 'HH:mm')}</div>
-      <div class="subtitle">${format(this.date, 'MMM do')}</div>
-      ${this.cameraTitle ? html`<div class="camera">${this.cameraTitle}</div>` : html``}
+      ${this.cameraMetadata?.engineLogo
+        ? html`<img class="background" src="${this.cameraMetadata.engineLogo}" />`
+        : ''}
+      <div class="content">
+        <div class="title">${format(this.date, 'HH:mm')}</div>
+        <div class="subtitle">${format(this.date, 'MMM do')}</div>
+        ${this.showCameraTitle && this.cameraMetadata?.title
+          ? html`<div class="camera">${this.cameraMetadata.title}</div>`
+          : html``}
+      </div>
     `;
   }
 
   static get styles(): CSSResult {
-    return unsafeCSS(thumbnailFeatureRecordingStyle);
+    return unsafeCSS(thumbnailFeatureTextStyle);
   }
 }
 
@@ -405,25 +417,28 @@ export class FrigateCardThumbnail extends LitElement {
       this.media.getID() &&
       mediaCapabilities?.canDownload;
 
-    const cameraTitle = this.cameraManager.getCameraMetadata(
+    const cameraMetadata = this.cameraManager.getCameraMetadata(
       this.media.getCameraID(),
-    )?.title;
+    );
 
     return html`
-      ${ViewMediaClassifier.isEvent(this.media)
-        ? html`<frigate-card-thumbnail-feature-event
+      ${ViewMediaClassifier.isEvent(this.media) && thumbnail
+        ? html`<frigate-card-thumbnail-feature-thumbnail
             aria-label="${title ?? ''}"
             title=${title}
             .hass=${this.hass}
+            .date=${this.media.getStartTime() ?? undefined}
             .thumbnail=${thumbnail ?? undefined}
-          ></frigate-card-thumbnail-feature-event>`
-        : ViewMediaClassifier.isRecording(this.media)
-          ? html`<frigate-card-thumbnail-feature-recording
+          ></frigate-card-thumbnail-feature-thumbnail>`
+        : ViewMediaClassifier.isEvent(this.media) ||
+            ViewMediaClassifier.isRecording(this.media)
+          ? html`<frigate-card-thumbnail-feature-text
               aria-label="${title ?? ''}"
               title="${title ?? ''}"
-              .cameraTitle=${this.details ? undefined : cameraTitle}
+              .cameraMetadata=${cameraMetadata}
+              .showCameraTitle=${!this.details}
               .date=${this.media.getStartTime() ?? undefined}
-            ></frigate-card-thumbnail-feature-recording>`
+            ></frigate-card-thumbnail-feature-text>`
           : html``}
       ${shouldShowFavoriteControl
         ? html` <ha-icon
@@ -450,13 +465,13 @@ export class FrigateCardThumbnail extends LitElement {
       ${this.details && ViewMediaClassifier.isEvent(this.media)
         ? html`<frigate-card-thumbnail-details-event
             .media=${this.media ?? undefined}
-            .cameraTitle=${cameraTitle}
+            .cameraTitle=${cameraMetadata?.title}
             .seek=${this.seek}
           ></frigate-card-thumbnail-details-event>`
         : this.details && ViewMediaClassifier.isRecording(this.media)
           ? html`<frigate-card-thumbnail-details-recording
               .media=${this.media ?? undefined}
-              .cameraTitle=${cameraTitle}
+              .cameraTitle=${cameraMetadata?.title}
               .seek=${this.seek}
             ></frigate-card-thumbnail-details-recording>`
           : html``}
@@ -516,7 +531,7 @@ declare global {
     'frigate-card-thumbnail': FrigateCardThumbnail;
     'frigate-card-thumbnail-details-recording': FrigateCardThumbnailDetailsRecording;
     'frigate-card-thumbnail-details-event': FrigateCardThumbnailDetailsEvent;
-    'frigate-card-thumbnail-feature-recording': FrigateCardThumbnailFeatureRecording;
-    'frigate-card-thumbnail-feature-event': FrigateCardThumbnailFeatureEvent;
+    'frigate-card-thumbnail-feature-text': FrigateCardThumbnailFeatureText;
+    'frigate-card-thumbnail-feature-thumbnail': FrigateCardThumbnailFeatureThumbnail;
   }
 }

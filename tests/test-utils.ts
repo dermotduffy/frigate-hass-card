@@ -147,7 +147,7 @@ export const createRegistryEntity = (entity?: Partial<Entity>): Entity => {
     hidden_by: entity?.hidden_by ?? null,
     platform: entity?.platform ?? 'platform',
     translation_key: entity?.translation_key ?? null,
-    unique_id: entity?.unique_id ?? 'unique_id',
+    ...(entity?.unique_id && { unique_id: entity?.unique_id }),
   };
 };
 

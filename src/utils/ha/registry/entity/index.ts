@@ -1,5 +1,5 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { homeAssistantWSRequest } from '../..';
+import { homeAssistantWSRequest } from '../../ws-request';
 import { errorToConsole } from '../../../basic';
 import { RegistryCache } from '../cache';
 import { Entity, EntityList, entityListSchema, entitySchema } from './types.js';

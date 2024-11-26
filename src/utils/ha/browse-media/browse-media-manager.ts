@@ -1,12 +1,15 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { add } from 'date-fns';
-import { homeAssistantWSRequest } from '..';
+import chunk from 'lodash-es/chunk';
+import orderBy from 'lodash-es/orderBy';
+import { BrowseMediaMetadata } from '../../../camera-manager/browse-media/types';
 import { MemoryRequestCache } from '../../../camera-manager/cache';
 import { allPromises } from '../../basic';
+import { homeAssistantWSRequest } from '../ws-request';
 import {
+  BROWSE_MEDIA_CACHE_SECONDS,
   BrowseMedia,
   browseMediaSchema,
-  BROWSE_MEDIA_CACHE_SECONDS,
   RichBrowseMedia,
 } from './types';
 
@@ -19,9 +22,18 @@ type RichMetadataGenerator<M> = (
 export type BrowseMediaTarget<M> = string | RichBrowseMedia<M>;
 type RichBrowseMediaPredicate<M> = (media: RichBrowseMedia<M>) => boolean;
 
+export const sortMediaByStartDate = (
+  media: RichBrowseMedia<BrowseMediaMetadata>[],
+): RichBrowseMedia<BrowseMediaMetadata>[] => {
+  return orderBy(media, (media) => media._metadata?.startDate, 'desc');
+};
+
 export interface BrowseMediaStep<M> {
   // The targets to start the media walk from.
   targets: BrowseMediaTarget<M>[];
+
+  // How many children to process concurrently. Default is infinite.
+  concurrency?: number;
 
   // All children of the target have the metadata generator applied to them
   // first.
@@ -31,6 +43,12 @@ export interface BrowseMediaStep<M> {
   // output.
   matcher: RichBrowseMediaPredicate<M>;
 
+  // Children (once past the matcher) will be sorted before the next step.
+  sorter?: (media: RichBrowseMedia<M>[]) => RichBrowseMedia<M>[];
+
+  // Whether to exit the walk early with the given output.
+  earlyExit?: (media: RichBrowseMedia<M>[]) => boolean;
+
   // advance will be called to generate a next step (or null if the child should
   // just be included straight through to the output with no further steps).
   advance?: BrowseMediaStepAdvancer<M>;
@@ -39,23 +57,18 @@ export interface BrowseMediaStep<M> {
 type BrowseMediaStepAdvancer<M> = (media: RichBrowseMedia<M>[]) => BrowseMediaStep<M>[];
 
 export class BrowseMediaManager<M> {
-  protected _cache: BrowseMediaCache<M>;
-
-  constructor(cache: BrowseMediaCache<M>) {
-    this._cache = cache;
-  }
-
   // Walk down a browse media tree according to instructions included in `steps`.
   public async walkBrowseMedias(
     hass: HomeAssistant,
     steps: BrowseMediaStep<M>[] | null,
     options?: {
-      useCache?: boolean;
+      cache?: BrowseMediaCache<M>;
     },
   ): Promise<RichBrowseMedia<M>[]> {
     if (!steps || !steps.length) {
       return [];
     }
+
     return (
       await allPromises(
         steps,
@@ -68,60 +81,57 @@ export class BrowseMediaManager<M> {
     hass: HomeAssistant,
     step: BrowseMediaStep<M>,
     options?: {
-      useCache?: boolean;
+      cache?: BrowseMediaCache<M>;
     },
   ): Promise<RichBrowseMedia<M>[]> {
-    const media = await allPromises(
-      step.targets,
-      async (target) =>
-        await this._browseMedia(hass, target, {
-          useCache: options?.useCache,
-          metadataGenerator: step.metadataGenerator,
-        }),
-    );
+    let output: RichBrowseMedia<M>[] = [];
 
-    const newTargets: RichBrowseMedia<M>[] = [];
-    for (const parent of media) {
-      for (const child of parent.children ?? []) {
-        if (step.matcher(child)) {
-          newTargets.push(child);
+    for (const targetChunk of chunk(step.targets, step.concurrency ?? Infinity)) {
+      const mediaChunk = await allPromises(
+        targetChunk,
+        async (target) =>
+          await this._browseMedia(hass, target, {
+            cache: options?.cache,
+            matcher: step.matcher,
+            metadataGenerator: step.metadataGenerator,
+          }),
+      );
+
+      for (const parent of mediaChunk) {
+        for (const child of parent.children ?? []) {
+          if (step.matcher(child)) {
+            output.push(child);
+          }
         }
       }
-    }
 
-    const nextSteps = step.advance ? step.advance(newTargets) : null;
-    if (!nextSteps || !nextSteps.length) {
-      return newTargets;
-    }
+      if (step.sorter) {
+        output = step.sorter(output);
+      }
 
-    const targetsIncludedInNextSteps = new Set(
-      nextSteps.map((nextStep) => nextStep.targets).flat(),
-    );
-    const finished: RichBrowseMedia<M>[] = [];
-
-    // Any new target that doesn't have a proposed 'next step' is assumed to be
-    // ready to return.
-    for (const target of newTargets) {
-      if (!targetsIncludedInNextSteps.has(target)) {
-        finished.push(target);
+      if (step.earlyExit && step.earlyExit(output)) {
+        break;
       }
     }
 
-    const downstream = await this.walkBrowseMedias(hass, nextSteps, options);
-    return finished.concat(downstream);
+    const nextSteps = step.advance ? step.advance(output) : null;
+    if (!nextSteps?.length) {
+      return output;
+    }
+    return await this.walkBrowseMedias(hass, nextSteps, options);
   }
 
   protected async _browseMedia(
     hass: HomeAssistant,
     target: string | RichBrowseMedia<M>,
     options?: {
-      useCache?: boolean;
+      cache?: BrowseMediaCache<M>;
+      matcher?: RichBrowseMediaPredicate<M>;
       metadataGenerator?: RichMetadataGenerator<M>;
     },
   ): Promise<RichBrowseMedia<M>> {
     const mediaContentID = typeof target === 'object' ? target.media_content_id : target;
-    const cachedResult =
-      options?.useCache ?? true ? this._cache.get(mediaContentID) : null;
+    const cachedResult = options?.cache ? options.cache.get(mediaContentID) : null;
     if (cachedResult) {
       return cachedResult;
     }
@@ -130,11 +140,11 @@ export class BrowseMediaManager<M> {
       type: 'media_source/browse_media',
       media_content_id: mediaContentID,
     };
-    const browseMedia = (await homeAssistantWSRequest(
+    const browseMedia = await homeAssistantWSRequest<RichBrowseMedia<M>>(
       hass,
       browseMediaSchema,
       request,
-    )) as RichBrowseMedia<M>;
+    );
 
     if (options?.metadataGenerator) {
       for (const child of browseMedia.children ?? []) {
@@ -146,8 +156,8 @@ export class BrowseMediaManager<M> {
       }
     }
 
-    if (options?.useCache ?? true) {
-      this._cache.set(
+    if (options?.cache) {
+      options.cache.set(
         mediaContentID,
         browseMedia,
         add(new Date(), { seconds: BROWSE_MEDIA_CACHE_SECONDS }),
