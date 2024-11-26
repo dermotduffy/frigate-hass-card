@@ -49,8 +49,7 @@ export class FrigateCardNextPreviousControl extends LitElement {
     }
 
     const renderIcon =
-      !this.thumbnail ||
-      ['chevrons', 'icons'].includes(this._controlConfig.style);
+      !this.thumbnail || ['chevrons', 'icons'].includes(this._controlConfig.style);
 
     const classes = {
       controls: true,
