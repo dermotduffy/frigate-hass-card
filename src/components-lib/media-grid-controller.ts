@@ -21,6 +21,7 @@ import {
 const MEDIA_GRID_DEFAULT_MIN_CELL_WIDTH = 190;
 const MEDIA_GRID_DEFAULT_IDEAL_CELL_WIDTH = 600;
 const MEDIA_GRID_DEFAULT_SELECTED_WIDTH_FACTOR = 2.0;
+const MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH = 1;
 
 type GridID = string;
 type MediaGridChild = HTMLElement & FrigateCardMediaLoadedEventTarget;
@@ -276,6 +277,7 @@ export class MediaGridController {
       initLayout: false,
       percentPosition: true,
       transitionDuration: '0.2s',
+      gutter: MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH,
     });
     this._masonry.addItems?.([...this._gridContents.values()]);
     this._throttledLayout();
@@ -308,7 +310,12 @@ export class MediaGridController {
   }
 
   protected _getColumnSize(): number {
-    return Math.round(this._hostWidth / this._getColumns());
+    const columns = this._getColumns();
+    if (columns === 1) {
+      return this._hostWidth;
+    }
+
+    return Math.max(0, this._hostWidth / columns - MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH);
   }
 
   protected _getColumns(): number {

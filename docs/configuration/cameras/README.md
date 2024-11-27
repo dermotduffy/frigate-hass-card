@@ -264,11 +264,11 @@ cameras:
 
 Not all [engines](./engine.md) benefit from proxying:
 
-| Engine                  | Purpose of proxying                                                                                                                                                                                                                                                                            |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `frigate`               | The Frigate integration already comes with a built-in proxy, so this functionality does not serve any purpose for `frigate`.                                                                                                                                                                   |
-| `reolink`, `motioneEye` | May be used to fetch videos in cases where the browser may not be able to access the camera/NVR, or the camera/NVR may use a self-signed SSL certificate that your browser would otherwise reject due to [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content). |
-| `generic`               | `generic` cameras do not have media, so proxying currently would serve no purpose.                                                                                                                                                                                                             |
+| Engine                 | Purpose of proxying                                                                                                                                                                                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frigate`              | The Frigate integration already comes with a built-in proxy, so this functionality does not serve any purpose for `frigate`.                                                                                                                                                                   |
+| `reolink`, `motioneye` | May be used to fetch videos in cases where the browser may not be able to access the camera/NVR, or the camera/NVR may use a self-signed SSL certificate that your browser would otherwise reject due to [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content). |
+| `generic`              | `generic` cameras do not have media, so proxying currently would serve no purpose.                                                                                                                                                                                                             |
 
 Regardless of the parameters, the integration will never attempt to proxy
 content if the
