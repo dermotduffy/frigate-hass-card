@@ -291,6 +291,12 @@ elements:
           - camera.office
 ```
 
+## Doorbell
+
+[felipecrs/dahua-vto-on-home-assistant](https://github.com/felipecrs/dahua-vto-on-home-assistant#readme) provides an example on how this card can be used to answer a doorbell in Home Assistant.
+
+![Doorbell example](https://github.com/user-attachments/assets/39fa9213-ce32-45f4-a236-b6a99797a217 'Doorbell example :size=400')
+
 ## Events from other cameras
 
 `dependencies.cameras` allows events/recordings for other cameras to be shown
@@ -1182,12 +1188,6 @@ overrides:
           x: 100
           y: 100
 ```
-
-## Doorbell
-
-[felipecrs/dahua-vto-on-home-assistant](https://github.com/felipecrs/dahua-vto-on-home-assistant#readme) provides an example on how this card can be used to answer a doorbell in Home Assistant.
-
-![Doorbell example](https://github.com/user-attachments/assets/39fa9213-ce32-45f4-a236-b6a99797a217 'Doorbell example :size=400')
 
 ### Automatically zoom based on state
 
