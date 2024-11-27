@@ -1321,7 +1321,7 @@ const castSchema = z.object({
 //                     Camera Configuration
 // *************************************************************************
 
-const ENGINES = ['auto', 'frigate', 'generic', 'motioneye'] as const;
+const ENGINES = ['auto', 'frigate', 'generic', 'motioneye', 'reolink'] as const;
 
 const cameraConfigDefault = {
   dependencies: {
@@ -1343,6 +1343,9 @@ const cameraConfigDefault = {
       file_pattern: '%H-%M-%S' as const,
     },
   },
+  reolink: {
+    media_resolution: 'low' as const,
+  },
   ptz: ptzCameraConfigDefaults,
   triggers: {
     motion: false,
@@ -1350,7 +1353,30 @@ const cameraConfigDefault = {
     events: [...CAMERA_TRIGGER_EVENT_TYPES],
     entities: [],
   },
+  proxy: {
+    media: 'auto' as const,
+    dynamic: true,
+    ssl_verification: 'auto' as const,
+    ssl_ciphers: 'auto' as const,
+  },
 };
+
+const SSL_CIPHERS = ['default', 'insecure', 'intermediate', 'modern'] as const;
+export type SSLCiphers = (typeof SSL_CIPHERS)[number];
+
+const proxyConfigSchema = z.object({
+  media: z.boolean().or(z.literal('auto')).default(cameraConfigDefault.proxy.media),
+  dynamic: z.boolean().default(cameraConfigDefault.proxy.dynamic),
+  ssl_verification: z
+    .boolean()
+    .or(z.literal('auto'))
+    .default(cameraConfigDefault.proxy.ssl_verification),
+  ssl_ciphers: z
+    .enum(SSL_CIPHERS)
+    .or(z.literal('auto'))
+    .default(cameraConfigDefault.proxy.ssl_ciphers),
+});
+export type ProxyConfig = z.infer<typeof proxyConfigSchema>;
 
 export const cameraConfigSchema = z
   .object({
@@ -1431,6 +1457,14 @@ export const cameraConfigSchema = z
           .default(cameraConfigDefault.motioneye.movies),
       })
       .default(cameraConfigDefault.motioneye),
+    reolink: z
+      .object({
+        url: z.string().optional(),
+        media_resolution: z
+          .enum(['high', 'low'])
+          .default(cameraConfigDefault.reolink.media_resolution),
+      })
+      .default(cameraConfigDefault.reolink),
 
     // Live provider options.
     live_provider: z.enum(LIVE_PROVIDERS).default(cameraConfigDefault.live_provider),
@@ -1449,6 +1483,8 @@ export const cameraConfigSchema = z
         layout: mediaLayoutConfigSchema.optional(),
       })
       .optional(),
+
+    proxy: proxyConfigSchema.default(cameraConfigDefault.proxy),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;

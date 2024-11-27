@@ -3,10 +3,9 @@ import { StateWatcherSubscriptionInterface } from '../card-controller/hass/state
 import { CameraConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import { BrowseMediaManager } from '../utils/ha/browse-media/browse-media-manager';
-import { BrowseMedia } from '../utils/ha/browse-media/types';
 import { EntityRegistryManager } from '../utils/ha/registry/entity';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media';
-import { MemoryRequestCache, RecordingSegmentsCache, RequestCache } from './cache';
+import { RecordingSegmentsCache, RequestCache } from './cache';
 import { CameraManagerEngine } from './engine';
 import { CameraInitializationError } from './error';
 import { CameraEventCallback, Engine } from './types';
@@ -56,7 +55,18 @@ export class CameraManagerEngineFactory {
         cameraManagerEngine = new MotionEyeCameraManagerEngine(
           this._entityRegistryManager,
           options.stateWatcher,
-          new BrowseMediaManager(new MemoryRequestCache<string, BrowseMedia>()),
+          new BrowseMediaManager(),
+          options.resolvedMediaCache,
+          new RequestCache(),
+          options.eventCallback,
+        );
+        break;
+      case Engine.Reolink:
+        const { ReolinkCameraManagerEngine } = await import('./reolink/engine-reolink');
+        cameraManagerEngine = new ReolinkCameraManagerEngine(
+          this._entityRegistryManager,
+          options.stateWatcher,
+          new BrowseMediaManager(),
           options.resolvedMediaCache,
           new RequestCache(),
           options.eventCallback,
@@ -76,6 +86,8 @@ export class CameraManagerEngineFactory {
       engine = Engine.MotionEye;
     } else if (cameraConfig.engine === 'generic') {
       engine = Engine.Generic;
+    } else if (cameraConfig.engine === 'reolink') {
+      engine = Engine.Reolink;
     } else {
       const cameraEntity = getCameraEntityFromConfig(cameraConfig);
 
@@ -100,6 +112,9 @@ export class CameraManagerEngineFactory {
             break;
           case 'motioneye':
             engine = Engine.MotionEye;
+            break;
+          case 'reolink':
+            engine = Engine.Reolink;
             break;
           default:
             engine = Engine.Generic;

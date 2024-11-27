@@ -28,6 +28,7 @@ cameras_global:
 | `icon`          | Autodetected from `camera_entity` if that is specified.                                           | The icon to use for this camera in the camera menu and in the next & previous controls when using the `icon` style.                                                                                                                                              |
 | `id`            | `camera_entity`, `webrtc_card.entity` or `frigate.camera_name` if set (in that preference order). | An optional identifier to use throughout the card configuration to refer unambiguously to this camera. This `id` may be used in [conditions](../conditions.md), dependencies or custom [actions](../actions/README.md) to refer to a given camera unambiguously. |
 | `live_provider` | `auto`                                                                                            | The choice of live stream provider. See [Live Provider](live-provider.md).                                                                                                                                                                                       |
+| `proxy`         |                                                                                                   | Controls whether/how content is proxied via [hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration) (must be installed separately). See below.                                                                                   |
 | `title`         | Autodetected from `camera_entity` if that is specified.                                           | A friendly name for this camera to use in the card.                                                                                                                                                                                                              |
 | `triggers`      |                                                                                                   | Define what should cause this camera to update/trigger. See below.                                                                                                                                                                                               |
 | `webrtc_card`   |                                                                                                   | The WebRTC entity/URL to use for this camera with the `webrtc-card` live provider. See below.                                                                                                                                                                    |
@@ -239,6 +240,50 @@ cameras:
 
 `[action]` is any [perform-action](../actions/stock/README.md?id=perform-action) action.
 
+## `proxy`
+
+Configures whether and how the content is proxied via
+[hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
+(this must be installed separately). This allows fetching media **through** the
+Home Assistant process itself, allowing the card to access resources it
+otherwise would not be able to directly access. There are [security and
+performance
+implications](https://github.com/dermotduffy/hass-web-proxy-integration?tab=readme-ov-file#considerations)
+to consider before installing
+[hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
+and using this functionality.
+
+```yaml
+cameras:
+  - camera_entity: camera.office
+    proxy:
+      # [...]
+```
+
+![Camera Proxying](../../images/proxy.png 'Camera Proxying :size=400')
+
+Not all [engines](./engine.md) benefit from proxying:
+
+| Engine                 | Purpose of proxying                                                                                                                                                                                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frigate`              | The Frigate integration already comes with a built-in proxy, so this functionality does not serve any purpose for `frigate`.                                                                                                                                                                   |
+| `reolink`, `motioneye` | May be used to fetch videos in cases where the browser may not be able to access the camera/NVR, or the camera/NVR may use a self-signed SSL certificate that your browser would otherwise reject due to [mixed content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content). |
+| `generic`              | `generic` cameras do not have media, so proxying currently would serve no purpose.                                                                                                                                                                                                             |
+
+Regardless of the parameters, the integration will never attempt to proxy
+content if the
+[hass-web-proxy-integration](https://github.com/dermotduffy/hass-web-proxy-integration)
+is not detected.
+
+Proxying parameters:
+
+| Option             | Default | Description                                                                                                                                                                                                                                                                                                                      |
+| ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `media`            | `auto`  | Whether or not to proxy media items. `true` to proxy, `false` to not proxy, or `auto` to allow the camera engine to decide whether to proxy or not.                                                                                                                                                                              |
+| `dynamic`          | `true`  | Whether to dynamically (at the time) request proxying of the required media item, or rely on statically user-configured pre-existing proxying. See the [hass-web-proxy-integration documentation](https://github.com/dermotduffy/hass-web-proxy-integration).                                                                    |
+| `ssl_verification` | `auto`  | Whether to verify the validity of SSL certificates. If `true` always verifies, if `false` never verifies and if `auto` the [engine](./engine.md) decides the best setting for that camera ecosystem.                                                                                                                             |
+| `ssl_ciphers`      | `auto`  | Whether to use `default`, `intermediate`, `insecure` or `modern` SSL ciphers. See the [Home Assistant code](https://github.com/home-assistant/core/blob/dev/homeassistant/util/ssl.py) for the precise list of SSL ciphers each implies. If `auto` the [engine](./engine.md) decides the best setting for that camera ecosystem. |
+
 ## `triggers`
 
 The `triggers` block configures what triggers a camera. Triggering can be used
@@ -264,19 +309,11 @@ cameras:
 
 [](../common/expanded-warning.md ':include')
 
+See [Engines](engine.md) and [Live Providers](live-provider.md) for other options nested under `cameras`.
+
 ```yaml
 cameras:
   - camera_entity: camera.front_Door
-    live_provider: ha
-    engine: auto
-    frigate:
-      url: http://my.frigate.local
-      client_id: frigate
-      camera_name: front_door
-      labels:
-       - person
-      zones:
-       - steps
     # Show events for camera-2 when this camera is viewed.
     dependencies:
       all_cameras: false
@@ -297,23 +334,10 @@ cameras:
           x: 50
           y: 50
   - camera_entity: camera.entrance
-    live_provider: webrtc-card
-    engine: auto
-    frigate:
-      url: http://my-other.frigate.local
-      client_id: frigate-other
-      camera_name: entrance
-      labels:
-       - car
-      zones:
-       - driveway
     icon: 'mdi:car'
     title: 'Front entrance'
     # Custom identifier for the camera to refer to it above.
     id: 'camera-2'
-    webrtc_card:
-      entity: camera.entrance_rtsp
-      url: 'rtsp://username:password@camera:554/av_stream/ch0'
     triggers:
       motion: false
       occupancy: true
@@ -321,59 +345,6 @@ cameras:
         - binary_sensor.entrance_sensor
     dependencies:
       all_cameras: false
-  - camera_entity: camera.sitting_room
-    live_provider: go2rtc
-    go2rtc:
-      modes:
-        - webrtc
-        - mse
-        - mp4
-        - mjpeg
-      stream: sitting_room
-      url: 'https://my.custom.go2rtc.backend'
-      cast:
-        method: dashboard
-        dashboard:
-          dashboard_path: cast
-          view_path: front-door
-  - camera_entity: camera.sitting_room_webrtc_card
-    live_provider: webrtc_card
-    webrtc_card:
-      # Arbitrary WebRTC Card options, see https://github.com/AlexxIT/WebRTC#configuration .
-      entity: camera.sitting_room_rtsp
-      ui: true
-  - camera_entity: camera.kitchen
-    live_provider: jsmpeg
-    jsmpeg:
-      options:
-        audio: false
-        video: true
-        pauseWhenHidden: false
-        disableGl: false
-        disableWebAssembly: false
-        preserveDrawingBuffer: false
-        progressive: true
-        throttled: true
-        chunkSize: 1048576
-        maxAudioLag: 10
-        videoBufferSize: 524288
-        audioBufferSize: 131072
-  - camera_entity: camera.back_yard
-    live_provider: image
-    image:
-      mode: auto
-      refresh_seconds: 1
-      url: 'https://path/to/image.png'
-      entity: image.office_person
-      entity_parameters: 'width=400&height=200'
-  - camera_entity: camera.office_motioneye
-    motioneye:
-      images:
-        directory_pattern: '%Y-%m-%d'
-        file_pattern: '%H-%M-%S'
-      movies:
-        directory_pattern: '%Y-%m-%d'
-        file_pattern: '%H-%M-%S'
   - camera_entity: camera.zoomed
     dimensions:
       layout:
@@ -436,6 +407,13 @@ cameras:
           device: '048123'
           cmd: preset
           preset: window
+  - camera_entity: camera.needs_proxy
+    proxy:
+      media: auto
+      dynamic: true
+      ssl_verification: auto
+      ssl_ciphers: auto
 cameras_global:
-  live_provider: ha
+  triggers:
+    motion: false
 ```

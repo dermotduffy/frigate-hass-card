@@ -1,8 +1,10 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  canonicalizeHAURL,
   getEntityIcon,
   hasHAConnectionStateChanged,
+  isHARelativeURL,
 } from '../../../src/utils/ha/index.js';
 import { createHASS, createStateEntity } from '../../test-utils.js';
 
@@ -65,5 +67,34 @@ describe('getEntityIcon', () => {
 
   it('should get icon from domain', () => {
     expect(getEntityIcon(createHASS(), 'camera.test')).toBe('mdi:video');
+  });
+});
+
+describe('isHARelativeURL', () => {
+  it('should return true when URL is HA relative', () => {
+    expect(isHARelativeURL('/api/foo')).toBeTruthy();
+  });
+
+  it('should return false when URL is not HA relative', () => {
+    expect(isHARelativeURL('http://localhost/api/foo')).toBeFalsy();
+  });
+});
+
+describe('canonicalizeHAURL', () => {
+  it('should return canonicalized HA url', () => {
+    const hass = createHASS();
+    vi.mocked(hass.hassUrl).mockReturnValue('http://localhost:8123/foo/bar');
+
+    expect(canonicalizeHAURL(hass, '/api/foo')).toBe('http://localhost:8123/foo/bar');
+  });
+
+  it('should return untouched URL when not HA relative', () => {
+    expect(canonicalizeHAURL(createHASS(), 'http://localhost:8123/foo/bar')).toBe(
+      'http://localhost:8123/foo/bar',
+    );
+  });
+
+  it('should return null without a URL', () => {
+    expect(canonicalizeHAURL(createHASS())).toBeNull();
   });
 });

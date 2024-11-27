@@ -2,14 +2,22 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import pkg from '../../package.json';
 import { RawFrigateCardConfig } from '../config/types';
 import { getLanguage } from '../localize/localize';
+import { getIntegrationManifest } from './ha/integration';
+import { IntegrationManifest } from './ha/integration/types';
 import { DeviceRegistryManager } from './ha/registry/device';
+import { HASS_WEB_PROXY_DOMAIN } from './ha/web-proxy';
 
-type FrigateVersions = Record<string, string>;
+type FrigateDevices = Record<string, string>;
 
 interface GitDiagnostics {
   build_version?: string;
   build_date?: string;
   commit_date?: string;
+}
+
+interface IntegrationDiagnostics {
+  detected: boolean;
+  version?: string;
 }
 
 export const getReleaseVersion = (): string => {
@@ -36,10 +44,38 @@ export interface Diagnostics {
   timezone: string;
   git: GitDiagnostics;
 
-  frigate_versions?: FrigateVersions;
   ha_version?: string;
   config?: RawFrigateCardConfig;
+
+  integrations: {
+    frigate: IntegrationDiagnostics & {
+      devices?: FrigateDevices;
+    };
+    hass_web_proxy: IntegrationDiagnostics;
+    reolink: IntegrationDiagnostics;
+    motioneye: IntegrationDiagnostics;
+  };
 }
+
+export const getIntegrationDiagnostics = async (
+  integration: string,
+  hass?: HomeAssistant,
+): Promise<IntegrationDiagnostics> => {
+  let manifest: IntegrationManifest | null = null;
+
+  if (hass) {
+    try {
+      manifest = await getIntegrationManifest(hass, integration);
+    } catch (e) {
+      // Silently ignore integrations not being found.
+    }
+  }
+
+  return {
+    detected: !!manifest,
+    ...(manifest?.version && { version: manifest.version }),
+  };
+};
 
 export const getDiagnostics = async (
   hass?: HomeAssistant,
@@ -69,9 +105,6 @@ export const getDiagnostics = async (
     card_version: getReleaseVersion(),
     browser: navigator.userAgent,
     date: new Date(),
-    ...(frigateVersionMap.size && {
-      frigate_versions: Object.fromEntries(frigateVersionMap),
-    }),
     lang: getLanguage(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     git: {
@@ -80,6 +113,17 @@ export const getDiagnostics = async (
       ...(pkg['gitDate'] && { commit_date: pkg['gitDate'] }),
     },
     ...(hass && { ha_version: hass.config.version }),
+    integrations: {
+      reolink: await getIntegrationDiagnostics('reolink', hass),
+      frigate: {
+        ...(await getIntegrationDiagnostics('frigate', hass)),
+        ...(frigateVersionMap.size && {
+          devices: Object.fromEntries(frigateVersionMap),
+        }),
+      },
+      hass_web_proxy: await getIntegrationDiagnostics(HASS_WEB_PROXY_DOMAIN, hass),
+      motioneye: await getIntegrationDiagnostics('motioneye', hass),
+    },
     ...(rawConfig && { config: rawConfig }),
   };
 };

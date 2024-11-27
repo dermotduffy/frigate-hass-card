@@ -21,6 +21,7 @@ import viewsStyle from '../scss/views.scss';
 import { ExtendedHomeAssistant } from '../types.js';
 import { DeviceRegistryManager } from '../utils/ha/registry/device/index.js';
 import { ResolvedMediaCache } from '../utils/ha/resolved-media.js';
+import './surround.js';
 
 // As a special case: The diagnostics view is not dynamically loaded in case
 // something goes wrong.

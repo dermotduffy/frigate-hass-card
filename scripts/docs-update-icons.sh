@@ -4,6 +4,7 @@
 
 FRIGATE="./src/camera-manager/frigate/assets/frigate.svg"
 MOTIONEYE="./src/camera-manager/motioneye/assets/motioneye.svg"
+REOLINK="./src/camera-manager/reolink/assets/reolink.svg"
 DIR_ICONS="./docs/images/icons"
 
 copy() {
@@ -14,3 +15,4 @@ copy() {
 
 copy "$FRIGATE"
 copy "$MOTIONEYE"
+copy "$REOLINK"

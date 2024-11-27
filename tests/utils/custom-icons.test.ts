@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import frigateSVG from '../../src/camera-manager/frigate/assets/frigate.svg';
 import motioneyeSVG from '../../src/camera-manager/motioneye/assets/motioneye.svg';
+import reolinkSVG from '../../src/camera-manager/reolink/assets/reolink.svg';
 import { getCustomIconURL } from '../../src/utils/custom-icons';
 
 describe('getCustomIconURL', () => {
@@ -10,6 +11,10 @@ describe('getCustomIconURL', () => {
 
   it('should return motioneye SVG for motioneye icon', () => {
     expect(getCustomIconURL('motioneye')).toBe(motioneyeSVG);
+  });
+
+  it('should return reolink SVG for reolink icon', () => {
+    expect(getCustomIconURL('reolink')).toBe(reolinkSVG);
   });
 
   it('should return null for mdi icon', () => {

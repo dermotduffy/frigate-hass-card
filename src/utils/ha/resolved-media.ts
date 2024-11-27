@@ -1,6 +1,6 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import QuickLRU from 'quick-lru';
-import { homeAssistantWSRequest } from '.';
+import { homeAssistantWSRequest } from './ws-request';
 import { ResolvedMedia, resolvedMediaSchema } from '../../types.js';
 import { errorToConsole } from '../basic';
 

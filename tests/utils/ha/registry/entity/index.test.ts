@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { homeAssistantWSRequest } from '../../../../../src/utils/ha';
 import {
   createEntityRegistryCache,
   EntityRegistryManager,
 } from '../../../../../src/utils/ha/registry/entity';
+import { homeAssistantWSRequest } from '../../../../../src/utils/ha/ws-request';
 import { createHASS, createRegistryEntity } from '../../../../test-utils.js';
 
-vi.mock('../../../../../src/utils/ha');
+vi.mock('../../../../../src/utils/ha/ws-request');
 vi.spyOn(global.console, 'warn').mockImplementation(() => true);
 
 describe('EntityRegistryManager', () => {

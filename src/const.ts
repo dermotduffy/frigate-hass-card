@@ -79,6 +79,16 @@ export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_VIEW_BOX_RIGHT =
   `${CONF_CAMERAS}.#.dimensions.layout.view_box.right` as const;
 export const CONF_CAMERAS_ARRAY_DIMENSIONS_LAYOUT_ZOOM_FACTOR =
   `${CONF_CAMERAS}.#.dimensions.layout.zoom` as const;
+export const CONF_CAMERAS_ARRAY_PROXY_DYNAMIC =
+  `${CONF_CAMERAS}.#.proxy.dynamic` as const;
+export const CONF_CAMERAS_ARRAY_PROXY_MEDIA = `${CONF_CAMERAS}.#.proxy.media` as const;
+export const CONF_CAMERAS_ARRAY_PROXY_SSL_CIPHERS =
+  `${CONF_CAMERAS}.#.proxy.ssl_ciphers` as const;
+export const CONF_CAMERAS_ARRAY_PROXY_SSL_VERIFICATION =
+  `${CONF_CAMERAS}.#.proxy.ssl_verification` as const;
+export const CONF_CAMERAS_ARRAY_REOLINK_MEDIA_RESOLUTION =
+  `${CONF_CAMERAS}.#.reolink.media_resolution` as const;
+export const CONF_CAMERAS_ARRAY_REOLINK_URL = `${CONF_CAMERAS}.#.reolink.url` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_MOTION =
   `${CONF_CAMERAS}.#.triggers.motion` as const;
 export const CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY =

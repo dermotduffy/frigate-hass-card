@@ -18,10 +18,10 @@ import {
   retainResultSchema,
 } from '../../../src/camera-manager/frigate/types';
 import { RecordingSegment } from '../../../src/camera-manager/types';
-import { homeAssistantWSRequest } from '../../../src/utils/ha';
+import { homeAssistantWSRequest } from '../../../src/utils/ha/ws-request';
 import { createFrigateEvent, createHASS } from '../../test-utils';
 
-vi.mock('../../../src/utils/ha');
+vi.mock('../../../src/utils/ha/ws-request');
 
 describe('frigate requests', () => {
   afterEach(() => {

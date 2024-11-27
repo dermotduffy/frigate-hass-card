@@ -398,16 +398,16 @@ describe('MediaGridController', () => {
     expect(Masonry).toBeCalledWith(
       parent,
       expect.objectContaining({
-        columnWidth: 246,
+        columnWidth: 245,
       }),
     );
     expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
-      '246px',
+      '245px',
     );
   });
 
   it('should respect exact columns', () => {
-    const parent = createParent({ children: createChildren(), width: 2000 });
+    const parent = createParent({ children: createChildren(), width: 3000 });
     const controller = createController(parent);
     controller.setDisplayConfig({ mode: 'grid', grid_columns: 2 });
 
@@ -417,11 +417,11 @@ describe('MediaGridController', () => {
     expect(Masonry).toBeCalledWith(
       parent,
       expect.objectContaining({
-        columnWidth: 1000,
+        columnWidth: 1499,
       }),
     );
     expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
-      '1000px',
+      '1499px',
     );
   });
 
@@ -487,11 +487,11 @@ describe('MediaGridController', () => {
     expect(Masonry).toBeCalledWith(
       parent,
       expect.objectContaining({
-        columnWidth: 246,
+        columnWidth: 245,
       }),
     );
     expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
-      '246px',
+      '245px',
     );
 
     // Clear mock state.
@@ -499,18 +499,18 @@ describe('MediaGridController', () => {
     vi.mocked(masonry.layout)?.mockClear();
 
     // Resize the host.
-    setElementWidth(parent, 2000);
+    setElementWidth(parent, 3000);
     triggerResizeObserver('host');
 
     // Masonry should be reconstructed, styles set and layout called.
     expect(Masonry).toBeCalledWith(
       parent,
       expect.objectContaining({
-        columnWidth: 667,
+        columnWidth: 599,
       }),
     );
     expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
-      '667px',
+      '599px',
     );
     expect(masonry.layout).toBeCalled();
 

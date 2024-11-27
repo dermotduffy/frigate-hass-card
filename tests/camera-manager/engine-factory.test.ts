@@ -18,6 +18,7 @@ import {
   createRegistryEntity,
   createStateEntity,
 } from '../test-utils';
+import { ReolinkCameraManagerEngine } from '../../src/camera-manager/reolink/engine-reolink.js';
 
 vi.mock('../../src/utils/ha/entity-registry');
 vi.mock('../../src/utils/ha/entity-registry/cache');
@@ -70,7 +71,7 @@ describe('getEngineForCamera()', () => {
     });
   });
 
-  describe('should get a motionEye camera', () => {
+  describe('should get a motioneye camera', () => {
     it('from manually set engine', async () => {
       const config = createCameraConfig({ engine: 'motioneye' });
       expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
@@ -95,6 +96,34 @@ describe('getEngineForCamera()', () => {
           entityRegistryManager: entityRegistryManager,
         }).getEngineForCamera(createHASS(), config),
       ).toBe(Engine.MotionEye);
+    });
+  });
+
+  describe('should get a reolink camera', () => {
+    it('from manually set engine', async () => {
+      const config = createCameraConfig({ engine: 'reolink' });
+      expect(await createFactory().getEngineForCamera(createHASS(), config)).toBe(
+        Engine.Reolink,
+      );
+    });
+
+    it('from auto detection', async () => {
+      const config = createCameraConfig({ engine: 'auto', camera_entity: 'camera.foo' });
+      const entityRegistryManager = new EntityRegistryManager(
+        createEntityRegistryCache(),
+      );
+
+      entityRegistryManager.getEntity = vi
+        .fn()
+        .mockResolvedValue(
+          createRegistryEntity({ entity_id: 'camera.foo', platform: 'reolink' }),
+        );
+
+      expect(
+        await createFactory({
+          entityRegistryManager: entityRegistryManager,
+        }).getEngineForCamera(createHASS(), config),
+      ).toBe(Engine.Reolink);
     });
   });
 
@@ -232,5 +261,13 @@ describe('createEngine()', () => {
         resolvedMediaCache: mock<ResolvedMediaCache>(),
       }),
     ).toBeInstanceOf(MotionEyeCameraManagerEngine);
+  });
+  it('should create reolink engine', async () => {
+    expect(
+      await createFactory().createEngine(Engine.Reolink, {
+        stateWatcher: mock<StateWatcherSubscriptionInterface>(),
+        resolvedMediaCache: mock<ResolvedMediaCache>(),
+      }),
+    ).toBeInstanceOf(ReolinkCameraManagerEngine);
   });
 });

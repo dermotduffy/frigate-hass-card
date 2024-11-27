@@ -127,6 +127,39 @@
         },
         "url": "MotionEye UI URL"
       },
+      "proxy": {
+        "dynamic": "Dynamic proxying",
+        "editor_label": "Camera proxying",
+        "media": {
+          "auto": "Media proxying automatically configured",
+          "editor_label": "Media proxying",
+          "false": "Media proxying disabled",
+          "true": "Media proxying enabled"
+        },
+        "ssl_ciphers": {
+          "auto": "SSL ciphers automatically configured",
+          "default": "Default SSL ciphers",
+          "editor_label": "SSL ciphers",
+          "insecure": "Insecure SSL ciphers",
+          "intermediate": "Intermediate SSL ciphers",
+          "modern": "Modern SSL ciphers"
+        },
+        "ssl_verification": {
+          "auto": "SSL verification automatically configured",
+          "editor_label": "SSL verification",
+          "false": "SSL verification disabled",
+          "true": "SSL verification enabled"
+        }
+      },
+      "reolink": {
+        "editor_label": "Reolink options",
+        "media_resolution": {
+          "editor_label": "Media Resolution",
+          "high": "High Resolution",
+          "low": "Low Resolution"
+        },
+        "url": "Reolink UI URL"
+      },
       "title": "Title for this camera (Autodetected from entity)",
       "triggers": {
         "editor_label": "Trigger options",
@@ -575,6 +608,7 @@
   "error": {
     "awaiting_live": "Waiting for live stream to load ...",
     "camera_initialization": "Camera initialization failed",
+    "camera_initialization_reolink": "Could not initialize Reolink camera",
     "could_not_render_elements": "Could not render picture elements",
     "could_not_resolve": "Could not resolve media URL",
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
@@ -587,8 +621,8 @@
     "failed_sign": "Could not sign Home Assistant URL",
     "image_load_error": "The image could not be loaded",
     "invalid_configuration": "Invalid configuration",
-    "invalid_configuration_override": "Invalid override configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",
+    "invalid_configuration_override": "Invalid override configuration",
     "invalid_elements_config": "Invalid picture elements configuration",
     "invalid_response": "Received invalid response from Home Assistant for request",
     "jsmpeg_no_player": "Could not start JSMPEG player",

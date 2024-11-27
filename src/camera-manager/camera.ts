@@ -5,7 +5,7 @@ import { HassStateDifference, isTriggeredState } from '../utils/ha';
 import { Capabilities } from './capabilities';
 import { CameraManagerEngine } from './engine';
 import { CameraNoIDError } from './error';
-import { CameraEventCallback } from './types';
+import { CameraEventCallback, CameraProxyConfig } from './types';
 
 export interface CameraInitializationOptions {
   stateWatcher: StateWatcherSubscriptionInterface;
@@ -67,6 +67,18 @@ export class Camera {
 
   public getCapabilities(): Capabilities | null {
     return this._capabilities ?? null;
+  }
+
+  public getProxyConfig(): CameraProxyConfig {
+    return {
+      dynamic: this._config.proxy.dynamic,
+      media: this._config.proxy.media === 'auto' ? false : this._config.proxy.media,
+      ssl_verification: this._config.proxy.ssl_verification !== false,
+      ssl_ciphers:
+        this._config.proxy.ssl_ciphers === 'auto'
+          ? 'default'
+          : this._config.proxy.ssl_ciphers,
+    };
   }
 
   protected _stateChangeHandler = (difference: HassStateDifference): void => {
