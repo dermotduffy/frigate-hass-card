@@ -106,6 +106,7 @@ customElements.whenDefined('ha-hls-player').then(() => {
       return html`
         <video
           id="video"
+          .poster=${this.posterUrl}
           ?autoplay=${this.autoPlay}
           .muted=${this.muted}
           ?playsinline=${this.playsInline}
