@@ -291,6 +291,12 @@ elements:
           - camera.office
 ```
 
+## Doorbell
+
+[felipecrs/dahua-vto-on-home-assistant](https://github.com/felipecrs/dahua-vto-on-home-assistant#readme) provides an example on how this card can be used to answer a doorbell in Home Assistant.
+
+![Doorbell example](images/doorbell-example.gif 'Doorbell example :size=400')
+
 ## Events from other cameras
 
 `dependencies.cameras` allows events/recordings for other cameras to be shown
