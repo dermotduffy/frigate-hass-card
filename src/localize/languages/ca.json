@@ -127,6 +127,39 @@
         },
         "url": "URL de la interfície d'usuari de MotionEye"
       },
+      "proxy": {
+        "dynamic": "",
+        "editor_label": "",
+        "media": {
+          "auto": "",
+          "editor_label": "",
+          "false": "",
+          "true": ""
+        },
+        "ssl_ciphers": {
+          "auto": "",
+          "default": "",
+          "editor_label": "",
+          "insecure": "",
+          "intermediate": "",
+          "modern": ""
+        },
+        "ssl_verification": {
+          "auto": "",
+          "editor_label": "",
+          "false": "",
+          "true": ""
+        }
+      },
+      "reolink": {
+        "editor_label": "",
+        "media_resolution": {
+          "editor_label": "",
+          "high": "",
+          "low": ""
+        },
+        "url": ""
+      },
       "title": "Títol d'aquesta càmera (detecció automàtica de l'entitat)",
       "triggers": {
         "editor_label": "Opcions d'activació",
@@ -574,7 +607,9 @@
   },
   "error": {
     "awaiting_live": "S'està esperant que es carregui la transmissió en directe ...",
+    "awaiting_media": "",
     "camera_initialization": "",
+    "camera_initialization_reolink": "",
     "could_not_render_elements": "No s'han pogut representar els elements de la imatge",
     "could_not_resolve": "No s'ha pogut resoldre l'URL multimèdia",
     "diagnostics": "Diagnòstic de targetes. Reviseu la informació confidencial abans de compartir-la",

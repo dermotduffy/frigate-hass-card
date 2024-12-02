@@ -26,7 +26,7 @@ export interface QueryExecutorOptions {
   useCache?: boolean;
 }
 
-export interface QueryWithResults {
+export interface QueryExecutorResult {
   query: MediaQueries;
   queryResults: MediaQueriesResults;
 }
@@ -73,7 +73,7 @@ export interface ViewManagerInterface {
   setViewWithMergedContext(context: ViewContext | null): void;
 
   isViewSupportedByCamera(cameraID: string, view: FrigateCardView): boolean;
-  hasMajorMediaChange(oldView?: View | null): boolean;
+  hasMajorMediaChange(oldView?: View | null, newView?: View | null): boolean;
 }
 
 export class ViewNoCameraError extends FrigateCardError {}

@@ -401,10 +401,14 @@ export class FrigateCardGalleryCore extends LitElement {
       // handle (as typical), but rather directly rendering the message into the
       // gallery. This is to allow the filter to still be available when a given
       // filter selection returns no media.
+      const loadingMedia = !!view?.context?.loading?.query;
       return renderMessage({
         type: 'info',
-        message: localize('common.no_media'),
+        message: loadingMedia
+          ? localize('error.awaiting_media')
+          : localize('common.no_media'),
         icon: 'mdi:multimedia',
+        dotdotdot: loadingMedia,
       });
     }
 

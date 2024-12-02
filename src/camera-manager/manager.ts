@@ -691,6 +691,8 @@ export class CameraManager {
       _queries,
       ', Results:',
       results,
+      ', Options:',
+      engineOptions ?? {},
       ']',
     );
     return results;

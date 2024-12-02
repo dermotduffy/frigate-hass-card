@@ -127,6 +127,39 @@
         },
         "url": "Link"
       },
+      "proxy": {
+        "dynamic": "",
+        "editor_label": "",
+        "media": {
+          "auto": "",
+          "editor_label": "",
+          "false": "",
+          "true": ""
+        },
+        "ssl_ciphers": {
+          "auto": "",
+          "default": "",
+          "editor_label": "",
+          "insecure": "",
+          "intermediate": "",
+          "modern": ""
+        },
+        "ssl_verification": {
+          "auto": "",
+          "editor_label": "",
+          "false": "",
+          "true": ""
+        }
+      },
+      "reolink": {
+        "editor_label": "",
+        "media_resolution": {
+          "editor_label": "",
+          "high": "",
+          "low": ""
+        },
+        "url": ""
+      },
       "title": "Título para esta câmera (detectado automaticamente pela entidade)",
       "triggers": {
         "editor_label": "Opções de activação",
@@ -574,7 +607,9 @@
   },
   "error": {
     "awaiting_live": "",
+    "awaiting_media": "",
     "camera_initialization": "",
+    "camera_initialization_reolink": "",
     "could_not_render_elements": "Não foi possível renderizar os elementos da imagem",
     "could_not_resolve": "Não foi possível resolver o URL de mídia",
     "diagnostics": "Diagnósticos do cartão. Reveja as informações confidenciais antes de partilhar",

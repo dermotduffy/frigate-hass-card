@@ -607,6 +607,7 @@
   },
   "error": {
     "awaiting_live": "Waiting for live stream to load ...",
+    "awaiting_media": "Waiting for media to load",
     "camera_initialization": "Camera initialization failed",
     "camera_initialization_reolink": "Could not initialize Reolink camera",
     "could_not_render_elements": "Could not render picture elements",

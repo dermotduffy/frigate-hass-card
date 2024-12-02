@@ -4,6 +4,14 @@ import { FrigateCardView, ViewDisplayMode } from '../config/types.js';
 import { MediaQueries } from './media-queries';
 import { MediaQueriesResults } from './media-queries-results';
 
+declare module 'view' {
+  interface ViewContext {
+    loading?: {
+      query?: unknown;
+    };
+  }
+}
+
 interface ViewEvolveParameters {
   view?: FrigateCardView;
   camera?: string;

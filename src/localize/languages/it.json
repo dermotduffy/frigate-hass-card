@@ -127,6 +127,39 @@
         },
         "url": "URL dell'interfaccia utente di MotionEye"
       },
+      "proxy": {
+        "dynamic": "",
+        "editor_label": "",
+        "media": {
+          "auto": "",
+          "editor_label": "",
+          "false": "",
+          "true": ""
+        },
+        "ssl_ciphers": {
+          "auto": "",
+          "default": "",
+          "editor_label": "",
+          "insecure": "",
+          "intermediate": "",
+          "modern": ""
+        },
+        "ssl_verification": {
+          "auto": "",
+          "editor_label": "",
+          "false": "",
+          "true": ""
+        }
+      },
+      "reolink": {
+        "editor_label": "",
+        "media_resolution": {
+          "editor_label": "",
+          "high": "",
+          "low": ""
+        },
+        "url": ""
+      },
       "title": "Titolo per questa telecamera (Autoidentificato dall'entità)",
       "triggers": {
         "editor_label": "Trigger Opzioni",
@@ -574,7 +607,9 @@
   },
   "error": {
     "awaiting_live": "",
+    "awaiting_media": "",
     "camera_initialization": "",
+    "camera_initialization_reolink": "",
     "could_not_render_elements": "Impossibile renderizzare gli elementi dell'immagine",
     "could_not_resolve": "Impossibile risolvere l'URL dei media",
     "diagnostics": "Diagnostica delle carte.Si prega di rivedere per informazioni riservate prima di condividere",

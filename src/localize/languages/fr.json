@@ -127,6 +127,39 @@
         },
         "url": "URL de l’interface MotionEye"
       },
+      "proxy": {
+        "dynamic": "",
+        "editor_label": "",
+        "media": {
+          "auto": "",
+          "editor_label": "",
+          "false": "",
+          "true": ""
+        },
+        "ssl_ciphers": {
+          "auto": "",
+          "default": "",
+          "editor_label": "",
+          "insecure": "",
+          "intermediate": "",
+          "modern": ""
+        },
+        "ssl_verification": {
+          "auto": "",
+          "editor_label": "",
+          "false": "",
+          "true": ""
+        }
+      },
+      "reolink": {
+        "editor_label": "",
+        "media_resolution": {
+          "editor_label": "",
+          "high": "",
+          "low": ""
+        },
+        "url": ""
+      },
       "title": "Titre de cette caméra (détection automatique à partir de l'entité)",
       "triggers": {
         "editor_label": "Modèle de répertoire des films",
@@ -574,7 +607,9 @@
   },
   "error": {
     "awaiting_live": "En attente du flux en direct...",
+    "awaiting_media": "",
     "camera_initialization": "",
+    "camera_initialization_reolink": "",
     "could_not_render_elements": "Impossible de restituer les éléments de l'image",
     "could_not_resolve": "Impossible de résoudre l'URL du média",
     "diagnostics": "Diagnostic de la carte. Veuillez enlever les informations confidentielles avant de les partager",
