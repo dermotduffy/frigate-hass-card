@@ -57,7 +57,7 @@ export interface Diagnostics {
   };
 }
 
-export const getIntegrationDiagnostics = async (
+const getIntegrationDiagnostics = async (
   integration: string,
   hass?: HomeAssistant,
 ): Promise<IntegrationDiagnostics> => {

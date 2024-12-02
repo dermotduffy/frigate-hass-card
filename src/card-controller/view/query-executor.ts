@@ -9,7 +9,7 @@ import {
 } from '../../view/media-queries';
 import { MediaQueriesResults } from '../../view/media-queries-results';
 import { CardViewAPI } from '../types';
-import { QueryExecutorOptions, QueryWithResults } from './types';
+import { QueryExecutorOptions, QueryExecutorResult } from './types';
 
 export class QueryExecutor {
   protected _api: CardViewAPI;
@@ -22,7 +22,7 @@ export class QueryExecutor {
     cameraID?: string;
     eventsMediaType?: ClipsOrSnapshotsOrAll;
     executorOptions?: QueryExecutorOptions;
-  }): Promise<QueryWithResults | null> {
+  }): Promise<QueryExecutorResult | null> {
     const capabilitySearch: CapabilitySearchOptions =
       !options?.eventsMediaType || options?.eventsMediaType === 'all'
         ? {
@@ -61,7 +61,7 @@ export class QueryExecutor {
   public async executeDefaultRecordingQuery(options?: {
     cameraID?: string;
     executorOptions?: QueryExecutorOptions;
-  }): Promise<QueryWithResults | null> {
+  }): Promise<QueryExecutorResult | null> {
     const cameraManager = this._api.getCameraManager();
     const cameraIDs = options?.cameraID
       ? cameraManager.getStore().getAllDependentCameras(options.cameraID, 'recordings')

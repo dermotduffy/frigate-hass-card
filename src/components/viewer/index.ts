@@ -56,10 +56,15 @@ export class FrigateCardViewer extends LitElement {
       // Directly render an error message (instead of dispatching it upwards)
       // to preserve the mini-timeline if the user pans into an area with no
       // media.
+      const loadingMedia =
+        !!this.viewManagerEpoch.manager.getView()?.context?.loading?.query;
       return renderMessage({
         type: 'info',
-        message: localize('common.no_media'),
+        message: loadingMedia
+          ? localize('error.awaiting_media')
+          : localize('common.no_media'),
         icon: 'mdi:multimedia',
+        dotdotdot: loadingMedia,
       });
     }
 
