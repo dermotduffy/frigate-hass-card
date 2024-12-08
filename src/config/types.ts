@@ -978,7 +978,7 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 
 // The min/max width thumbnail.
 export const THUMBNAIL_WIDTH_MIN = 75;
-export const THUMBNAIL_WIDTH_MAX = 350;
+export const THUMBNAIL_WIDTH_MAX = 300;
 
 const thumbnailControlsBaseDefaults = {
   size: 100,
