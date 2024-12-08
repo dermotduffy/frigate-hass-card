@@ -16,7 +16,6 @@ import {
   CardWideConfig,
   frigateCardConfigDefaults,
   GalleryConfig,
-  THUMBNAIL_WIDTH_MAX,
 } from '../config/types';
 import { localize } from '../localize/localize';
 import galleryCoreStyle from '../scss/gallery-core.scss';
@@ -266,11 +265,7 @@ export class FrigateCardGalleryCore extends LitElement {
       frigateCardConfigDefaults.media_gallery.controls.thumbnails.size;
     const columns = this.galleryConfig?.controls.thumbnails.show_details
       ? Math.max(1, Math.floor(this.clientWidth / THUMBNAIL_DETAILS_WIDTH_MIN))
-      : Math.max(
-          1,
-          Math.ceil(this.clientWidth / THUMBNAIL_WIDTH_MAX),
-          Math.ceil(this.clientWidth / thumbnailSize),
-        );
+      : Math.max(1, Math.ceil(this.clientWidth / thumbnailSize));
 
     this.style.setProperty('--frigate-card-gallery-columns', String(columns));
   }

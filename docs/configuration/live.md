@@ -101,7 +101,7 @@ live:
 | `show_download_control` | `true`   | Whether to show the download control on each thumbnail.                                                                                                                       |
 | `show_favorite_control` | `true`   | Whether to show the favorite ('star') control on each thumbnail.                                                                                                              |
 | `show_timeline_control` | `true`   | Whether to show the timeline ('target') control on each thumbnail.                                                                                                            |
-| `size`                  | `100`    | The size of the thumbnails in the thumbnail carousel in pixels. Must be &gt;= `75` and &lt;= `175`.                                                                           |
+| `size`                  | `100`    | The size of the thumbnails in the thumbnail carousel in pixels. Must be &gt;= `75` and &lt;= `300`.                                                                           |
 
 ### `timeline`
 

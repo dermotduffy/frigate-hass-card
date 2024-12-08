@@ -976,9 +976,9 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 //                     Thumbnail Configuration
 // *************************************************************************
 
-// The min/max width thumbnail (Frigate returns a maximum of 175px).
-export const THUMBNAIL_WIDTH_MAX = 175;
+// The min/max width thumbnail.
 export const THUMBNAIL_WIDTH_MIN = 75;
+export const THUMBNAIL_WIDTH_MAX = 300;
 
 const thumbnailControlsBaseDefaults = {
   size: 100,
