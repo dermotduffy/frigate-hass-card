@@ -762,11 +762,6 @@ pre[data-lang] {
   color: var(--cover-color);
   text-align: var(--cover-text-align);
 }
-@media screen and (-ms-high-contrast: active), screen and (-ms-high-contrast: none) {
-  .cover {
-    height: 100vh;
-  }
-}
 .cover:before,
 .cover:after {
   content: '';
