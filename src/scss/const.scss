@@ -1,4 +1,5 @@
 :host {
+  --frigate-card-thumbnail-size-max: 350px;
   --frigate-card-thumbnail-details-width: calc(
     var(--frigate-card-thumbnail-size) + 200px
   );

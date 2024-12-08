@@ -28,6 +28,7 @@ import {
   RawFrigateCardConfig,
   RawFrigateCardConfigArray,
   STATUS_BAR_HEIGHT_MIN,
+  THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
 } from './config/types.js';
 import {
@@ -1754,6 +1755,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           : html``}
         ${this._renderNumberInput(configPathSize, {
           min: THUMBNAIL_WIDTH_MIN,
+          max: THUMBNAIL_WIDTH_MAX,
           label: localize('config.common.controls.thumbnails.size'),
         })}
         ${this._renderSwitch(configPathShowDetails, defaults.show_details, {

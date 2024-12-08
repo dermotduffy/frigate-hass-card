@@ -976,7 +976,9 @@ export type ImageViewConfig = z.infer<typeof imageConfigSchema>;
 //                     Thumbnail Configuration
 // *************************************************************************
 
+// The min/max width thumbnail.
 export const THUMBNAIL_WIDTH_MIN = 75;
+export const THUMBNAIL_WIDTH_MAX = 350;
 
 const thumbnailControlsBaseDefaults = {
   size: 100,
@@ -988,7 +990,11 @@ const thumbnailControlsBaseDefaults = {
 
 // Configuration for the actual rendered thumbnail.
 const thumbnailsControlBaseSchema = z.object({
-  size: z.number().min(THUMBNAIL_WIDTH_MIN).default(thumbnailControlsBaseDefaults.size),
+  size: z
+    .number()
+    .min(THUMBNAIL_WIDTH_MIN)
+    .max(THUMBNAIL_WIDTH_MAX)
+    .default(thumbnailControlsBaseDefaults.size),
   show_details: z.boolean().default(thumbnailControlsBaseDefaults.show_details),
   show_favorite_control: z
     .boolean()
