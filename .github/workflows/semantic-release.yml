@@ -51,6 +51,6 @@ jobs:
           type: zip
           path: dist
           filename: frigate-hass-card.zip
-      - run: npx semantic-release --dry-run
+      - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
