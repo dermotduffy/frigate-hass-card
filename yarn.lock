@@ -3528,6 +3528,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"conventional-changelog-conventionalcommits@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "conventional-changelog-conventionalcommits@npm:8.0.0"
+  dependencies:
+    compare-func: "npm:^2.0.0"
+  checksum: 10c0/368ee2245094579b38e1beac110577f75d82ab341d1bc6943052d5243f8bacc9ea08222a91a595a17f5f4ccc321b926211da00dd25b43877a3c51d8218bc76f0
+  languageName: node
+  linkType: hard
+
 "conventional-changelog-writer@npm:^8.0.0":
   version: 8.0.0
   resolution: "conventional-changelog-writer@npm:8.0.0"
@@ -5145,6 +5154,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^7.13.0"
     "@vitest/coverage-istanbul": "npm:^1.6.0"
     component-emitter: "npm:^1.3.1"
+    conventional-changelog-conventionalcommits: "npm:^8.0.0"
     crypto: "npm:^1.0.1"
     date-fns: "npm:^3.6.0"
     date-fns-tz: "npm:^3.1.3"
