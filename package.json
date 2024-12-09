@@ -162,7 +162,7 @@
             "dermotduffy"
           ],
           "successComment": ":tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nSee: [GitHub release](https://github.com/dermotduffy/frigate-hass-card/releases/tag/${nextRelease.gitTag})",
-          "releaseNameTemplate": "v${nextverison.name}"
+          "releaseNameTemplate": "v${nextRelease.version}"
         }
       ]
     ]
