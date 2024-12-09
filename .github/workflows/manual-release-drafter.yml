@@ -1,8 +1,7 @@
 ---
-name: Draft a release note
+name: Manual Release Drafter
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
