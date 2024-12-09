@@ -107,7 +107,10 @@
               "path": "dist/*.js",
               "label": "JS distribution"
             }
-          ]
+          ],
+          "draftRelease": true,
+          "labels": ["ci"],
+          "assignees": ["dermotduffy"]
         }
       ]
     ]
