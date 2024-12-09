@@ -68,6 +68,7 @@
     "@typescript-eslint/eslint-plugin": "^7.13.0",
     "@typescript-eslint/parser": "^7.13.0",
     "@vitest/coverage-istanbul": "^1.6.0",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
     "docsify-cli": "^4.4.4",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -92,25 +93,76 @@
   },
   "release": {
     "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits",
+          "presetConfig": {
+            "types": [
+              {
+                "type": "feat",
+                "section": ":rocket: Features"
+              },
+              {
+                "type": "fix",
+                "section": ":bug: Bug Fixes"
+              },
+              {
+                "type": "docs",
+                "section": ":books: Documentation"
+              },
+              {
+                "type": "test",
+                "section": ":rotating_light: Tests"
+              },
+              {
+                "type": "ci",
+                "section": ":construction_worker: Continuous Integration"
+              },
+              {
+                "type": "refactor",
+                "section": ":hammer: Code Refactoring"
+              },
+              {
+                "type": "perf",
+                "section": ":racehorse: Performance Improvements"
+              },
+              {
+                "type": "chore",
+                "section": ":wrench: Chores"
+              }
+            ]
+          }
+        }
+      ],
       "semantic-release-export-data",
       [
         "@semantic-release/github",
         {
           "assets": [
             {
-              "path": "dist/*.zip",
+              "path": "frigate-hass-card.zip",
               "label": "Zip distribution"
             },
             {
-              "path": "dist/*.js",
-              "label": "JS distribution"
+              "path": "dist/*.js"
             }
           ],
           "draftRelease": true,
-          "labels": ["ci"],
-          "assignees": ["dermotduffy"]
+          "labels": [
+            "ci"
+          ],
+          "assignees": [
+            "dermotduffy"
+          ],
+          "successComment": ":tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nSee: [GitHub release](https://github.com/dermotduffy/frigate-hass-card/releases/tag/${nextRelease.gitTag})",
+          "releaseNameTemplate": "v${nextverison.name}"
         }
       ]
     ]
