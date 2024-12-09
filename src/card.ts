@@ -89,7 +89,7 @@ console.info(
 });
 
 // ***************************************************************************
-//                    Main FrigateCard Webcomponent
+//                    Main FrigateCard WebComponent
 //
 // Any non-rendering / non-lit related functionality should be added to
 // CardController instead of this file.
