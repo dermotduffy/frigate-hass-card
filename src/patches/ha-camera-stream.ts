@@ -106,6 +106,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       mediaLoadedInfo: MediaLoadedInfo,
     ) {
       this._mediaLoadedInfoPerStream[stream] = mediaLoadedInfo;
+      this.requestUpdate();
     }
 
     protected _renderStream(stream: Stream) {
