@@ -154,7 +154,7 @@
               "path": "dist/*.js"
             }
           ],
-          "draftRelease": true,
+          "draftRelease": false,
           "labels": [
             "ci"
           ],
