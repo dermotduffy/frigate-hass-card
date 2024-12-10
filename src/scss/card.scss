@@ -201,7 +201,7 @@ frigate-card-menu[data-style*='hover'] {
   opacity: 0;
 }
 frigate-card-menu[data-style*='hover']:hover,
-.main:hover > frigate-card-overlay > frigate-card-menu[data-style='hover-card'] {
+ha-card:hover > frigate-card-overlay > frigate-card-menu[data-style='hover-card'] {
   opacity: 1;
 }
 
@@ -218,6 +218,6 @@ frigate-card-status-bar[data-style*='hover'] {
   opacity: 0;
 }
 frigate-card-status-bar[data-style*='hover']:hover,
-.main:hover > frigate-card-overlay > frigate-card-status-bar[data-style='hover-card'] {
+ha-card:hover > frigate-card-overlay > frigate-card-status-bar[data-style='hover-card'] {
   opacity: 1;
 }
