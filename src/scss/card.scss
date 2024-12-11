@@ -40,10 +40,8 @@ frigate-card-loading {
   filter: brightness(75%);
 }
 :host([panel]) {
-  // Card always extends to the full allowed height in panel mode (in non-panel
-  // mode this would cause the card to expand to the height of a column when
-  // there are multiple cards in the column).
-  height: 100%;
+  // Card always extends to the full height in panel mode
+  height: calc(100vh - var(--header-height));
 }
 
 div.main {
