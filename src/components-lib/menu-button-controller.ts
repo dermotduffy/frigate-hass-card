@@ -15,13 +15,14 @@ import { localize } from '../localize/localize.js';
 import { MediaLoadedInfo } from '../types';
 import {
   createCameraAction,
-  createPTZMultiAction,
   createDisplayModeAction,
+  createGeneralAction,
   createMediaPlayerAction,
   createPTZControlsAction,
-  createGeneralAction,
+  createPTZMultiAction,
 } from '../utils/action';
 import { isTruthy } from '../utils/basic';
+import { isBeingCasted } from '../utils/casting';
 import { getEntityIcon, getEntityTitle } from '../utils/ha';
 import { getPTZTarget } from '../utils/ptz';
 import { getStreamCameraID, hasSubstream } from '../utils/substream';
@@ -340,11 +341,7 @@ export class MenuButtonController {
     const mediaCapabilities = selectedMedia
       ? cameraManager?.getMediaCapabilities(selectedMedia)
       : null;
-    if (
-      view?.isViewerView() &&
-      mediaCapabilities?.canDownload &&
-      !this._isBeingCasted()
-    ) {
+    if (view?.isViewerView() && mediaCapabilities?.canDownload && !isBeingCasted()) {
       return {
         icon: 'mdi:download',
         ...config.menu.buttons.download,
@@ -429,7 +426,7 @@ export class MenuButtonController {
     config: FrigateCardConfig,
     inFullscreenMode?: boolean,
   ): MenuItem | null {
-    return !this._isBeingCasted()
+    return !isBeingCasted()
       ? {
           icon: inFullscreenMode ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
           ...config.menu.buttons.fullscreen,
@@ -711,13 +708,5 @@ export class MenuButtonController {
       }
     }
     return {};
-  }
-
-  /**
-   * Determine if the card is currently being casted.
-   * @returns
-   */
-  protected _isBeingCasted(): boolean {
-    return !!navigator.userAgent.match(/CrKey\//);
   }
 }
