@@ -40,7 +40,7 @@ import {
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
 import reolinkLogo from './assets/reolink.svg';
 import { ReolinkCamera } from './camera';
-import { ReolinkEventQueryResults } from './types';
+import { BrowseMediaReolinkCameraMetadata, ReolinkEventQueryResults } from './types';
 
 export class ReolinkQueryResultsClassifier {
   public static isReolinkEventQueryResults(
@@ -51,8 +51,7 @@ export class ReolinkQueryResultsClassifier {
 }
 
 export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
-  protected _directoryCache = new MemoryRequestCache<string, BrowseMedia>();
-  protected _fileCache = new MemoryRequestCache<string, BrowseMedia>();
+  protected _cache = new MemoryRequestCache<string, BrowseMedia>();
 
   public getEngineType(): Engine {
     return Engine.Reolink;
@@ -115,6 +114,21 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       : null;
   }
 
+  protected _reolinkCameraMetadataGenerator(
+    media: BrowseMedia,
+  ): BrowseMediaReolinkCameraMetadata | null {
+    // Example: "media-source://reolink/CAM|01J8XHYTNH77WE3C654K03KX1F|0"
+    const result = media.media_content_id.match(
+      /^media-source:\/\/reolink\/CAM\|(?<configEntryID>.+)\|(?<channel>\d+)$/,
+    );
+    return result?.groups
+      ? {
+          configEntryID: result.groups.configEntryID,
+          channel: Number(result.groups.channel),
+        }
+      : null;
+  }
+
   public async createCamera(
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
@@ -164,6 +178,34 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       return null;
     }
 
+    // First fetch all the Reolink cameras that show up under the media root,
+    // that match the expected camera. Some Reolink cameras will not show up
+    // here causing errors.
+    // https://github.com/dermotduffy/frigate-hass-card/issues/1723
+    const camerasWithMedia = await this._browseMediaManager.walkBrowseMedias(
+      hass,
+      [
+        {
+          targets: [`media-source://reolink`],
+          metadataGenerator: (
+            media: BrowseMedia,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            _parent?: RichBrowseMedia<BrowseMediaReolinkCameraMetadata>,
+          ) => this._reolinkCameraMetadataGenerator(media),
+          matcher: (media: RichBrowseMedia<BrowseMediaReolinkCameraMetadata>): boolean =>
+            media._metadata?.channel === camera.getChannel() &&
+            media._metadata?.configEntryID === configID,
+        },
+      ],
+      {
+        ...(engineOptions?.useCache !== false && { cache: this._cache }),
+      },
+    );
+
+    if (!camerasWithMedia?.length) {
+      return null;
+    }
+
     return await this._browseMediaManager.walkBrowseMedias(
       hass,
       [
@@ -172,7 +214,6 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
             `media-source://reolink/RES|${configID}|${camera.getChannel()}|` +
               `${cameraConfig.reolink?.media_resolution === 'low' ? 'sub' : 'main'}`,
           ],
-          concurrency: Infinity,
           metadataGenerator: (
             media: BrowseMedia,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -186,7 +227,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
         },
       ],
       {
-        ...(engineOptions?.useCache !== false && { cache: this._directoryCache }),
+        ...(engineOptions?.useCache !== false && { cache: this._cache }),
       },
     );
   }
@@ -251,7 +292,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
             },
           ],
           {
-            ...(engineOptions?.useCache !== false && { cache: this._fileCache }),
+            ...(engineOptions?.useCache !== false && { cache: this._cache }),
           },
         );
       }
