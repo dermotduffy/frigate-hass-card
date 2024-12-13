@@ -1,6 +1,7 @@
 import { LitElement, ReactiveControllerHost } from 'lit';
 import { ActionEventTarget } from '../action-handler-directive';
 import { setOrRemoveAttribute } from '../utils/basic';
+import { isBeingCasted } from '../utils/casting';
 import { isCardInPanel } from '../utils/ha';
 import { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 import { InitializationAspect } from './initialization-manager';
@@ -83,7 +84,7 @@ export class CardElementManager {
 
     // Whether or not the card is in panel mode on the dashboard.
     setOrRemoveAttribute(this._element, isCardInPanel(this._element), 'panel');
-    setOrRemoveAttribute(this._element, true, 'tabindex', '0');
+    setOrRemoveAttribute(this._element, isBeingCasted(), 'casted');
 
     this._api.getFullscreenManager().connect();
 
@@ -137,6 +138,7 @@ export class CardElementManager {
   public elementDisconnected(): void {
     setOrRemoveAttribute(this._element, false, 'panel');
     setOrRemoveAttribute(this._element, false, 'tabindex');
+    setOrRemoveAttribute(this._element, false, 'casted');
 
     // When the dashboard 'tab' is changed, the media is effectively unloaded.
     this._api.getMediaLoadedInfoManager().clear();

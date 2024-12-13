@@ -39,9 +39,15 @@ frigate-card-loading {
 :host([dark]) {
   filter: brightness(75%);
 }
-:host([panel]) {
-  // Card always extends to the full height in panel mode
+:host([panel]:not([casted])) {
+  // Card always extends to the full height in panel mode minus the header.
   height: calc(100vh - var(--header-height));
+}
+:host([panel][casted]) {
+  // Card always extends to the full height in panel mode when casting (there is
+  // no header).
+  // See: https://github.com/dermotduffy/frigate-hass-card/issues/1746
+  height: 100%;
 }
 
 div.main {
