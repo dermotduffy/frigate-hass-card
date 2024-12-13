@@ -9,7 +9,6 @@ import {
   vi,
 } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { BrowseMediaMetadata } from '../../../src/camera-manager/browse-media/types';
 import { RequestCache } from '../../../src/camera-manager/cache';
 import {
   ReolinkCameraManagerEngine,
@@ -42,6 +41,29 @@ import {
 } from '../../test-utils';
 
 vi.mock('../../../src/utils/ha/ws-request');
+
+const TEST_CAMERAS: BrowseMedia = {
+  title: 'Reolink',
+  media_class: 'channel',
+  media_content_type: 'playlist',
+  media_content_id: 'media-source://reolink',
+  children_media_class: 'directory',
+  can_play: false,
+  can_expand: true,
+  thumbnail: null,
+  children: [
+    {
+      title: 'Back Yard',
+      media_class: 'directory',
+      media_content_type: 'playlist',
+      media_content_id: 'media-source://reolink/CAM|01J8XHYTNH77WE3C654K03KX1F|0',
+      children_media_class: null,
+      can_play: false,
+      can_expand: true,
+      thumbnail: null,
+    },
+  ],
+};
 
 const TEST_DIRECTORIES: BrowseMedia = {
   title: 'Back Yard Low res.',
@@ -136,13 +158,13 @@ const TEST_FILES: BrowseMedia = {
 };
 
 const createEngine = (options?: {
-  browseMediaManager?: BrowseMediaManager<BrowseMediaMetadata>;
+  browseMediaManager?: BrowseMediaManager;
   entityRegistryManager?: EntityRegistryManager;
 }): ReolinkCameraManagerEngine => {
   return new ReolinkCameraManagerEngine(
     options?.entityRegistryManager ?? mock<EntityRegistryManager>(),
     mock<StateWatcher>(),
-    options?.browseMediaManager ?? new BrowseMediaManager<BrowseMediaMetadata>(),
+    options?.browseMediaManager ?? new BrowseMediaManager(),
     new ResolvedMediaCache(),
     new RequestCache(),
   );
@@ -306,6 +328,7 @@ describe('ReolinkCameraManagerEngine', () => {
       const store = await createStoreWithReolinkCamera(engine);
 
       vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(TEST_CAMERAS)
         .mockResolvedValueOnce(TEST_DIRECTORIES)
         .mockResolvedValueOnce(TEST_FILES);
 
@@ -380,6 +403,7 @@ describe('ReolinkCameraManagerEngine', () => {
       const store = await createStoreWithReolinkCamera(engine);
 
       vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(TEST_CAMERAS)
         .mockResolvedValueOnce(TEST_DIRECTORIES)
         .mockResolvedValueOnce(TEST_FILES);
 
@@ -399,7 +423,7 @@ describe('ReolinkCameraManagerEngine', () => {
         );
       }
 
-      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(2);
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(3);
     });
 
     it('should request high resolution if configured', async () => {
@@ -419,6 +443,7 @@ describe('ReolinkCameraManagerEngine', () => {
       store.addCamera(camera);
 
       vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(TEST_CAMERAS)
         .mockResolvedValueOnce(TEST_DIRECTORIES)
         .mockResolvedValueOnce(TEST_FILES);
 
@@ -446,31 +471,33 @@ describe('ReolinkCameraManagerEngine', () => {
         const engine = createPopulatedEngine();
         const store = await createStoreWithReolinkCamera(engine);
 
-        vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce({
-          title: 'Back Yard Low res.',
-          media_class: 'channel',
-          media_content_type: 'playlist',
-          media_content_id:
-            'media-source://reolink/DAYS|01J8XHYTNH77WE3C654K03KX1F|0|sub',
-          children_media_class: 'directory',
-          can_play: false,
-          can_expand: true,
-          thumbnail: null,
-          children: [
-            {
-              // Malformed date.
-              title: '__MALFORMED__',
-              media_class: 'directory',
-              media_content_type: 'playlist',
-              media_content_id:
-                'media-source://reolink/DAY|01J8XHYTNH77WE3C654K03KX1F|0|sub|2024|11|4',
-              children_media_class: null,
-              can_play: false,
-              can_expand: true,
-              thumbnail: null,
-            },
-          ],
-        });
+        vi.mocked(homeAssistantWSRequest)
+          .mockResolvedValueOnce(TEST_CAMERAS)
+          .mockResolvedValueOnce({
+            title: 'Back Yard Low res.',
+            media_class: 'channel',
+            media_content_type: 'playlist',
+            media_content_id:
+              'media-source://reolink/DAYS|01J8XHYTNH77WE3C654K03KX1F|0|sub',
+            children_media_class: 'directory',
+            can_play: false,
+            can_expand: true,
+            thumbnail: null,
+            children: [
+              {
+                // Malformed date.
+                title: '__MALFORMED__',
+                media_class: 'directory',
+                media_content_type: 'playlist',
+                media_content_id:
+                  'media-source://reolink/DAY|01J8XHYTNH77WE3C654K03KX1F|0|sub|2024|11|4',
+                children_media_class: null,
+                can_play: false,
+                can_expand: true,
+                thumbnail: null,
+              },
+            ],
+          });
 
         const events = await engine.getEvents(createHASS(), store, {
           type: QueryType.Event,
@@ -568,6 +595,103 @@ describe('ReolinkCameraManagerEngine', () => {
           ]),
         );
       });
+
+      it('should ignore no cameras', async () => {
+        const engine = createPopulatedEngine();
+        const store = await createStoreWithReolinkCamera(engine);
+
+        vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce({
+          title: 'Reolink',
+          media_class: 'channel',
+          media_content_type: 'playlist',
+          media_content_id: 'media-source://reolink',
+          children_media_class: 'directory',
+          can_play: false,
+          can_expand: true,
+          thumbnail: null,
+          children: [
+            // No cameras.
+          ],
+        });
+
+        const events = await engine.getEvents(createHASS(), store, {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2024-11-04T21:00:00'),
+          end: new Date('2024-11-04T22:00:00'),
+        });
+
+        expect(events).toEqual(
+          new Map([
+            [
+              {
+                cameraIDs: new Set(['office']),
+                end: new Date('2024-11-04T22:00:00'),
+                start: new Date('2024-11-04T21:00:00'),
+                type: 'event-query',
+              },
+              {
+                browseMedia: [],
+                engine: 'reolink',
+                type: 'event-results',
+              },
+            ],
+          ]),
+        );
+      });
+
+      it('should ignore malformed camera', async () => {
+        const engine = createPopulatedEngine();
+        const store = await createStoreWithReolinkCamera(engine);
+
+        vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce({
+          title: 'Reolink',
+          media_class: 'channel',
+          media_content_type: 'playlist',
+          media_content_id: 'media-source://reolink',
+          children_media_class: 'directory',
+          can_play: false,
+          can_expand: true,
+          thumbnail: null,
+          children: [
+            {
+              title: 'Back Yard',
+              media_class: 'directory',
+              media_content_type: 'playlist',
+              media_content_id: 'media-source://reolink/__MALFORMED__',
+              children_media_class: null,
+              can_play: false,
+              can_expand: true,
+              thumbnail: null,
+            },
+          ],
+        });
+
+        const events = await engine.getEvents(createHASS(), store, {
+          type: QueryType.Event,
+          cameraIDs: new Set(['office']),
+          start: new Date('2024-11-04T21:00:00'),
+          end: new Date('2024-11-04T22:00:00'),
+        });
+
+        expect(events).toEqual(
+          new Map([
+            [
+              {
+                cameraIDs: new Set(['office']),
+                end: new Date('2024-11-04T22:00:00'),
+                start: new Date('2024-11-04T21:00:00'),
+                type: 'event-query',
+              },
+              {
+                browseMedia: [],
+                engine: 'reolink',
+                type: 'event-results',
+              },
+            ],
+          ]),
+        );
+      });
     });
 
     describe('should ignore malformed media', () => {
@@ -576,6 +700,7 @@ describe('ReolinkCameraManagerEngine', () => {
         const store = await createStoreWithReolinkCamera(engine);
 
         vi.mocked(homeAssistantWSRequest)
+          .mockResolvedValueOnce(TEST_CAMERAS)
           .mockResolvedValueOnce(TEST_DIRECTORIES)
           .mockResolvedValueOnce({
             title: 'Back Yard Low res. 2024/11/4',
@@ -634,6 +759,7 @@ describe('ReolinkCameraManagerEngine', () => {
         const store = await createStoreWithReolinkCamera(engine);
 
         vi.mocked(homeAssistantWSRequest)
+          .mockResolvedValueOnce(TEST_CAMERAS)
           .mockResolvedValueOnce(TEST_DIRECTORIES)
           .mockResolvedValueOnce({
             title: 'Back Yard Low res. 2024/11/4',
@@ -692,6 +818,7 @@ describe('ReolinkCameraManagerEngine', () => {
         const store = await createStoreWithReolinkCamera(engine);
 
         vi.mocked(homeAssistantWSRequest)
+          .mockResolvedValueOnce(TEST_CAMERAS)
           .mockResolvedValueOnce(TEST_DIRECTORIES)
           .mockResolvedValueOnce({
             title: 'Back Yard Low res. 2024/11/4',
@@ -850,7 +977,9 @@ describe('ReolinkCameraManagerEngine', () => {
       const engine = createPopulatedEngine();
       const store = await createStoreWithReolinkCamera(engine);
 
-      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(TEST_DIRECTORIES);
+      vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(TEST_CAMERAS)
+        .mockResolvedValueOnce(TEST_DIRECTORIES);
 
       const metadata = await engine.getMediaMetadata(
         createHASS(),
@@ -887,7 +1016,9 @@ describe('ReolinkCameraManagerEngine', () => {
       const engine = createPopulatedEngine();
       const store = await createStoreWithReolinkCamera(engine);
 
-      vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce(TEST_DIRECTORIES);
+      vi.mocked(homeAssistantWSRequest)
+        .mockResolvedValueOnce(TEST_CAMERAS)
+        .mockResolvedValueOnce(TEST_DIRECTORIES);
 
       for (let i = 0; i < 10; i++) {
         await engine.getMediaMetadata(
@@ -901,7 +1032,7 @@ describe('ReolinkCameraManagerEngine', () => {
         );
       }
 
-      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(1);
+      expect(homeAssistantWSRequest).toHaveBeenCalledTimes(2);
     });
 
     describe('should ignore invalid cameras', () => {
@@ -979,31 +1110,33 @@ describe('ReolinkCameraManagerEngine', () => {
         const engine = createPopulatedEngine();
         const store = await createStoreWithReolinkCamera(engine);
 
-        vi.mocked(homeAssistantWSRequest).mockResolvedValueOnce({
-          title: 'Back Yard Low res.',
-          media_class: 'channel',
-          media_content_type: 'playlist',
-          media_content_id:
-            'media-source://reolink/DAYS|01J8XHYTNH77WE3C654K03KX1F|0|sub',
-          children_media_class: 'directory',
-          can_play: false,
-          can_expand: true,
-          thumbnail: null,
-          children: [
-            {
-              // Malformed date.
-              title: '__MALFORMED__',
-              media_class: 'directory',
-              media_content_type: 'playlist',
-              media_content_id:
-                'media-source://reolink/DAY|01J8XHYTNH77WE3C654K03KX1F|0|sub|2024|11|4',
-              children_media_class: null,
-              can_play: false,
-              can_expand: true,
-              thumbnail: null,
-            },
-          ],
-        });
+        vi.mocked(homeAssistantWSRequest)
+          .mockResolvedValueOnce(TEST_CAMERAS)
+          .mockResolvedValueOnce({
+            title: 'Back Yard Low res.',
+            media_class: 'channel',
+            media_content_type: 'playlist',
+            media_content_id:
+              'media-source://reolink/DAYS|01J8XHYTNH77WE3C654K03KX1F|0|sub',
+            children_media_class: 'directory',
+            can_play: false,
+            can_expand: true,
+            thumbnail: null,
+            children: [
+              {
+                // Malformed date.
+                title: '__MALFORMED__',
+                media_class: 'directory',
+                media_content_type: 'playlist',
+                media_content_id:
+                  'media-source://reolink/DAY|01J8XHYTNH77WE3C654K03KX1F|0|sub|2024|11|4',
+                children_media_class: null,
+                can_play: false,
+                can_expand: true,
+                thumbnail: null,
+              },
+            ],
+          });
 
         const metadata = await engine.getMediaMetadata(createHASS(), store, {
           type: QueryType.MediaMetadata,

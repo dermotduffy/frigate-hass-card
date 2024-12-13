@@ -56,9 +56,9 @@ export interface BrowseMediaStep<M> {
 
 type BrowseMediaStepAdvancer<M> = (media: RichBrowseMedia<M>[]) => BrowseMediaStep<M>[];
 
-export class BrowseMediaManager<M> {
+export class BrowseMediaManager {
   // Walk down a browse media tree according to instructions included in `steps`.
-  public async walkBrowseMedias(
+  public async walkBrowseMedias<M>(
     hass: HomeAssistant,
     steps: BrowseMediaStep<M>[] | null,
     options?: {
@@ -77,7 +77,7 @@ export class BrowseMediaManager<M> {
     ).flat();
   }
 
-  protected async _walkBrowseMedia(
+  protected async _walkBrowseMedia<M>(
     hass: HomeAssistant,
     step: BrowseMediaStep<M>,
     options?: {
@@ -92,7 +92,6 @@ export class BrowseMediaManager<M> {
         async (target) =>
           await this._browseMedia(hass, target, {
             cache: options?.cache,
-            matcher: step.matcher,
             metadataGenerator: step.metadataGenerator,
           }),
       );
@@ -121,12 +120,11 @@ export class BrowseMediaManager<M> {
     return await this.walkBrowseMedias(hass, nextSteps, options);
   }
 
-  protected async _browseMedia(
+  protected async _browseMedia<M>(
     hass: HomeAssistant,
     target: string | RichBrowseMedia<M>,
     options?: {
       cache?: BrowseMediaCache<M>;
-      matcher?: RichBrowseMediaPredicate<M>;
       metadataGenerator?: RichMetadataGenerator<M>;
     },
   ): Promise<RichBrowseMedia<M>> {

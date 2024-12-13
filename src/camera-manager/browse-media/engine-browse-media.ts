@@ -20,7 +20,6 @@ import {
   PartialEventQuery,
   QueryType,
 } from '../types';
-import { BrowseMediaMetadata } from './types';
 
 /**
  * A base class for cameras that read events from HA BrowseMedia interface.
@@ -29,7 +28,7 @@ export class BrowseMediaCameraManagerEngine
   extends GenericCameraManagerEngine
   implements CameraManagerEngine
 {
-  protected _browseMediaManager: BrowseMediaManager<BrowseMediaMetadata>;
+  protected _browseMediaManager: BrowseMediaManager;
   protected _entityRegistryManager: EntityRegistryManager;
   protected _resolvedMediaCache: ResolvedMediaCache;
   protected _requestCache: RequestCache;
@@ -37,7 +36,7 @@ export class BrowseMediaCameraManagerEngine
   public constructor(
     entityRegistryManager: EntityRegistryManager,
     stateWatcher: StateWatcherSubscriptionInterface,
-    browseMediaManager: BrowseMediaManager<BrowseMediaMetadata>,
+    browseMediaManager: BrowseMediaManager,
     resolvedMediaCache: ResolvedMediaCache,
     requestCache: RequestCache,
     eventCallback?: CameraEventCallback,
