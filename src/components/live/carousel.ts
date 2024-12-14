@@ -10,6 +10,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
+import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
 import {
   ConditionsManagerEpoch,
   getOverriddenConfig,
@@ -37,6 +38,7 @@ import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
 import { getStreamCameraID } from '../../utils/substream.js';
+import { getTextDirection } from '../../utils/text-direction.js';
 import { View } from '../../view/view.js';
 import '../carousel';
 import { EmblaCarouselPlugins } from '../carousel.js';
@@ -48,6 +50,16 @@ import './provider.js';
 import { FrigateCardLiveProvider } from './provider.js';
 
 const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
+
+interface CameraNeighbor {
+  id: string;
+  metadata?: CameraManagerCameraMetadata | null;
+}
+
+interface CameraNeighbors {
+  previous?: CameraNeighbor;
+  next?: CameraNeighbor;
+}
 
 @customElement('frigate-card-live-carousel')
 export class FrigateCardLiveCarousel extends LitElement {
@@ -315,31 +327,74 @@ export class FrigateCardLiveCarousel extends LitElement {
     `;
   }
 
-  protected _getCameraIDsOfNeighbors(): [string | null, string | null] {
+  protected _getSubstreamCameraID(cameraID: string, view?: View | null): string {
+    return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
+  }
+
+  protected _getCameraNeighbors(): CameraNeighbors | null {
     const cameraIDs = this.cameraManager
       ? [...this.cameraManager?.getStore().getCameraIDsWithCapability('live')]
       : [];
     const view = this.viewManagerEpoch?.manager.getView();
 
     if (this.viewFilterCameraID || cameraIDs.length <= 1 || !view || !this.hass) {
-      return [null, null];
+      return {};
     }
 
     const cameraID = this.viewFilterCameraID ?? view.camera;
     const currentIndex = cameraIDs.indexOf(cameraID);
 
     if (currentIndex < 0) {
-      return [null, null];
+      return {};
     }
+    const prevID = cameraIDs[currentIndex > 0 ? currentIndex - 1 : cameraIDs.length - 1];
+    const nextID = cameraIDs[currentIndex + 1 < cameraIDs.length ? currentIndex + 1 : 0];
 
-    return [
-      cameraIDs[currentIndex > 0 ? currentIndex - 1 : cameraIDs.length - 1],
-      cameraIDs[currentIndex + 1 < cameraIDs.length ? currentIndex + 1 : 0],
-    ];
+    return {
+      previous: {
+        id: prevID,
+        metadata: prevID
+          ? this.cameraManager?.getCameraMetadata(
+              this._getSubstreamCameraID(prevID, view),
+            )
+          : null,
+      },
+      next: {
+        id: nextID,
+        metadata: nextID
+          ? this.cameraManager?.getCameraMetadata(
+              this._getSubstreamCameraID(nextID, view),
+            )
+          : null,
+      },
+    };
   }
 
-  protected _getSubstreamCameraID(cameraID: string, view?: View | null): string {
-    return view?.context?.live?.overrides?.get(cameraID) ?? cameraID;
+  protected _renderNextPrevious(
+    side: 'left' | 'right',
+    neighbors: CameraNeighbors | null,
+  ): TemplateResult {
+    const textDirection = getTextDirection(this);
+    const neighbor =
+      (textDirection === 'ltr' && side === 'left') ||
+      (textDirection === 'rtl' && side === 'right')
+        ? neighbors?.previous
+        : neighbors?.next;
+
+    return html`<frigate-card-next-previous-control
+      slot=${side}
+      .hass=${this.hass}
+      .side=${side}
+      .controlConfig=${this.overriddenLiveConfig?.controls.next_previous}
+      .label=${neighbor?.metadata?.title ?? ''}
+      .icon=${neighbor?.metadata?.icon}
+      ?disabled=${!neighbor}
+      @click=${(ev) => {
+        this._setViewCameraID(neighbor?.id);
+        stopEventFromActivatingCardWideActions(ev);
+      }}
+    >
+    </frigate-card-next-previous-control>`;
   }
 
   protected render(): TemplateResult | void {
@@ -355,14 +410,8 @@ export class FrigateCardLiveCarousel extends LitElement {
     }
 
     const hasMultipleCameras = slides.length > 1;
-    const [prevID, nextID] = this._getCameraIDsOfNeighbors();
+    const neighbors = this._getCameraNeighbors();
 
-    const cameraMetadataPrevious = prevID
-      ? this.cameraManager.getCameraMetadata(this._getSubstreamCameraID(prevID, view))
-      : null;
-    const cameraMetadataNext = nextID
-      ? this.cameraManager.getCameraMetadata(this._getSubstreamCameraID(nextID, view))
-      : null;
     const forcePTZVisibility =
       !this._mediaHasLoaded ||
       (!!this.viewFilterCameraID && this.viewFilterCameraID !== view.camera) ||
@@ -393,35 +442,11 @@ export class FrigateCardLiveCarousel extends LitElement {
           this._mediaHasLoaded = false;
         }}
       >
-        <frigate-card-next-previous-control
-          slot="previous"
-          .hass=${this.hass}
-          .direction=${'previous'}
-          .controlConfig=${this.overriddenLiveConfig.controls.next_previous}
-          .label=${cameraMetadataPrevious?.title ?? ''}
-          .icon=${cameraMetadataPrevious?.icon}
-          ?disabled=${prevID === null}
-          @click=${(ev) => {
-            this._setViewCameraID(prevID);
-            stopEventFromActivatingCardWideActions(ev);
-          }}
-        >
-        </frigate-card-next-previous-control>
+        ${this._renderNextPrevious('left', neighbors)}
+        <!-- -->
         ${slides}
-        <frigate-card-next-previous-control
-          slot="next"
-          .hass=${this.hass}
-          .direction=${'next'}
-          .controlConfig=${this.overriddenLiveConfig.controls.next_previous}
-          .label=${cameraMetadataNext?.title ?? ''}
-          .icon=${cameraMetadataNext?.icon}
-          ?disabled=${nextID === null}
-          @click=${(ev) => {
-            this._setViewCameraID(nextID);
-            stopEventFromActivatingCardWideActions(ev);
-          }}
-        >
-        </frigate-card-next-previous-control>
+        <!-- -->
+        ${this._renderNextPrevious('right', neighbors)}
       </frigate-card-carousel>
       <frigate-card-ptz
         .config=${this.overriddenLiveConfig.controls.ptz}

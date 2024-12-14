@@ -38,6 +38,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/ptz.ts',
   'utils/screenshot.ts',
   'utils/substream.ts',
+  'utils/text-direction.ts',
   'utils/timer.ts',
   'utils/zod.ts',
   'view/*.ts',

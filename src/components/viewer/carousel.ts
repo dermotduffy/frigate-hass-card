@@ -34,6 +34,7 @@ import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
 import AutoSize from '../../utils/embla/plugins/auto-size/auto-size.js';
 import { ResolvedMediaCache } from '../../utils/ha/resolved-media.js';
+import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewMedia } from '../../view/media.js';
 import '../carousel';
 import type { EmblaCarouselPlugins } from '../carousel.js';
@@ -306,6 +307,44 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
   }
 
+  protected _renderNextPrevious(
+    side: 'left' | 'right',
+    neighbors?: MediaNeighbors | null,
+  ): TemplateResult {
+    const scroll = (direction: 'previous' | 'next'): void => {
+      if (!neighbors || !this._media) {
+        return;
+      }
+      const newIndex =
+        (direction === 'previous' ? neighbors.previous?.index : neighbors.next?.index) ??
+        null;
+      if (newIndex !== null) {
+        this._setViewSelectedIndex(newIndex);
+      }
+    };
+
+    const textDirection = getTextDirection(this);
+    const scrollDirection =
+      (textDirection === 'ltr' && side === 'left') ||
+      (textDirection === 'rtl' && side === 'right')
+        ? 'previous'
+        : 'next';
+
+    return html` <frigate-card-next-previous-control
+      slot=${side}
+      .hass=${this.hass}
+      .side=${side}
+      .controlConfig=${this.viewerConfig?.controls.next_previous}
+      .thumbnail=${neighbors?.[scrollDirection]?.media.getThumbnail() ?? undefined}
+      .label=${neighbors?.[scrollDirection]?.media.getTitle() ?? ''}
+      ?disabled=${!neighbors?.[scrollDirection]}
+      @click=${(ev: Event) => {
+        scroll(scrollDirection);
+        stopEventFromActivatingCardWideActions(ev);
+      }}
+    ></frigate-card-next-previous-control>`;
+  }
+
   protected render(): TemplateResult | void {
     const mediaCount = this._media?.length ?? 0;
     if (!this._media || !mediaCount) {
@@ -324,18 +363,6 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     const neighbors = this._getMediaNeighbors();
-    const scroll = (direction: 'previous' | 'next'): void => {
-      if (!neighbors || !this._media) {
-        return;
-      }
-      const newIndex =
-        (direction === 'previous' ? neighbors.previous?.index : neighbors.next?.index) ??
-        null;
-      if (newIndex !== null) {
-        this._setViewSelectedIndex(newIndex);
-      }
-    };
-
     const view = this.viewManagerEpoch?.manager.getView();
 
     return html`
@@ -356,37 +383,9 @@ export class FrigateCardViewerCarousel extends LitElement {
           this._player = null;
         }}
       >
-        ${this.showControls
-          ? html` <frigate-card-next-previous-control
-              slot="previous"
-              .hass=${this.hass}
-              .direction=${'previous'}
-              .controlConfig=${this.viewerConfig?.controls.next_previous}
-              .thumbnail=${neighbors?.previous?.media.getThumbnail() ?? undefined}
-              .label=${neighbors?.previous?.media.getTitle() ?? ''}
-              ?disabled=${!neighbors?.previous}
-              @click=${(ev: Event) => {
-                scroll('previous');
-                stopEventFromActivatingCardWideActions(ev);
-              }}
-            ></frigate-card-next-previous-control>`
-          : ''}
+        ${this.showControls ? this._renderNextPrevious('left', neighbors) : ''}
         ${guard([this._media, view], () => this._getSlides())}
-        ${this.showControls
-          ? html` <frigate-card-next-previous-control
-              slot="next"
-              .hass=${this.hass}
-              .direction=${'next'}
-              .controlConfig=${this.viewerConfig?.controls.next_previous}
-              .thumbnail=${neighbors?.next?.media.getThumbnail() ?? undefined}
-              .label=${neighbors?.next?.media.getTitle() ?? ''}
-              ?disabled=${!neighbors?.next}
-              @click=${(ev: Event) => {
-                scroll('next');
-                stopEventFromActivatingCardWideActions(ev);
-              }}
-            ></frigate-card-next-previous-control>`
-          : ''}
+        ${this.showControls ? this._renderNextPrevious('right', neighbors) : ''}
       </frigate-card-carousel>
       ${view
         ? html` <frigate-card-ptz
