@@ -3,8 +3,8 @@
 :host {
   --frigate-card-next-prev-size: 48px;
   --frigate-card-next-prev-size-hover: calc(var(--frigate-card-next-prev-size) * 2);
-  --frigate-card-prev-position: 45px;
-  --frigate-card-next-position: 45px;
+  --frigate-card-left-position: 45px;
+  --frigate-card-right-position: 45px;
   --mdc-icon-button-size: var(--frigate-card-next-prev-size);
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 }
@@ -14,11 +14,11 @@
   z-index: 1;
   overflow: hidden;
 }
-.controls.previous {
-  left: var(--frigate-card-prev-position);
+.controls.left {
+  left: var(--frigate-card-left-position);
 }
-.controls.next {
-  right: var(--frigate-card-next-position);
+.controls.right {
+  right: var(--frigate-card-right-position);
 }
 
 .controls.icons {
@@ -42,14 +42,14 @@
 
 .controls.previous.thumbnails:hover {
   left: calc(
-    var(--frigate-card-prev-position) -
+    var(--frigate-card-left-position) -
       (var(--frigate-card-next-prev-size-hover) - var(--frigate-card-next-prev-size)) / 2
   );
 }
 
 .controls.next.thumbnails:hover {
   right: calc(
-    var(--frigate-card-next-position) -
+    var(--frigate-card-right-position) -
       (var(--frigate-card-next-prev-size-hover) - var(--frigate-card-next-prev-size)) / 2
   );
 }
