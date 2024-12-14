@@ -194,6 +194,7 @@ describe('CarouselController', () => {
       loop: true,
       dragEnabled: false,
       plugins: plugins,
+      textDirection: 'rtl',
     });
 
     expect(EmblaCarousel).toBeCalledWith(
@@ -209,6 +210,7 @@ describe('CarouselController', () => {
         watchSlides: false,
         watchResize: true,
         watchDrag: false,
+        direction: 'rtl',
       },
       plugins,
     );

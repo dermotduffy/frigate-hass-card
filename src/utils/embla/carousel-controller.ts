@@ -4,6 +4,7 @@ import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plu
 import isEqual from 'lodash-es/isEqual';
 import { TransitionEffect } from '../../config/types';
 import { dispatchFrigateCardEvent, getChildrenFromElement } from '../basic.js';
+import { TextDirection } from '../text-direction';
 
 export interface CarouselSelected {
   index: number;
@@ -23,6 +24,7 @@ export class CarouselController {
   protected _loop: boolean;
   protected _dragFree: boolean;
   protected _draggable: boolean;
+  protected _textDirection: TextDirection;
 
   protected _plugins: EmblaCarouselPlugins;
   protected _carousel: EmblaCarouselType;
@@ -44,6 +46,7 @@ export class CarouselController {
       dragEnabled?: boolean;
       dragFree?: boolean;
       plugins?: EmblaCarouselPlugins;
+      textDirection?: TextDirection;
     },
   ) {
     this._root = root;
@@ -55,6 +58,7 @@ export class CarouselController {
     this._loop = options?.loop ?? false;
     this._draggable = options?.dragEnabled ?? true;
     this._plugins = options?.plugins ?? [];
+    this._textDirection = options?.textDirection ?? 'ltr';
 
     this._carousel = this._createCarousel(getChildrenFromElement(this._parent));
 
@@ -130,6 +134,8 @@ export class CarouselController {
         watchSlides: false,
         watchResize: true,
         watchDrag: this._draggable,
+
+        direction: this._textDirection,
       },
       [
         ...this._plugins,

@@ -40,14 +40,14 @@
   top: calc(50% - (var(--frigate-card-next-prev-size-hover) / 2));
 }
 
-.controls.previous.thumbnails:hover {
+.controls.left.thumbnails:hover {
   left: calc(
     var(--frigate-card-left-position) -
       (var(--frigate-card-next-prev-size-hover) - var(--frigate-card-next-prev-size)) / 2
   );
 }
 
-.controls.next.thumbnails:hover {
+.controls.right.thumbnails:hover {
   right: calc(
     var(--frigate-card-right-position) -
       (var(--frigate-card-next-prev-size-hover) - var(--frigate-card-next-prev-size)) / 2

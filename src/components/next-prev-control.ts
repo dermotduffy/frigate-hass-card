@@ -10,7 +10,7 @@ import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 @customElement('frigate-card-next-previous-control')
 export class FrigateCardNextPreviousControl extends LitElement {
   @property({ attribute: false })
-  public direction?: 'next' | 'previous';
+  public side?: 'left' | 'right';
 
   set controlConfig(controlConfig: NextPreviousControlConfig | undefined) {
     if (controlConfig?.size) {
@@ -53,8 +53,8 @@ export class FrigateCardNextPreviousControl extends LitElement {
 
     const classes = {
       controls: true,
-      left: this.direction === 'previous',
-      right: this.direction === 'next',
+      left: this.side === 'left',
+      right: this.side === 'right',
       thumbnails: !renderIcon,
       icons: renderIcon,
       button: renderIcon,
@@ -63,7 +63,7 @@ export class FrigateCardNextPreviousControl extends LitElement {
     if (renderIcon) {
       const icon =
         !this.thumbnail || !this.icon || this._controlConfig.style === 'chevrons'
-          ? this.direction === 'previous'
+          ? this.side === 'left'
             ? 'mdi:chevron-left'
             : 'mdi:chevron-right'
           : this.icon;

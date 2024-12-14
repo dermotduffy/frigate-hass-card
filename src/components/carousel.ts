@@ -15,6 +15,7 @@ import {
   CarouselController,
   CarouselDirection,
 } from '../utils/embla/carousel-controller';
+import { getTextDirection } from '../utils/text-direction';
 
 export type EmblaCarouselPlugins = CreatePluginType<
   LoosePluginType,
@@ -85,13 +86,13 @@ export class FrigateCardCarousel extends LitElement {
 
   protected render(): TemplateResult | void {
     return html` <div class="embla">
-      <slot name="previous"></slot>
+      <slot name="left"></slot>
       <div ${ref(this._refRoot)} class="embla__viewport">
         <div class="embla__container">
           <slot ${ref(this._refParent)}></slot>
         </div>
       </div>
-      <slot name="next"></slot>
+      <slot name="right"></slot>
     </div>`;
   }
 
@@ -108,6 +109,7 @@ export class FrigateCardCarousel extends LitElement {
           transitionEffect: this.transitionEffect,
           loop: this.loop,
           plugins: this.plugins,
+          textDirection: getTextDirection(this),
         },
       );
     } else if (changedProps.has('selected')) {
