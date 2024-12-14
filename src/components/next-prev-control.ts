@@ -53,8 +53,8 @@ export class FrigateCardNextPreviousControl extends LitElement {
 
     const classes = {
       controls: true,
-      previous: this.direction === 'previous',
-      next: this.direction === 'next',
+      left: this.direction === 'previous',
+      right: this.direction === 'next',
       thumbnails: !renderIcon,
       icons: renderIcon,
       button: renderIcon,
