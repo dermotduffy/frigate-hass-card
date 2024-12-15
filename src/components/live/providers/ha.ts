@@ -21,7 +21,7 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
   public cameraConfig?: CameraConfig;
 
   @property({ attribute: true, type: Boolean })
-  public controls = true;
+  public controls = false;
 
   protected _playerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
 
