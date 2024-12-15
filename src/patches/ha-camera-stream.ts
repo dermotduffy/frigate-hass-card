@@ -44,7 +44,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
   {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
-    @query('#player')
+    @query('.player:not(.hidden)')
     protected _player: FrigateCardMediaPlayer;
 
     protected _mediaLoadedInfoPerStream: Record<StreamType, MediaLoadedInfo> = {};
@@ -130,7 +130,6 @@ customElements.whenDefined('ha-camera-stream').then(() => {
 
       if (stream.type === STREAM_TYPE_HLS) {
         return html` <frigate-card-ha-hls-player
-          id="player"
           ?autoplay=${false}
           playsinline
           .allowExoPlayer=${this.allowExoPlayer}
@@ -142,13 +141,12 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           @frigate-card:media:loaded=${(ev) =>
             this._storeMediaLoadedInfoHandler(STREAM_TYPE_HLS, ev)}
           @streams=${this._handleHlsStreams}
-          class=${stream.visible ? '' : 'hidden'}
+          class="player ${stream.visible ? '' : 'hidden'}"
         ></frigate-card-ha-hls-player>`;
       }
 
       if (stream.type === STREAM_TYPE_WEB_RTC) {
         return html`<frigate-card-ha-web-rtc-player
-          id="player"
           ?autoplay=${false}
           playsinline
           .muted=${this.muted}
@@ -159,7 +157,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           @frigate-card:media:loaded=${(ev) =>
             this._storeMediaLoadedInfoHandler(STREAM_TYPE_WEB_RTC, ev)}
           @streams=${this._handleWebRtcStreams}
-          class=${stream.visible ? '' : 'hidden'}
+          class="player ${stream.visible ? '' : 'hidden'}"
         ></frigate-card-ha-web-rtc-player>`;
       }
 
