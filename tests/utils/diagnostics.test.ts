@@ -86,7 +86,7 @@ describe('getDiagnostics', () => {
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
         hash: 'g4cf13b1',
       },
-      integrations: {
+      custom_integrations: {
         frigate: {
           detected: true,
           devices: {
@@ -96,14 +96,6 @@ describe('getDiagnostics', () => {
           version: '0.0.1',
         },
         hass_web_proxy: {
-          detected: true,
-          version: '0.0.1',
-        },
-        motioneye: {
-          detected: true,
-          version: '0.0.1',
-        },
-        reolink: {
           detected: true,
           version: '0.0.1',
         },
@@ -145,17 +137,11 @@ describe('getDiagnostics', () => {
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
         hash: 'g4cf13b1',
       },
-      integrations: {
+      custom_integrations: {
         frigate: {
           detected: false,
         },
         hass_web_proxy: {
-          detected: false,
-        },
-        motioneye: {
-          detected: false,
-        },
-        reolink: {
           detected: false,
         },
       },
@@ -177,17 +163,11 @@ describe('getDiagnostics', () => {
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
         hash: 'g4cf13b1',
       },
-      integrations: {
+      custom_integrations: {
         frigate: {
           detected: false,
         },
         hass_web_proxy: {
-          detected: false,
-        },
-        motioneye: {
-          detected: false,
-        },
-        reolink: {
           detected: false,
         },
       },
