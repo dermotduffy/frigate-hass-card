@@ -4,6 +4,6 @@ import { FrigateCardAction } from './base';
 
 export class DefaultAction extends FrigateCardAction<GeneralActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
-    api.getViewManager().setViewDefault();
+    await api.getViewManager().setViewDefaultWithNewQuery();
   }
 }
