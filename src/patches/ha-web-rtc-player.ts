@@ -12,6 +12,7 @@
 import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { renderMessage } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
@@ -111,6 +112,7 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
           .muted=${this.muted}
           ?playsinline=${this.playsInline}
           ?controls=${this.controls}
+          poster=${ifDefined(this.posterUrl)}
           @loadedmetadata=${() => {
             if (this.controls) {
               hideMediaControlsTemporarily(
@@ -119,21 +121,24 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
               );
             }
           }}
-          @loadeddata=${(ev) => {
-            dispatchMediaLoadedEvent(this, ev, {
-              player: this,
-              capabilities: {
-                supportsPause: true,
-                hasAudio: mayHaveAudio(this._video),
-              },
-              technology: ['webrtc'],
-            });
-          }}
+          @loadeddata=${(ev) => this._loadedDataHandler(ev)}
           @volumechange=${() => dispatchMediaVolumeChangeEvent(this)}
           @play=${() => dispatchMediaPlayEvent(this)}
           @pause=${() => dispatchMediaPauseEvent(this)}
         ></video>
       `;
+    }
+
+    private _loadedDataHandler(ev: Event) {
+      super._loadedData();
+      dispatchMediaLoadedEvent(this, ev, {
+        player: this,
+        capabilities: {
+          supportsPause: true,
+          hasAudio: mayHaveAudio(this._video),
+        },
+        technology: ['webrtc'],
+      });
     }
 
     static get styles(): CSSResultGroup {
