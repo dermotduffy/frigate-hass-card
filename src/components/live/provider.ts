@@ -23,7 +23,6 @@ import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
 import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
 import { aspectRatioToString } from '../../utils/basic.js';
-import { getStateObjOrDispatchError } from '../../utils/get-state-obj.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
 import { playMediaMutingIfNecessary } from '../../utils/media.js';
@@ -31,6 +30,7 @@ import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
 import '../ptz.js';
 import '../surround.js';
+import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 
 @customElement('frigate-card-live-provider')
 export class FrigateCardLiveProvider
@@ -70,6 +70,9 @@ export class FrigateCardLiveProvider
 
   @state()
   protected _isVideoMediaLoaded = false;
+
+  @state()
+  protected _hasProviderError = false;
 
   protected _refProvider: Ref<LitElement & FrigateCardMediaPlayer> = createRef();
 
@@ -165,7 +168,9 @@ export class FrigateCardLiveProvider
     return (
       !!this.cameraConfig?.camera_entity &&
       !!this.hass &&
-      !!this.liveConfig?.show_image_during_load
+      !!this.liveConfig?.show_image_during_load &&
+      // Do not continue to show image during loading if an error has occurred.
+      !this._hasProviderError
     );
   }
 
@@ -175,6 +180,10 @@ export class FrigateCardLiveProvider
 
   protected _videoMediaShowHandler(): void {
     this._isVideoMediaLoaded = true;
+  }
+
+  protected _providerErrorHandler(): void {
+    this._hasProviderError = true;
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -263,17 +272,30 @@ export class FrigateCardLiveProvider
     };
 
     if (provider === 'ha' || provider === 'image') {
-      const stateObj = getStateObjOrDispatchError(this, this.hass, this.cameraConfig);
-      if (!stateObj) {
-        return;
+      if (!this.cameraConfig?.camera_entity) {
+        dispatchLiveErrorEvent(this);
+        return renderMessage({
+          message: localize('error.no_live_camera'),
+          type: 'error',
+          icon: 'mdi:camera',
+          context: this.cameraConfig,
+        });
       }
-      if (stateObj.state === 'unavailable') {
-        dispatchMediaUnloadedEvent(this);
 
-        // An unavailable camera gets a message rendered in place vs dispatched,
-        // as this may be a common occurrence (e.g. Frigate cameras that stop
-        // receiving frames). Otherwise a single temporarily unavailable camera
-        // would render a whole carousel inoperable.
+      const stateObj = this.hass.states[this.cameraConfig.camera_entity];
+      if (!stateObj) {
+        dispatchLiveErrorEvent(this);
+        return renderMessage({
+          message: localize('error.live_camera_not_found'),
+          type: 'error',
+          icon: 'mdi:camera',
+          context: this.cameraConfig,
+        });
+      }
+
+      if (stateObj.state === 'unavailable') {
+        dispatchLiveErrorEvent(this);
+        dispatchMediaUnloadedEvent(this);
         return renderMessage({
           message: `${localize('error.live_camera_unavailable')}${
             this.label ? `: ${this.label}` : ''
@@ -291,6 +313,7 @@ export class FrigateCardLiveProvider
             ${ref(this._refProvider)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
+            @frigate-card:live:error=${() => this._providerErrorHandler()}
             @frigate-card:media:loaded=${(ev: Event) => {
               if (provider === 'image') {
                 // Only count the media has loaded if the required provider is
@@ -311,6 +334,7 @@ export class FrigateCardLiveProvider
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             ?controls=${this.liveConfig.controls.builtin}
+            @frigate-card:live:error=${() => this._providerErrorHandler()}
             @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
           </frigate-card-live-ha>`
@@ -324,6 +348,7 @@ export class FrigateCardLiveProvider
               .microphoneStream=${this.microphoneStream}
               .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this.liveConfig.controls.builtin}
+              @frigate-card:live:error=${() => this._providerErrorHandler()}
               @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
             >
             </frigate-card-live-go2rtc>`
@@ -336,6 +361,7 @@ export class FrigateCardLiveProvider
                 .cameraEndpoints=${this.cameraEndpoints}
                 .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this.liveConfig.controls.builtin}
+                @frigate-card:live:error=${() => this._providerErrorHandler()}
                 @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
               >
               </frigate-card-live-webrtc-card>`
@@ -347,6 +373,7 @@ export class FrigateCardLiveProvider
                   .cameraConfig=${this.cameraConfig}
                   .cameraEndpoints=${this.cameraEndpoints}
                   .cardWideConfig=${this.cardWideConfig}
+                  @frigate-card:live:error=${() => this._providerErrorHandler()}
                   @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
                 >
                 </frigate-card-live-jsmpeg>`

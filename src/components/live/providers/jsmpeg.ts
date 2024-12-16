@@ -1,21 +1,32 @@
 import JSMpeg from '@cycjimmy/jsmpeg-player';
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
 import { CameraEndpoints } from '../../../camera-manager/types.js';
-import { renderProgressIndicator } from '../../message.js';
+import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { CameraConfig, CardWideConfig } from '../../../config/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
-import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../../types.js';
-import { getEndpointAddressOrDispatchError } from '../../../utils/endpoint.js';
+import {
+  ExtendedHomeAssistant,
+  FrigateCardMediaPlayer,
+  Message,
+} from '../../../types.js';
+import { convertEndpointAddressToSignedWebsocket } from '../../../utils/endpoint.js';
 import {
   dispatchMediaLoadedEvent,
   dispatchMediaPauseEvent,
   dispatchMediaPlayEvent,
 } from '../../../utils/media-info.js';
 import { Timer } from '../../../utils/timer.js';
-import { dispatchErrorMessageEvent } from '../../message.js';
+import { renderMessage, renderProgressIndicator } from '../../message.js';
 
 // Number of seconds a signed URL is valid for.
 const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
@@ -39,6 +50,9 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
   protected _jsmpegCanvasElement?: HTMLCanvasElement;
   protected _jsmpegVideoPlayer?: JSMpeg.VideoElement;
   protected _refreshPlayerTimer = new Timer();
+
+  @state()
+  protected _message: Message | null = null;
 
   public async play(): Promise<void> {
     return this._jsmpegVideoPlayer?.play();
@@ -82,6 +96,14 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
 
   public async getScreenshotURL(): Promise<string | null> {
     return this._jsmpegCanvasElement?.toDataURL('image/jpeg') ?? null;
+  }
+
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (
+      ['cameraConfig', 'cameraEndpoints'].some((prop) => changedProperties.has(prop))
+    ) {
+      this._message = null;
+    }
   }
 
   /**
@@ -150,6 +172,7 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
    * Reset / destroy the player.
    */
   protected _resetPlayer(): void {
+    this._message = null;
     this._refreshPlayerTimer.stop();
     if (this._jsmpegVideoPlayer) {
       try {
@@ -199,18 +222,27 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
 
     const endpoint = this.cameraEndpoints?.jsmpeg;
     if (!endpoint) {
-      return dispatchErrorMessageEvent(this, localize('error.live_camera_no_endpoint'), {
+      this._message = {
+        message: localize('error.live_camera_no_endpoint'),
+        type: 'error',
         context: this.cameraConfig,
-      });
+      };
+      dispatchLiveErrorEvent(this);
+      return;
     }
 
-    const address = await getEndpointAddressOrDispatchError(
-      this,
+    const address = await convertEndpointAddressToSignedWebsocket(
       this.hass,
       endpoint,
       JSMPEG_URL_SIGN_EXPIRY_SECONDS,
     );
     if (!address) {
+      this._message = {
+        type: 'error',
+        message: localize('error.failed_sign'),
+        context: this.cameraConfig,
+      };
+      dispatchLiveErrorEvent(this);
       return;
     }
 
@@ -225,11 +257,23 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
    * Master render method.
    */
   protected render(): TemplateResult | void {
+    if (this._message) {
+      return renderMessage(this._message);
+    }
+
     const _render = async (): Promise<TemplateResult | void> => {
       await this._refreshPlayer();
 
       if (!this._jsmpegVideoPlayer || !this._jsmpegCanvasElement) {
-        return dispatchErrorMessageEvent(this, localize('error.jsmpeg_no_player'));
+        if (!this._message) {
+          this._message = {
+            message: localize('error.jsmpeg_no_player'),
+            type: 'error',
+            context: this.cameraConfig,
+          };
+          dispatchLiveErrorEvent(this);
+        }
+        return;
       }
       return html`${this._jsmpegCanvasElement}`;
     };

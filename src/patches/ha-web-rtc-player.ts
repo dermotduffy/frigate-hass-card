@@ -12,8 +12,8 @@
 import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
-import { screenshotMedia } from '../utils/screenshot.js';
-import { dispatchErrorMessageEvent } from '../components/message.js';
+import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
+import { renderMessage } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import { FrigateCardMediaPlayer } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
@@ -28,6 +28,7 @@ import {
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   setControlsOnVideo,
 } from '../utils/media.js';
+import { screenshotMedia } from '../utils/screenshot.js';
 
 customElements.whenDefined('ha-web-rtc-player').then(() => {
   @customElement('frigate-card-ha-web-rtc-player')
@@ -94,9 +95,14 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
     // =====================================================================================
     protected render(): TemplateResult | void {
       if (this._error) {
-        // Use native Frigate card error handling, and attach the entityid to
-        // clarify which camera the error refers to.
-        return dispatchErrorMessageEvent(this, `${this._error} (${this.entityid})`);
+        dispatchLiveErrorEvent(this);
+        return renderMessage({
+          type: 'error',
+          message: this._error,
+          context: {
+            entity_id: this.entityid,
+          },
+        });
       }
       return html`
         <video

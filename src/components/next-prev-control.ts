@@ -37,6 +37,9 @@ export class FrigateCardNextPreviousControl extends LitElement {
   // Label that is used for ARIA support and as tooltip.
   @property() label = '';
 
+  @state()
+  protected _thumbnailError = false;
+
   protected _embedThumbnailTask = createFetchThumbnailTask(
     this,
     () => this.hass,
@@ -49,7 +52,9 @@ export class FrigateCardNextPreviousControl extends LitElement {
     }
 
     const renderIcon =
-      !this.thumbnail || ['chevrons', 'icons'].includes(this._controlConfig.style);
+      !this.thumbnail ||
+      ['chevrons', 'icons'].includes(this._controlConfig.style) ||
+      this._thumbnailError;
 
     const classes = {
       controls: true,
@@ -62,7 +67,10 @@ export class FrigateCardNextPreviousControl extends LitElement {
 
     if (renderIcon) {
       const icon =
-        !this.thumbnail || !this.icon || this._controlConfig.style === 'chevrons'
+        !this.thumbnail ||
+        !this.icon ||
+        this._controlConfig.style === 'chevrons' ||
+        this._thumbnailError
           ? this.side === 'left'
             ? 'mdi:chevron-left'
             : 'mdi:chevron-right'
@@ -74,7 +82,6 @@ export class FrigateCardNextPreviousControl extends LitElement {
     }
 
     return renderTask(
-      this,
       this._embedThumbnailTask,
       (embeddedThumbnail: string | null) =>
         embeddedThumbnail
@@ -85,7 +92,13 @@ export class FrigateCardNextPreviousControl extends LitElement {
               aria-label="${this.label}"
             />`
           : html``,
-      { inProgressFunc: () => html`<div class=${classMap(classes)}></div>` },
+      {
+        inProgressFunc: () => html`<div class=${classMap(classes)}></div>`,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        errorFunc: (_e: Error) => {
+          this._thumbnailError = true;
+        },
+      },
     );
   }
 

@@ -6,17 +6,22 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../../../camera-manager/types.js';
+import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { CameraConfig, MicrophoneConfig } from '../../../../config/types.js';
 import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
-import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../../../types.js';
-import { getEndpointAddressOrDispatchError } from '../../../../utils/endpoint.js';
+import {
+  ExtendedHomeAssistant,
+  FrigateCardMediaPlayer,
+  Message,
+} from '../../../../types.js';
+import { convertEndpointAddressToSignedWebsocket } from '../../../../utils/endpoint.js';
 import { setControlsOnVideo } from '../../../../utils/media.js';
 import { screenshotMedia } from '../../../../utils/screenshot.js';
 import '../../../image.js';
-import { dispatchErrorMessageEvent } from '../../../message.js';
+import { renderMessage } from '../../../message.js';
 import { VideoRTC } from './video-rtc.js';
 
 customElements.define('frigate-card-live-go2rtc-player', VideoRTC);
@@ -47,6 +52,9 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
 
   @property({ attribute: true, type: Boolean })
   public controls = false;
+
+  @state()
+  protected _message: Message | null = null;
 
   protected _player?: VideoRTC;
 
@@ -96,6 +104,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
 
   disconnectedCallback(): void {
     this._player = undefined;
+    this._message = null;
   }
 
   connectedCallback(): void {
@@ -113,18 +122,27 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
 
     const endpoint = this.cameraEndpoints?.go2rtc;
     if (!endpoint) {
-      return dispatchErrorMessageEvent(this, localize('error.live_camera_no_endpoint'), {
+      this._message = {
+        type: 'error',
+        message: localize('error.live_camera_no_endpoint'),
         context: this.cameraConfig,
-      });
+      };
+      dispatchLiveErrorEvent(this);
+      return;
     }
 
-    const address = await getEndpointAddressOrDispatchError(
-      this,
+    const address = await convertEndpointAddressToSignedWebsocket(
       this.hass,
       endpoint,
       GO2RTC_URL_SIGN_EXPIRY_SECONDS,
     );
     if (!address) {
+      this._message = {
+        type: 'error',
+        message: localize('error.failed_sign'),
+        context: this.cameraConfig,
+      };
+      dispatchLiveErrorEvent(this);
       return;
     }
 
@@ -143,7 +161,11 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (!this._player || changedProps.has('cameraEndpoints')) {
+    if (changedProps.has('cameraEndpoints')) {
+      this._message = null;
+    }
+
+    if (!this._message && (!this._player || changedProps.has('cameraEndpoints'))) {
       this._createPlayer();
     }
 
@@ -163,6 +185,9 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   }
 
   protected render(): TemplateResult | void {
+    if (this._message) {
+      return renderMessage(this._message);
+    }
     return html`${this._player}`;
   }
 

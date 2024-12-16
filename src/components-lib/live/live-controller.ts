@@ -1,6 +1,6 @@
 import { LitElement, ReactiveController } from 'lit';
 import { FrigateCardMessageEventTarget } from '../../components/message.js';
-import { MediaLoadedInfo, Message } from '../../types.js';
+import { MediaLoadedInfo } from '../../types.js';
 import {
   FrigateCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
@@ -38,15 +38,10 @@ export class LiveController implements ReactiveController {
   // foreground and background (in preload mode).
   protected _intersectionObserver: IntersectionObserver;
 
-  // Whether or not to allow updates.
-  protected _messageReceived = false;
-
   // MediaLoadedInfo object and target from the underlying live media. In the
   // case of pre-loading these may be propagated later (from the original
   // source).
   protected _lastMediaLoadedInfo: LastMediaLoadedInfo | null = null;
-
-  protected _renderEpoch = 0;
 
   constructor(host: LiveControllerHost) {
     this._host = host;
@@ -58,49 +53,21 @@ export class LiveController implements ReactiveController {
     );
   }
 
-  public shouldUpdate(): boolean {
-    // Don't process updates if it's in the background and a message was
-    // received (otherwise an error message thrown by the background live
-    // component may continually be re-spammed hitting performance).
-    return !(this._inBackground && this._messageReceived);
-  }
-
   public hostConnected(): void {
     this._intersectionObserver.observe(this._host);
 
     this._host.addEventListener('frigate-card:media:loaded', this._handleMediaLoaded);
-    this._host.addEventListener('frigate-card:message', this._handleMessage);
   }
 
   public hostDisconnected(): void {
     this._intersectionObserver.disconnect();
 
     this._host.removeEventListener('frigate-card:media:loaded', this._handleMediaLoaded);
-    this._host.removeEventListener('frigate-card:message', this._handleMessage);
-  }
-
-  public clearMessageReceived(): void {
-    this._messageReceived = false;
   }
 
   public isInBackground(): boolean {
     return this._inBackground;
   }
-
-  public getRenderEpoch(): number {
-    return this._renderEpoch;
-  }
-
-  protected _handleMessage = (ev: CustomEvent<Message>): void => {
-    this._messageReceived = true;
-
-    if (this._inBackground) {
-      ev.stopPropagation();
-
-      // Force the whole DOM to re-render next time.
-      this._renderEpoch++;
-    }
-  };
 
   protected _handleMediaLoaded = (ev: CustomEvent<MediaLoadedInfo>): void => {
     this._lastMediaLoadedInfo = {
@@ -117,7 +84,7 @@ export class LiveController implements ReactiveController {
     const wasInBackground = this._inBackground;
     this._inBackground = !entries.some((entry) => entry.isIntersecting);
 
-    if (!this._inBackground && !this._messageReceived && this._lastMediaLoadedInfo) {
+    if (!this._inBackground && this._lastMediaLoadedInfo) {
       // If this isn't being rendered in the background, the last render did not
       // generate a message and there's a saved MediaInfo, dispatch it upwards.
       dispatchExistingMediaLoadedInfoAsEvent(
