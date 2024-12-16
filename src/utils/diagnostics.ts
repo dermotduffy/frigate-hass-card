@@ -47,13 +47,11 @@ export interface Diagnostics {
   ha_version?: string;
   config?: RawFrigateCardConfig;
 
-  integrations: {
+  custom_integrations: {
     frigate: IntegrationDiagnostics & {
       devices?: FrigateDevices;
     };
     hass_web_proxy: IntegrationDiagnostics;
-    reolink: IntegrationDiagnostics;
-    motioneye: IntegrationDiagnostics;
   };
 }
 
@@ -113,8 +111,7 @@ export const getDiagnostics = async (
       ...(pkg['gitDate'] && { commit_date: pkg['gitDate'] }),
     },
     ...(hass && { ha_version: hass.config.version }),
-    integrations: {
-      reolink: await getIntegrationDiagnostics('reolink', hass),
+    custom_integrations: {
       frigate: {
         ...(await getIntegrationDiagnostics('frigate', hass)),
         ...(frigateVersionMap.size && {
@@ -122,7 +119,6 @@ export const getDiagnostics = async (
         }),
       },
       hass_web_proxy: await getIntegrationDiagnostics(HASS_WEB_PROXY_DOMAIN, hass),
-      motioneye: await getIntegrationDiagnostics('motioneye', hass),
     },
     ...(rawConfig && { config: rawConfig }),
   };
