@@ -38,7 +38,7 @@ import { getTextDirection } from '../../utils/text-direction.js';
 import { ViewMedia } from '../../view/media.js';
 import '../carousel';
 import type { EmblaCarouselPlugins } from '../carousel.js';
-import { dispatchMessageEvent } from '../message.js';
+import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
 import '../ptz.js';
 import './provider.js';
@@ -348,8 +348,15 @@ export class FrigateCardViewerCarousel extends LitElement {
   protected render(): TemplateResult | void {
     const mediaCount = this._media?.length ?? 0;
     if (!this._media || !mediaCount) {
-      return dispatchMessageEvent(this, localize('common.no_media'), 'info', {
+      return renderMessage({
+        message: localize('common.no_media'),
+        type: 'info',
         icon: 'mdi:multimedia',
+        ...(this.viewFilterCameraID && {
+          context: {
+            camera_id: this.viewFilterCameraID,
+          },
+        }),
       });
     }
 

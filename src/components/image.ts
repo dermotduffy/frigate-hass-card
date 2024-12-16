@@ -8,7 +8,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import isEqual from 'lodash-es/isEqual';
@@ -18,7 +18,7 @@ import { CameraConfig, ImageMode, ImageViewConfig } from '../config/types.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
-import { FrigateCardMediaPlayer, MediaLoadedInfo } from '../types.js';
+import { FrigateCardMediaPlayer, MediaLoadedInfo, Message } from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { isHassDifferent } from '../utils/ha';
 import {
@@ -28,7 +28,7 @@ import {
   dispatchMediaPlayEvent,
 } from '../utils/media-info.js';
 import { View } from '../view/view.js';
-import { dispatchErrorMessageEvent } from './message.js';
+import { renderMessage } from './message.js';
 
 // See TOKEN_CHANGE_INTERVAL in https://github.com/home-assistant/core/blob/dev/homeassistant/components/camera/__init__.py .
 const HASS_REJECTION_CUTOFF_MS = 5 * 60 * 1000;
@@ -52,6 +52,9 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
   // config may be used here).
   @property({ attribute: false, hasChanged: contentsChanged })
   public imageConfig?: ImageViewConfig;
+
+  @state()
+  protected _message: Message | null = null;
 
   protected _refImage: Ref<HTMLImageElement> = createRef();
 
@@ -175,6 +178,10 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
     if (!this._cachedValueController?.value) {
       this._cachedValueController?.updateValue();
     }
+
+    if (['imageConfig', 'view'].some((prop) => changedProps.has(prop))) {
+      this._message = null;
+    }
   }
 
   /**
@@ -211,6 +218,7 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
    */
   disconnectedCallback(): void {
     this._cachedValueController?.stopTimer();
+    this._message = null;
     document.removeEventListener('visibilitychange', this._boundVisibilityHandler);
     super.disconnectedCallback();
   }
@@ -329,6 +337,10 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
   }
 
   protected render(): TemplateResult | void {
+    if (this._message) {
+      return renderMessage(this._message);
+    }
+
     const src = this._cachedValueController?.value;
     // Note the use of live() below to ensure the update will restore the image
     // src if it's been changed via _forceSafeImage().
@@ -363,9 +375,11 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
               } else if (mode === 'url') {
                 // In url mode, the user likely specified a URL that cannot be
                 // resolved. Show an error message.
-                dispatchErrorMessageEvent(this, localize('error.image_load_error'), {
+                this._message = {
+                  type: 'error',
+                  message: localize('error.image_load_error'),
                   context: this.imageConfig,
-                });
+                };
               }
             }}
           />

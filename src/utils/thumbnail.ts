@@ -43,7 +43,8 @@ const fetchThumbnail = async (
         };
         reader.onerror = (e) => reject(e);
         reader.readAsDataURL(blob);
-      });
+      })
+      .catch((e) => reject(e));
   });
 };
 

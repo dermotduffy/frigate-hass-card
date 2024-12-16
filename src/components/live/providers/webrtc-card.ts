@@ -1,13 +1,21 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { Task } from '@lit-labs/task';
-import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import {
+  CSSResultGroup,
+  html,
+  LitElement,
+  PropertyValues,
+  TemplateResult,
+  unsafeCSS,
+} from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../../camera-manager/types.js';
+import { dispatchLiveErrorEvent } from '../../../components-lib/live/utils/dispatch-live-error.js';
 import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get-technology-for-video-rtc.js';
 import { CameraConfig, CardWideConfig } from '../../../config/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
-import { FrigateCardError, FrigateCardMediaPlayer } from '../../../types.js';
+import { FrigateCardError, FrigateCardMediaPlayer, Message } from '../../../types.js';
 import { mayHaveAudio } from '../../../utils/audio.js';
 import {
   dispatchMediaLoadedEvent,
@@ -22,7 +30,7 @@ import {
 } from '../../../utils/media.js';
 import { screenshotMedia } from '../../../utils/screenshot.js';
 import { renderTask } from '../../../utils/task.js';
-import { dispatchErrorMessageEvent, renderProgressIndicator } from '../../message.js';
+import { renderMessage, renderProgressIndicator } from '../../message.js';
 import { VideoRTC } from './go2rtc/video-rtc.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
@@ -43,6 +51,9 @@ export class FrigateCardLiveWebRTCCard
 
   @property({ attribute: true, type: Boolean })
   public controls = false;
+
+  @state()
+  protected _message: Message | null = null;
 
   protected hass?: HomeAssistant;
 
@@ -106,6 +117,19 @@ export class FrigateCardLiveWebRTCCard
     this.requestUpdate();
   }
 
+  disconnectedCallback(): void {
+    this._message = null;
+    super.disconnectedCallback();
+  }
+
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (
+      ['cameraConfig', 'cameraEndpoints'].some((prop) => changedProperties.has(prop))
+    ) {
+      this._message = null;
+    }
+  }
+
   protected _getVideoRTC(): VideoRTC | null {
     return (this.renderRoot?.querySelector('#webrtc') ?? null) as VideoRTC | null;
   }
@@ -162,23 +186,28 @@ export class FrigateCardLiveWebRTCCard
     return null;
   }
 
-  /**
-   * Master render method.
-   * @returns A rendered template.
-   */
   protected render(): TemplateResult | void {
+    if (this._message) {
+      return renderMessage(this._message);
+    }
+
     const render = (): TemplateResult | void => {
       let webrtcElement: HTMLElement | null;
       try {
         webrtcElement = this._createWebRTC();
       } catch (e) {
-        return dispatchErrorMessageEvent(
-          this,
-          e instanceof FrigateCardError
-            ? e.message
-            : localize('error.webrtc_card_reported_error') + ': ' + (e as Error).message,
-          { context: (e as FrigateCardError).context },
-        );
+        this._message = {
+          type: 'error',
+          message:
+            e instanceof FrigateCardError
+              ? e.message
+              : localize('error.webrtc_card_reported_error') +
+                ': ' +
+                (e as Error).message,
+          context: (e as FrigateCardError).context,
+        };
+        dispatchLiveErrorEvent(this);
+        return;
       }
       if (webrtcElement) {
         // Set the id to ensure that the relevant CSS styles will have
@@ -192,7 +221,7 @@ export class FrigateCardLiveWebRTCCard
     // Use a task to allow us to asynchronously wait for the WebRTC card to
     // load, but yet still have the card load be followed by the updated()
     // lifecycle callback (unlike just using `until`).
-    return renderTask(this, this._webrtcTask, render, {
+    return renderTask(this._webrtcTask, render, {
       inProgressFunc: () =>
         renderProgressIndicator({
           message: localize('error.webrtc_card_waiting'),
@@ -201,9 +230,6 @@ export class FrigateCardLiveWebRTCCard
     });
   }
 
-  /**
-   * Updated lifecycle callback.
-   */
   public updated(): void {
     // Extract the video component after it has been rendered and generate the
     // media load event.
@@ -232,9 +258,6 @@ export class FrigateCardLiveWebRTCCard
     });
   }
 
-  /**
-   * Get styles.
-   */
   static get styles(): CSSResultGroup {
     return unsafeCSS(liveWebRTCCardStyle);
   }

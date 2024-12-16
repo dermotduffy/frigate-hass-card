@@ -152,12 +152,15 @@ export function renderProgressIndicator(options?: {
 }
 
 /**
- * Dispatch an event with a message to show to the user.
+ * Dispatch an event with a message to show to the user. Calling this method
+ * will grind the card to a halt, so should only be used for "global" / critical
+ * errors (i.e. not for individual errors with a given camera, since there may
+ * be multiple correctly functioning cameras in a grid).
  * @param element The element to send the event.
  * @param message The message to show.
  * @param options Optional icon and context to include.
  */
-export function dispatchMessageEvent(
+function dispatchMessageEvent(
   element: EventTarget,
   message: string,
   type: MessageType,
@@ -175,12 +178,15 @@ export function dispatchMessageEvent(
 }
 
 /**
- * Dispatch an event with an error message to show to the user.
+ * Dispatch an event with an error message to show to the user. Calling this
+ * method will grind the card to a halt, so should only be used for "global" /
+ * critical errors (i.e. not for individual errors with a given camera, since
+ * there may be multiple correctly functioning cameras in a grid).
  * @param element The element to send the event.
  * @param message The message to show.
  * @param options Optional context to include.
  */
-export function dispatchErrorMessageEvent(
+function dispatchErrorMessageEvent(
   element: EventTarget,
   message: string,
   options?: {
@@ -193,7 +199,10 @@ export function dispatchErrorMessageEvent(
 }
 
 /**
- * Dispatch an event with an error message to show to the user.
+ * Dispatch an event with an error message to show to the user. Calling this
+ * method will grind the card to a halt, so should only be used for "global" /
+ * critical errors (i.e. not for individual errors with a given camera, since
+ * there may be multiple correctly functioning cameras in a grid).
  * @param element The element to send the event.
  * @param message The message to show.
  */

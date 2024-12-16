@@ -5,7 +5,6 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraConfig } from '../../../config/types';
 import basicBlockStyle from '../../../scss/basic-block.scss';
 import { FrigateCardMediaPlayer } from '../../../types.js';
-import { getStateObjOrDispatchError } from '../../../utils/get-state-obj';
 import '../../image.js';
 
 @customElement('frigate-card-live-image')
@@ -58,8 +57,6 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     if (!this.hass || !this.cameraConfig) {
       return;
     }
-
-    getStateObjOrDispatchError(this, this.hass, this.cameraConfig);
 
     return html`
       <frigate-card-image

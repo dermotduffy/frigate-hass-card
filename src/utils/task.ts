@@ -1,9 +1,6 @@
 import { Task } from '@lit-labs/task';
 import { html, TemplateResult } from 'lit';
-import {
-  dispatchFrigateCardErrorEvent,
-  renderProgressIndicator,
-} from '../components/message';
+import { renderProgressIndicator } from '../components/message';
 import { CardWideConfig } from '../config/types';
 import { errorToConsole } from './basic';
 
@@ -16,12 +13,12 @@ import { errorToConsole } from './basic';
  * @returns A template.
  */
 export const renderTask = <R>(
-  host: EventTarget,
   task: Task<unknown[], R>,
   completeFunc: (result: R) => TemplateResult | void,
   options?: {
     cardWideConfig?: CardWideConfig;
     inProgressFunc?: () => TemplateResult | void;
+    errorFunc?: (e: Error) => void;
   },
 ): TemplateResult => {
   const progressConfig = {
@@ -34,7 +31,9 @@ export const renderTask = <R>(
       options?.inProgressFunc?.() ?? renderProgressIndicator(progressConfig),
     error: (e: unknown) => {
       errorToConsole(e as Error);
-      dispatchFrigateCardErrorEvent(host, e as Error);
+      if (options?.errorFunc) {
+        options.errorFunc(e as Error);
+      }
     },
     complete: completeFunc,
   })}`;

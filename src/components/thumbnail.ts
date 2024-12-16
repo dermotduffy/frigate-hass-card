@@ -8,7 +8,7 @@ import {
   TemplateResult,
   unsafeCSS,
 } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../camera-manager/types.js';
@@ -44,6 +44,9 @@ export class FrigateCardThumbnailFeatureThumbnail extends LitElement {
 
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
+
+  @state()
+  protected _thumbnailError = false;
 
   protected _embedThumbnailTask?: Task<FetchThumbnailTaskArgs, string | null>;
 
@@ -107,17 +110,21 @@ export class FrigateCardThumbnailFeatureThumbnail extends LitElement {
       title=${localize('thumbnail.no_thumbnail')}
     ></ha-icon> `;
 
-    if (!this._embedThumbnailTask) {
+    if (!this._embedThumbnailTask || this._thumbnailError) {
       return imageOff;
     }
 
     return html`${this.thumbnail
       ? renderTask(
-          this,
           this._embedThumbnailTask,
           (embeddedThumbnail: string | null) =>
             embeddedThumbnail ? html`<img src="${embeddedThumbnail}" />` : html``,
-          { inProgressFunc: () => imageOff },
+          {
+            inProgressFunc: () => imageOff,
+            errorFunc: () => {
+              this._thumbnailError = true;
+            },
+          },
         )
       : imageOff} `;
   }

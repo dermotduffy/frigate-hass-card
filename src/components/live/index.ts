@@ -1,13 +1,5 @@
-import {
-  CSSResultGroup,
-  html,
-  LitElement,
-  PropertyValues,
-  TemplateResult,
-  unsafeCSS,
-} from 'lit';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { keyed } from 'lit/directives/keyed.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ConditionsManagerEpoch } from '../../card-controller/conditions-manager.js';
 import { ReadonlyMicrophoneManager } from '../../card-controller/microphone-manager.js';
@@ -53,15 +45,6 @@ export class FrigateCardLive extends LitElement {
 
   protected _controller = new LiveController(this);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected shouldUpdate(_changedProps: PropertyValues): boolean {
-    return this._controller.shouldUpdate();
-  }
-
-  protected willUpdate(): void {
-    this._controller.clearMessageReceived();
-  }
-
   protected render(): TemplateResult | void {
     if (!this.hass || !this.nonOverriddenLiveConfig || !this.cameraManager) {
       return;
@@ -73,28 +56,22 @@ export class FrigateCardLive extends LitElement {
     //   carousel (not necessarily the selected camera).
     // - Various events are captured to prevent them propagating upwards if the
     //   card is in the background.
-    // - The entire returned template is keyed to allow for the whole template
-    //   to be re-rendered in certain circumstances (specifically: if a message
-    //   is received when the card is in the background).
-    return html`${keyed(
-      this._controller.getRenderEpoch(),
-      html`
-        <frigate-card-live-grid
-          .hass=${this.hass}
-          .viewManagerEpoch=${this.viewManagerEpoch}
-          .nonOverriddenLiveConfig=${this.nonOverriddenLiveConfig}
-          .overriddenLiveConfig=${this.overriddenLiveConfig}
-          .inBackground=${this._controller.isInBackground()}
-          .conditionsManagerEpoch=${this.conditionsManagerEpoch}
-          .overrides=${this.overrides}
-          .cardWideConfig=${this.cardWideConfig}
-          .cameraManager=${this.cameraManager}
-          .microphoneManager=${this.microphoneManager}
-          .triggeredCameraIDs=${this.triggeredCameraIDs}
-        >
-        </frigate-card-live-grid>
-      `,
-    )}`;
+    return html`
+      <frigate-card-live-grid
+        .hass=${this.hass}
+        .viewManagerEpoch=${this.viewManagerEpoch}
+        .nonOverriddenLiveConfig=${this.nonOverriddenLiveConfig}
+        .overriddenLiveConfig=${this.overriddenLiveConfig}
+        .inBackground=${this._controller.isInBackground()}
+        .conditionsManagerEpoch=${this.conditionsManagerEpoch}
+        .overrides=${this.overrides}
+        .cardWideConfig=${this.cardWideConfig}
+        .cameraManager=${this.cameraManager}
+        .microphoneManager=${this.microphoneManager}
+        .triggeredCameraIDs=${this.triggeredCameraIDs}
+      >
+      </frigate-card-live-grid>
+    `;
   }
 
   static get styles(): CSSResultGroup {

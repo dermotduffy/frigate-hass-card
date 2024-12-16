@@ -12,7 +12,8 @@
 import { css, CSSResultGroup, html, TemplateResult, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
-import { dispatchErrorMessageEvent } from '../components/message.js';
+import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
+import { renderMessage } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 import { FrigateCardMediaPlayer } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
@@ -97,8 +98,14 @@ customElements.whenDefined('ha-hls-player').then(() => {
     protected render(): TemplateResult {
       if (this._error) {
         if (this._errorIsFatal) {
-          // Use native Frigate card error handling for fatal errors.
-          return dispatchErrorMessageEvent(this, this._error);
+          dispatchLiveErrorEvent(this);
+          return renderMessage({
+            type: 'error',
+            message: this._error,
+            context: {
+              entity_id: this.entityid,
+            },
+          });
         } else {
           errorToConsole(this._error, console.error);
         }
