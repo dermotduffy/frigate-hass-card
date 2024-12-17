@@ -271,7 +271,12 @@ export class FrigateCardLiveProvider
       hidden: showImageDuringLoading,
     };
 
-    if (provider === 'ha' || provider === 'image') {
+    if (
+      provider === 'ha' ||
+      provider === 'image' ||
+      (this.cameraConfig?.camera_entity &&
+        this.cameraConfig.always_error_if_entity_unavailable)
+    ) {
       if (!this.cameraConfig?.camera_entity) {
         dispatchLiveErrorEvent(this);
         return renderMessage({

@@ -15,6 +15,7 @@ describe('config defaults', () => {
     expect(createConfig()).toEqual({
       cameras: [{}],
       cameras_global: {
+        always_error_if_entity_unavailable: false,
         dependencies: {
           all_cameras: false,
           cameras: [],
