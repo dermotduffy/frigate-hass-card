@@ -1359,6 +1359,7 @@ const cameraConfigDefault = {
     ssl_verification: 'auto' as const,
     ssl_ciphers: 'auto' as const,
   },
+  always_error_if_entity_unavailable: false,
 };
 
 const SSL_CIPHERS = ['default', 'insecure', 'intermediate', 'modern'] as const;
@@ -1485,6 +1486,11 @@ export const cameraConfigSchema = z
       .optional(),
 
     proxy: proxyConfigSchema.default(cameraConfigDefault.proxy),
+
+    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1650
+    always_error_if_entity_unavailable: z
+      .boolean()
+      .default(cameraConfigDefault.always_error_if_entity_unavailable),
   })
   .default(cameraConfigDefault);
 export type CameraConfig = z.infer<typeof cameraConfigSchema>;
