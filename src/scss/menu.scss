@@ -10,6 +10,9 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+
+  // Allow submenus to overflow the menu "bar".
+  overflow: visible;
 }
 
 /*******************************************************
@@ -112,20 +115,6 @@ div.opposing {
 /********************************************
  * Positioning for absolute based menu styles
  ********************************************/
-
-:host([data-style='overlay']),
-:host([data-style*='hover']),
-:host([data-style='hidden']) {
-  overflow: hidden;
-  width: calc(var(--frigate-card-menu-button-size) + 6px);
-  height: calc(var(--frigate-card-menu-button-size) + 6px);
-}
-
-:host([data-style='overlay']),
-:host([data-style*='hover']),
-:host([data-style='hidden'][expanded]) {
-  overflow: visible;
-}
 
 :host([data-style='overlay'][data-position='top']),
 :host([data-style='overlay'][data-position='bottom']),
