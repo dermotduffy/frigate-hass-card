@@ -2,11 +2,10 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { describe, expect, it, vi } from 'vitest';
 import {
   canonicalizeHAURL,
-  getEntityIcon,
   hasHAConnectionStateChanged,
   isHARelativeURL,
 } from '../../../src/utils/ha/index.js';
-import { createHASS, createStateEntity } from '../../test-utils.js';
+import { createHASS } from '../../test-utils.js';
 
 const createConnected = (connected: boolean): HomeAssistant => {
   const hass = createHASS();
@@ -46,27 +45,6 @@ describe('hasHAConnectionStateChanged', () => {
   });
   it('still absent', () => {
     expect(hasHAConnectionStateChanged(null, null)).toBeFalsy();
-  });
-});
-
-describe('getEntityIcon', () => {
-  it('should get icon from attributes', () => {
-    expect(
-      getEntityIcon(
-        createHASS({
-          'camera.test': createStateEntity({
-            attributes: {
-              icon: 'mdi:cow',
-            },
-          }),
-        }),
-        'camera.test',
-      ),
-    ).toBe('mdi:cow');
-  });
-
-  it('should get icon from domain', () => {
-    expect(getEntityIcon(createHASS(), 'camera.test')).toBe('mdi:video');
   });
 });
 

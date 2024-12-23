@@ -14,6 +14,7 @@ import drawerInjectStyle from '../scss/drawer-inject.scss';
 import drawerStyle from '../scss/drawer.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import { getChildrenFromElement, isHoverableDevice } from '../utils/basic';
+import './icon';
 
 export interface DrawerIcons {
   open?: string;
@@ -121,11 +122,13 @@ export class FrigateCardDrawer extends LitElement {
                   this.open = !this.open;
                 }}
               >
-                <ha-icon
+                <frigate-card-icon
                   class="control"
-                  icon="${this.open
-                    ? this.icons?.open ?? 'mdi:menu-open'
-                    : this.icons?.closed ?? 'mdi:menu'}"
+                  .icon="${{
+                    icon: this.open
+                      ? this.icons?.open ?? 'mdi:menu-open'
+                      : this.icons?.closed ?? 'mdi:menu',
+                  }}"
                   @mouseenter=${() => {
                     // Only open the drawer on mousenter when the device
                     // supports hover (otherwise iOS may end up passing on
@@ -136,7 +139,7 @@ export class FrigateCardDrawer extends LitElement {
                     }
                   }}
                 >
-                </ha-icon>
+                </frigate-card-icon>
               </div>
             `
           : ''}

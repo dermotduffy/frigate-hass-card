@@ -13,16 +13,21 @@ import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../config/types.js';
 import submenuStyle from '../scss/submenu.scss';
-import { StateParameters } from '../types.js';
 import {
   frigateCardHasAction,
   stopEventFromActivatingCardWideActions,
 } from '../utils/action.js';
-import { getCustomIconURL } from '../utils/custom-icons.js';
-import { isHassDifferent, refreshDynamicStateParameters } from '../utils/ha';
+import { getEntityTitle, isHassDifferent } from '../utils/ha';
 import { getEntityStateTranslation } from '../utils/ha/entity-state-translation.js';
 import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
-import { domainIcon } from '../utils/icons/domain-icon.js';
+import './icon.js';
+import { Icon } from '../types.js';
+
+interface ExtendedMenuSubmenu extends MenuSubmenu {
+  // An internal version of a submenu that allows entity-based submenus (for
+  // FrigateCardSubmenuSelect).
+  icon: string | Icon;
+}
 
 @customElement('frigate-card-submenu')
 export class FrigateCardSubmenu extends LitElement {
@@ -30,47 +35,23 @@ export class FrigateCardSubmenu extends LitElement {
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
-  public submenu?: MenuSubmenu;
+  public submenu?: ExtendedMenuSubmenu;
 
   protected _renderItem(item: MenuSubmenuItem): TemplateResult | void {
     if (!this.hass) {
       return;
     }
-    const stateParameters = refreshDynamicStateParameters(this.hass, {
-      ...item,
-    } as StateParameters);
-    const getIcon = (stateParameters: StateParameters): TemplateResult => {
-      if (stateParameters.icon) {
-        const url = getCustomIconURL(stateParameters.icon);
-        return url
-          ? html`<img
-              style="${styleMap(stateParameters.style || {})}"
-              data-domain=${ifDefined(stateParameters.data_domain)}
-              data-state=${ifDefined(stateParameters.data_state)}
-              slot="graphic"
-              src=${url}
-            />`
-          : html` <ha-icon
-              style="${styleMap(stateParameters.style || {})}"
-              data-domain=${ifDefined(stateParameters.data_domain)}
-              data-state=${ifDefined(stateParameters.data_state)}
-              slot="graphic"
-              icon="${stateParameters.icon || ''}"
-            >
-            </ha-icon>`;
-      }
-      return html``;
-    };
 
+    const title = item.title ?? getEntityTitle(this.hass, item.entity);
     return html`
       <mwc-list-item
-        style="${styleMap(stateParameters.style || {})}"
-        graphic=${ifDefined(stateParameters.icon ? 'icon' : undefined)}
+        style="${styleMap(item.style || {})}"
+        graphic=${ifDefined(item.icon || item.entity ? 'icon' : undefined)}
         ?twoline=${!!item.subtitle}
         ?selected=${item.selected}
         ?activated=${item.selected}
         ?disabled=${item.enabled === false}
-        aria-label="${stateParameters.title || ''}"
+        aria-label="${title ?? ''}"
         @action=${(ev) => {
           // Attach the action config so ascendants have access to it.
           ev.detail.config = item;
@@ -80,9 +61,17 @@ export class FrigateCardSubmenu extends LitElement {
           hasDoubleClick: frigateCardHasAction(item.double_tap_action),
         })}
       >
-        <span>${stateParameters.title || ''}</span>
+        <span>${title ?? ''}</span>
         ${item.subtitle ? html`<span slot="secondary">${item.subtitle}</span>` : ''}
-        ${getIcon(stateParameters)}
+        <frigate-card-icon
+          slot="graphic"
+          .hass=${this.hass}
+          .icon=${{
+            icon: item.icon,
+            entity: item.entity,
+          }}
+          style="${styleMap(item.style || {})}"
+        ></frigate-card-icon>
       </mwc-list-item>
     `;
   }
@@ -118,7 +107,14 @@ export class FrigateCardSubmenu extends LitElement {
             hasDoubleClick: frigateCardHasAction(this.submenu.double_tap_action),
           })}
         >
-          <ha-icon icon="${this.submenu.icon}"></ha-icon>
+          <frigate-card-icon
+            .hass=${this.hass}
+            .icon=${typeof this.submenu.icon === 'string'
+              ? {
+                  icon: this.submenu.icon,
+                }
+              : this.submenu.icon}
+          ></frigate-card-icon>
         </ha-icon-button>
         ${items.map(this._renderItem.bind(this))}
       </ha-button-menu>
@@ -207,17 +203,18 @@ export class FrigateCardSubmenuSelect extends LitElement {
       return;
     }
 
+    const title = getEntityTitle(this.hass, entityID);
     const submenu: MenuSubmenu = {
-      // Default icon. It should be impossible for this to be used, since
-      // this.submenuSelect will always have an entity, which means
-      // refreshDynamicStateParameters will always return an icon.
-      icon: domainIcon('select'),
-
-      // Pull out the dynamic properties (like icon, and title) from the state.
-      ...refreshDynamicStateParameters(this.hass, this.submenuSelect as StateParameters),
+      ...(title && { title }),
 
       // Override it with anything explicitly set in the submenuSelect.
       ...this.submenuSelect,
+
+      icon: {
+        icon: this.submenuSelect.icon,
+        entity: entityID,
+        fallback: 'mdi:format-list-bulleted',
+      },
 
       type: 'custom:frigate-card-menu-submenu',
       items: [],

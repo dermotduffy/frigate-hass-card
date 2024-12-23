@@ -174,12 +174,15 @@ div.vis-tooltip {
 .timeline-tools {
   display: inline-flex;
   position: absolute;
-  right: 2px;
-  bottom: 2px;
+  right: 0px;
+  bottom: 0px;
   color: var(--primary-color);
   z-index: 10;
 }
-
-.timeline-tools ha-icon {
+.timeline-tools * {
+  margin: 2px 5px;
   cursor: pointer;
+}
+.timeline-tools *:last-child {
+  margin-right: 10px;
 }

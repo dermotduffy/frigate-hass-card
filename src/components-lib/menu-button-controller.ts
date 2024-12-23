@@ -23,7 +23,7 @@ import {
 } from '../utils/action';
 import { isTruthy } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
-import { getEntityIcon, getEntityTitle } from '../utils/ha';
+import { getEntityTitle } from '../utils/ha';
 import { getPTZTarget } from '../utils/ptz';
 import { getStreamCameraID, hasSubstream } from '../utils/substream';
 import { View } from '../view/view';
@@ -134,30 +134,27 @@ export class MenuButtonController {
     // current view for a less surprising UX.
     const menuCameraIDs = cameraManager.getStore().getCameraIDsWithCapability('menu');
     if (menuCameraIDs.size > 1) {
-      const menuItems = Array.from(
-        cameraManager.getStore().getCameraConfigEntries(menuCameraIDs),
-        ([cameraID, config]) => {
-          const action = createCameraAction('camera_select', cameraID);
-          const metadata = cameraManager.getCameraMetadata(cameraID);
+      const submenuItems = Array.from(menuCameraIDs, (cameraID) => {
+        const action = createCameraAction('camera_select', cameraID);
+        const metadata = cameraManager.getCameraMetadata(cameraID);
 
-          return {
-            enabled: true,
-            icon: metadata?.icon,
-            entity: config.camera_entity,
-            state_color: true,
-            title: metadata?.title,
-            selected: view?.camera === cameraID,
-            ...(action && { tap_action: action }),
-          };
-        },
-      );
+        return {
+          enabled: true,
+          icon: metadata?.icon.icon,
+          entity: metadata?.icon.entity,
+          state_color: true,
+          title: metadata?.title,
+          selected: view?.camera === cameraID,
+          ...(action && { tap_action: action }),
+        };
+      });
 
       return {
         icon: 'mdi:video-switch',
         ...config.menu.buttons.cameras,
         type: 'custom:frigate-card-menu-submenu',
         title: localize('config.menu.buttons.cameras'),
-        items: menuItems,
+        items: submenuItems,
       };
     }
     return null;
@@ -201,11 +198,10 @@ export class MenuButtonController {
         const menuItems = Array.from(streams, (streamID) => {
           const action = createCameraAction('live_substream_select', streamID);
           const metadata = cameraManager.getCameraMetadata(streamID) ?? undefined;
-          const cameraConfig = cameraManager.getStore().getCameraConfig(streamID);
           return {
             enabled: true,
-            icon: metadata?.icon,
-            entity: cameraConfig?.camera_entity,
+            icon: metadata?.icon.icon,
+            entity: metadata?.icon.entity,
             state_color: true,
             title: metadata?.title,
             selected: substreamAwareCameraID === streamID,
@@ -465,7 +461,6 @@ export class MenuButtonController {
           return {
             enabled: true,
             selected: false,
-            icon: getEntityIcon(hass, playerEntityID),
             entity: playerEntityID,
             state_color: false,
             title: title,

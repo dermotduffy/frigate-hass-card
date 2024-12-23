@@ -45,7 +45,7 @@ export class StatusBarItemManager {
     const cameraMetadata = options?.view
       ? options?.cameraManager?.getCameraMetadata(options?.view?.camera)
       : null;
-    const engineLogoIcon = cameraMetadata?.engineLogo ?? null;
+    const engineIcon = cameraMetadata?.engineIcon ?? null;
     const title = options?.view?.is('live')
       ? cameraMetadata?.title ?? null
       : options?.view?.isViewerView()
@@ -99,11 +99,11 @@ export class StatusBarItemManager {
             ]
           : []),
 
-      ...(engineLogoIcon
+      ...(engineIcon
         ? [
             {
-              type: 'custom:frigate-card-status-bar-image' as const,
-              image: engineLogoIcon,
+              type: 'custom:frigate-card-status-bar-icon' as const,
+              icon: engineIcon,
               ...options?.statusConfig?.items.engine,
             },
           ]

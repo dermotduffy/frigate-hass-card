@@ -5,7 +5,7 @@ import { StateWatcherSubscriptionInterface } from '../../card-controller/hass/st
 import { PTZAction } from '../../config/ptz';
 import { ActionPhase, CameraConfig } from '../../config/types';
 import { ExtendedHomeAssistant } from '../../types';
-import { getEntityIcon, getEntityTitle } from '../../utils/ha';
+import { getEntityTitle } from '../../utils/ha';
 import { ViewMedia } from '../../view/media';
 import { Camera } from '../camera';
 import { Capabilities } from '../capabilities';
@@ -202,9 +202,11 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
         getEntityTitle(hass, cameraConfig.webrtc_card?.entity) ??
         cameraConfig.id ??
         '',
-      icon:
-        cameraConfig?.icon ??
-        (cameraEntity ? getEntityIcon(hass, cameraEntity, 'mdi:video') : 'mdi:video'),
+      icon: {
+        entity: cameraEntity ?? undefined,
+        icon: cameraConfig.icon,
+        fallback: 'mdi:video',
+      },
     };
   }
 

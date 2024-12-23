@@ -11,6 +11,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import {
   CameraConfig,
@@ -26,11 +27,11 @@ import { aspectRatioToString } from '../../utils/basic.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
 import { playMediaMutingIfNecessary } from '../../utils/media.js';
+import '../icon.js';
 import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
 import '../ptz.js';
 import '../surround.js';
-import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 
 @customElement('frigate-card-live-provider')
 export class FrigateCardLiveProvider
@@ -385,10 +386,10 @@ export class FrigateCardLiveProvider
               : html``}
     `)}
     ${showImageDuringLoading && !this._isVideoMediaLoaded
-      ? html`<ha-icon
+      ? html`<frigate-card-icon
           title=${localize('error.awaiting_live')}
-          icon="mdi:progress-helper"
-        ></ha-icon>`
+          .icon=${{ icon: 'mdi:progress-helper' }}
+        ></frigate-card-icon>`
       : ''} `;
   }
 

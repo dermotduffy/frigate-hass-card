@@ -259,8 +259,12 @@ describe('ReolinkCameraManagerEngine', () => {
     });
     const engine = createEngine();
     expect(engine.getCameraMetadata(createHASS(), cameraConfig)).toEqual({
-      engineLogo: '/src/camera-manager/reolink/assets/reolink.svg',
-      icon: 'mdi:camera',
+      engineIcon: 'reolink',
+      icon: {
+        icon: 'mdi:camera',
+        entity: 'camera.office',
+        fallback: 'mdi:video',
+      },
       title: 'Office',
     });
   });

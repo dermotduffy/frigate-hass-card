@@ -285,7 +285,7 @@ describe('config defaults', () => {
         },
       },
       status_bar: {
-        height: 46,
+        height: 30,
         items: {
           engine: {
             enabled: true,

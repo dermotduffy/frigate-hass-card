@@ -84,11 +84,11 @@
 /***********
  * PTZ Icons
  ***********/
-ha-icon {
+frigate-card-icon {
   position: absolute;
   --mdc-icon-size: var(--frigate-card-ptz-icon-size);
 }
-ha-icon:not(.disabled) {
+frigate-card-icon:not(.disabled) {
   cursor: pointer;
 }
 .disabled {

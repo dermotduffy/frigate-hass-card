@@ -5,6 +5,7 @@ import { localize } from '../localize/localize';
 import datePickerStyle from '../scss/date-picker.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import { dispatchFrigateCardEvent } from '../utils/basic';
+import './icon';
 
 export interface DatePickerEvent {
   date: Date | null;
@@ -44,16 +45,16 @@ export class FrigateCardDatePicker extends LitElement {
         @input=${() => changed()}
         @change=${() => changed()}
       />
-      <ha-icon
+      <frigate-card-icon
         aria-label="${localize('timeline.select_date')}"
         title="${localize('timeline.select_date')}"
-        .icon=${this.icon ?? `mdi:calendar-search`}
+        .icon=${{ icon: this.icon ?? `mdi:calendar-search` }}
         @click=${(ev: Event) => {
           stopEventFromActivatingCardWideActions(ev);
           this._refInput.value?.showPicker();
         }}
       >
-      </ha-icon>`;
+      </frigate-card-icon>`;
   }
 
   static get styles(): CSSResultGroup {

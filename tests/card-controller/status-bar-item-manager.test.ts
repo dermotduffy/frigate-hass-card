@@ -59,7 +59,7 @@ describe('StatusBarItemManager', () => {
           const cameraManager = createCameraManager(store);
           vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
             title: 'Camera Title',
-            icon: 'mdi:camera',
+            icon: { icon: 'mdi:camera' },
           });
 
           expect(
@@ -225,8 +225,10 @@ describe('StatusBarItemManager', () => {
       const cameraManager = createCameraManager(store);
       vi.mocked(cameraManager.getCameraMetadata).mockReturnValue({
         title: 'Camera Title',
-        icon: 'mdi:camera',
-        engineLogo: 'IMAGE_LOGO',
+        icon: {
+          icon: 'mdi:camera',
+        },
+        engineIcon: 'ENGINE_ICON',
       });
 
       expect(
@@ -235,8 +237,8 @@ describe('StatusBarItemManager', () => {
           view: createView({ view: 'live', camera: 'camera-1' }),
         }),
       ).toContainEqual({
-        type: 'custom:frigate-card-status-bar-image' as const,
-        image: 'IMAGE_LOGO',
+        type: 'custom:frigate-card-status-bar-icon' as const,
+        icon: 'ENGINE_ICON',
       });
     });
   });

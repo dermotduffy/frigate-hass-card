@@ -17,6 +17,7 @@ import { Actions, PTZControlsConfig } from '../config/types.js';
 import { localize } from '../localize/localize.js';
 import ptzStyle from '../scss/ptz.scss';
 import { frigateCardHasAction } from '../utils/action.js';
+import './icon.js';
 
 @customElement('frigate-card-ptz')
 export class FrigateCardPTZ extends LitElement {
@@ -67,9 +68,9 @@ export class FrigateCardPTZ extends LitElement {
       };
 
       return actions
-        ? html`<ha-icon
+        ? html`<frigate-card-icon
             class=${classMap(classes)}
-            icon=${icon}
+            .icon=${{ icon: icon }}
             .actionHandler=${actionHandler({
               hasHold: frigateCardHasAction(actions?.hold_action),
               hasDoubleClick: frigateCardHasAction(actions?.double_tap_action),
@@ -77,7 +78,7 @@ export class FrigateCardPTZ extends LitElement {
             .title=${localize(`elements.ptz.${name}`)}
             @action=${(ev: HASSDomEvent<{ action: string }>) =>
               this._controller.handleAction(ev, actions)}
-          ></ha-icon>`
+          ></frigate-card-icon>`
         : html``;
     };
 

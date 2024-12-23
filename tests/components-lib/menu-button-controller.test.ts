@@ -127,7 +127,9 @@ describe('MenuButtonController', () => {
       );
       vi.mocked(cameraManager).getCameraMetadata.mockReturnValue({
         title: 'title',
-        icon: 'icon',
+        icon: {
+          icon: 'icon',
+        },
       });
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
@@ -178,7 +180,9 @@ describe('MenuButtonController', () => {
       );
       vi.mocked(cameraManager).getCameraMetadata.mockReturnValue({
         title: 'title',
-        icon: 'icon',
+        icon: {
+          icon: 'icon',
+        },
       });
       const buttons = calculateButtons(controller, { cameraManager: cameraManager });
 
@@ -332,7 +336,10 @@ describe('MenuButtonController', () => {
           return cameraID === 'camera-1'
             ? {
                 title: 'title',
-                icon: 'icon',
+                icon: {
+                  icon: 'icon',
+                  entity: 'entity',
+                },
               }
             : null;
         },
@@ -351,7 +358,7 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             icon: 'icon',
-            entity: 'camera.1',
+            entity: 'entity',
             state_color: true,
             title: 'title',
             selected: true,
@@ -364,7 +371,7 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             icon: undefined,
-            entity: 'camera.2',
+            entity: undefined,
             state_color: true,
             title: undefined,
             selected: false,
@@ -377,7 +384,7 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             icon: undefined,
-            entity: 'camera.3',
+            entity: undefined,
             state_color: true,
             title: undefined,
             selected: false,
@@ -443,7 +450,7 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             icon: undefined,
-            entity: 'camera.1',
+            entity: undefined,
             state_color: true,
             title: undefined,
             selected: false,
@@ -456,7 +463,7 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             icon: undefined,
-            entity: 'camera.2',
+            entity: undefined,
             state_color: true,
             title: undefined,
             // camera-2 is selected in this test scenario because of the view
@@ -471,7 +478,7 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             icon: undefined,
-            entity: 'camera.3',
+            entity: undefined,
             state_color: true,
             title: undefined,
             selected: false,
@@ -1212,7 +1219,6 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             selected: false,
-            icon: 'mdi:cast',
             entity: 'media_player.tv',
             state_color: false,
             title: 'media_player.tv',
@@ -1266,7 +1272,6 @@ describe('MenuButtonController', () => {
           {
             enabled: true,
             selected: false,
-            icon: 'mdi:bookmark',
             entity: 'not_a_real_player',
             state_color: false,
             title: 'not_a_real_player',

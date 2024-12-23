@@ -69,6 +69,7 @@ import { MediaQueriesResults } from '../view/media-queries-results';
 import { mergeViewContext } from '../view/view';
 import './date-picker.js';
 import { DatePickerEvent, FrigateCardDatePicker } from './date-picker.js';
+import './icon';
 import './thumbnail.js';
 
 interface FrigateCardGroupData {
@@ -304,8 +305,8 @@ export class FrigateCardTimelineCore extends LitElement {
     >
       <div class="timeline-tools">
         ${this._shouldSupportSeeking()
-          ? html` <ha-icon
-              .icon=${panIcon}
+          ? html` <frigate-card-icon
+              .icon=${{ icon: panIcon }}
               @click=${() => {
                 this._panMode =
                   panMode === 'pan'
@@ -319,7 +320,7 @@ export class FrigateCardTimelineCore extends LitElement {
               aria-label="${panTitle}"
               title="${panTitle}"
             >
-            </ha-icon>`
+            </frigate-card-icon>`
           : ''}
         <frigate-card-date-picker
           ${ref(this._refDatePicker)}

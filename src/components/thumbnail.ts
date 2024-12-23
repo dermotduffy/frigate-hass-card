@@ -105,10 +105,10 @@ export class FrigateCardThumbnailFeatureThumbnail extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    const imageOff = html`<ha-icon
-      icon="mdi:image-off"
+    const imageOff = html`<frigate-card-icon
+      .icon=${{ icon: 'mdi:image-off' }}
       title=${localize('thumbnail.no_thumbnail')}
-    ></ha-icon> `;
+    ></frigate-card-icon> `;
 
     if (!this._embedThumbnailTask || this._thumbnailError) {
       return imageOff;
@@ -150,8 +150,11 @@ export class FrigateCardThumbnailFeatureText extends LitElement {
       return;
     }
     return html`
-      ${this.cameraMetadata?.engineLogo
-        ? html`<img class="background" src="${this.cameraMetadata.engineLogo}" />`
+      ${this.cameraMetadata?.engineIcon
+        ? html`<frigate-card-icon
+            class="background"
+            .icon=${{ icon: this.cameraMetadata.engineIcon }}
+          ></frigate-card-icon>`
         : ''}
       <div class="content">
         <div class="title">${format(this.date, 'HH:mm')}</div>
@@ -211,18 +214,18 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
       <div class="details">
         ${startTime
           ? html` <div>
-                <ha-icon
+                <frigate-card-icon
                   title=${localize('event.start')}
-                  .icon=${'mdi:calendar-clock-outline'}
-                ></ha-icon>
+                  .icon=${{ icon: 'mdi:calendar-clock-outline' }}
+                ></frigate-card-icon>
                 <span title="${startTime}">${startTime}</span>
               </div>
               ${duration || inProgress
                 ? html` <div>
-                    <ha-icon
+                    <frigate-card-icon
                       title=${localize('event.duration')}
-                      .icon=${'mdi:clock-outline'}
-                    ></ha-icon>
+                      .icon=${{ icon: 'mdi:clock-outline' }}
+                    ></frigate-card-icon>
                     ${duration ? html`<span title="${duration}">${duration}</span>` : ''}
                     ${inProgress
                       ? html`<span title="${inProgress}">${inProgress}</span>`
@@ -232,31 +235,37 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
           : ''}
         ${this.cameraTitle
           ? html` <div>
-              <ha-icon title=${localize('event.camera')} .icon=${'mdi:cctv'}></ha-icon>
+              <frigate-card-icon
+                title=${localize('event.camera')}
+                .icon=${{ icon: 'mdi:cctv' }}
+              ></frigate-card-icon>
               <span title="${this.cameraTitle}">${this.cameraTitle}</span>
             </div>`
           : ''}
         ${where
           ? html` <div>
-              <ha-icon
+              <frigate-card-icon
                 title=${localize('event.where')}
-                .icon=${'mdi:map-marker-outline'}
-              ></ha-icon>
+                .icon=${{ icon: 'mdi:map-marker-outline' }}
+              ></frigate-card-icon>
               <span title="${where}">${where}</span>
             </div>`
           : html``}
         ${tags
           ? html` <div>
-              <ha-icon title=${localize('event.tag')} .icon=${'mdi:tag'}></ha-icon>
+              <frigate-card-icon
+                title=${localize('event.tag')}
+                .icon=${{ icon: 'mdi:tag' }}
+              ></frigate-card-icon>
               <span title="${tags}">${tags}</span>
             </div>`
           : html``}
         ${seek
           ? html` <div>
-              <ha-icon
+              <frigate-card-icon
                 title=${localize('event.seek')}
-                .icon=${'mdi:clock-fast'}
-              ></ha-icon>
+                .icon=${{ icon: 'mdi:clock-fast' }}
+              ></frigate-card-icon>
               <span title="${seek}">${seek}</span>
             </div>`
           : html``}
@@ -306,18 +315,18 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
       <div class="details">
         ${startTime
           ? html` <div>
-                <ha-icon
+                <frigate-card-icon
                   title=${localize('recording.start')}
-                  .icon=${'mdi:calendar-clock-outline'}
-                ></ha-icon>
+                  .icon=${{ icon: 'mdi:calendar-clock-outline' }}
+                ></frigate-card-icon>
                 <span title="${startTime}">${startTime}</span>
               </div>
               ${duration || inProgress
                 ? html` <div>
-                    <ha-icon
+                    <frigate-card-icon
                       title=${localize('recording.duration')}
-                      .icon=${'mdi:clock-outline'}
-                    ></ha-icon>
+                      .icon=${{ icon: 'mdi:clock-outline' }}
+                    ></frigate-card-icon>
                     ${duration ? html`<span title="${duration}">${duration}</span>` : ''}
                     ${inProgress
                       ? html`<span title="${inProgress}">${inProgress}</span>`
@@ -327,19 +336,19 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
           : ''}
         ${seek
           ? html` <div>
-              <ha-icon
+              <frigate-card-icon
                 title=${localize('event.seek')}
-                .icon=${'mdi:clock-fast'}
-              ></ha-icon>
+                .icon=${{ icon: 'mdi:clock-fast' }}
+              ></frigate-card-icon>
               <span title="${seek}">${seek}</span>
             </div>`
           : html``}
         ${eventCount !== null
           ? html`<div>
-              <ha-icon
+              <frigate-card-icon
                 title=${localize('recording.events')}
-                .icon=${'mdi:shield-alert'}
-              ></ha-icon>
+                .icon=${{ icon: 'mdi:shield-alert' }}
+              ></frigate-card-icon>
               <span title="${eventCount}">${eventCount}</span>
             </div>`
           : ``}
@@ -448,10 +457,10 @@ export class FrigateCardThumbnail extends LitElement {
             ></frigate-card-thumbnail-feature-text>`
           : html``}
       ${shouldShowFavoriteControl
-        ? html` <ha-icon
+        ? html` <frigate-card-icon
             class="${classMap(starClasses)}"
-            icon=${this.media.isFavorite() ? 'mdi:star' : 'mdi:star-outline'}
             title=${localize('thumbnail.retain_indefinitely')}
+            .icon=${{ icon: this.media.isFavorite() ? 'mdi:star' : 'mdi:star-outline' }}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
               if (this.hass && this.media) {
@@ -467,7 +476,7 @@ export class FrigateCardThumbnail extends LitElement {
                 this.requestUpdate();
               }
             }}
-          /></ha-icon>`
+          /></frigate-card-icon>`
         : ``}
       ${this.details && ViewMediaClassifier.isEvent(this.media)
         ? html`<frigate-card-thumbnail-details-event
@@ -483,9 +492,9 @@ export class FrigateCardThumbnail extends LitElement {
             ></frigate-card-thumbnail-details-recording>`
           : html``}
       ${shouldShowTimelineControl
-        ? html`<ha-icon
+        ? html`<frigate-card-icon
             class="timeline"
-            icon="mdi:target"
+            .icon=${{ icon: 'mdi:target' }}
             title=${localize('thumbnail.timeline')}
             @click=${(ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
@@ -503,12 +512,12 @@ export class FrigateCardThumbnail extends LitElement {
                 modifiers: [new RemoveContextViewModifier(['timeline'])],
               });
             }}
-          ></ha-icon>`
+          ></frigate-card-icon>`
         : ''}
       ${shouldShowDownloadControl
-        ? html` <ha-icon
+        ? html` <frigate-card-icon
             class="download"
-            icon=${'mdi:download'}
+            .icon=${{ icon: 'mdi:download' }}
             title=${localize('thumbnail.download')}
             @click=${async (ev: Event) => {
               stopEventFromActivatingCardWideActions(ev);
@@ -520,7 +529,7 @@ export class FrigateCardThumbnail extends LitElement {
                 }
               }
             }}
-          ></ha-icon>`
+          ></frigate-card-icon>`
         : ``}
     `;
   }

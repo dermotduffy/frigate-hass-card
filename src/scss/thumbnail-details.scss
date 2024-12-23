@@ -27,3 +27,12 @@ div.details {
   // Details panel can shrink as well as grow.
   min-height: 0px;
 }
+
+div.details div {
+  display: flex;
+  align-items: center;
+}
+
+div.details div * {
+  margin: 0px 3px;
+}

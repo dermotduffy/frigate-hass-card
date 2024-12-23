@@ -1,19 +1,12 @@
-import {
-  computeDomain,
-  computeStateDomain,
-  HomeAssistant,
-} from '@dermotduffy/custom-card-helpers';
+import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
-import { StyleInfo } from 'lit/directives/style-map.js';
 import {
   CardHelpers,
   ExtendedHomeAssistant,
   LovelaceCardWithEditor,
   SignedPath,
   signedPathSchema,
-  StateParameters,
 } from '../../types.js';
-import { domainIcon } from '../icons/domain-icon.js';
 import { homeAssistantWSRequest } from './ws-request.js';
 
 /**
@@ -117,127 +110,13 @@ export function isHassDifferent(
 }
 
 /**
- * Calculate a style brightness from a hass state.
- * Inspired by https://github.com/home-assistant/frontend/blob/7d5b5663123bb16d1da0c5bac3f2fc26d5f69ae8/src/panels/lovelace/cards/hui-button-card.ts#L296
- * @param state The hass state object.
- * @returns A CSS brightness string.
- */
-function computeBrightnessFromState(state: HassEntity): string {
-  if (state.state === 'off' || !state.attributes.brightness) {
-    return '';
-  }
-  const brightness = state.attributes.brightness;
-  return `brightness(${(brightness + 245) / 5}%)`;
-}
-
-/**
- * Calculate a style color from a hass state.
- * Inspired by https://github.com/home-assistant/frontend/blob/7d5b5663123bb16d1da0c5bac3f2fc26d5f69ae8/src/panels/lovelace/cards/hui-button-card.ts#L304
- * @param state The hass state object.
- * @returns A CSS color string.
- */
-function computeColorFromState(state: HassEntity): string {
-  if (state.state === 'off') {
-    return '';
-  }
-  return state.attributes.rgb_color
-    ? `rgb(${state.attributes.rgb_color.join(',')})`
-    : '';
-}
-
-/**
- * Get the style of emphasized menu items.
- * @returns A StyleInfo.
- */
-function computeStyle(state: HassEntity): StyleInfo {
-  return {
-    color: computeColorFromState(state),
-    filter: computeBrightnessFromState(state),
-  };
-}
-
-/**
- * Determine the string state of a given stateObj.
- * From: https://github.com/home-assistant/frontend/blob/dev/src/common/entity/compute_active_state.ts
- * @param stateObj The HassEntity object from `hass.states`.
- * @returns A string state, e.g. 'on'.
- */
-const computeActiveState = (stateObj: HassEntity): string => {
-  const domain = stateObj.entity_id.split('.')[0];
-  let state = stateObj.state;
-
-  if (domain === 'climate') {
-    state = stateObj.attributes.hvac_action;
-  }
-
-  return state;
-};
-
-/**
- * Use Home Assistant state to refresh state parameters for an item to be rendered.
- * @param hass Home Assistant object.
- * @param params A StateParameters object to modify in place.
- * @returns A StateParameters object updated based on HASS state.
- */
-export function refreshDynamicStateParameters(
-  hass: HomeAssistant,
-  params: StateParameters,
-): StateParameters {
-  if (!params.entity) {
-    return params;
-  }
-  const state = hass.states[params.entity];
-  if (!!state && !!params.state_color) {
-    params.style = { ...computeStyle(state), ...params.style };
-  }
-  params.title = params.title ?? (state?.attributes?.friendly_name || params.entity);
-  params.icon = params.icon ?? getEntityIcon(hass, params.entity);
-
-  const domain = state ? computeStateDomain(state) : undefined;
-  params.data_domain =
-    params.state_color || (domain === 'light' && params.state_color !== false)
-      ? domain
-      : undefined;
-  if (state) {
-    params.data_state = computeActiveState(state);
-  }
-  return params;
-}
-
-/**
  * Get the title of an entity.
  * @param entity The entity id.
  * @param hass The Home Assistant object.
  * @returns The title or undefined.
  */
-export function getEntityTitle(
-  hass?: HomeAssistant,
-  entity?: string,
-): string | undefined {
-  return entity ? hass?.states[entity]?.attributes?.friendly_name : undefined;
-}
-
-/**
- * Get the icon of an entity.
- * @param entityID The entity id.
- * @param hass The Home Assistant object.
- * @returns The icon or undefined.
- */
-export function getEntityIcon(
-  hass: HomeAssistant,
-  entityID: string,
-  defaultIcon?: string,
-): string {
-  const entityState = hass.states[entityID];
-  if (entityState && entityState.attributes.icon) {
-    return entityState.attributes.icon;
-  }
-  return domainIcon(
-    computeDomain(entityID),
-    entityState,
-    entityState?.state,
-    defaultIcon,
-  );
+export function getEntityTitle(hass?: HomeAssistant, entity?: string): string | null {
+  return entity ? hass?.states[entity]?.attributes?.friendly_name ?? null : null;
 }
 
 /**
@@ -253,12 +132,17 @@ export const sideLoadHomeAssistantElements = async (): Promise<boolean> => {
     'ha-camera-stream',
     'ha-card',
     'ha-circular-progress',
+    'ha-combo-box',
     'ha-hls-player',
     'ha-icon-button',
     'ha-icon',
     'ha-menu-button',
     'ha-selector',
+    'ha-state-icon',
     'ha-web-rtc-player',
+    'mwc-button',
+    'mwc-list-item',
+    'state-badge',
   ];
 
   if (neededElements.every((element) => customElements.get(element))) {
@@ -367,3 +251,12 @@ export const hasHAConnectionStateChanged = (
 ): boolean => {
   return oldHass?.connected !== newHass?.connected;
 };
+
+/**
+ * Determine if a state object supports a given feature.
+ * @param stateObj The state object.
+ * @param feature The feature to check.
+ * @returns `true` if the feature is supported, `false` otherwise.
+ */
+export const supportsFeature = (stateObj: HassEntity, feature: number): boolean =>
+  ((stateObj.attributes.supported_features ?? 0) & feature) !== 0;

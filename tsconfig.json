@@ -25,14 +25,20 @@
         "globalTags": [
           "ha-button-menu",
           "ha-button",
+          "ha-camera-stream",
           "ha-card",
           "ha-circular-progress",
           "ha-combo-box",
+          "ha-hls-player",
           "ha-icon-button",
           "ha-icon",
+          "ha-menu-button",
           "ha-selector",
+          "ha-state-icon",
+          "ha-web-rtc-player",
           "mwc-button",
-          "mwc-list-item"
+          "mwc-list-item",
+          "state-badge"
         ],
         "rules": {
           "no-unknown-tag-name": "error",

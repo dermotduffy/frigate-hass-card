@@ -70,9 +70,8 @@ div.upgrade span {
   color: var(--secondary-text-color, 'black');
 }
 
-.submenu-header ha-icon,
-.submenu-header img {
-  padding-right: 15px;
+.submenu-header frigate-card-icon {
+  margin-right: 15px;
 }
 
 .submenu.selected {

@@ -1,4 +1,4 @@
-import { CapabilityKey } from '../types';
+import { CapabilityKey, Icon } from '../types';
 import { FrigateCardView, SSLCiphers } from '../config/types';
 import { ViewMedia } from '../view/media';
 
@@ -106,8 +106,10 @@ export interface CameraManagerMediaCapabilities {
 
 export interface CameraManagerCameraMetadata {
   title: string;
-  icon: string;
-  engineLogo?: string;
+  icon: Icon;
+
+  // Engine icon is just a string since it will never be entity-derived.
+  engineIcon?: string;
 }
 
 export interface CameraEndpointsContext {
