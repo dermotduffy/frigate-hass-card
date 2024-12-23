@@ -12,6 +12,7 @@ import { KeyAssignerController } from '../components-lib/key-assigner-controller
 import { KeyboardShortcut } from '../config/keyboard-shortcuts';
 import keyAssignerStyle from '../scss/key-assigner.scss';
 import { localize } from '../localize/localize';
+import './icon';
 
 @customElement('frigate-card-key-assigner')
 export class FrigateCardKeyAssigner extends LitElement {
@@ -48,15 +49,11 @@ export class FrigateCardKeyAssigner extends LitElement {
           this._controller.toggleAssigning();
         }}
       >
-        <ha-icon icon="mdi:keyboard-settings"></ha-icon>
+        <frigate-card-icon .icon=${{ icon: 'mdi:keyboard-settings' }}></frigate-card-icon>
         <span class="${classMap({
           dotdotdot: this._controller.isAssigning(),
         })}">
-          ${
-            this._controller.isAssigning()
-              ? localize('key_assigner.assigning')
-              : localize('key_assigner.assign')
-          }
+          ${this._controller.isAssigning() ? '' : localize('key_assigner.assign')}
         </span>
       </ha-button>
       ${
@@ -66,7 +63,9 @@ export class FrigateCardKeyAssigner extends LitElement {
                 this._controller.setValue(null);
               }}
             >
-              <ha-icon icon="mdi:keyboard-off"></ha-icon>
+              <frigate-card-icon
+                .icon=${{ icon: 'mdi:keyboard-off' }}
+              ></frigate-card-icon>
               <span> ${localize('key_assigner.unassign')} </span>
             </ha-button>`
           : ''

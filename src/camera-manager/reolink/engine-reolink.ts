@@ -38,7 +38,6 @@ import {
   QueryReturnType,
 } from '../types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
-import reolinkLogo from './assets/reolink.svg';
 import { ReolinkCamera } from './camera';
 import { BrowseMediaReolinkCameraMetadata, ReolinkEventQueryResults } from './types';
 
@@ -395,10 +394,9 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): CameraManagerCameraMetadata {
-    const metadata = super.getCameraMetadata(hass, cameraConfig);
     return {
-      ...metadata,
-      engineLogo: reolinkLogo,
+      ...super.getCameraMetadata(hass, cameraConfig),
+      engineIcon: 'reolink',
     };
   }
 

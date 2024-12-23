@@ -1721,7 +1721,7 @@ const statusBarItemDefault = {
 };
 
 const statusBarConfigDefault = {
-  height: 46,
+  height: 30,
   items: {
     engine: statusBarItemDefault,
     resolution: statusBarItemDefault,

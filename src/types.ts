@@ -5,7 +5,6 @@ import {
   LovelaceCardEditor,
   Themes,
 } from '@dermotduffy/custom-card-helpers';
-import { StyleInfo } from 'lit/directives/style-map.js';
 import { z } from 'zod';
 
 export type ClipsOrSnapshots = 'clips' | 'snapshots';
@@ -63,16 +62,6 @@ export interface Message {
   icon?: string;
   context?: unknown;
   dotdotdot?: boolean;
-}
-
-export interface StateParameters {
-  entity?: string;
-  icon?: string;
-  title?: string | null;
-  state_color?: boolean;
-  style?: StyleInfo;
-  data_domain?: string;
-  data_state?: string;
 }
 
 export interface FrigateCardMediaPlayer {
@@ -142,6 +131,21 @@ export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   'snapshots',
   'substream',
 ] as const;
+
+export interface Icon {
+  // If set, this icon will be used.
+  icon?: string;
+
+  // If icon is not set, this entity's icon will be used (and HA will be asked
+  // to render it).
+  entity?: string;
+
+  // Whether or not to change the icon color depending on entity state.
+  stateColor?: boolean;
+
+  // If an icon is not otherwise resolved / available, this will be used instead.
+  fallback?: string;
+}
 
 // *************************************************************************
 //                     Home Assistant API types.

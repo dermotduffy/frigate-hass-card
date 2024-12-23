@@ -43,7 +43,6 @@ import {
   QueryReturnType,
 } from '../types';
 import { getPTZCapabilitiesFromCameraConfig } from '../utils/ptz';
-import motioneyeLogo from './assets/motioneye.svg';
 import { MotionEyeCamera } from './camera';
 import { MotionEyeEventQueryResults } from './types';
 
@@ -420,10 +419,9 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): CameraManagerCameraMetadata {
-    const metadata = super.getCameraMetadata(hass, cameraConfig);
     return {
-      ...metadata,
-      engineLogo: motioneyeLogo,
+      ...super.getCameraMetadata(hass, cameraConfig),
+      engineIcon: 'motioneye',
     };
   }
 

@@ -206,7 +206,11 @@ describe('GenericCameraManagerEngine', () => {
       expect(
         createEngine().getCameraMetadata(createHASS(), createGenericCameraConfig()),
       ).toEqual({
-        icon: 'mdi:video',
+        icon: {
+          entity: undefined,
+          icon: undefined,
+          fallback: 'mdi:video',
+        },
         title: '',
       });
     });
@@ -217,10 +221,11 @@ describe('GenericCameraManagerEngine', () => {
           createHASS(),
           createGenericCameraConfig({ id: 'https://go2rtc#stream' }),
         ),
-      ).toEqual({
-        icon: 'mdi:video',
-        title: 'https://go2rtc#stream',
-      });
+      ).toEqual(
+        expect.objectContaining({
+          title: 'https://go2rtc#stream',
+        }),
+      );
     });
 
     it('with configured title', async () => {
@@ -231,10 +236,11 @@ describe('GenericCameraManagerEngine', () => {
             title: 'My Camera',
           }),
         ),
-      ).toEqual({
-        icon: 'mdi:video',
-        title: 'My Camera',
-      });
+      ).toEqual(
+        expect.objectContaining({
+          title: 'My Camera',
+        }),
+      );
     });
 
     describe('with entity title', () => {
@@ -250,10 +256,11 @@ describe('GenericCameraManagerEngine', () => {
               camera_entity: 'camera.test',
             }),
           ),
-        ).toEqual({
-          icon: 'mdi:video',
-          title: 'My Entity Camera',
-        });
+        ).toEqual(
+          expect.objectContaining({
+            title: 'My Entity Camera',
+          }),
+        );
       });
 
       it('webrtc_card.entity', async () => {
@@ -270,10 +277,11 @@ describe('GenericCameraManagerEngine', () => {
               },
             }),
           ),
-        ).toEqual({
-          icon: 'mdi:video',
-          title: 'My Entity Camera',
-        });
+        ).toEqual(
+          expect.objectContaining({
+            title: 'My Entity Camera',
+          }),
+        );
       });
     });
   });

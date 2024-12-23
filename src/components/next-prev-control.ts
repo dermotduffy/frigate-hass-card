@@ -4,6 +4,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { NextPreviousControlConfig } from '../config/types.js';
 import controlStyle from '../scss/next-previous-control.scss';
+import { Icon } from '../types.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 
@@ -29,7 +30,7 @@ export class FrigateCardNextPreviousControl extends LitElement {
   public thumbnail?: string;
 
   @property({ attribute: false })
-  public icon?: string;
+  public icon?: Icon;
 
   @property({ attribute: true, type: Boolean })
   public disabled = false;
@@ -67,17 +68,14 @@ export class FrigateCardNextPreviousControl extends LitElement {
 
     if (renderIcon) {
       const icon =
-        !this.thumbnail ||
-        !this.icon ||
-        this._controlConfig.style === 'chevrons' ||
-        this._thumbnailError
-          ? this.side === 'left'
-            ? 'mdi:chevron-left'
-            : 'mdi:chevron-right'
-          : this.icon;
+        this.icon && !this._thumbnailError && this._controlConfig.style !== 'chevrons'
+          ? this.icon
+          : this.side === 'left'
+            ? { icon: 'mdi:chevron-left' }
+            : { icon: 'mdi:chevron-right' };
 
       return html` <ha-icon-button class="${classMap(classes)}" .label=${this.label}>
-        <ha-icon icon=${icon}></ha-icon>
+        <frigate-card-icon .hass=${this.hass} .icon=${icon}></frigate-card-icon>
       </ha-icon-button>`;
     }
 

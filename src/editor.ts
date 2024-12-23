@@ -6,6 +6,7 @@ import {
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
+import './components/icon.js';
 import './components/key-assigner.js';
 import { KeyboardShortcut } from './config/keyboard-shortcuts.js';
 import {
@@ -32,9 +33,10 @@ import {
   THUMBNAIL_WIDTH_MIN,
 } from './config/types.js';
 import {
+  CONF_CAMERAS,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
-  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
+  CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_DASHBOARD_PATH,
   CONF_CAMERAS_ARRAY_CAST_DASHBOARD_VIEW_PATH,
   CONF_CAMERAS_ARRAY_CAST_METHOD,
@@ -60,8 +62,8 @@ import {
   CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
-  CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS,
   CONF_CAMERAS_ARRAY_IMAGE_ENTITY,
+  CONF_CAMERAS_ARRAY_IMAGE_ENTITY_PARAMETERS,
   CONF_CAMERAS_ARRAY_IMAGE_MODE,
   CONF_CAMERAS_ARRAY_IMAGE_REFRESH_SECONDS,
   CONF_CAMERAS_ARRAY_IMAGE_URL,
@@ -84,12 +86,11 @@ import {
   CONF_CAMERAS_ARRAY_TRIGGERS_OCCUPANCY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_ENTITY,
   CONF_CAMERAS_ARRAY_WEBRTC_CARD_URL,
-  CONF_CAMERAS,
-  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_ASPECT_RATIO,
+  CONF_DIMENSIONS_ASPECT_RATIO_MODE,
   CONF_DIMENSIONS_HEIGHT,
-  CONF_IMAGE_ENTITY_PARAMETERS,
   CONF_IMAGE_ENTITY,
+  CONF_IMAGE_ENTITY_PARAMETERS,
   CONF_IMAGE_MODE,
   CONF_IMAGE_REFRESH_SECONDS,
   CONF_IMAGE_URL,
@@ -200,14 +201,15 @@ import {
   CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
   CONF_VIEW_DARK_MODE,
+  CONF_VIEW_DEFAULT,
   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
+  CONF_VIEW_DEFAULT_RESET,
   CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION,
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
   CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
   CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
-  CONF_VIEW_DEFAULT_RESET,
-  CONF_VIEW_DEFAULT,
   CONF_VIEW_INTERACTION_SECONDS,
+  CONF_VIEW_KEYBOARD_SHORTCUTS,
   CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_DOWN,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_HOME,
@@ -216,22 +218,20 @@ import {
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT,
-  CONF_VIEW_KEYBOARD_SHORTCUTS,
+  CONF_VIEW_TRIGGERS,
+  CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
   CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER,
-  CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_FILTER_SELECTED_CAMERA,
   CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS,
   CONF_VIEW_TRIGGERS_UNTRIGGER_SECONDS,
-  CONF_VIEW_TRIGGERS,
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { localize } from './localize/localize.js';
 import frigate_card_editor_style from './scss/editor.scss';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
-import { getCustomIconURL } from './utils/custom-icons.js';
 import {
   getEntitiesFromHASS,
   getEntityTitle,
@@ -960,7 +960,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .key=${optionSetName}
       >
         <div class="row">
-          <ha-icon .icon=${`mdi:${optionSet.icon}`}></ha-icon>
+          <frigate-card-icon
+            .icon=${{ icon: `mdi:${optionSet.icon}` }}
+          ></frigate-card-icon>
           <div class="title ${titleClass ?? ''}">${optionSet.name}</div>
         </div>
         <div class="secondary">${optionSet.secondary}</div>
@@ -1406,7 +1408,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       selected: selected,
     };
 
-    const customIconURL = getCustomIconURL(icon);
     return html` <div class="${classMap(submenuClasses)}">
       <div
         class="submenu-header"
@@ -1414,9 +1415,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .domain=${domain}
         .key=${key}
       >
-        ${customIconURL
-          ? html` <img src=${customIconURL} /> `
-          : html` <ha-icon .icon=${icon}></ha-icon> `}
+        <frigate-card-icon .icon=${{ icon: icon }}></frigate-card-icon>
         <span>${localize(labelPath)}</span>
       </div>
       ${selected ? html`<div class="values">${template}</div>` : ''}
@@ -1909,7 +1908,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           .domain=${MENU_CAMERAS}
           .key=${cameraIndex}
         >
-          <ha-icon .icon=${addNewCamera ? 'mdi:video-plus' : 'mdi:video'}></ha-icon>
+          <frigate-card-icon
+            .icon=${{ icon: addNewCamera ? 'mdi:video-plus' : 'mdi:video' }}
+          ></frigate-card-icon>
           <span>
             ${addNewCamera
               ? html` <span class="new-camera">
@@ -1944,7 +1945,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       return false;
                     })}
                 >
-                  <ha-icon icon="mdi:arrow-up"></ha-icon>
+                  <frigate-card-icon
+                    .icon=${{ icon: 'mdi:arrow-up' }}
+                  ></frigate-card-icon>
                 </ha-icon-button>
                 <ha-icon-button
                   class="button"
@@ -1967,7 +1970,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       return false;
                     })}
                 >
-                  <ha-icon icon="mdi:arrow-down"></ha-icon>
+                  <frigate-card-icon
+                    .icon=${{ icon: 'mdi:arrow-down' }}
+                  ></frigate-card-icon>
                 </ha-icon-button>
                 <ha-icon-button
                   class="button"
@@ -1984,7 +1989,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     });
                   }}
                 >
-                  <ha-icon icon="mdi:delete"></ha-icon>
+                  <frigate-card-icon .icon=${{ icon: 'mdi:delete' }}></frigate-card-icon>
                 </ha-icon-button>
               </div>
               ${this._renderEntitySelector(

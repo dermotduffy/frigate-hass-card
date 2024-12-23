@@ -402,8 +402,11 @@ export class FrigateCardViewerCarousel extends LitElement {
           </frigate-card-ptz>`
         : ''}
       <div class="seek-warning">
-        <ha-icon title="${localize('media_viewer.unseekable')}" icon="mdi:clock-remove">
-        </ha-icon>
+        <frigate-card-icon
+          title="${localize('media_viewer.unseekable')}"
+          .icon=${{ icon: 'mdi:clock-remove' }}
+        >
+        </frigate-card-icon>
       </div>
     `;
   }

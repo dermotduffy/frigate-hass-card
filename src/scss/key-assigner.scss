@@ -12,11 +12,11 @@
 }
 
 :host([assigning]) ha-button.assign span,
-:host([assigning]) ha-button.assign ha-icon {
+:host([assigning]) ha-button.assign frigate-card-icon {
   color: var(--warning-color);
 }
 
-ha-icon {
+frigate-card-icon {
   padding: 10px;
 }
 

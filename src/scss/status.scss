@@ -1,8 +1,7 @@
 @use './button.scss';
 
 :host {
-  --mdc-icon-button-size: calc(var(--frigate-card-status-bar-height) - 6px);
-  --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
+  --mdc-icon-size: calc(var(--frigate-card-status-bar-height) - 6px);
 
   display: block;
   width: 100%;
@@ -61,8 +60,7 @@
 .item {
   display: inline-block;
 
-  margin: 3px;
-  padding: 3px;
+  margin: 3px 5px;
 
   align-content: center;
 
@@ -84,6 +82,10 @@
 }
 
 img.item {
-  width: var(--mdc-icon-size, 24px);
+  display: block;
+
+  // To ensure images render somewhat reasonably looking their height is kept to
+  // the same height as icons.
   height: var(--mdc-icon-size, 24px);
+  width: auto;
 }

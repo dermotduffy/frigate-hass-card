@@ -2,9 +2,7 @@ import { handleActionConfig } from '@dermotduffy/custom-card-helpers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MenuController } from '../../src/components-lib/menu-controller';
 import { MenuConfig, menuConfigSchema } from '../../src/config/types';
-import { StateParameters } from '../../src/types';
-import { refreshDynamicStateParameters } from '../../src/utils/ha';
-import { createInteractionEvent, createHASS, createLitElement } from '../test-utils';
+import { createInteractionEvent, createLitElement } from '../test-utils';
 
 vi.mock('@dermotduffy/custom-card-helpers');
 vi.mock('../../src/utils/ha');
@@ -359,38 +357,6 @@ describe('MenuController', () => {
           icon: 'mdi:sheep',
         },
       ]);
-    });
-  });
-
-  describe('should get fresh button state', () => {
-    it('on state icon', () => {
-      const controller = new MenuController(createLitElement());
-      const stateButton = {
-        type: 'custom:frigate-card-menu-state-icon' as const,
-        icon: 'mdi:sheep',
-        entity: 'switch.foo',
-        state_color: true,
-      };
-
-      const stateParameters: StateParameters = {};
-      vi.mocked(refreshDynamicStateParameters).mockReturnValue(stateParameters);
-
-      expect(controller.getFreshButtonState(createHASS(), stateButton)).toBe(
-        stateParameters,
-      );
-
-      expect(vi.mocked(refreshDynamicStateParameters)).toBeCalled();
-    });
-
-    it('on non state icon', () => {
-      const controller = new MenuController(createLitElement());
-      const button = {
-        type: 'custom:frigate-card-menu-icon' as const,
-        icon: 'mdi:sheep',
-      };
-
-      expect(controller.getFreshButtonState(createHASS(), button)).toEqual(button);
-      expect(vi.mocked(refreshDynamicStateParameters)).not.toBeCalled();
     });
   });
 

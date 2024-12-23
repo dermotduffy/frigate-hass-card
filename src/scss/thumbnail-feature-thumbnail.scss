@@ -14,7 +14,7 @@ img {
 }
 
 img,
-ha-icon {
+frigate-card-icon {
   // Safari will occasionally not load thumbnails correctly with display block.
   display: inline-block;
 
@@ -37,7 +37,7 @@ ha-icon {
   object-fit: cover;
 }
 
-ha-icon {
+frigate-card-icon {
   --mdc-icon-size: 50%;
   color: var(--primary-text-color);
   display: flex;

@@ -1,4 +1,4 @@
-import { HASSDomEvent, HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HASSDomEvent } from '@dermotduffy/custom-card-helpers';
 import { LitElement } from 'lit';
 import { orderBy } from 'lodash-es';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
@@ -9,13 +9,11 @@ import {
   type MenuConfig,
   type MenuItem,
 } from '../config/types.js';
-import { StateParameters } from '../types.js';
 import {
   convertActionToCardCustomAction,
   getActionConfigGivenAction,
 } from '../utils/action';
 import { arrayify, isTruthy, setOrRemoveAttribute } from '../utils/basic.js';
-import { refreshDynamicStateParameters } from '../utils/ha/index.js';
 
 export class MenuController {
   protected _host: LitElement;
@@ -156,13 +154,6 @@ export class MenuController {
         }
       }
     }
-  }
-
-  public getFreshButtonState(hass: HomeAssistant, button: MenuItem): StateParameters {
-    const stateParameters = { ...button } as StateParameters;
-    return hass && button.type === 'custom:frigate-card-menu-state-icon'
-      ? refreshDynamicStateParameters(hass, stateParameters)
-      : stateParameters;
   }
 
   protected _sortButtons(): void {

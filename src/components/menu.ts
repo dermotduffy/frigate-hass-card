@@ -1,15 +1,15 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, LitElement, TemplateResult, html, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { ifDefined } from 'lit/directives/if-defined.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import { MenuController } from '../components-lib/menu-controller.js';
 import type { MenuConfig, MenuItem } from '../config/types.js';
 import menuStyle from '../scss/menu.scss';
 import { frigateCardHasAction } from '../utils/action.js';
-import { getCustomIconURL } from '../utils/custom-icons.js';
+import { getEntityTitle } from '../utils/ha/index.js';
 import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
+import './icon.js';
 import './submenu.js';
 
 @customElement('frigate-card-menu')
@@ -60,38 +60,30 @@ export class FrigateCardMenu extends LitElement {
       </frigate-card-submenu-select>`;
     }
 
-    // =====================================================================================
-    // For `data-domain` and `data-state`, see: See
-    // https://github.com/home-assistant/frontend/blob/dev/src/components/entity/state-badge.ts#L54
-    // =====================================================================================
-    // Buttons are styled in a few ways (in order of precedence):
-    //
-    // - User provided style
-    // - Color/Brightness styling for the `light` domain (calculated in
-    //   `refreshDynamicStateParameters`)
-    // - Static styling based on domain (`data-domain`) and state
-    //   (`data-state`). This looks up a CSS style in `menu.scss`.
-
-    const buttonState = this._controller.getFreshButtonState(this.hass, button);
-    const customImageURL = getCustomIconURL(buttonState.icon);
+    const title =
+      this.hass && button.type === 'custom:frigate-card-menu-state-icon' && !button.title
+        ? getEntityTitle(this.hass, button.entity)
+        : button.title;
 
     return html` <ha-icon-button
-      data-domain=${ifDefined(buttonState.data_domain)}
-      data-state=${ifDefined(buttonState.data_state)}
       class="button"
-      style="${styleMap(buttonState.style || {})}"
+      style="${styleMap(button.style || {})}"
       .actionHandler=${actionHandler({
         hasHold: frigateCardHasAction(button.hold_action),
         hasDoubleClick: frigateCardHasAction(button.double_tap_action),
       })}
-      .label=${buttonState.title || ''}
+      .label=${title ?? ''}
       @action=${(ev) => this._controller.actionHandler(ev, button)}
     >
-      ${customImageURL
-        ? html`<img src="${customImageURL}" />`
-        : html`<ha-icon
-            icon="${buttonState.icon || 'mdi:gesture-tap-button'}"
-          ></ha-icon>`}
+      <frigate-card-icon
+        .hass=${this.hass}
+        .icon=${{
+          icon: button.icon,
+          entity: button.entity,
+          stateColor: button.state_color,
+          fallback: 'mdi:gesture-tap-button',
+        }}
+      ></frigate-card-icon>
     </ha-icon-button>`;
   }
 

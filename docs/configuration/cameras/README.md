@@ -334,6 +334,7 @@ cameras:
         position:
           x: 50
           y: 50
+    always_error_if_entity_unavailable: false
   - camera_entity: camera.entrance
     icon: 'mdi:car'
     title: 'Front entrance'

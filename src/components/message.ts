@@ -9,6 +9,7 @@ import { localize } from '../localize/localize.js';
 import messageStyle from '../scss/message.scss';
 import { FrigateCardError, Message, MessageType } from '../types.js';
 import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import './icon.js';
 
 @customElement('frigate-card-message')
 export class FrigateCardMessage extends LitElement {
@@ -38,7 +39,7 @@ export class FrigateCardMessage extends LitElement {
     return html` <div class="wrapper">
       <div class="message padded">
         <div class="icon">
-          <ha-icon icon="${icon}"> </ha-icon>
+          <frigate-card-icon .icon="${{ icon: icon }}"></frigate-card-icon>
         </div>
         <div class="contents">
           <span class="${classMap(classes)}">
@@ -103,9 +104,11 @@ export class FrigateCardProgressIndicator extends LitElement {
   protected render(): TemplateResult {
     return html` <div class="message vertical">
       ${this.animated
-        ? html`<ha-circular-progress active="true" size="${this.size}">
+        ? html`<ha-circular-progress indeterminate size="${this.size}">
           </ha-circular-progress>`
-        : html`<ha-icon icon="mdi:timer-sand"></ha-icon>`}
+        : html`<frigate-card-icon
+            .icon=${{ icon: 'mdi:timer-sand' }}
+          ></frigate-card-icon>`}
       ${this.message ? html`<span>${this.message}</span>` : html``}
     </div>`;
   }

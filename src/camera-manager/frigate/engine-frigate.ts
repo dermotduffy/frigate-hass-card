@@ -58,7 +58,6 @@ import {
   RecordingSegmentsQueryResultsMap,
 } from '../types';
 import { getDefaultGo2RTCEndpoint } from '../utils/go2rtc-endpoint';
-import frigateLogo from './assets/frigate.svg';
 import { FrigateCamera, isBirdseye } from './camera';
 import { FrigateEventWatcher } from './event-watcher';
 import { FrigateViewMediaFactory } from './media';
@@ -912,8 +911,8 @@ export class FrigateCameraManagerEngine
     hass: HomeAssistant,
     cameraConfig: CameraConfig,
   ): CameraManagerCameraMetadata {
-    const metadata = super.getCameraMetadata(hass, cameraConfig);
     return {
+      ...super.getCameraMetadata(hass, cameraConfig),
       title:
         cameraConfig.title ??
         getEntityTitle(hass, cameraConfig.camera_entity) ??
@@ -921,8 +920,7 @@ export class FrigateCameraManagerEngine
         prettifyTitle(cameraConfig.frigate?.camera_name) ??
         cameraConfig.id ??
         '',
-      icon: metadata.icon,
-      engineLogo: frigateLogo,
+      engineIcon: 'frigate',
     };
   }
 

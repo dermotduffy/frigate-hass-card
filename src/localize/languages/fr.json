@@ -660,7 +660,6 @@
   },
   "key_assigner": {
     "assign": "Assigner",
-    "assigning": "Assignation",
     "modifiers": {
       "alt": "",
       "ctrl": "",
