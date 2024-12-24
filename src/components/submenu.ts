@@ -9,7 +9,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { StyleInfo, styleMap } from 'lit/directives/style-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../config/types.js';
 import submenuStyle from '../scss/submenu.scss';
@@ -69,6 +69,7 @@ export class FrigateCardSubmenu extends LitElement {
           .icon=${{
             icon: item.icon,
             entity: item.entity,
+            style: item.style,
           }}
           style="${styleMap(item.style || {})}"
         ></frigate-card-icon>
@@ -81,6 +82,7 @@ export class FrigateCardSubmenu extends LitElement {
       return html``;
     }
     const items = this.submenu.items as MenuSubmenuItem[];
+    const style = styleMap(this.submenu.style || {});
     return html`
       <ha-button-menu
         corner=${'BOTTOM_LEFT'}
@@ -93,7 +95,7 @@ export class FrigateCardSubmenu extends LitElement {
         @click=${(ev) => stopEventFromActivatingCardWideActions(ev)}
       >
         <ha-icon-button
-          style="${styleMap((this.submenu.style as StyleInfo) || {})}"
+          style="${style}"
           class="button"
           slot="trigger"
           .label=${this.submenu.title || ''}
@@ -108,6 +110,7 @@ export class FrigateCardSubmenu extends LitElement {
           })}
         >
           <frigate-card-icon
+            style="${style}"
             .hass=${this.hass}
             .icon=${typeof this.submenu.icon === 'string'
               ? {
@@ -214,6 +217,7 @@ export class FrigateCardSubmenuSelect extends LitElement {
         icon: this.submenuSelect.icon,
         entity: entityID,
         fallback: 'mdi:format-list-bulleted',
+        style: this.submenuSelect.style,
       },
 
       type: 'custom:frigate-card-menu-submenu',

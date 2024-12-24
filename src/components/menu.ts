@@ -81,6 +81,7 @@ export class FrigateCardMenu extends LitElement {
           icon: button.icon,
           entity: button.entity,
           stateColor: button.state_color,
+          style: button.style,
           fallback: 'mdi:gesture-tap-button',
         }}
       ></frigate-card-icon>
