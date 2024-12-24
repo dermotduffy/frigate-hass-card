@@ -345,37 +345,6 @@ describe('ViewQueryExecutor', () => {
       );
     });
 
-    describe('with an media viewer view', () => {
-      it('should not fetch anything if configured for no thumbnails', async () => {
-        const executor = mock<QueryExecutor>();
-
-        const viewQueryExecutor = new ViewQueryExecutor(
-          createPopulatedAPI({
-            media_viewer: {
-              controls: {
-                thumbnails: {
-                  mode: 'none' as const,
-                },
-              },
-            },
-          }),
-          executor,
-        );
-        const view = new View({
-          view: 'clip',
-          camera: 'camera.office',
-        });
-
-        const modifiers = await viewQueryExecutor.getNewQueryModifiers(view);
-        applyViewModifiers(view, modifiers);
-
-        expect(view?.query).toBeNull();
-        expect(view?.queryResults).toBeNull();
-        expect(executor.executeDefaultEventQuery).not.toHaveBeenCalled();
-        expect(executor.executeDefaultRecordingQuery).not.toHaveBeenCalled();
-      });
-    });
-
     describe('when setting or removing seek time', () => {
       it('should set seek time when results are selected based on time', async () => {
         const now = new Date();

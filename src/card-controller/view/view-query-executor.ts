@@ -103,20 +103,13 @@ export class ViewQueryExecutor {
         viewModifiers.push(...(await executeMediaQuery('clips')));
         break;
 
-      // Gallery views:
+      case 'clip':
       case 'clips':
+      case 'snapshot':
       case 'snapshots':
+      case 'recording':
       case 'recordings':
         viewModifiers.push(...(await executeMediaQuery(mediaType)));
-        break;
-
-      // Viewer views:
-      case 'clip':
-      case 'snapshot':
-      case 'recording':
-        if (config.media_viewer.controls.thumbnails.mode !== 'none') {
-          viewModifiers.push(...(await executeMediaQuery(mediaType)));
-        }
         break;
     }
 
