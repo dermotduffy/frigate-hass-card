@@ -36,12 +36,48 @@ export class FrigateCardStatusBar extends LitElement {
     }
   }
 
+  /** Theme-related styling is dynamically injected into the status bar depending on
+   * the configured position and style to allow precise theming.
+   *
+   * Each rule uses 'var' values that have nested fallbacks of decreasing
+   * specificity, so the most specific theme variable will match, followed by
+   * the next most specific, etc.
+   */
+  protected _renderPerInstanceStyle(): TemplateResult | void {
+    const config = this._controller.getConfig();
+    if (!config) {
+      return;
+    }
+
+    const position = config.position;
+    const style = config.style;
+
+    const generateValue = (suffix: string): string => {
+      return `
+        var(--frigate-card-status-bar-override-${suffix},
+        var(--frigate-card-status-bar-position-${position}-style-${style}-${suffix},
+        var(--frigate-card-status-bar-style-${style}-${suffix},
+        var(--frigate-card-status-bar-position-${position}-${suffix},
+        var(--frigate-card-status-bar-${suffix})))))`;
+    };
+
+    const rule = `[data-position='${position}']` + `[data-style='${style}']`;
+
+    return html`<style>
+      :host(${rule}) {
+        color: ${generateValue('color')};
+        background: ${generateValue('background')};
+      }
+    </style>`;
+  }
+
   protected render(): TemplateResult | void {
     if (!this._controller.shouldRender()) {
       return;
     }
 
     return html`
+      ${this._renderPerInstanceStyle()}
       <div class="status">
         ${this._controller.getRenderItems().map((item): TemplateResult | void => {
           if (item.enabled === false) {

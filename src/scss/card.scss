@@ -1,3 +1,5 @@
+@use './themes/base.scss';
+
 :host {
   display: block;
 
@@ -36,7 +38,7 @@ frigate-card-loading {
   z-index: 1;
 }
 
-:host([dark]) {
+:host([dimmable]:not([interaction])) {
   filter: brightness(75%);
 }
 :host([panel]:not([casted])) {

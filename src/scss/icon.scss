@@ -12,3 +12,8 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+svg path {
+  // !important is necessary to overcome the fill set on the path itself.
+  fill: currentColor !important;
+}

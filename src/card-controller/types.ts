@@ -180,6 +180,7 @@ export interface CardInitializerAPI {
 }
 
 export interface CardInteractionAPI {
+  getCardElementManager(): CardElementManager;
   getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
   getStyleManager(): StyleManager;

@@ -8,5 +8,6 @@ builtin custom items not found in the traditional [Material Design Icons
 | Icon Name   | Resulting Icon                                                              |
 | ----------- | --------------------------------------------------------------------------- |
 | `frigate`   | ![Frigate Icon](../images/icons/frigate.svg ':size=24 :class=svg-icon')     |
+| `iris`      | ![Iris Icon](../images/icons/iris.svg ':size=24 :class=svg-icon')           |
 | `motioneye` | ![motionEye Icon](../images/icons/motioneye.svg ':size=24 :class=svg-icon') |
 | `reolink`   | ![Reolink Icon](../images/icons/reolink.svg ':size=24 :class=svg-icon')     |

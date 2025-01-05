@@ -1515,7 +1515,10 @@ const viewConfigDefault = {
     interaction_mode: 'inactive' as const,
   },
   default_cycle_camera: false,
-  dark_mode: 'off' as const,
+  dim: false,
+  theme: {
+    themes: ['ha' as const],
+  },
   triggers: {
     show_trigger_status: false,
     filter_selected_camera: true,
@@ -1553,6 +1556,15 @@ export const triggersSchema = z.object({
 });
 export type TriggersOptions = z.infer<typeof triggersSchema>;
 
+const themeName = z.enum(['ha', 'dark', 'light', 'traditional']);
+export type ThemeName = z.infer<typeof themeName>;
+
+const themeConfigSchema = z.object({
+  themes: themeName.array().default(viewConfigDefault.theme.themes),
+  overrides: z.record(z.string()).optional(),
+});
+export type ThemeConfig = z.infer<typeof themeConfigSchema>;
+
 const viewConfigSchema = z
   .object({
     default: z
@@ -1578,7 +1590,10 @@ const viewConfigSchema = z
       .default(viewConfigDefault.default_reset),
 
     render_entities: z.string().array().optional(),
-    dark_mode: z.enum(['on', 'off', 'auto']).optional(),
+
+    theme: themeConfigSchema.default(viewConfigDefault.theme),
+
+    dim: z.boolean().default(viewConfigDefault.dim),
     triggers: triggersSchema.default(viewConfigDefault.triggers),
     keyboard_shortcuts: keyboardShortcutsSchema.default(
       viewConfigDefault.keyboard_shortcuts,
@@ -1721,7 +1736,7 @@ const statusBarItemDefault = {
 };
 
 const statusBarConfigDefault = {
-  height: 30,
+  height: 40,
   items: {
     engine: statusBarItemDefault,
     resolution: statusBarItemDefault,

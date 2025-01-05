@@ -1,0 +1,56 @@
+@mixin background-gradient($var, $angle) {
+  #{$var}: linear-gradient(
+    $angle,
+    var(--frigate-card-menu-background),
+    var(--frigate-card-menu-background),
+    var(--frigate-card-menu-background),
+    color-mix(in oklab, var(--frigate-card-menu-background), transparent 100%)
+  );
+}
+
+:host([themes~='traditional']) {
+  /*********
+   * General
+   *********/
+
+  --frigate-card-control-background: black;
+
+  /******
+   * Menu
+   ******/
+
+  --frigate-card-menu-button-active-color: var(--primary-color, white);
+
+  @include background-gradient('--frigate-card-menu-position-left-background', 90deg);
+  @include background-gradient('--frigate-card-menu-position-right-background', 270deg);
+  @include background-gradient('--frigate-card-menu-position-top-background', 180deg);
+  @include background-gradient('--frigate-card-menu-position-bottom-background', 0deg);
+
+  --frigate-card-menu-style-outside-background: var(--secondary-background-color);
+
+  /************
+   * Status bar
+   ************/
+
+  --frigate-card-status-bar-color: white;
+
+  @include background-gradient(
+    '--frigate-card-status-bar-position-left-background',
+    90deg
+  );
+  @include background-gradient(
+    '--frigate-card-status-bar-position-right-background',
+    270deg
+  );
+  @include background-gradient(
+    '--frigate-card-status-bar-position-top-background',
+    180deg
+  );
+  @include background-gradient(
+    '--frigate-card-status-bar-position-bottom-background',
+    0deg
+  );
+
+  --frigate-card-status-bar-style-outside-background: var(--secondary-background-color);
+  --frigate-card-status-bar-style-outside-color: var(--secondary-text-color);
+}

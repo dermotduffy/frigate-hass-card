@@ -38,13 +38,13 @@ describe('HASSManager', () => {
     expect(manager.hasHASS()).toBeTruthy();
   });
 
-  it('should set light or dark mode upon setting hass', () => {
+  it('should update theme upon setting hass', () => {
     const api = createCardAPI();
     const manager = new HASSManager(api);
 
     manager.setHASS(createHASS());
 
-    expect(api.getStyleManager().setLightOrDarkMode).toBeCalled();
+    expect(api.getStyleManager().applyTheme).toBeCalled();
   });
 
   describe('should set condition manager state', () => {

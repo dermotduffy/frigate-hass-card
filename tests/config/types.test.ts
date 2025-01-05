@@ -285,7 +285,7 @@ describe('config defaults', () => {
         },
       },
       status_bar: {
-        height: 30,
+        height: 40,
         items: {
           engine: {
             enabled: true,
@@ -329,7 +329,6 @@ describe('config defaults', () => {
       type: 'frigate-hass-card',
       view: {
         camera_select: 'current',
-        dark_mode: 'off',
         default: 'live',
         keyboard_shortcuts: {
           enabled: true,
@@ -355,6 +354,9 @@ describe('config defaults', () => {
             key: '-',
           },
         },
+        theme: {
+          themes: ['ha'],
+        },
         triggers: {
           show_trigger_status: false,
           untrigger_seconds: 0,
@@ -366,6 +368,7 @@ describe('config defaults', () => {
           filter_selected_camera: true,
         },
         interaction_seconds: 300,
+        dim: false,
         default_cycle_camera: false,
         default_reset: {
           after_interaction: false,

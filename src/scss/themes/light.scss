@@ -1,0 +1,17 @@
+:host([themes~='light']) {
+  // This file should include only, and exactly match, values from
+  // https://github.com/home-assistant/frontend/blob/dev/src/resources/ha-style.ts
+
+  --primary-background-color: #fafafa;
+  --secondary-background-color: #e5e5e5;
+  --primary-text-color: #212121;
+  --divider-color: rgba(0, 0, 0, 0.12);
+  --app-header-text-color: #ffffff;
+
+  // HA dynamically sets these values based on choice of primary/secondary
+  // colors and hex blending techniques. The card does not currently
+  // re-implement this logic, rather just uses the default static value.
+  // See: https://github.com/home-assistant/frontend/blob/dev/src/common/dom/apply_themes_on_element.ts
+
+  --app-header-background-color: #03a9f4;
+}

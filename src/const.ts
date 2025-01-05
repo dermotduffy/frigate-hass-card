@@ -117,8 +117,8 @@ export const CONF_ELEMENTS = 'elements' as const;
 
 const CONF_VIEW = 'view' as const;
 export const CONF_VIEW_CAMERA_SELECT = `${CONF_VIEW}.camera_select` as const;
-export const CONF_VIEW_DARK_MODE = `${CONF_VIEW}.dark_mode` as const;
 export const CONF_VIEW_DEFAULT = `${CONF_VIEW}.default` as const;
+export const CONF_VIEW_DIM = `${CONF_VIEW}.dim` as const;
 export const CONF_VIEW_INTERACTION_SECONDS = `${CONF_VIEW}.interaction_seconds` as const;
 export const CONF_VIEW_KEYBOARD_SHORTCUTS = `${CONF_VIEW}.keyboard_shortcuts` as const;
 export const CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED =
@@ -148,6 +148,7 @@ export const CONF_VIEW_DEFAULT_RESET_ENTITIES =
   `${CONF_VIEW_DEFAULT_RESET}.entities` as const;
 export const CONF_VIEW_DEFAULT_RESET_AFTER_INTERACTION =
   `${CONF_VIEW_DEFAULT_RESET}.after_interaction` as const;
+export const CONF_VIEW_THEME_THEMES = `${CONF_VIEW}.theme.themes` as const;
 export const CONF_VIEW_TRIGGERS = `${CONF_VIEW}.triggers` as const;
 export const CONF_VIEW_TRIGGERS_SHOW_TRIGGER_STATUS =
   `${CONF_VIEW_TRIGGERS}.show_trigger_status` as const;

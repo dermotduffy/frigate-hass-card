@@ -1,7 +1,7 @@
 import { add } from 'date-fns';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InteractionManager } from '../../src/card-controller/interaction-manager';
-import { createCardAPI, createConfig } from '../test-utils';
+import { createCardAPI, createConfig, createLitElement } from '../test-utils';
 
 vi.mock('lodash-es/throttle', () => ({
   default: vi.fn((fn) => fn),
@@ -17,14 +17,20 @@ describe('InteractionManager', () => {
 
   it('should initialize', () => {
     const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+
     const manager = new InteractionManager(api);
 
     manager.initialize();
     expect(api.getConditionsManager().setState).toBeCalledWith({ interaction: false });
+    expect(element.getAttribute('interaction')).toBeNull();
   });
 
-  it('should not take action without an interaction timeout', () => {
+  it('should still report interaction without an interaction timeout', () => {
     const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
         view: {
@@ -36,11 +42,15 @@ describe('InteractionManager', () => {
 
     manager.reportInteraction();
 
-    expect(manager.hasInteraction()).toBeFalsy();
+    expect(element.getAttribute('interaction')).not.toBeNull();
+    expect(manager.hasInteraction()).toBeTruthy();
   });
 
   it('should set condition state', () => {
     const api = createCardAPI();
+    const element = createLitElement();
+    vi.mocked(api.getCardElementManager().getElement).mockReturnValue(element);
+
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
         view: {
@@ -55,12 +65,14 @@ describe('InteractionManager', () => {
     expect(api.getConditionsManager().setState).not.toBeCalled();
 
     manager.reportInteraction();
+
     expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
         interaction: true,
       }),
     );
     expect(manager.hasInteraction()).toBeTruthy();
+    expect(element.getAttribute('interaction')).not.toBeNull();
 
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
@@ -71,5 +83,6 @@ describe('InteractionManager', () => {
       }),
     );
     expect(manager.hasInteraction()).toBeFalsy();
+    expect(element.getAttribute('interaction')).toBeNull();
   });
 });

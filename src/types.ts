@@ -5,7 +5,6 @@ import {
   LovelaceCardEditor,
   Themes,
 } from '@dermotduffy/custom-card-helpers';
-import { StyleInfo } from 'lit/directives/style-map';
 import { z } from 'zod';
 
 export type ClipsOrSnapshots = 'clips' | 'snapshots';
@@ -146,9 +145,6 @@ export interface Icon {
 
   // If an icon is not otherwise resolved / available, this will be used instead.
   fallback?: string;
-
-  // Styling to apply to the icon.
-  style?: StyleInfo;
 }
 
 // *************************************************************************

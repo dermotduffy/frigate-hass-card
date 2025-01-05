@@ -218,12 +218,14 @@ class FrigateCard extends LitElement {
     const getContents = (kind: 'overlay' | 'outerlay'): TemplateResult => {
       const shouldRenderMenu =
         menuStyle !== 'none' &&
-        ((menuStyle === 'outside' && kind === 'outerlay') ||
+        ((menuStyle === 'outside' && kind === 'outerlay' && menuPosition === position) ||
           (menuStyle !== 'outside' && kind === 'overlay'));
 
       const shouldRenderStatusBar =
         statusBarStyle !== 'none' &&
-        ((statusBarStyle === 'outside' && kind === 'outerlay') ||
+        ((statusBarStyle === 'outside' &&
+          kind === 'outerlay' &&
+          statusBarPosition === position) ||
           (statusBarStyle !== 'outside' && kind === 'overlay'));
 
       // Complex logic to try to always put the menu in the right-looking place.
@@ -233,8 +235,7 @@ class FrigateCard extends LitElement {
         (menuPosition === 'bottom' &&
           menuStyle === 'hidden' &&
           statusBarStyle !== 'popup') ||
-        (menuPosition === 'top' &&
-          (menuStyle !== 'hidden' || statusBarStyle === 'popup'));
+        (menuPosition === 'top' && statusBarStyle === 'popup');
 
       return html`
         ${shouldRenderMenu && renderMenuFirst ? this._renderMenu(menuPosition) : ''}
@@ -329,12 +330,20 @@ class FrigateCard extends LitElement {
       return;
     }
 
+    const outerlayUsed =
+      this._config?.menu.style === 'outside' ||
+      this._config?.status_bar.style === 'outside';
+
     const mainClasses = {
       main: true,
       'curve-top':
-        this._config?.menu.style !== 'outside' || this._config?.menu.position !== 'top',
+        !outerlayUsed ||
+        (this._config?.menu.position !== 'top' &&
+          this._config?.status_bar.position !== 'top'),
       'curve-bottom':
-        this._config?.menu.style !== 'outside' || this._config?.menu.position === 'top',
+        !outerlayUsed ||
+        (this._config?.menu.position !== 'bottom' &&
+          this._config?.status_bar.position !== 'bottom'),
     };
 
     const actions = this._controller.getActionsManager().getMergedActions();

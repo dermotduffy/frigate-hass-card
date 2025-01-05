@@ -1,7 +1,7 @@
 @use './button.scss';
 
 :host {
-  --mdc-icon-size: calc(var(--frigate-card-status-bar-height) - 6px);
+  --mdc-icon-size: calc(var(--frigate-card-status-bar-height) / 2);
 
   display: block;
   width: 100%;
@@ -20,23 +20,10 @@
   pointer-events: none;
 }
 
-/***************
- * Outside style
- ***************/
+/**********************
+ * Popup style behavior
+ **********************/
 
-:host([data-style='outside']) {
-  color: var(--primary-text-color);
-  background: var(--secondary-background-color);
-}
-
-/*******************
- * Non-outside style
- *******************/
-
-:host(:not([data-style='outside'])) {
-  color: white;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-}
 :host([data-style='popup'][hide]) {
   opacity: 0;
 }
@@ -63,8 +50,6 @@
   margin: 3px 5px;
 
   align-content: center;
-
-  opacity: 0.7;
 }
 .item:first-child {
   margin-left: 10px;
@@ -81,7 +66,8 @@
   cursor: pointer;
 }
 
-img.item {
+img.item,
+frigate-card-icon.item {
   display: block;
 
   // To ensure images render somewhat reasonably looking their height is kept to
@@ -89,3 +75,10 @@ img.item {
   height: var(--mdc-icon-size, 24px);
   width: auto;
 }
+
+/************************
+ * Status bar theme hooks
+ ************************/
+
+// Further theme related styling is dynamically applied by `status-bar.ts`, see
+// `_renderPerInstanceStyle`.

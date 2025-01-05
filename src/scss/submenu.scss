@@ -7,3 +7,8 @@
 mwc-list-item {
   z-index: 20;
 }
+
+ha-icon-button {
+  color: var(--frigate-card-menu-button-inactive-color);
+  background-color: var(--frigate-card-menu-button-background);
+}

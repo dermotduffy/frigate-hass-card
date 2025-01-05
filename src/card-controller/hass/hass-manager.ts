@@ -53,8 +53,8 @@ export class HASSManager {
       });
     }
 
-    // Dark mode may depend on HASS.
-    this._api.getStyleManager().setLightOrDarkMode();
+    // Theme may depend on HASS.
+    this._api.getStyleManager().applyTheme();
 
     this._stateWatcher.setHASS(oldHass, hass);
   }

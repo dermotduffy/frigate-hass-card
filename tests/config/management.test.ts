@@ -3406,4 +3406,31 @@ describe('should handle version specific upgrades', () => {
       postUpgradeChecks(config);
     });
   });
+
+  describe('v6.1.2+', () => {
+    describe('view.dark_mode -> view.dim', () => {
+      it.each([
+        ['on' as const, true],
+        ['auto' as const, false],
+        ['off' as const, false],
+      ])('%s', (darkMode: 'on' | 'off' | 'auto', expected: boolean) => {
+        const config = {
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          view: {
+            dark_mode: darkMode,
+          },
+        };
+        expect(upgradeConfig(config)).toBeTruthy();
+        expect(config).toEqual({
+          type: 'custom:frigate-card',
+          cameras: [{ camera_entity: 'camera.office' }],
+          view: {
+            dim: expected,
+          },
+        });
+        postUpgradeChecks(config);
+      });
+    });
+  });
 });

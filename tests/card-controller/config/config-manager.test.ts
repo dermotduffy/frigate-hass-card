@@ -98,7 +98,7 @@ describe('ConfigManager', () => {
     expect(api.getViewManager().reset).toBeCalled();
     expect(api.getMessageManager().reset).toBeCalled();
     expect(api.getAutomationsManager().addAutomations).toBeCalled();
-    expect(api.getStyleManager().setPerformance).toBeCalled();
+    expect(api.getStyleManager().updateFromConfig).toBeCalled();
     expect(api.getCardElementManager().update).toBeCalled();
   });
 
@@ -175,7 +175,7 @@ describe('ConfigManager', () => {
     manager.computeOverrideConfig();
 
     expect(manager.getConfig()).toBeNull();
-    expect(api.getStyleManager().setMinMaxHeight).not.toBeCalled();
+    expect(api.getStyleManager().updateFromConfig).not.toBeCalled();
   });
 
   it('should ignore overrides with same config', () => {
@@ -188,12 +188,12 @@ describe('ConfigManager', () => {
     vi.mocked(getOverriddenConfig).mockReturnValue(config);
 
     manager.setConfig(config);
-    expect(api.getStyleManager().setMinMaxHeight).toBeCalled();
+    expect(api.getStyleManager().updateFromConfig).toBeCalled();
 
-    vi.mocked(api.getStyleManager().setMinMaxHeight).mockClear();
+    vi.mocked(api.getStyleManager().updateFromConfig).mockClear();
     manager.computeOverrideConfig();
 
-    expect(api.getStyleManager().setMinMaxHeight).not.toBeCalled();
+    expect(api.getStyleManager().updateFromConfig).not.toBeCalled();
   });
 
   it('should override', () => {
@@ -204,7 +204,7 @@ describe('ConfigManager', () => {
       cameras: [{ camera_entity: 'camera.office' }],
     };
     manager.setConfig(config_1);
-    vi.mocked(api.getStyleManager().setMinMaxHeight).mockClear();
+    vi.mocked(api.getStyleManager().updateFromConfig).mockClear();
 
     const config_2 = {
       type: 'custom:frigate-card',
@@ -213,7 +213,7 @@ describe('ConfigManager', () => {
     vi.mocked(getOverriddenConfig).mockReturnValue(config_2);
     manager.computeOverrideConfig();
 
-    expect(api.getStyleManager().setMinMaxHeight).toBeCalled();
+    expect(api.getStyleManager().updateFromConfig).toBeCalled();
     expect(api.getCardElementManager().update).toBeCalled();
     expect(manager.getConfig()).not.toEqual(manager.getNonOverriddenConfig());
   });

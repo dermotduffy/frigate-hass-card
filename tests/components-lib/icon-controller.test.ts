@@ -22,6 +22,10 @@ describe('IconController', () => {
       );
     });
 
+    it('should return iris SVG for iris icon', () => {
+      expect(new IconController().getCustomIcon({ icon: 'iris' })).toMatch(/iris.svg$/);
+    });
+
     it('should return null for mdi icon', () => {
       expect(new IconController().getCustomIcon({ icon: 'mdi:car' })).toBeNull();
     });

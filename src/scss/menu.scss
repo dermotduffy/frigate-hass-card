@@ -15,6 +15,10 @@
   overflow: visible;
 }
 
+:host([data-style='outside']) {
+  width: 100%;
+}
+
 /*******************************************************
  * Non-hover styles should not interact with the pointer
  *******************************************************/
@@ -43,15 +47,6 @@ div.matching {
 }
 div.opposing {
   justify-content: flex-end;
-}
-
-/********************
- * Outside menu style
- ********************/
-
-:host([data-style='outside']) {
-  width: 100%;
-  background: var(--secondary-background-color);
 }
 
 /********************************************************
@@ -126,24 +121,6 @@ div.opposing {
   height: auto;
 }
 
-:host([data-style='overlay'][data-position='top'][data-alignment='left']),
-:host([data-style='overlay'][data-position='bottom'][data-alignment='left']),
-:host([data-style*='hover'][data-position='top'][data-alignment='left']),
-:host([data-style*='hover'][data-position='bottom'][data-alignment='left']),
-:host([data-style='hidden'][data-position='top'][data-alignment='left'][expanded]),
-:host([data-style='hidden'][data-position='bottom'][data-alignment='left'][expanded]) {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-}
-
-:host([data-style='overlay'][data-position='top'][data-alignment='right']),
-:host([data-style='overlay'][data-position='bottom'][data-alignment='right']),
-:host([data-style*='hover'][data-position='top'][data-alignment='right']),
-:host([data-style*='hover'][data-position='bottom'][data-alignment='right']),
-:host([data-style='hidden'][data-position='top'][data-alignment='right'][expanded]),
-:host([data-style='hidden'][data-position='bottom'][data-alignment='right'][expanded]) {
-  background: linear-gradient(270deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-}
-
 :host([data-style='overlay'][data-position='left']),
 :host([data-style='overlay'][data-position='right']),
 :host([data-style*='hover'][data-position='left']),
@@ -154,20 +131,16 @@ div.opposing {
   height: 100%;
 }
 
-:host([data-style='overlay'][data-position='left'][data-alignment='top']),
-:host([data-style='overlay'][data-position='right'][data-alignment='top']),
-:host([data-style*='hover'][data-position='left'][data-alignment='top']),
-:host([data-style*='hover'][data-position='right'][data-alignment='top']),
-:host([data-style='hidden'][data-position='left'][data-alignment='top'][expanded]),
-:host([data-style='hidden'][data-position='right'][data-alignment='top'][expanded]) {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+/************
+ * Menu theme
+ ************/
+
+// When the menu uses the hidden style, and is not expanded, the remaining
+// permanent menu buttons use the menu background color instead of the button
+// background color.
+:host([data-style='hidden']:not([expanded])) ha-icon-button {
+  background: var(--frigate-card-menu-background);
 }
 
-:host([data-style='overlay'][data-position='left'][data-alignment='bottom']),
-:host([data-style='overlay'][data-position='right'][data-alignment='bottom']),
-:host([data-style*='hover'][data-position='left'][data-alignment='bottom']),
-:host([data-style*='hover'][data-position='right'][data-alignment='bottom']),
-:host([data-style='hidden'][data-position='left'][data-alignment='bottom'][expanded]),
-:host([data-style='hidden'][data-position='right'][data-alignment='bottom'][expanded]) {
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-}
+// Further theme related styling is dynamically applied by `menu.ts`, see
+// `_renderPerInstanceStyle`.

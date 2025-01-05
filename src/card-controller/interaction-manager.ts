@@ -1,10 +1,12 @@
 import throttle from 'lodash-es/throttle';
+import { setOrRemoveAttribute } from '../utils/basic';
 import { Timer } from '../utils/timer';
 import { CardInteractionAPI } from './types';
 
 export class InteractionManager {
   protected _timer = new Timer();
   protected _api: CardInteractionAPI;
+  protected _interacted = false;
 
   constructor(api: CardInteractionAPI) {
     this._api = api;
@@ -17,29 +19,32 @@ export class InteractionManager {
   }, 1 * 1000);
 
   public initialize(): void {
-    this._api.getConditionsManager().setState({ interaction: false });
+    this._setInteraction(false);
   }
 
   public hasInteraction(): boolean {
-    return this._timer.isRunning();
+    return this._interacted;
   }
 
-  /**
-   * Start the user interaction ('screensaver') timer to reset the view to
-   * default `view.interaction_seconds` after user interaction.
-   */
+  protected _setInteraction(val: boolean): void {
+    this._interacted = val;
+    setOrRemoveAttribute(
+      this._api.getCardElementManager().getElement(),
+      val,
+      'interaction',
+    );
+    this._api.getConditionsManager().setState({ interaction: val });
+  }
+
   protected _reportInteraction(): void {
     this._timer.stop();
+    this._setInteraction(true);
 
     const timeoutSeconds = this._api.getConfigManager().getConfig()
       ?.view.interaction_seconds;
-
     if (timeoutSeconds) {
-      this._api.getConditionsManager().setState({ interaction: true });
-
       this._timer.start(timeoutSeconds, () => {
-        this._api.getConditionsManager().setState({ interaction: false });
-        this._api.getStyleManager().setLightOrDarkMode();
+        this._setInteraction(false);
       });
     }
   }
