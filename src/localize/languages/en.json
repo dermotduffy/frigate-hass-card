@@ -511,9 +511,10 @@
       "theme": {
         "themes": {
           "dark": "Dark",
+          "ha": "Home Assistant",
           "editor_label": "Themes",
           "light": "Light",
-          "original": "Original"
+          "traditional": "Traditional"
         }
       },
       "triggers": {

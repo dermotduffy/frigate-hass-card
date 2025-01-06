@@ -908,9 +908,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected _themes: EditorSelectOption[] = [
     { value: '', label: '' },
+    { value: 'ha', label: localize('config.view.theme.themes.ha') },    
     { value: 'dark', label: localize('config.view.theme.themes.dark') },
     { value: 'light', label: localize('config.view.theme.themes.light') },
-    { value: 'original', label: localize('config.view.theme.themes.original') },
+    { value: 'traditional', label: localize('config.view.theme.themes.traditional') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
