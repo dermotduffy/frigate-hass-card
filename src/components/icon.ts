@@ -25,7 +25,7 @@ export class FrigateCardIcon extends LitElement {
   // in the menu / submenus where we want icons to follow menu theming, unless
   // they are 'active'. This attribute is not used in code, but matched in
   // icon.scss .
-  @property({ attribute: "allow-override-non-active-styles", type: Boolean })
+  @property({ attribute: 'allow-override-non-active-styles', type: Boolean })
   public allowOverrideNonActiveStyles = false;
 
   private _controller = new IconController();
