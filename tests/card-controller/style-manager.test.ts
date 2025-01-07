@@ -440,7 +440,7 @@ describe('StyleManager', () => {
 
       manager.applyTheme();
 
-      expect(element.getAttribute('themes')).toBe('ha');
+      expect(element.getAttribute('themes')).toBe('traditional');
     });
 
     it('should apply overrides', () => {

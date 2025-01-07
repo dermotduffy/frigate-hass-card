@@ -56,8 +56,8 @@ export class FrigateCardStatusBar extends LitElement {
       return `
         var(--frigate-card-status-bar-override-${suffix},
         var(--frigate-card-status-bar-position-${position}-style-${style}-${suffix},
-        var(--frigate-card-status-bar-style-${style}-${suffix},
         var(--frigate-card-status-bar-position-${position}-${suffix},
+        var(--frigate-card-status-bar-style-${style}-${suffix},
         var(--frigate-card-status-bar-${suffix})))))`;
     };
 

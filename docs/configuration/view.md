@@ -75,10 +75,10 @@ view:
 
 Configure the theming/colors applied to the card.
 
-| Option      | Default | Description                                                                                                                                                      |
-| ----------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `themes`    | `[ha]`  | A list of themes that are applied sequentially. Valid themes are show below. Usually only a single value is needed. An empty list is treated the same as `[ha]`. |
-| `overrides` |         | A list of CSS keys that can be used to tweak the theming.                                                                                                        |
+| Option      | Default         | Description                                                                                                                                                            |
+| ----------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `themes`    | `[traditional]` | A list of themes that are applied sequentially. Valid themes are shown below. Usually only a single value is needed. An empty list is treated the same as the default. |
+| `overrides` |                 | A list of CSS keys that can be used to tweak the theming.                                                                                                              |
 
 ### `themes`
 

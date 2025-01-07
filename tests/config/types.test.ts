@@ -355,7 +355,7 @@ describe('config defaults', () => {
           },
         },
         theme: {
-          themes: ['ha'],
+          themes: ['traditional'],
         },
         triggers: {
           show_trigger_status: false,

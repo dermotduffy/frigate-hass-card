@@ -108,11 +108,12 @@ export class FrigateCardMenu extends LitElement {
     const generateValue = (suffix: string): string => {
       return `
         var(--frigate-card-menu-override-${suffix},
-        var(--frigate-card-menu-position-${position}-style-${style}-alignment-${alignment}-${suffix},
-        var(--frigate-card-menu-alignment-${alignment}-${suffix},
-        var(--frigate-card-menu-style-${style}-${suffix},
+        var(--frigate-card-menu-position-${position}-alignment-${alignment}-style-${style}-${suffix},
+        var(--frigate-card-menu-position-${position}-alignment-${alignment}-${suffix},
         var(--frigate-card-menu-position-${position}-${suffix},
-        var(--frigate-card-menu-${suffix}))))))`;
+        var(--frigate-card-menu-style-${style}-${suffix},
+        var(--frigate-card-menu-alignment-${alignment}-${suffix},
+        var(--frigate-card-menu-${suffix})))))))`;
     };
 
     // By definition `rule` will match the current configuration, the choice is

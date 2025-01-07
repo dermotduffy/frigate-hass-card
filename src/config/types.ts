@@ -1517,7 +1517,7 @@ const viewConfigDefault = {
   default_cycle_camera: false,
   dim: false,
   theme: {
-    themes: ['ha' as const],
+    themes: ['traditional' as const],
   },
   triggers: {
     show_trigger_status: false,

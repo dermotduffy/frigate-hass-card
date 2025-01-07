@@ -22,7 +22,7 @@
   --frigate-card-control-background-transparent: color-mix(
     in oklab,
     var(--frigate-card-control-background),
-    transparent 50%
+    transparent 60%
   );
   --frigate-card-control-foreground: var(--app-header-text-color);
 
@@ -69,7 +69,7 @@
   --frigate-card-menu-override-button-background: unset;
 
   // Examples of precise theming for the menu:
-  // --frigate-card-menu-position-left-style-overlay-alignment-left-background: pink;
+  // --frigate-card-menu-position-left-alignment-left-style-overlay-background: pink;
   // --frigate-card-menu-position-left-background: purple;
   // --frigate-card-menu-style-overlay-background: pink;
 

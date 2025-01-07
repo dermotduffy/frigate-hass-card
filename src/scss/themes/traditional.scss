@@ -20,13 +20,54 @@
    ******/
 
   --frigate-card-menu-button-active-color: var(--primary-color, white);
+  --frigate-card-menu-button-background: rgba(0, 0, 0, 0.6);
 
-  @include background-gradient('--frigate-card-menu-position-left-background', 90deg);
-  @include background-gradient('--frigate-card-menu-position-right-background', 270deg);
-  @include background-gradient('--frigate-card-menu-position-top-background', 180deg);
-  @include background-gradient('--frigate-card-menu-position-bottom-background', 0deg);
+  @include background-gradient(
+    '--frigate-card-menu-position-left-alignment-top-background',
+    180deg
+  );
+  @include background-gradient(
+    '--frigate-card-menu-position-left-alignment-bottom-background',
+    0deg
+  );
+  @include background-gradient(
+    '--frigate-card-menu-position-right-alignment-top-background',
+    180deg
+  );
+  @include background-gradient(
+    '--frigate-card-menu-position-right-alignment-bottom-background',
+    0deg
+  );
 
-  --frigate-card-menu-style-outside-background: var(--secondary-background-color);
+  @include background-gradient(
+    '--frigate-card-menu-position-top-alignment-left-background',
+    90deg
+  );
+  @include background-gradient(
+    '--frigate-card-menu-position-top-alignment-right-background',
+    270deg
+  );
+  @include background-gradient(
+    '--frigate-card-menu-position-bottom-alignment-left-background',
+    90deg
+  );
+  @include background-gradient(
+    '--frigate-card-menu-position-bottom-alignment-right-background',
+    270deg
+  );
+
+  --frigate-card-menu-position-top-alignment-left-style-outside-background: var(
+    --secondary-background-color
+  );
+  --frigate-card-menu-position-top-alignment-right-style-outside-background: var(
+    --secondary-background-color
+  );
+  --frigate-card-menu-position-bottom-alignment-left-style-outside-background: var(
+    --secondary-background-color
+  );
+  --frigate-card-menu-position-bottom-alignment-right-style-outside-background: var(
+    --secondary-background-color
+  );
 
   /************
    * Status bar
@@ -35,22 +76,24 @@
   --frigate-card-status-bar-color: white;
 
   @include background-gradient(
-    '--frigate-card-status-bar-position-left-background',
+    '--frigate-card-status-bar-position-top-background',
     90deg
   );
   @include background-gradient(
-    '--frigate-card-status-bar-position-right-background',
-    270deg
-  );
-  @include background-gradient(
-    '--frigate-card-status-bar-position-top-background',
-    180deg
-  );
-  @include background-gradient(
     '--frigate-card-status-bar-position-bottom-background',
-    0deg
+    90deg
   );
 
-  --frigate-card-status-bar-style-outside-background: var(--secondary-background-color);
-  --frigate-card-status-bar-style-outside-color: var(--secondary-text-color);
+  --frigate-card-status-bar-position-top-style-outside-background: var(
+    --secondary-background-color
+  );
+  --frigate-card-status-bar-position-bottom-style-outside-background: var(
+    --secondary-background-color
+  );
+  --frigate-card-status-bar-position-top-style-outside-color: var(
+    --secondary-text-color
+  );
+  --frigate-card-status-bar-position-bottom-style-outside-color: var(
+    --secondary-text-color
+  );
 }
