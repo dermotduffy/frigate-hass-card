@@ -74,6 +74,7 @@ export class FrigateCardMenu extends LitElement {
       @action=${(ev) => this._controller.actionHandler(ev, button)}
     >
       <frigate-card-icon
+        ?allow-override-non-active-styles=${true}
         style="${styleMap(button.style || {})}"
         .hass=${this.hass}
         .icon=${{

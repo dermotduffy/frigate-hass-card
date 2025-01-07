@@ -20,6 +20,14 @@ export class FrigateCardIcon extends LitElement {
   @property({ attribute: false })
   public icon?: Icon;
 
+  // Note: This attribute will allow non-active entity state styles (e.g. 'off',
+  // 'unavailable') to be overriden from outside the icon itself. This is useful
+  // in the menu / submenus where we want icons to follow menu theming, unless
+  // they are 'active'. This attribute is not used in code, but matched in
+  // icon.scss .
+  @property({ attribute: "allow-override-non-active-styles", type: Boolean })
+  public allowOverrideNonActiveStyles = false;
+
   private _controller = new IconController();
   private _svg: HTMLElement | null = null;
 

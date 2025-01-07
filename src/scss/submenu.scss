@@ -9,6 +9,12 @@ mwc-list-item {
 }
 
 ha-icon-button {
+  // The main submenu icon is expected to follow Frigate card theming unless it
+  // is are active (in which case we want to take advantage of the whatever
+  // styling is appropriate, e.g. light icon partially lit).
+  --state-unavailable-color: var(--frigate-card-button-color);
+  --state-inactive-color: var(--frigate-card-button-color);
+
   color: var(--frigate-card-menu-button-inactive-color);
   background-color: var(--frigate-card-menu-button-background);
 }

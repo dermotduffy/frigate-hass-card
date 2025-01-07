@@ -142,5 +142,13 @@ div.opposing {
   background: var(--frigate-card-menu-background);
 }
 
+// Icons in the menu are expected to follow Frigate card theming unless they are
+// active (in which case we want to take advantage of the whatever styling is
+// appropriate, e.g. light icon partially lit).
+:host ha-icon-button {
+  --state-unavailable-color: var(--frigate-card-button-color);
+  --state-inactive-color: var(--frigate-card-button-color);
+}
+
 // Further theme related styling is dynamically applied by `menu.ts`, see
 // `_renderPerInstanceStyle`.

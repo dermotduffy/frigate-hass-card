@@ -110,6 +110,7 @@ export class FrigateCardSubmenu extends LitElement {
           })}
         >
           <frigate-card-icon
+            ?allow-override-non-active-styles=${true}
             style="${style}"
             .hass=${this.hass}
             .icon=${typeof this.submenu.icon === 'string'
