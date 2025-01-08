@@ -115,7 +115,7 @@ export type ViewDisplayMode = z.infer<typeof viewDisplayModeSchema>;
 
 const viewDisplaySchema = z
   .object({
-    mode: viewDisplayModeSchema,
+    mode: viewDisplayModeSchema.optional(),
     grid_selected_width_factor: z.number().min(0).optional(),
     grid_max_columns: z.number().min(0).optional(),
     grid_columns: z.number().min(0).optional(),

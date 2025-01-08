@@ -320,36 +320,79 @@ describe('getViewByParameters', () => {
     expect(modifyCallback).toHaveBeenCalledWith(modifiedView);
   });
 
-  describe('should get correct default display mode', () => {
-    describe.each([
-      ['single' as const, { mode: 'single' as const }],
-      ['grid' as const, { mode: 'grid' as const }],
-      ['single' as const, undefined],
-    ])('%s', (expectedDisplayMode: ViewDisplayMode, displayConfig?: unknown) => {
-      it.each([
-        ['media' as const],
-        ['clip' as const],
-        ['recording' as const],
-        ['snapshot' as const],
-        ['live' as const],
-      ])('%s', (viewName: FrigateCardView) => {
-        const api = createPopulatedAPI({
-          media_viewer: {
-            display: displayConfig,
-          },
-          live: {
-            display: displayConfig,
-          },
-        });
+  describe('should get correct display mode', () => {
+    it('should use config display mode when changing views', () => {
+      const api = createPopulatedAPI({
+        media_viewer: {
+          display: { mode: 'single' },
+        },
+      });
 
-        const factory = new ViewFactory(api);
-        expect(
-          factory.getViewByParameters({
-            params: {
-              view: viewName,
+      const factory = new ViewFactory(api);
+      expect(
+        factory.getViewByParameters({
+          params: {
+            view: 'clip',
+            displayMode: 'grid',
+          },
+        })?.displayMode,
+      ).toBe('single');
+    });
+
+    it('should ignore config display mode with a view', () => {
+      const api = createPopulatedAPI({
+        media_viewer: {
+          display: { mode: 'single' },
+        },
+      });
+
+      const baseView = createView({
+        view: 'live',
+      });
+
+      const factory = new ViewFactory(api);
+      expect(
+        factory.getViewByParameters({
+          baseView: baseView,
+          params: {
+            view: 'live',
+            displayMode: 'grid',
+          },
+        })?.displayMode,
+      ).toBe('grid');
+    });
+
+    describe('should get correct default display mode', () => {
+      describe.each([
+        ['single' as const, { mode: 'single' as const }],
+        ['grid' as const, { mode: 'grid' as const }],
+        ['single' as const, undefined],
+      ])('%s', (expectedDisplayMode: ViewDisplayMode, displayConfig?: unknown) => {
+        it.each([
+          ['media' as const],
+          ['clip' as const],
+          ['recording' as const],
+          ['snapshot' as const],
+          ['live' as const],
+        ])('%s', (viewName: FrigateCardView) => {
+          const api = createPopulatedAPI({
+            media_viewer: {
+              display: displayConfig,
             },
-          })?.displayMode,
-        ).toBe(expectedDisplayMode);
+            live: {
+              display: displayConfig,
+            },
+          });
+
+          const factory = new ViewFactory(api);
+          expect(
+            factory.getViewByParameters({
+              params: {
+                view: viewName,
+              },
+            })?.displayMode,
+          ).toBe(expectedDisplayMode);
+        });
       });
     });
   });
