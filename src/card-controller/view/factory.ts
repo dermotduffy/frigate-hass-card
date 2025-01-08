@@ -121,11 +121,15 @@ export class ViewFactory {
         });
       }
     }
-
+    const configuredDisplayMode = this._getDefaultDisplayModeForView(viewName, config);
     const displayMode =
+      // Prioritize the configured display mode (if present).
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1812
+      (viewName !== options?.baseView?.view ? configuredDisplayMode : null) ??
       options?.params?.displayMode ??
       options?.baseView?.displayMode ??
-      this._getDefaultDisplayModeForView(viewName, config);
+      configuredDisplayMode ??
+      'single';
 
     const viewParameters: ViewParameters = {
       ...options?.params,
@@ -150,7 +154,7 @@ export class ViewFactory {
   protected _getDefaultDisplayModeForView(
     viewName: FrigateCardView,
     config: FrigateCardConfig,
-  ): ViewDisplayMode {
+  ): ViewDisplayMode | null {
     let mode: ViewDisplayMode | null = null;
     switch (viewName) {
       case 'media':
@@ -163,6 +167,6 @@ export class ViewFactory {
         mode = config.live.display?.mode ?? null;
         break;
     }
-    return mode ?? 'single';
+    return mode;
   }
 }
