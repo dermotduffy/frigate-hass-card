@@ -6,7 +6,9 @@
   --ha-icon-display: block;
 }
 
-* {
+ha-icon,
+state-badge,
+svg {
   display: block;
   height: 100%;
   width: 100%;
