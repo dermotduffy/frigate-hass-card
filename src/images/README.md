@@ -22,8 +22,13 @@ $ convert -extent 2048x1152 -flop -gravity center 47543120431_b285c45ac8_k.jpg f
 $ mogrify -strip -interlace Plane -quality 85% -scale 492x277 frigate-bird-in-sky.jpg
 ```
 
-## camera-iris.svg
+## iris.svg / iris-outline.svg
 
 **Link**: https://pictogrammers.com/library/mdi/icon/camera-iris/
 
 **License**: https://www.apache.org/licenses/LICENSE-2.0
+
+**Image Formatting Process**:
+
+- Outline addded manually
+- Opacity adjustmented manually

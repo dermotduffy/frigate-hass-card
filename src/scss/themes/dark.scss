@@ -1,0 +1,11 @@
+:host([themes~='dark']) {
+  // This file should include only, and exactly match, values from
+  // https://github.com/home-assistant/frontend/blob/dev/src/resources/styles-data.ts .
+
+  --primary-background-color: #111111;
+  --secondary-background-color: #282828;
+  --primary-text-color: #e1e1e1;
+  --divider-color: rgba(225, 225, 225, 0.12);
+  --app-header-background-color: #101e24;
+  --app-header-text-color: #e1e1e1;
+}

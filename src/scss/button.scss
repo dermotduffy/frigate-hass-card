@@ -1,6 +1,7 @@
-ha-icon-button.button {
-  color: var(--secondary-color, white);
-  background-color: rgba(0, 0, 0, 0.6);
+ha-icon-button {
+  color: var(--frigate-card-button-color);
+  background-color: var(--frigate-card-button-background);
+
   border-radius: 50%;
   padding: 0px;
   margin: 3px;
@@ -8,5 +9,4 @@ ha-icon-button.button {
 
   /* Buttons can always be clicked */
   pointer-events: auto;
-  opacity: 0.9;
 }

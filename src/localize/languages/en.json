@@ -481,12 +481,6 @@
     },
     "view": {
       "camera_select": "View for newly selected cameras",
-      "dark_mode": "Dark mode",
-      "dark_modes": {
-        "auto": "Auto",
-        "off": "Off",
-        "on": "On"
-      },
       "default": "Default view",
       "default_cycle_camera": "Cycle through cameras when default view updates",
       "default_reset": {
@@ -501,6 +495,7 @@
           "inactive": "Only reset when card has no human interaction"
         }
       },
+      "dim": "Dim when no interaction",
       "interaction_seconds": "Seconds after user action to remain interacted with (0=never)",
       "keyboard_shortcuts": {
         "editor_label": "Keyboard shortcuts",
@@ -512,6 +507,15 @@
         "ptz_up": "PTZ Up",
         "ptz_zoom_in": "PTZ Zoom In",
         "ptz_zoom_out": "PTZ Zoom Out"
+      },
+      "theme": {
+        "themes": {
+          "dark": "Dark",
+          "ha": "Home Assistant",
+          "editor_label": "Themes",
+          "light": "Light",
+          "traditional": "Traditional"
+        }
       },
       "triggers": {
         "actions": {

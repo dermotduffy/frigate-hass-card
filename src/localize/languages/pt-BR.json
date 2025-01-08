@@ -481,12 +481,6 @@
     },
     "view": {
       "camera_select": "Visualização de câmeras recém-selecionadas",
-      "dark_mode": "Modo escuro",
-      "dark_modes": {
-        "auto": "Automático",
-        "off": "Desligado",
-        "on": "Ligado"
-      },
       "default": "Visualização padrão",
       "default_cycle_camera": "Percorrer as câmeras quando a visualização padrão for atualizada",
       "default_reset": {
@@ -501,6 +495,7 @@
           "inactive": ""
         }
       },
+      "dim": "",
       "interaction_seconds": "",
       "keyboard_shortcuts": {
         "editor_label": "",
@@ -512,6 +507,15 @@
         "ptz_up": "",
         "ptz_zoom_in": "",
         "ptz_zoom_out": ""
+      },
+      "theme": {
+        "themes": {
+          "dark": "",
+          "ha": "",
+          "editor_label": "",
+          "light": "",
+          "traditional": ""
+        }
       },
       "triggers": {
         "actions": {

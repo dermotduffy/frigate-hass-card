@@ -97,7 +97,6 @@ export class ConfigManager {
     this._api.getViewManager().reset();
 
     this._api.getMessageManager().reset();
-    this._api.getStyleManager().setPerformance();
     this._api.getStatusBarItemManager().removeAllDynamicStatusBarItems();
 
     setKeyboardShortcutsFromConfig(this._api, this);
@@ -134,7 +133,7 @@ export class ConfigManager {
     const previousConfig = this._overriddenConfig;
     this._overriddenConfig = overriddenConfig;
 
-    this._api.getStyleManager().setMinMaxHeight();
+    this._api.getStyleManager().updateFromConfig();
 
     if (
       previousConfig &&

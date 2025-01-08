@@ -63,7 +63,6 @@ export class FrigateCardNextPreviousControl extends LitElement {
       right: this.side === 'right',
       thumbnails: !renderIcon,
       icons: renderIcon,
-      button: renderIcon,
     };
 
     if (renderIcon) {

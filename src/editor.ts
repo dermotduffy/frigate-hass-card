@@ -200,7 +200,6 @@ import {
   CONF_TIMELINE_STYLE,
   CONF_TIMELINE_WINDOW_SECONDS,
   CONF_VIEW_CAMERA_SELECT,
-  CONF_VIEW_DARK_MODE,
   CONF_VIEW_DEFAULT,
   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
   CONF_VIEW_DEFAULT_RESET,
@@ -208,6 +207,7 @@ import {
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
   CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
   CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+  CONF_VIEW_DIM,
   CONF_VIEW_INTERACTION_SECONDS,
   CONF_VIEW_KEYBOARD_SHORTCUTS,
   CONF_VIEW_KEYBOARD_SHORTCUTS_ENABLED,
@@ -218,6 +218,7 @@ import {
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_UP,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_IN,
   CONF_VIEW_KEYBOARD_SHORTCUTS_PTZ_ZOOM_OUT,
+  CONF_VIEW_THEME_THEMES,
   CONF_VIEW_TRIGGERS,
   CONF_VIEW_TRIGGERS_ACTIONS,
   CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE,
@@ -550,13 +551,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     { value: 'ribbon', label: localize('config.common.timeline.styles.ribbon') },
     { value: 'stack', label: localize('config.common.timeline.styles.stack') },
-  ];
-
-  protected _darkModes: EditorSelectOption[] = [
-    { value: '', label: '' },
-    { value: 'on', label: localize('config.view.dark_modes.on') },
-    { value: 'off', label: localize('config.view.dark_modes.off') },
-    { value: 'auto', label: localize('config.view.dark_modes.auto') },
   ];
 
   protected _mediaActionNegativeConditions: EditorSelectOption[] = [
@@ -910,6 +904,14 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: '', label: '' },
     { value: 'top', label: localize('config.status_bar.positions.top') },
     { value: 'bottom', label: localize('config.status_bar.positions.bottom') },
+  ];
+
+  protected _themes: EditorSelectOption[] = [
+    { value: '', label: '' },
+    { value: 'ha', label: localize('config.view.theme.themes.ha') },
+    { value: 'dark', label: localize('config.view.theme.themes.dark') },
+    { value: 'light', label: localize('config.view.theme.themes.light') },
+    { value: 'traditional', label: localize('config.view.theme.themes.traditional') },
   ];
 
   public setConfig(config: RawFrigateCardConfig): void {
@@ -1928,7 +1930,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           ? html` <div class="values">
               <div class="controls">
                 <ha-icon-button
-                  class="button"
                   .label=${localize('editor.move_up')}
                   .disabled=${addNewCamera ||
                   !this._config ||
@@ -1950,7 +1951,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ></frigate-card-icon>
                 </ha-icon-button>
                 <ha-icon-button
-                  class="button"
                   .label=${localize('editor.move_down')}
                   .disabled=${addNewCamera ||
                   !this._config ||
@@ -1975,7 +1975,6 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   ></frigate-card-icon>
                 </ha-icon-button>
                 <ha-icon-button
-                  class="button"
                   .label=${localize('editor.delete')}
                   .disabled=${addNewCamera}
                   @click=${() => {
@@ -2525,7 +2524,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   CONF_VIEW_CAMERA_SELECT,
                   this._cameraSelectViewModes,
                 )}
-                ${this._renderOptionSelector(CONF_VIEW_DARK_MODE, this._darkModes)}
+                ${this._renderSwitch(CONF_VIEW_DIM, this._defaults.view.dim)}
                 ${this._renderNumberInput(CONF_VIEW_INTERACTION_SECONDS)}
                 ${this._renderSwitch(
                   CONF_VIEW_DEFAULT_CYCLE_CAMERA,
@@ -2533,6 +2532,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 )}
                 ${this._renderViewDefaultResetMenu()} ${this._renderViewTriggersMenu()}
                 ${this._renderViewKeyboardShortcutMenu()}
+                ${this._renderOptionSelector(CONF_VIEW_THEME_THEMES, this._themes, {
+                  label: localize('config.view.theme.themes.editor_label'),
+                  multiple: true,
+                })}
               </div>
             `
           : ''}

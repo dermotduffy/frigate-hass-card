@@ -1,0 +1,127 @@
+@use 'dark.scss';
+@use 'light.scss';
+@use 'traditional.scss';
+
+:host {
+  /*********
+   * General
+   *********/
+
+  --frigate-card-exterior: var(--secondary-background-color, black);
+  --frigate-card-background: var(--primary-background-color, white);
+
+  --frigate-card-foreground-primary: var(--primary-color, black);
+
+  --frigate-card-active-color: var(--accent-color, orange);
+  --frigate-card-warning-color: var(--error-color, red);
+
+  --frigate-card-text-color: var(--primary-text-color);
+  --frigate-card-divider-color: var(--divider-color);
+
+  --frigate-card-control-background: var(--app-header-background-color);
+  --frigate-card-control-background-transparent: color-mix(
+    in oklab,
+    var(--frigate-card-control-background),
+    transparent 60%
+  );
+  --frigate-card-control-foreground: var(--app-header-text-color);
+
+  /*********
+   * Buttons
+   *********/
+
+  // The color of buttons (in general, menu or otherwise).
+  --frigate-card-button-color: var(--frigate-card-control-foreground);
+
+  // The color of button background "circles".
+  --frigate-card-button-background: var(--frigate-card-control-background-transparent);
+
+  /******
+   * Menu
+   ******/
+
+  // The color of an active icon in the menu.
+  --frigate-card-menu-button-active-color: var(--frigate-card-active-color);
+
+  // The color of an inactive icon in the menu.
+  --frigate-card-menu-button-inactive-color: var(--frigate-card-button-color);
+
+  // The color of a critical icon in the menu.
+  --frigate-card-menu-button-critical-color: var(
+    --error-color,
+    var(--frigate-card-warning-color)
+  );
+
+  // The background color of the button "circles" in the menu.
+  --frigate-card-menu-button-background: color-mix(
+    in oklab,
+    var(--frigate-card-menu-button-inactive-color),
+    transparent 60%
+  );
+
+  // The menu background color.
+  --frigate-card-menu-background: var(--frigate-card-control-background-transparent);
+  --frigate-card-menu-style-outside-background: var(--frigate-card-control-background);
+
+  // May be overridden by the user to force a particular color.
+  --frigate-card-menu-override-background: unset;
+  --frigate-card-menu-override-button-inactive-color: unset;
+  --frigate-card-menu-override-button-background: unset;
+
+  // Examples of precise theming for the menu:
+  // --frigate-card-menu-position-left-alignment-left-style-overlay-background: pink;
+  // --frigate-card-menu-position-left-background: purple;
+  // --frigate-card-menu-style-overlay-background: pink;
+
+  /************
+   * Status bar
+   ************/
+
+  // May be overridden by the user to force a particular color.
+  --frigate-card-status-bar-override-background: unset;
+  --frigate-card-status-bar-override-color: unset;
+
+  // The color of items on the status bar.
+  --frigate-card-status-bar-color: var(--frigate-card-control-foreground);
+
+  // The background color of the outerlay above/below the card.
+  --frigate-card-status-bar-background: var(
+    --frigate-card-control-background-transparent
+  );
+  --frigate-card-status-bar-style-outside-background: var(
+    --frigate-card-control-background
+  );
+
+  /************
+   * Thumbnails
+   ************/
+
+  --frigate-card-thumbnail-icon-color: var(--frigate-card-foreground-primary);
+  --frigate-card-thumbnail-border-color: var(--frigate-card-foreground-primary);
+  --frigate-card-thumbnail-background: var(--frigate-card-background);
+  --frigate-card-thumbnail-icon-favorite-color: color-mix(
+    in oklab,
+    gold,
+    transparent 25%
+  );
+  --frigate-card-thumbnail-text-color: var(--frigate-card-text-color);
+
+  /**********
+   * Timeline
+   **********/
+
+  --frigate-card-timeline-text-color: var(--frigate-card-text-color);
+  --frigate-card-timeline-item-color: var(--frigate-card-foreground-primary);
+  --frigate-card-timeline-tool-color: var(--frigate-card-foreground-primary);
+  --frigate-card-timeline-background: var(--frigate-card-background);
+
+  // style for the 'background' style of item (i.e. recordings).
+  --frigate-card-timeline-background-item-color: color-mix(
+    in oklab,
+    var(--frigate-card-timeline-item-color),
+    transparent 90%
+  );
+
+  --frigate-card-timeline-divider-color: var(--frigate-card-divider-color);
+  --frigate-card-timeline-target-bar-color: var(--frigate-card-active-color);
+}

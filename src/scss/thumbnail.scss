@@ -15,7 +15,7 @@
 }
 
 :host([details]) {
-  border: 1px solid var(--primary-color);
+  border: 1px solid var(--frigate-card-thumbnail-border-color);
   border-radius: var(
     --frigate-card-css-border-radius,
     var(--ha-card-border-radius, 4px)
@@ -24,7 +24,7 @@
 
   // When details are enabled, use a background color so that the details have
   // contrast with the background.
-  background-color: var(--primary-background-color, black);
+  background-color: var(--frigate-card-thumbnail-background);
 }
 
 :host(:hover) {
@@ -34,8 +34,7 @@
 frigate-card-icon {
   position: absolute;
   border-radius: 50%;
-  opacity: 0.5;
-  color: var(--primary-color);
+  color: var(--frigate-card-thumbnail-icon-color);
 
   cursor: pointer;
 
@@ -52,7 +51,7 @@ frigate-card-icon.star {
   left: 3px;
 }
 frigate-card-icon.star.starred {
-  color: gold;
+  color: var(--frigate-card-thumbnail-icon-favorite-color);
 }
 
 frigate-card-icon.timeline {

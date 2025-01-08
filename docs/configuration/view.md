@@ -11,13 +11,14 @@ view:
 | ------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `actions`                 |                                                           | [Actions](actions/README.md) to use for all views, individual actions may be overriden by view-specific actions.                                                                                                                                                                                                                                                                             |
 | `camera_select`           | `current`                                                 | The [view](view.md?id=supported-views) to show when a new camera is selected (e.g. in the camera menu). If `current` the view is unchanged when a new camera is selected.                                                                                                                                                                                                                    |
-| `dark_mode`               | `off`                                                     | Whether or not to turn dark mode `on`, `off` or `auto` to automatically turn on if the card `interaction_seconds` has expired (i.e. card has been left unattended for that period of time) or if dark mode is enabled in the HA profile theme setting. Dark mode dims the brightness by `25%`.                                                                                               |
+| `dim`                     | `false`                                                   | Whether or not to 'dim' the brightness of the card (by 25%) if the card `interaction_seconds` has expired (i.e. card has been left unattended for that period of time).                                                                                                                                                                                                                      |
 | `default`                 | `live`                                                    | The view to show in the card by default. The default camera is the first one listed. See [Supported Views](view.md?id=supported-views) below.                                                                                                                                                                                                                                                |
 | `default_reset`           |                                                           | The circumstances and behavior that cause the card to reset to the default view. See below.                                                                                                                                                                                                                                                                                                  |
-| `interaction_seconds`     | `300`                                                     | After a mouse/touch interaction with the card, it will be considered "interacted with" until this number of seconds elapses without further interaction. May be used as part of an [interaction condition](conditions.md?id=interaction) or with `reset_after_interaction` to reset the view after the interaction is complete. `0` means no interactions are reported / acted upon.         |
+| `interaction_seconds`     | `300`                                                     | After a mouse/touch interaction with the card, it will be considered "interacted with" until this number of seconds elapses without further interaction. May be used as part of an [interaction condition](conditions.md?id=interaction) or with `reset_after_interaction` to reset the view after the interaction is complete.                                                              |
 | `keyboard_shortcuts`      | See [usage](../usage/keyboard-shortcuts.md) for defaults. | Configure keyboard shortcuts. See below.                                                                                                                                                                                                                                                                                                                                                     |
 | `render_entities`         |                                                           | **YAML only**: A list of entity ids that should cause the card to re-render 'in-place'. The view/camera is not changed. This should **very** rarely be needed, but could be useful if the card is both setting and changing HA state of the same object as could be the case for some complex `card_mod` scenarios ([example](https://github.com/dermotduffy/frigate-hass-card/issues/343)). |
 | `reset_after_interaction` | `true`                                                    | If `true` the card will reset to the default configured view (i.e. 'screensaver' functionality) after `interaction_seconds` has elapsed after user interaction.                                                                                                                                                                                                                              |
+| `theme`                   |                                                           | How the card is themed. See below.                                                                                                                                                                                                                                                                                                                                                           |
 | `triggers`                |                                                           | How to react when a camera is [triggered](cameras/README.md?id=triggers).                                                                                                                                                                                                                                                                                                                    |
 | `default_cycle_camera`    | `false`                                                   | When set to `true` the selected camera is cycled on each default view change.                                                                                                                                                                                                                                                                                                                |
 
@@ -62,6 +63,39 @@ Configure the key-bindings for the builtin keyboard shortcuts. See [usage](../us
 | shift  | `false` | If `true` requires the `shift` key to be held.                                                                                   |
 | alt    | `false` | If `true` requires the `alt` key to be held.                                                                                     |
 | meta   | `false` | If `true` requires the `meta` key to be held.                                                                                    |
+
+## `theme` 🎨
+
+All configuration is under:
+
+```yaml
+view:
+  theme: [...]
+```
+
+Configure the theming/colors applied to the card.
+
+| Option      | Default         | Description                                                                                                                                                            |
+| ----------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `themes`    | `[traditional]` | A list of themes that are applied sequentially. Valid themes are shown below. Usually only a single value is needed. An empty list is treated the same as the default. |
+| `overrides` |                 | A list of CSS keys that can be used to tweak the theming.                                                                                                              |
+
+### `themes`
+
+| Theme         | Description                                                                                                                                   |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dark`        | Use a dark theme that is identical to the HA dark theme.                                                                                      |
+| `ha`          | Uses HA-prescribed theming. Respects HA choice of dark or light colors.                                                                       |
+| `light`       | Use a light theme that is similar to the HA light theme (there are some differences if you do not use the standard choices of primary color). |
+| `traditional` | A theme based on the default Frigate card theme before full theming support was added. Respects HA color theme choices.                       |
+
+### `overrides`
+
+Allows overriding of any CSS value, can be used to tweak theming parameters.
+
+| Option                                                                                                                                                                                                                                      | Description                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Any CSS key. Overriding the [Frigate Card](https://github.com/dermotduffy/frigate-hass-card/tree/main/src/scss/themes/base.scss) CSS variables allows changing individual theming paramters, e.g. `--frigate-card-menu-override-background` | Any CSS value, e.g. `red` or `rgba(10, 11, 12, 0.64)`. |
 
 ## `triggers`
 
@@ -136,7 +170,7 @@ view:
     interaction_mode: inactive
   render_entities:
     - switch.render_card
-  dark_mode: 'off'
+  dim: false
   triggers:
     show_trigger_status: false
     filter_selected_camera: true
@@ -161,6 +195,12 @@ view:
       key: '-'
     ptz_home:
       key: 'h'
+  theme:
+    themes:
+      - ha
+    overrides:
+      '--frigate-card-menu-button-active-color': red
+      '--frigate-card-menu-position-left-style-overlay-alignment-left-background': pink
   actions:
     entity: light.office_main_lights
     tap_action:

@@ -10,6 +10,8 @@
 
   // So that absolute sidedrawer is relative to this host.
   position: relative;
+
+  background-color: var(--frigate-card-timeline-background);
 }
 
 :host(:not([mini])) {
@@ -30,7 +32,7 @@ div.timeline {
 }
 
 .vis-text {
-  color: var(--primary-text-color) !important;
+  color: var(--frigate-card-timeline-text-color) !important;
 }
 
 .vis-timeline {
@@ -39,7 +41,7 @@ div.timeline {
 
 .vis-labelset .vis-label {
   // Group labels.
-  color: var(--primary-text-color);
+  color: var(--frigate-card-timeline-text-color);
 }
 
 :host([ribbon]:not([groups])) .vis-item:not(.vis-background) {
@@ -52,12 +54,11 @@ div.timeline {
   // Ribbon timelines have a much shorter 'bar'.
   height: 6px;
 }
-
 .vis-item {
-  border-color: var(--primary-color);
+  border-color: var(--frigate-card-timeline-item-color);
   background: none;
-  color: var(--primary-text-color);
-  background-color: var(--primary-color);
+  color: var(--frigate-card-timeline-text-color);
+  background-color: var(--frigate-card-timeline-item-color);
 
   transition:
     background-color ease-in-out 1s,
@@ -65,13 +66,15 @@ div.timeline {
     box-shadow ease-in-out 1s;
 }
 .vis-item.vis-selected {
-  border-color: var(--accent-color);
-  background-color: var(--accent-color);
-  box-shadow: var(--frigate-card-css-box-shadow, 0px 0px 5px 1px var(--primary-color));
+  border-color: var(--frigate-card-active-color);
+  background-color: var(--frigate-card-active-color);
+  box-shadow: var(
+    --frigate-card-css-box-shadow,
+    0px 0px 5px 1px var(--frigate-card-active-color)
+  );
 }
 .vis-item.vis-background {
-  background-color: var(--primary-color);
-  opacity: 0.1;
+  background-color: var(--frigate-card-timeline-background-item-color);
 }
 
 // If there are no timeline groups shown (e.g. mini mode with a single camera),
@@ -103,16 +106,19 @@ div.timeline {
 
 .vis-item.vis-cluster {
   border-style: dotted;
-  color: var(--primary-text-color);
-  background-color: var(--primary-background-color);
-  box-shadow: var(--frigate-card-css-box-shadow, 0px 0px 5px 1px var(--primary-color));
+  color: var(--frigate-card-timeline-text-color);
+  background-color: var(--frigate-card-timeline-background);
+  box-shadow: var(
+    --frigate-card-css-box-shadow,
+    0px 0px 5px 1px var(--frigate-card-timeline-item-color)
+  );
 }
 .vis-item.vis-range {
   border-radius: var(--frigate-card-css-border-radius, unset);
 }
 
 .vis-time-axis .vis-grid.vis-minor {
-  border-color: var(--secondary-color);
+  border-color: var(--frigate-card-timeline-divider-color);
 }
 
 // Give an indication that the user can interact with the axes.
@@ -121,11 +127,15 @@ div.timeline {
   transition: background-color 0.5s ease-out;
 }
 :host([recordings]) .vis-text.vis-minor:hover {
-  background-color: var(--primary-color);
+  background-color: color-mix(
+    in oklab,
+    var(--frigate-card-timeline-text-color),
+    transparent 80%
+  );
 }
 
 .vis-time-axis .vis-grid.vis-major {
-  border-color: var(--secondary-color);
+  border-color: var(--frigate-card-timeline-divider-color);
 }
 
 .vis-label {
@@ -146,7 +156,7 @@ div.vis-tooltip {
 }
 
 .target_bar {
-  background-color: var(--primary-color);
+  background-color: var(--frigate-card-timeline-target-bar-color);
   width: 2px;
 
   z-index: 20;
@@ -155,8 +165,8 @@ div.vis-tooltip {
   pointer-events: none;
 }
 .target_bar .vis-custom-time-marker {
-  background-color: var(--primary-background-color);
-  color: var(--primary-text-color);
+  background-color: var(--frigate-card-timeline-background);
+  color: var(--frigate-card-timeline-text-color);
   bottom: 0px;
   top: unset;
 }
@@ -176,7 +186,7 @@ div.vis-tooltip {
   position: absolute;
   right: 0px;
   bottom: 0px;
-  color: var(--primary-color);
+  color: var(--frigate-card-timeline-tool-color);
   z-index: 10;
 }
 .timeline-tools * {

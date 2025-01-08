@@ -1,9 +1,10 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
+import { HassEntity } from 'home-assistant-js-websocket';
 import frigateSVG from '../camera-manager/frigate/assets/frigate.svg';
 import motioneyeSVG from '../camera-manager/motioneye/assets/motioneye.svg';
 import reolinkSVG from '../camera-manager/reolink/assets/reolink.svg';
+import irisSVG from '../images/iris.svg';
 import { Icon } from '../types';
-import { HassEntity } from 'home-assistant-js-websocket';
 
 export class IconController {
   public getCustomIcon(icon?: Icon): string | null {
@@ -14,6 +15,8 @@ export class IconController {
         return motioneyeSVG;
       case 'reolink':
         return reolinkSVG;
+      case 'iris':
+        return irisSVG;
       default:
         return null;
     }

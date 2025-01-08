@@ -647,11 +647,11 @@ export class MenuButtonController {
     if (critical) {
       return {
         animation: 'pulse 3s infinite',
-        color: 'var(--error-color, white)',
+        color: 'var(--frigate-card-menu-button-critical-color)',
       };
     }
     return {
-      color: 'var(--primary-color, white)',
+      color: 'var(--frigate-card-menu-button-active-color)',
     };
   }
 

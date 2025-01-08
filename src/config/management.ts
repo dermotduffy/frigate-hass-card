@@ -26,6 +26,7 @@ import {
   CONF_VIEW_DEFAULT_RESET_ENTITIES,
   CONF_VIEW_DEFAULT_RESET_EVERY_SECONDS,
   CONF_VIEW_DEFAULT_RESET_INTERACTION_MODE,
+  CONF_VIEW_DIM,
   CONF_VIEW_INTERACTION_SECONDS,
   CONF_VIEW_TRIGGERS,
   CONF_VIEW_TRIGGERS_ACTIONS_TRIGGER,
@@ -881,4 +882,9 @@ const UPGRADES = [
   },
   upgradeMoveToWithOverrides('dimensions.max_height', CONF_DIMENSIONS_HEIGHT),
   deleteWithOverrides('dimensions.min_height'),
+
+  // v6.1.2+
+  upgradeMoveToWithOverrides('view.dark_mode', CONF_VIEW_DIM, {
+    transform: (val) => val === 'on',
+  }),
 ];

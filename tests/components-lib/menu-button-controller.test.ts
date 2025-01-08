@@ -288,7 +288,7 @@ describe('MenuButtonController', () => {
 
       expect(buttons).toContainEqual({
         icon: 'mdi:video-input-component',
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
         title: 'Substream(s)',
         enabled: true,
         priority: 50,
@@ -442,7 +442,7 @@ describe('MenuButtonController', () => {
       expect(buttons).toContainEqual({
         icon: 'mdi:video-input-component',
         title: 'Substream(s)',
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
         enabled: true,
         priority: 50,
         type: 'custom:frigate-card-menu-submenu',
@@ -508,7 +508,7 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Live view',
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'live' },
       });
     });
@@ -562,7 +562,7 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Clips gallery',
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'clips' },
         hold_action: { action: 'fire-dom-event', frigate_card_action: 'clip' },
       });
@@ -615,7 +615,7 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Snapshots gallery',
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'snapshots' },
         hold_action: { action: 'fire-dom-event', frigate_card_action: 'snapshot' },
       });
@@ -670,7 +670,7 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Recordings gallery',
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'recordings' },
         hold_action: { action: 'fire-dom-event', frigate_card_action: 'recording' },
       });
@@ -726,7 +726,7 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Static image',
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'image' },
       });
     });
@@ -781,7 +781,7 @@ describe('MenuButtonController', () => {
         priority: 50,
         type: 'custom:frigate-card-menu-icon',
         title: 'Timeline view',
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'timeline' },
       });
     });
@@ -938,7 +938,7 @@ describe('MenuButtonController', () => {
         title: 'Microphone',
         style: {
           animation: 'pulse 3s infinite',
-          color: 'var(--error-color, white)',
+          color: 'var(--frigate-card-menu-button-critical-color)',
         },
         start_tap_action: {
           action: 'fire-dom-event',
@@ -1110,7 +1110,7 @@ describe('MenuButtonController', () => {
         title: 'Microphone',
         style: {
           animation: 'pulse 3s infinite',
-          color: 'var(--error-color, white)',
+          color: 'var(--frigate-card-menu-button-critical-color)',
         },
         tap_action: {
           action: 'fire-dom-event',
@@ -1148,7 +1148,7 @@ describe('MenuButtonController', () => {
         type: 'custom:frigate-card-menu-icon',
         title: 'Fullscreen',
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
       });
     });
   });
@@ -1178,7 +1178,7 @@ describe('MenuButtonController', () => {
         type: 'custom:frigate-card-menu-icon',
         title: 'Expand',
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'expand' },
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
       });
     });
   });
@@ -1413,7 +1413,10 @@ describe('MenuButtonController', () => {
             displayMode === 'grid'
               ? 'Show single media viewer'
               : 'Show media viewer for each camera in a grid',
-          style: displayMode === 'grid' ? { color: 'var(--primary-color, white)' } : {},
+          style:
+            displayMode === 'grid'
+              ? { color: 'var(--frigate-card-menu-button-active-color)' }
+              : {},
           tap_action: {
             action: 'fire-dom-event',
             frigate_card_action: 'display_mode_select',
@@ -1481,7 +1484,7 @@ describe('MenuButtonController', () => {
         icon: 'mdi:pan',
         priority: 50,
         style: {
-          color: 'var(--primary-color, white)',
+          color: 'var(--frigate-card-menu-button-active-color)',
         },
         tap_action: {
           action: 'fire-dom-event',
@@ -1554,7 +1557,7 @@ describe('MenuButtonController', () => {
         icon: 'mdi:pan',
         priority: 50,
         style: {
-          color: 'var(--primary-color, white)',
+          color: 'var(--frigate-card-menu-button-active-color)',
         },
         tap_action: {
           action: 'fire-dom-event',
@@ -1701,7 +1704,7 @@ describe('MenuButtonController', () => {
 
       expect(calculateButtons(controller, { view: view })).toContainEqual({
         ...button,
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
       });
     });
 
@@ -1714,7 +1717,7 @@ describe('MenuButtonController', () => {
 
       expect(calculateButtons(controller)).toContainEqual({
         ...button,
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
       });
     });
 
@@ -1727,7 +1730,7 @@ describe('MenuButtonController', () => {
 
       expect(calculateButtons(controller, { inFullscreenMode: true })).toContainEqual({
         ...button,
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
       });
     });
 
@@ -1745,7 +1748,7 @@ describe('MenuButtonController', () => {
 
       expect(calculateButtons(controller, { view: view })).toContainEqual({
         ...button,
-        style: { color: 'var(--primary-color, white)' },
+        style: { color: 'var(--frigate-card-menu-button-active-color)' },
       });
     });
 

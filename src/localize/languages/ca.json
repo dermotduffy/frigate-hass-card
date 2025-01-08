@@ -481,12 +481,6 @@
     },
     "view": {
       "camera_select": "Visualitza les càmeres seleccionades recentment",
-      "dark_mode": "Mode fosc",
-      "dark_modes": {
-        "auto": "Automàtic",
-        "off": "Desactivat",
-        "on": "Activat"
-      },
       "default": "Vista per defecte",
       "default_cycle_camera": "Passeu per les càmeres quan s'actualitzi la vista predeterminada",
       "default_reset": {
@@ -501,6 +495,7 @@
           "inactive": ""
         }
       },
+      "dim": "",
       "interaction_seconds": "Segons després de l'acció de l'usuari per continuar interactuant (0=mai)",
       "keyboard_shortcuts": {
         "editor_label": "",
@@ -512,6 +507,15 @@
         "ptz_up": "",
         "ptz_zoom_in": "",
         "ptz_zoom_out": ""
+      },
+      "theme": {
+        "themes": {
+          "dark": "",
+          "ha": "",
+          "editor_label": "",
+          "light": "",
+          "traditional": ""
+        }
       },
       "triggers": {
         "actions": {

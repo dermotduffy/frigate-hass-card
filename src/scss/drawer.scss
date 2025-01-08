@@ -37,9 +37,8 @@ div.control-surround {
 }
 
 frigate-card-icon.control {
-  color: var(--secondary-color, white);
-  background-color: rgba(0, 0, 0, 0.7);
-  opacity: 0.5;
+  color: var(--frigate-card-button-color);
+  background-color: var(--frigate-card-button-background);
   pointer-events: all;
 
   --mdc-icon-size: #{$drawer-icon-size};
@@ -54,7 +53,6 @@ frigate-card-icon.control:hover {
   // When the drawer is open or hovered make the button to close it more
   // prominent.
   opacity: 1;
-  background-color: black;
 }
 
 :host([location='left']) frigate-card-icon.control {

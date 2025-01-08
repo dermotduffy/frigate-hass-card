@@ -66,8 +66,6 @@ export class FrigateCardMenu extends LitElement {
         : button.title;
 
     return html` <ha-icon-button
-      class="button"
-      style="${styleMap(button.style || {})}"
       .actionHandler=${actionHandler({
         hasHold: frigateCardHasAction(button.hold_action),
         hasDoubleClick: frigateCardHasAction(button.double_tap_action),
@@ -76,16 +74,68 @@ export class FrigateCardMenu extends LitElement {
       @action=${(ev) => this._controller.actionHandler(ev, button)}
     >
       <frigate-card-icon
+        ?allow-override-non-active-styles=${true}
+        style="${styleMap(button.style || {})}"
         .hass=${this.hass}
         .icon=${{
           icon: button.icon,
           entity: button.entity,
           stateColor: button.state_color,
-          style: button.style,
           fallback: 'mdi:gesture-tap-button',
         }}
       ></frigate-card-icon>
     </ha-icon-button>`;
+  }
+
+  /** Theme-related styling is dynamically injected into the menu depending on
+   * the configured position, style and alignment to allow precise theming.
+   * The alternative is a massive (post-sass processing) CSS file would need to
+   * be shipped to account for every possible combination.
+   *
+   * Each rule uses 'var' values that have nested fallbacks of decreasing
+   * specificity, so the most specific theme variable will match, followed by
+   * the next most specific, etc.
+   */
+  protected _renderPerInstanceStyle(): TemplateResult | void {
+    const config = this._controller.getMenuConfig();
+    if (!config) {
+      return;
+    }
+
+    const position = config.position;
+    const style = config.style;
+    const alignment = config.alignment;
+
+    const generateValue = (suffix: string): string => {
+      return `
+        var(--frigate-card-menu-override-${suffix},
+        var(--frigate-card-menu-position-${position}-alignment-${alignment}-style-${style}-${suffix},
+        var(--frigate-card-menu-position-${position}-alignment-${alignment}-${suffix},
+        var(--frigate-card-menu-position-${position}-${suffix},
+        var(--frigate-card-menu-style-${style}-${suffix},
+        var(--frigate-card-menu-alignment-${alignment}-${suffix},
+        var(--frigate-card-menu-${suffix})))))))`;
+    };
+
+    // By definition `rule` will match the current configuration, the choice is
+    // actually which of the var(...) variables will be used after the match.
+    const expandedRule = style === 'hidden' ? '[expanded]' : '';
+    const rule =
+      `[data-position='${position}']` +
+      `[data-style='${style}']` +
+      `[data-alignment='${alignment}']` +
+      expandedRule;
+
+    return html`<style>
+      :host(${rule}) {
+        background: ${generateValue('background')};
+
+        ha-icon-button {
+          color: ${generateValue('button-inactive-color')};
+          background: ${generateValue('button-background')};
+        }
+      }
+    </style>`;
   }
 
   protected render(): TemplateResult | void {
@@ -97,7 +147,8 @@ export class FrigateCardMenu extends LitElement {
     const matchingButtons = this._controller.getButtons('matching');
     const opposingButtons = this._controller.getButtons('opposing');
 
-    return html` <div
+    return html` ${this._renderPerInstanceStyle()}
+      <div
         class="matching"
         style="${styleMap({ flex: String(matchingButtons.length) })}"
       >

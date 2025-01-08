@@ -14,14 +14,14 @@ describe('StatusBarController', () => {
     it('should set config', () => {
       const host = createLitElement();
       const controller = new StatusBarController(host);
+      const config = createConfig({
+        position: 'top',
+        style: 'hover',
+        height: 50,
+      });
+      controller.setConfig(config);
 
-      controller.setConfig(
-        createConfig({
-          position: 'top',
-          style: 'hover',
-          height: 50,
-        }),
-      );
+      expect(controller.getConfig()).toEqual(config);
       expect(host.style.getPropertyValue('--frigate-card-status-bar-height')).toBe(
         '50px',
       );

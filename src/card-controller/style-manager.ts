@@ -1,5 +1,10 @@
 import { StyleInfo } from 'lit/directives/style-map';
-import { FrigateCardConfig } from '../config/types';
+import {
+  FrigateCardConfig,
+  frigateCardConfigDefaults,
+  ThemeConfig,
+  ThemeName,
+} from '../config/types';
 import { aspectRatioToStyle, setOrRemoveAttribute } from '../utils/basic';
 import { View } from '../view/view';
 import { CardStyleAPI } from './types';
@@ -10,21 +15,6 @@ export class StyleManager {
   constructor(api: CardStyleAPI) {
     this._api = api;
   }
-
-  public setLightOrDarkMode = (): void => {
-    const config = this._api.getConfigManager().getConfig();
-    const isDarkMode =
-      config?.view.dark_mode === 'on' ||
-      (config?.view.dark_mode === 'auto' &&
-        (!this._api.getInteractionManager().hasInteraction() ||
-          !!this._api.getHASSManager().getHASS()?.themes.darkMode));
-
-    setOrRemoveAttribute(
-      this._api.getCardElementManager().getElement(),
-      isDarkMode,
-      'dark',
-    );
-  };
 
   public setExpandedMode(): void {
     const card = this._api.getCardElementManager().getElement();
@@ -58,7 +48,47 @@ export class StyleManager {
     );
   }
 
-  public setMinMaxHeight(): void {
+  public updateFromConfig(): void {
+    this.applyTheme();
+    this._setMinMaxHeight();
+    this._setPerformance();
+    this._setDimmable();
+  }
+
+  public applyTheme() {
+    const themeConfig = this._api.getConfigManager().getConfig()?.view.theme;
+    if (!themeConfig) {
+      return;
+    }
+
+    const element = this._api.getCardElementManager().getElement();
+    const themes = this._getThemeNames(themeConfig);
+
+    setOrRemoveAttribute(element, !!themes, 'themes', themes?.join(' '));
+
+    if (themeConfig.overrides) {
+      for (const [key, value] of Object.entries(themeConfig.overrides)) {
+        element.style.setProperty(key, value);
+      }
+    }
+  }
+
+  protected _getThemeNames(themeConfig: ThemeConfig): ThemeName[] | null {
+    return themeConfig.themes.length
+      ? themeConfig.themes
+      : frigateCardConfigDefaults.view.theme.themes;
+  }
+
+  protected _setDimmable(): void {
+    const config = this._api.getConfigManager().getConfig();
+    setOrRemoveAttribute(
+      this._api.getCardElementManager().getElement(),
+      !!config?.view.dim,
+      'dimmable',
+    );
+  }
+
+  protected _setMinMaxHeight(): void {
     const config = this._api.getConfigManager().getConfig();
     if (config) {
       const card = this._api.getCardElementManager().getElement();
@@ -66,7 +96,7 @@ export class StyleManager {
     }
   }
 
-  public setPerformance(): void {
+  protected _setPerformance(): void {
     const STYLE_DISABLE_MAP = {
       box_shadow: 'none',
       border_radius: '0px',

@@ -67,6 +67,10 @@ export class StatusBarController {
     this._host.requestUpdate();
   }
 
+  public getConfig(): StatusBarConfig | null {
+    return this._config;
+  }
+
   public shouldRender(): boolean {
     return this._items.some((item) => item.enabled !== false && item.sufficient);
   }

@@ -8,6 +8,7 @@ import typescript from '@rollup/plugin-typescript';
 import gitInfo from 'rollup-plugin-git-info';
 import serve from 'rollup-plugin-serve';
 import styles from 'rollup-plugin-styler';
+import svgo from 'rollup-plugin-svgo';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 const watch = process.env.ROLLUP_WATCH === 'true' || process.env.ROLLUP_WATCH === '1';
@@ -40,7 +41,8 @@ const plugins = [
       includePaths: ['./node_modules/'],
     },
   }),
-  image(),
+  svgo(),
+  image({ exclude: '**/*.svg' }),
   nodeResolve({
     browser: true,
   }),

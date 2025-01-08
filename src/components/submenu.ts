@@ -43,9 +43,9 @@ export class FrigateCardSubmenu extends LitElement {
     }
 
     const title = item.title ?? getEntityTitle(this.hass, item.entity);
+    const style = styleMap(item.style || {});
     return html`
       <mwc-list-item
-        style="${styleMap(item.style || {})}"
         graphic=${ifDefined(item.icon || item.entity ? 'icon' : undefined)}
         ?twoline=${!!item.subtitle}
         ?selected=${item.selected}
@@ -61,17 +61,18 @@ export class FrigateCardSubmenu extends LitElement {
           hasDoubleClick: frigateCardHasAction(item.double_tap_action),
         })}
       >
-        <span>${title ?? ''}</span>
-        ${item.subtitle ? html`<span slot="secondary">${item.subtitle}</span>` : ''}
+        <span style="${style}">${title ?? ''}</span>
+        ${item.subtitle
+          ? html`<span slot="secondary" style="${style}">${item.subtitle}</span>`
+          : ''}
         <frigate-card-icon
           slot="graphic"
           .hass=${this.hass}
           .icon=${{
             icon: item.icon,
             entity: item.entity,
-            style: item.style,
           }}
-          style="${styleMap(item.style || {})}"
+          style="${style}"
         ></frigate-card-icon>
       </mwc-list-item>
     `;
@@ -96,7 +97,6 @@ export class FrigateCardSubmenu extends LitElement {
       >
         <ha-icon-button
           style="${style}"
-          class="button"
           slot="trigger"
           .label=${this.submenu.title || ''}
           .actionHandler=${actionHandler({
@@ -110,6 +110,7 @@ export class FrigateCardSubmenu extends LitElement {
           })}
         >
           <frigate-card-icon
+            ?allow-override-non-active-styles=${true}
             style="${style}"
             .hass=${this.hass}
             .icon=${typeof this.submenu.icon === 'string'
@@ -217,7 +218,6 @@ export class FrigateCardSubmenuSelect extends LitElement {
         icon: this.submenuSelect.icon,
         entity: entityID,
         fallback: 'mdi:format-list-bulleted',
-        style: this.submenuSelect.style,
       },
 
       type: 'custom:frigate-card-menu-submenu',
