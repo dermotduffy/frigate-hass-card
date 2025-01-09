@@ -282,6 +282,26 @@ describe('CardController', () => {
     });
   });
 
+  describe('creaters ', () => {
+    it('createCameraManager', () => {
+      const controller = createController();
+      const original = controller.getCameraManager();
+
+      controller.createCameraManager();
+
+      expect(controller.getCameraManager()).not.toBe(original);
+    });
+
+    it('createMicrophoneManager', () => {
+      const controller = createController();
+      const original = controller.getMicrophoneManager();
+
+      controller.createMicrophoneManager();
+
+      expect(controller.getMicrophoneManager()).not.toBe(original);
+    });
+  });
+
   describe('handlers', () => {
     it('hostConnected', () => {
       createController().hostConnected();

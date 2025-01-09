@@ -1290,7 +1290,7 @@ describe('CameraManager', async () => {
     });
   });
 
-  it('should reset', async () => {
+  it('should destroy', async () => {
     const api = createCardAPI();
     const engine = mock<CameraManagerEngine>();
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
@@ -1300,7 +1300,7 @@ describe('CameraManager', async () => {
 
     expect(manager.getStore().getCameraCount()).toBe(1);
 
-    await manager.reset();
+    await manager.destroy();
 
     expect(manager.getStore().getCameraCount()).toBe(0);
   });

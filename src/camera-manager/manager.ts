@@ -157,7 +157,7 @@ export class CameraManager {
     return true;
   }
 
-  public async reset(): Promise<void> {
+  public async destroy(): Promise<void> {
     await this._store.reset();
   }
 

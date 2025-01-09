@@ -159,6 +159,9 @@ export class CardController
   public getCameraManager(): CameraManager {
     return this._cameraManager;
   }
+  public createCameraManager(): void {
+    this._cameraManager = new CameraManager(this);
+  }
 
   public getCameraURLManager(): CameraURLManager {
     return this._cameraURLManager;
@@ -235,6 +238,9 @@ export class CardController
 
   public getMicrophoneManager(): MicrophoneManager {
     return this._microphoneManager;
+  }
+  public createMicrophoneManager(): void {
+    this._microphoneManager = new MicrophoneManager(this);
   }
 
   public getQueryStringManager(): QueryStringManager {

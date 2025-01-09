@@ -92,16 +92,25 @@ export class InitializationManager {
 
     if (
       !(await this._initializer.initializeMultipleIfNecessary({
-        [InitializationAspect.CAMERAS]: async () =>
-          await this._api.getCameraManager().initializeCamerasFromConfig(),
+        [InitializationAspect.CAMERAS]: async () => {
+          // Recreate the camera manager to guarantee an immediate re-render.
+          // See: https://github.com/dermotduffy/frigate-hass-card/issues/1811
+          // See: https://github.com/dermotduffy/frigate-hass-card/issues/1769
+          this._api.createCameraManager();
+          return await this._api.getCameraManager().initializeCamerasFromConfig();
+        },
 
         // Connecting the microphone (if configured) is considered mandatory to
         // avoid issues with some cameras that only allow 2-way audio on the
-        // first stream initialized. See:
-        // https://github.com/dermotduffy/frigate-hass-card/issues/1235
+        // first stream initialized.
+        // See: https://github.com/dermotduffy/frigate-hass-card/issues/1235
         ...(this._api.getMicrophoneManager().shouldConnectOnInitialization() && {
-          [InitializationAspect.MICROPHONE_CONNECT]: async () =>
-            await this._api.getMicrophoneManager().connect(),
+          [InitializationAspect.MICROPHONE_CONNECT]: async () => {
+            // Recreate the microphone manager to guarantee an immediate
+            // re-render.
+            this._api.createMicrophoneManager();
+            return await this._api.getMicrophoneManager().connect();
+          },
         }),
       }))
     ) {

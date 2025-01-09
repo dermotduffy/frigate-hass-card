@@ -141,6 +141,7 @@ export class ConfigManager {
         !isEqual(previousConfig?.cameras_global, this._overriddenConfig?.cameras_global))
     ) {
       this._api.getInitializationManager().uninitialize(InitializationAspect.CAMERAS);
+      this._api.getCameraManager().destroy();
     }
 
     if (
