@@ -21,6 +21,7 @@ const FULL_COVERAGE_FILES_RELATIVE = [
   'utils/basic.ts',
   'utils/camera.ts',
   'utils/casting.ts',
+  'utils/companion.ts',
   'utils/custom-icons.ts',
   'utils/debug.ts',
   'utils/diagnostics.ts',

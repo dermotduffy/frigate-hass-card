@@ -127,6 +127,10 @@ export class CardElementManager {
       this._api.getQueryStringManager().requestExecution,
     );
 
+    this._api.getConditionsManager()?.setState({
+      user_agent: navigator.userAgent,
+    });
+
     // Manually request query string execute as the card will be
     // disconnected/reconnected when dashboard 'tab' changes happen within HA.
     this._api.getQueryStringManager().requestExecution();

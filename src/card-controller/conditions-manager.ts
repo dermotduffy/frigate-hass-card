@@ -19,6 +19,7 @@ import {
 import { localize } from '../localize/localize';
 import { FrigateCardError } from '../types';
 import { desparsifyArrays } from '../utils/basic';
+import { isCompanionApp } from '../utils/companion';
 import { CardConditionAPI, KeysState } from './types';
 
 interface MicrophoneConditionState {
@@ -39,6 +40,7 @@ interface ConditionState {
   microphone?: MicrophoneConditionState;
   user?: CurrentUser;
   keys?: KeysState;
+  user_agent?: string;
 }
 
 class OverrideConfigurationError extends FrigateCardError {}
@@ -352,6 +354,15 @@ export class ConditionsManager {
             conditionObj.meta === !!state.keys[conditionObj.key].meta) &&
           (conditionObj.shift === undefined ||
             conditionObj.shift === !!state.keys[conditionObj.key].shift)
+        );
+      case 'user_agent':
+        return (
+          !!state.user_agent &&
+          (!conditionObj.user_agent || conditionObj.user_agent === state.user_agent) &&
+          (conditionObj.companion === undefined ||
+            conditionObj.companion === isCompanionApp(state.user_agent)) &&
+          (conditionObj.user_agent_re === undefined ||
+            new RegExp(conditionObj.user_agent_re).test(state.user_agent))
         );
     }
   }

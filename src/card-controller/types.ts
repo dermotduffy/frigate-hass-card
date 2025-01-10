@@ -125,6 +125,7 @@ export interface CardDownloadAPI {
 export interface CardElementAPI {
   getActionsManager(): ActionsManager;
   getCameraManager(): CameraManager;
+  getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
   getExpandManager(): ExpandManager;

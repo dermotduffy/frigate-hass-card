@@ -1023,5 +1023,75 @@ describe('ConditionsManager', () => {
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
     });
+
+    describe('with user agent condition', () => {
+      const userAgent =
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
+      it('should match exact user agent', () => {
+        const manager = new ConditionsManager(createCardAPI());
+        const conditions = [{ condition: 'user_agent' as const, user_agent: userAgent }];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+        manager.setState({
+          user_agent: userAgent,
+        });
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
+        manager.setState({
+          user_agent: 'Something else',
+        });
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+      });
+
+      it('should match user agent regex', () => {
+        const manager = new ConditionsManager(createCardAPI());
+        const conditions = [
+          { condition: 'user_agent' as const, user_agent_re: 'Chrome/' },
+        ];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+        manager.setState({
+          user_agent: userAgent,
+        });
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
+        manager.setState({
+          user_agent: 'Something else',
+        });
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+      });
+
+      it('should match companion app', () => {
+        const manager = new ConditionsManager(createCardAPI());
+        const conditions = [{ condition: 'user_agent' as const, companion: true }];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+        manager.setState({
+          user_agent: 'Home Assistant/',
+        });
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
+        manager.setState({
+          user_agent: userAgent,
+        });
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+      });
+
+      it('should match multiple parameters', () => {
+        const manager = new ConditionsManager(createCardAPI());
+        const conditions = [
+          {
+            condition: 'user_agent' as const,
+            companion: true,
+            user_agent: 'Home Assistant/',
+            user_agent_re: 'Home.Assistant',
+          },
+        ];
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+        manager.setState({
+          user_agent: 'Home Assistant/',
+        });
+        expect(manager.evaluateConditions(conditions)).toBeTruthy();
+        manager.setState({
+          user_agent: 'Something else',
+        });
+        expect(manager.evaluateConditions(conditions)).toBeFalsy();
+      });
+    });
   });
 });

@@ -10,6 +10,7 @@
     "redhat.vscode-yaml",
     "lokalise.i18n-ally",
     "vitest.explorer",
-    "inlang.vs-code-extension"
+    "inlang.vs-code-extension",
+    "yoavbls.pretty-ts-errors"
   ]
 }
