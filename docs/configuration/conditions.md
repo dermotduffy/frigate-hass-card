@@ -16,6 +16,8 @@ certain configurations (in `overrides`) or to display "picture elements" (in
 
 ## `camera`
 
+Matches based on the selected camera.
+
 ```yaml
 conditions:
   - condition: camera
@@ -28,6 +30,8 @@ conditions:
 | `cameras`   | A list of camera IDs in which this condition is satisfied. See the camera [id](cameras/README.md) parameter. |
 
 ## `expand`
+
+Matches based on whether the card is in "expanded" mode.
 
 ```yaml
 conditions:
@@ -42,6 +46,8 @@ conditions:
 
 ## `fullscreen`
 
+Matches based on whether the card is in fullscreen.
+
 ```yaml
 conditions:
   - condition: fullscreen
@@ -55,6 +61,8 @@ conditions:
 
 ## `interaction`
 
+Matches based on whether the card has been interacted with.
+
 ```yaml
 conditions:
   - condition: interaction
@@ -67,6 +75,8 @@ conditions:
 | `interaction` | If `true` the condition is satisfied if the card has had human interaction within `view.interaction_seconds` elapsed seconds. If `false` the condition is satisfied if the card has **NOT** had human interaction in that time. |
 
 ## `key`
+
+Matches based on key state.
 
 ```yaml
 conditions:
@@ -86,6 +96,8 @@ conditions:
 
 ## `media_loaded`
 
+Matches based on whether the selected live or media stream has loaded.
+
 ```yaml
 conditions:
   - condition: media_loaded
@@ -99,6 +111,8 @@ conditions:
 
 ## `microphone`
 
+Matches based on microphone state.
+
 ```yaml
 conditions:
   - condition: microphone
@@ -111,7 +125,12 @@ conditions:
 | `connected` | Optional: If `true` or `false` the condition is satisfied if the microphone is connected or disconnected respectively. |
 | `muted`     | Optional: If `true` or `false` the condition is satisfied if the microphone is muted or unmuted respectively.          |
 
+When multiple parameters are specified they must all match for the condition to
+match.
+
 ## `numeric_state`
+
+Matches based on numeric Home Assistant state.
 
 ```yaml
 conditions:
@@ -119,9 +138,11 @@ conditions:
     # [...]
 ```
 
-This stock Home Assistant condition works out of the box. See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#numeric-state).
+See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#numeric-state).
 
 ## `screen`
+
+Matches based on [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries).
 
 ```yaml
 conditions:
@@ -138,15 +159,19 @@ See the [screen conditions examples](../examples.md?id=screen-conditions).
 
 ## `state`
 
+Matches based on Home Assistant state.
+
 ```yaml
 conditions:
   - condition: state
     # [...]
 ```
 
-This stock Home Assistant condition works out of the box. See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#state).
+See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#state).
 
 ## `triggered`
+
+Matches based on whether the selected camera has been triggered.
 
 ```yaml
 conditions:
@@ -161,15 +186,39 @@ conditions:
 
 ## `user`
 
+Matches based on the Home Assistant user that is logged in. See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#user).
+
 ```yaml
 conditions:
   - condition: user
     # [...]
 ```
 
-This stock Home Assistant condition works out of the box. See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#user).
+## `user_agent`
+
+Matches based on the [User-Agent](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent).
+
+```yaml
+conditions:
+  - condition: user_agent
+    # [...]
+```
+
+| Parameter       | Description                                                                                                                                              |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition`     | Must be `user_agent`.                                                                                                                                    |
+| `user_agent`    | Exactly matches a user-agent, e.g. `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36`               |
+| `user_agent_re` | Matches a user-agent based on a regular expression, e.g. `Chrome/`.                                                                                      |
+| `companion`     | If `true` matches if the user-agent is the Home Assistant companion app, if `false` matches if the user-agent is _NOT_ the Home Assistant companion app. |
+
+When multiple parameters are specified they must all match for the condition to
+match.
+
+See the [user-agent overrides example](../examples.md?id=disable-ptz-controls-in-the-home-assistant-companion-app).
 
 ## `view`
+
+Matches based on the selected view.
 
 ```yaml
 conditions:
@@ -230,6 +279,10 @@ conditions:
   - condition: user
     users:
       - 581fca7fdc014b8b894519cc531f9a04
+  - condition: user_agent
+    user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    user_agent_re: "Chrome/"
+    companion: true
   - condition: view
     views:
       - live

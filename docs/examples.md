@@ -624,6 +624,22 @@ overrides:
       - 'cameras[1]'
 ```
 
+### Disable PTZ controls in the Home Assistant Companion App
+
+This example disables the PTZ controls when the card is viewed on the Companion app:
+
+```yaml
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.office
+overrides:
+  - conditions:
+      - condition: user_agent
+        companion: true
+    set:
+      live.controls.ptz.mode: 'off'
+```
+
 ## PTZ control
 
 The card supports using PTZ controls to conveniently control pan, tilt and zoom

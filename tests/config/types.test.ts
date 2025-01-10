@@ -4,6 +4,7 @@ import {
   conditionalSchema,
   customSchema,
   dimensionsConfigSchema,
+  frigateCardConditionSchema,
   frigateCardCustomActionsBaseSchema,
   frigateCardCustomActionSchema,
 } from '../../src/config/types';
@@ -399,6 +400,29 @@ it('should transform dimensions.aspect_ratio', () => {
       aspect_ratio: [16, 9],
     }),
   ).toEqual(expect.objectContaining({ aspect_ratio: [16, 9] }));
+});
+
+describe('should refine user_agent_re conditions', () => {
+  it('should successfully parse valid user_agent_re condition', () => {
+    expect(
+      frigateCardConditionSchema.parse({
+        condition: 'user_agent',
+        user_agent_re: 'Chrome/',
+      }),
+    ).toEqual({
+      condition: 'user_agent',
+      user_agent_re: 'Chrome/',
+    });
+  });
+
+  it('should reject invalid user_agent_re conditions', () => {
+    expect(() =>
+      frigateCardConditionSchema.parse({
+        condition: 'user_agent',
+        user_agent_re: '[',
+      }),
+    ).toThrowError(/Invalid regular expression/);
+  });
 });
 
 it('should transform action', () => {
