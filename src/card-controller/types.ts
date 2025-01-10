@@ -85,6 +85,7 @@ export interface CardConditionAPI {
 
 export interface CardConfigAPI {
   getAutomationsManager(): AutomationsManager;
+  getCameraManager(): CameraManager;
   getCardElementManager(): CardElementManager;
   getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
@@ -93,6 +94,7 @@ export interface CardConfigAPI {
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
+  getMicrophoneManager(): MicrophoneManager;
   getStatusBarItemManager(): StatusBarItemManager;
   getStyleManager(): StyleManager;
   getViewManager(): ViewManager;
@@ -165,7 +167,12 @@ export interface CardHASSAPI {
 }
 
 export interface CardInitializerAPI {
+  createCameraManager(): void;
   getCameraManager(): CameraManager;
+
+  createMicrophoneManager(): void;
+  getMicrophoneManager(): MicrophoneManager;
+
   getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
@@ -173,7 +180,6 @@ export interface CardInitializerAPI {
   getHASSManager(): HASSManager;
   getMediaPlayerManager(): MediaPlayerManager;
   getMessageManager(): MessageManager;
-  getMicrophoneManager(): MicrophoneManager;
   getQueryStringManager(): QueryStringManager;
   getResolvedMediaCache(): ResolvedMediaCache;
   getViewManager(): ViewManager;
