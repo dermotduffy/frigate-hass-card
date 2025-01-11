@@ -582,20 +582,20 @@ export class MenuButtonController {
         ? config.media_viewer.controls.ptz
         : null;
 
-    if (!view || !ptzConfig || ptzConfig.mode === 'off') {
+    if (!view || !ptzConfig) {
       return null;
     }
 
     const ptzTarget = getPTZTarget(view, {
       cameraManager: cameraManager,
-      ...(ptzConfig.mode === 'auto' && { type: 'ptz' }),
     });
 
     if (ptzTarget) {
       const isOn =
-        view.context?.ptzControls?.enabled !== false &&
-        (ptzConfig.mode === 'on' ||
-          (ptzConfig.mode === 'auto' && ptzTarget.type === 'ptz'));
+        view.context?.ptzControls?.enabled !== undefined
+          ? view.context.ptzControls.enabled
+          : ptzConfig.mode === 'on' ||
+            (ptzConfig.mode === 'auto' && ptzTarget.type === 'ptz');
       return {
         icon: 'mdi:pan',
         ...config.menu.buttons.ptz_controls,

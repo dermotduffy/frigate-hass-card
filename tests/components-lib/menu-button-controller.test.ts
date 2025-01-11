@@ -1428,26 +1428,7 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have show ptz button', () => {
-    it('when the selected camera is not PTZ enabled', () => {
-      const store = createStore([
-        {
-          cameraID: 'camera-1',
-        },
-      ]);
-
-      const buttons = calculateButtons(controller, {
-        cameraManager: createCameraManager(store),
-        view: createView({ view: 'live' }),
-      });
-
-      expect(buttons).not.toContainEqual(
-        expect.objectContaining({
-          title: 'Show PTZ controls',
-        }),
-      );
-    });
-
-    it('when not in live view', () => {
+    it('should not show when not in live view', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
@@ -1467,7 +1448,7 @@ describe('MenuButtonController', () => {
       );
     });
 
-    it('when the selected camera is PTZ enabled', () => {
+    it('should show when in live view', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
@@ -1477,6 +1458,31 @@ describe('MenuButtonController', () => {
 
       const buttons = calculateButtons(controller, {
         cameraManager: createCameraManager(store),
+        view: createView({ view: 'live' }),
+      });
+
+      expect(buttons).toContainEqual(
+        expect.objectContaining({
+          title: 'Show PTZ controls',
+        }),
+      );
+    });
+
+    it('should show when the context has PTZ enabled', () => {
+      const store = createStore([
+        {
+          cameraID: 'camera-1',
+          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+        },
+      ]);
+
+      const view = createView({
+        camera: 'camera-1',
+        context: { ptzControls: { enabled: true } },
+      });
+      const buttons = calculateButtons(controller, {
+        cameraManager: createCameraManager(store),
+        view: view,
       });
 
       expect(buttons).toContainEqual({
@@ -1496,7 +1502,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when the context has PTZ disabled', () => {
+    it('should show when the context has PTZ disabled', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
@@ -1528,7 +1534,41 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('when a substream is PTZ enabled', () => {
+    it('should detect current status without context in auto mode', () => {
+      const store = createStore([
+        {
+          cameraID: 'camera-1',
+          capabilities: new Capabilities({ ptz: { left: ['relative'] } }),
+        },
+      ]);
+
+      const view = createView({
+        camera: 'camera-1',
+      });
+      const buttons = calculateButtons(controller, {
+        cameraManager: createCameraManager(store),
+        config: createConfig({ live: { controls: { ptz: { mode: 'auto' } } } }),
+        view: view,
+      });
+
+      expect(buttons).toContainEqual({
+        enabled: false,
+        icon: 'mdi:pan',
+        priority: 50,
+        style: {
+          color: 'var(--frigate-card-menu-button-active-color)',
+        },
+        tap_action: {
+          action: 'fire-dom-event',
+          frigate_card_action: 'ptz_controls',
+          enabled: false,
+        },
+        title: 'Show PTZ controls',
+        type: 'custom:frigate-card-menu-icon',
+      });
+    });
+
+    it('should show when a substream is PTZ enabled', () => {
       const store = createStore([
         {
           cameraID: 'camera-1',
