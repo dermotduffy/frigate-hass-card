@@ -12,6 +12,7 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import throttle from 'lodash-es/throttle';
 import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manager.js';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
+import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import {
   CardWideConfig,
   frigateCardConfigDefaults,
@@ -23,6 +24,7 @@ import galleryStyle from '../scss/gallery.scss';
 import { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { errorToConsole, sleep } from '../utils/basic';
+import { scrollIntoView } from '../utils/scroll.js';
 import { ViewMedia } from '../view/media';
 import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries';
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
@@ -32,7 +34,6 @@ import { renderMessage, renderProgressIndicator } from './message.js';
 import './surround-basic';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
-import { ViewManagerEpoch } from '../card-controller/view/types.js';
 
 const GALLERY_MEDIA_FILTER_MENU_ICONS = {
   closed: 'mdi:filter-cog-outline',
@@ -484,7 +485,8 @@ export class FrigateCardGalleryCore extends LitElement {
         // ... and there is a thumbnail rendered that is selected.
         this._refSelected.value
       ) {
-        this._refSelected.value.scrollIntoView({
+        scrollIntoView(this._refSelected.value, {
+          boundary: this,
           block: 'center',
         });
       }

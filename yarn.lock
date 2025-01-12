@@ -3448,6 +3448,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"compute-scroll-into-view@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "compute-scroll-into-view@npm:3.1.1"
+  checksum: 10c0/59761ed62304a9599b52ad75d0d6fbf0669ee2ab7dd472fdb0ad9da36628414c014dea7b5810046560180ad30ffec52a953d19297f66a1d4f3aa0999b9d2521d
+  languageName: node
+  linkType: hard
+
 "concat-map@npm:0.0.1":
   version: 0.0.1
   resolution: "concat-map@npm:0.0.1"
@@ -5224,6 +5231,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^7.13.0"
     "@vitest/coverage-istanbul": "npm:^1.6.0"
     component-emitter: "npm:^1.3.1"
+    compute-scroll-into-view: "npm:^3.1.1"
     conventional-changelog-conventionalcommits: "npm:^8.0.0"
     crypto: "npm:^1.0.1"
     date-fns: "npm:^3.6.0"
