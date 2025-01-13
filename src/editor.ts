@@ -177,6 +177,7 @@ import {
   CONF_MENU_POSITION,
   CONF_MENU_STYLE,
   CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
+  CONF_PERFORMANCE_FEATURES_CARD_LOADING_INDICATOR,
   CONF_PERFORMANCE_FEATURES_MAX_SIMULTANEOUS_ENGINE_REQUESTS,
   CONF_PERFORMANCE_FEATURES_MEDIA_CHUNK_SIZE,
   CONF_PERFORMANCE_PROFILE,
@@ -2965,6 +2966,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 'config.performance.features.editor_label',
                 'mdi:feature-search',
                 html`
+                  ${this._renderSwitch(
+                    CONF_PERFORMANCE_FEATURES_CARD_LOADING_INDICATOR,
+                    this._defaults.performance.features.card_loading_indicator,
+                  )}
                   ${this._renderSwitch(
                     CONF_PERFORMANCE_FEATURES_ANIMATED_PROGRESS_INDICATOR,
                     this._defaults.performance.features.animated_progress_indicator,

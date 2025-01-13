@@ -124,4 +124,13 @@
 
   --frigate-card-timeline-divider-color: var(--frigate-card-divider-color);
   --frigate-card-timeline-target-bar-color: var(--frigate-card-active-color);
+
+  /*******************
+   * Loading Indicator
+   *******************/
+
+  --frigate-card-loading-background-color: var(
+    --frigate-card-control-background-transparent
+  );
+  --frigate-card-loading-foreground-color: var(--frigate-card-control-foreground);
 }

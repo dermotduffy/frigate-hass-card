@@ -348,9 +348,9 @@ class FrigateCard extends LitElement {
 
     const actions = this._controller.getActionsManager().getMergedActions();
     const cameraManager = this._controller.getCameraManager();
-    const showLoadingSpinner =
-      this._config?.performance?.features.animated_progress_indicator !== false &&
-      !this._controller.getInitializationManager().wasEverInitialized() &&
+
+    const showLoading =
+      this._config?.performance?.features.card_loading_indicator !== false &&
       !this._controller.getMessageManager().hasMessage();
 
     // Caution: Keep the main div and the menu next to one another in order to
@@ -380,7 +380,11 @@ class FrigateCard extends LitElement {
         }
         @frigate-card:focus=${() => this.focus()}
       >
-        ${showLoadingSpinner ? html`<frigate-card-loading></frigate-card-loading>` : ''}
+        ${showLoading
+          ? html`<frigate-card-loading
+              ?loaded=${this._controller.getInitializationManager().wasEverInitialized()}
+            ></frigate-card-loading>`
+          : ''}
         ${this._renderMenuStatusContainer('top')}
         ${this._renderMenuStatusContainer('overlay')}
         <div ${ref(this._refMain)} class="${classMap(mainClasses)}">

@@ -20,7 +20,7 @@ interface IntegrationDiagnostics {
   version?: string;
 }
 
-export const getReleaseVersion = (): string => {
+export const getReleaseVersion = (short?: boolean): string => {
   const releaseVersion = '__FRIGATE_CARD_RELEASE_VERSION__';
 
   /* istanbul ignore if: depends on rollup substitution -- @preserve */
@@ -30,7 +30,7 @@ export const getReleaseVersion = (): string => {
 
   /* istanbul ignore if: depends on rollup substitution -- @preserve */
   if ((releaseVersion as unknown) === 'dev') {
-    return `${releaseVersion}+${pkg['gitAbbrevHash']} (${pkg['buildDate']})`;
+    return `${releaseVersion}+${pkg['gitAbbrevHash']}${short ? '' : `(${pkg['buildDate']})`}`;
   }
 
   return releaseVersion;
