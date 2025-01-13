@@ -435,6 +435,7 @@
     "performance": {
       "features": {
         "animated_progress_indicator": "Indicador de Carregamento Animado",
+        "card_loading_indicator": "",
         "editor_label": "Opções de recursos",
         "max_simultaneous_engine_requests": "",
         "media_chunk_size": "Tamanho do bloco de mídia"
@@ -511,8 +512,8 @@
       "theme": {
         "themes": {
           "dark": "",
-          "ha": "",
           "editor_label": "",
+          "ha": "",
           "light": "",
           "traditional": ""
         }

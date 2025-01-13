@@ -3,14 +3,26 @@
   height: intrinsic;
 
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 
   pointer-events: none;
+
+  background-color: var(--frigate-card-loading-background-color);
+  color: var(--frigate-card-loading-foreground-color);
+
+  transition: opacity 1.5s ease-in;
+  opacity: 1;
+}
+
+:host([loaded]) {
+  opacity: 0;
 }
 
 frigate-card-icon {
-  height: 50%;
+  margin-bottom: 20px;
+  height: 25%;
   width: auto;
   animation: rotate 8s linear infinite;
 }
@@ -22,4 +34,8 @@ frigate-card-icon {
   to {
     transform: rotate(360deg);
   }
+}
+
+span {
+  font-size: x-large;
 }

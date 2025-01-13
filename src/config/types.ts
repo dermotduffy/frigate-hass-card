@@ -1995,6 +1995,7 @@ const automationsSchema = automationSchema.array();
 const performanceConfigDefault = {
   features: {
     animated_progress_indicator: true,
+    card_loading_indicator: true,
     media_chunk_size: MEDIA_CHUNK_SIZE_DEFAULT,
   },
   style: {
@@ -2010,6 +2011,9 @@ export const performanceConfigSchema = z
         animated_progress_indicator: z
           .boolean()
           .default(performanceConfigDefault.features.animated_progress_indicator),
+        card_loading_indicator: z
+          .boolean()
+          .default(performanceConfigDefault.features.card_loading_indicator),
         media_chunk_size: z
           .number()
           .min(0)
