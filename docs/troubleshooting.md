@@ -50,6 +50,12 @@ stills are used during initial Frigate card load of the `live` view if the
 show the default media loading controls (e.g. a spinner or empty video player)
 instead of the blank white image.
 
+### `Camera initialization failed: Unknown command`
+
+This may be a sign that your Frigate integration is not up to date. Check [the
+latest Frigate Integration
+releases](https://github.com/blakeblackshear/frigate-hass-integration/releases/tag/v5.7.0).
+
 ### Casting to Chromecast broken
 
 This could be for any number of reasons. Chromecast devices can be quite picky
