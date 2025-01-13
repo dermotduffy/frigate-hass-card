@@ -30,7 +30,7 @@ export const getReleaseVersion = (short?: boolean): string => {
 
   /* istanbul ignore if: depends on rollup substitution -- @preserve */
   if ((releaseVersion as unknown) === 'dev') {
-    return `${releaseVersion}+${pkg['gitAbbrevHash']}${short ? '' : `(${pkg['buildDate']})`}`;
+    return `${releaseVersion}+${pkg['gitAbbrevHash']}${short ? '' : ` (${pkg['buildDate']})`}`;
   }
 
   return releaseVersion;
