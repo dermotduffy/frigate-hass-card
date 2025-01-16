@@ -20,7 +20,6 @@ import {
 import { convertEndpointAddressToSignedWebsocket } from '../../../../utils/endpoint.js';
 import { setControlsOnVideo } from '../../../../utils/media.js';
 import { screenshotMedia } from '../../../../utils/screenshot.js';
-import '../../../image.js';
 import { renderMessage } from '../../../message.js';
 import { VideoRTC } from './video-rtc.js';
 

@@ -8,7 +8,7 @@ import './icon';
 export class FrigateCardLoading extends LitElement {
   protected render(): TemplateResult {
     return html`<frigate-card-icon .icon=${{ icon: 'iris' }}></frigate-card-icon
-      ><span>${getReleaseVersion(true)}</span>`;
+      ><span>${getReleaseVersion()}</span>`;
   }
 
   static get styles(): CSSResultGroup {

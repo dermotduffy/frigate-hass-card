@@ -1,5 +1,6 @@
 import { CameraManager } from '../camera-manager/manager';
 import { PTZAction } from '../config/ptz';
+import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import { PTZCapabilities } from '../types';
 import { View } from '../view/view';
 import { getStreamCameraID } from './substream';
@@ -41,6 +42,11 @@ export const getPTZTarget = (
     return {
       targetID: substreamAwareCameraID,
       type: type,
+    };
+  } else if (view.is('image')) {
+    return {
+      targetID: IMAGE_VIEW_ZOOM_TARGET_SENTINEL,
+      type: 'digital',
     };
   }
   return null;

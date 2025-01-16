@@ -31,6 +31,8 @@ import {
   STATUS_BAR_HEIGHT_MIN,
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
+  ZOOM_MAX,
+  ZOOM_MIN,
 } from './config/types.js';
 import {
   CONF_CAMERAS,
@@ -1455,8 +1457,8 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       'mdi:page-layout-body',
       html`
         ${this._renderNumberInput(configPathZoom, {
-          min: 0,
-          max: 10,
+          min: ZOOM_MIN,
+          max: ZOOM_MAX,
           label: localize('config.cameras.dimensions.layout.zoom'),
           step: 0.1,
         })}

@@ -387,3 +387,5 @@ export const MEDIA_CHUNK_SIZE_DEFAULT = 50;
 export const MEDIA_CHUNK_SIZE_MAX = 1000;
 
 export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
+
+export const IMAGE_VIEW_ZOOM_TARGET_SENTINEL = '__IMAGE_VIEW_ZOOM__';
