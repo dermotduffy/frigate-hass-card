@@ -69,6 +69,7 @@ describe('config defaults', () => {
         height: 'auto',
       },
       image: {
+        zoomable: true,
         mode: 'auto',
         refresh_seconds: 1,
       },

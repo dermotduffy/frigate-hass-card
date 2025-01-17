@@ -177,7 +177,7 @@ export class FrigateCardViews extends LitElement {
       ${!this.hide && view?.is('image') && cameraConfig
         ? html` <frigate-card-image
             .imageConfig=${this.overriddenConfig.image}
-            .view=${view}
+            .viewManagerEpoch=${this.viewManagerEpoch}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
             .cameraManager=${this.cameraManager}

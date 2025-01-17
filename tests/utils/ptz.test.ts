@@ -1,18 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { Capabilities } from '../../src/camera-manager/capabilities';
+import { FrigateCardView } from '../../src/config/types';
+import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../../src/const';
 import {
   getPTZTarget,
   hasCameraTruePTZ,
   ptzActionToCapabilityKey,
 } from '../../src/utils/ptz';
+import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import {
   TestViewMedia,
   createCameraManager,
   createStore,
   createView,
 } from '../test-utils';
-import { MediaQueriesResults } from '../../src/view/media-queries-results';
-import { FrigateCardView } from '../../src/config/types';
 
 describe('getPTZTarget', () => {
   describe('in a viewer view', () => {
@@ -44,6 +45,13 @@ describe('getPTZTarget', () => {
       expect(
         getPTZTarget(view, { type: 'ptz', cameraManager: createCameraManager() }),
       ).toBeNull();
+    });
+  });
+
+  it('in image view', () => {
+    expect(getPTZTarget(createView({ view: 'image' }))).toEqual({
+      targetID: IMAGE_VIEW_ZOOM_TARGET_SENTINEL,
+      type: 'digital',
     });
   });
 

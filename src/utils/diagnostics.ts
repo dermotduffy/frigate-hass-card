@@ -20,17 +20,17 @@ interface IntegrationDiagnostics {
   version?: string;
 }
 
-export const getReleaseVersion = (short?: boolean): string => {
-  const releaseVersion = '__FRIGATE_CARD_RELEASE_VERSION__';
+export const getReleaseVersion = (): string => {
+  const releaseVersion: string = '__FRIGATE_CARD_RELEASE_VERSION__';
 
   /* istanbul ignore if: depends on rollup substitution -- @preserve */
-  if ((releaseVersion as unknown) === 'pkg') {
+  if (releaseVersion === 'pkg') {
     return pkg.version;
   }
 
   /* istanbul ignore if: depends on rollup substitution -- @preserve */
-  if ((releaseVersion as unknown) === 'dev') {
-    return `${releaseVersion}+${pkg['gitAbbrevHash']}${short ? '' : ` (${pkg['buildDate']})`}`;
+  if (releaseVersion === 'dev') {
+    return `dev+${pkg['gitAbbrevHash']}`;
   }
 
   return releaseVersion;

@@ -972,6 +972,7 @@ export type PTZControlsConfig = z.infer<typeof ptzControlsConfigSchema>;
 const imageConfigDefault = {
   mode: 'auto' as const,
   refresh_seconds: 1,
+  zoomable: true,
 };
 
 const IMAGE_MODES = ['auto', 'camera', 'entity', 'screensaver', 'url'] as const;
@@ -988,6 +989,9 @@ const imageBaseConfigSchema = z.object({
 });
 
 const imageConfigSchema = imageBaseConfigSchema
+  .extend({
+    zoomable: z.boolean().default(imageConfigDefault.zoomable),
+  })
   .merge(actionsSchema)
   .default(imageConfigDefault);
 export type ImageViewConfig = z.infer<typeof imageConfigSchema>;

@@ -5,7 +5,7 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraConfig } from '../../../config/types';
 import basicBlockStyle from '../../../scss/basic-block.scss';
 import { FrigateCardMediaPlayer } from '../../../types.js';
-import '../../image.js';
+import '../../image-base.js';
 
 @customElement('frigate-card-live-image')
 export class FrigateCardLiveImage extends LitElement implements FrigateCardMediaPlayer {
@@ -59,13 +59,13 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     }
 
     return html`
-      <frigate-card-image
+      <frigate-card-image-base
         ${ref(this._refImage)}
         .hass=${this.hass}
         .imageConfig=${this.cameraConfig.image}
         .cameraConfig=${this.cameraConfig}
       >
-      </frigate-card-image>
+      </frigate-card-image-base>
     `;
   }
 
