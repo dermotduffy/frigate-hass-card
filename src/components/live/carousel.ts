@@ -15,7 +15,7 @@ import {
   ConditionsManagerEpoch,
   getOverriddenConfig,
 } from '../../card-controller/conditions-manager.js';
-import { ReadonlyMicrophoneManager } from '../../card-controller/microphone-manager.js';
+import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
@@ -88,7 +88,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
-  public microphoneManager?: ReadonlyMicrophoneManager;
+  public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
   public viewFilterCameraID?: string;
@@ -139,7 +139,7 @@ export class FrigateCardLiveCarousel extends LitElement {
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (
-      changedProps.has('microphoneManager') ||
+      changedProps.has('microphoneState') ||
       changedProps.has('overriddenLiveConfig')
     ) {
       this._mediaActionsController.setOptions({
@@ -158,7 +158,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         }),
         ...((this.overriddenLiveConfig?.auto_unmute ||
           this.overriddenLiveConfig?.auto_mute) && {
-          microphoneManager: this.microphoneManager,
+          microphoneState: this.microphoneState,
           microphoneMuteSeconds:
             this.overriddenLiveConfig.microphone.mute_after_microphone_mute_seconds,
         }),
@@ -302,8 +302,8 @@ export class FrigateCardLiveCarousel extends LitElement {
       <div class="embla__slide">
         <frigate-card-live-provider
           ?load=${!liveConfig.lazy_load}
-          .microphoneStream=${view?.camera === cameraID
-            ? this.microphoneManager?.getStream()
+          .microphoneState=${view?.camera === cameraID
+            ? this.microphoneState
             : undefined}
           .cameraConfig=${cameraConfig}
           .cameraEndpoints=${guard(
@@ -429,7 +429,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         .loop=${hasMultipleCameras}
         .dragEnabled=${hasMultipleCameras && this.overriddenLiveConfig?.draggable}
         .plugins=${guard(
-          [this.cameraManager, this.overriddenLiveConfig, this.microphoneManager],
+          [this.cameraManager, this.overriddenLiveConfig],
           this._getPlugins.bind(this),
         )}
         .selected=${this._getSelectedCameraIndex()}

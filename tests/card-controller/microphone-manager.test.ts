@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
+import { MicrophoneState } from '../../src/card-controller/types';
 import { createCardAPI, createConfig } from '../test-utils';
 
 const navigatorMock: Navigator = {
@@ -162,7 +163,7 @@ describe('MicrophoneManager', () => {
     expect(manager.isConnected()).toBeTruthy();
     expect(manager.isMuted()).toBeFalsy();
 
-    expect(api.getCardElementManager().update).toBeCalledTimes(2);
+    expect(api.getCardElementManager().update).toBeCalled();
   });
 
   it('should disconnect', async () => {
@@ -296,95 +297,82 @@ describe('MicrophoneManager', () => {
     });
   });
 
-  it('should respect listeners', async () => {
-    const api = createCardAPI();
-    const manager = new MicrophoneManager(api);
-    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
-      createMockStream(),
-    );
-
-    const listener = vi.fn();
-    manager.addListener(listener);
-
-    await manager.connect();
-    expect(listener).not.toHaveBeenCalled();
-
-    manager.mute();
-    expect(listener).not.toHaveBeenCalled();
-
-    await manager.unmute();
-    expect(listener).toHaveBeenCalledTimes(1);
-    expect(listener).toHaveBeenLastCalledWith('unmuted');
-
-    await manager.unmute();
-    expect(listener).toHaveBeenCalledTimes(1);
-
-    manager.mute();
-    expect(listener).toHaveBeenCalledTimes(2);
-    expect(listener).toHaveBeenLastCalledWith('muted');
-
-    manager.removeListener(listener);
-
-    await manager.unmute();
-    expect(listener).toHaveBeenCalledTimes(2);
-  });
-
   it('should initialize', () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
 
     manager.initialize();
     expect(api.getConditionsManager().setState).toBeCalledWith({
-      microphone: { connected: false, muted: true },
+      microphone: { connected: false, muted: true, forbidden: false, stream: undefined },
     });
   });
 
-  it('should set condition state', async () => {
+  it('should set state', async () => {
     const api = createCardAPI();
     const manager = new MicrophoneManager(api);
-    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(
-      createMockStream(),
-    );
+    const stream = createMockStream();
+    vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
 
     expect(api.getConditionsManager().setState).not.toBeCalled();
 
     await manager.connect();
+
+    let expectedState: MicrophoneState = {
+      forbidden: false,
+      stream: stream,
+      connected: true,
+      muted: true,
+    };
+
+    expect(manager.getState()).toEqual(expectedState);
     expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        microphone: {
-          connected: true,
-          muted: true,
-        },
+        microphone: expectedState,
       }),
     );
 
     await manager.unmute();
+
+    expectedState = {
+      forbidden: false,
+      stream: stream,
+      connected: true,
+      muted: false,
+    };
+    expect(manager.getState()).toEqual(expectedState);
     expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        microphone: {
-          connected: true,
-          muted: false,
-        },
+        microphone: expectedState,
       }),
     );
 
     manager.mute();
+
+    expectedState = {
+      forbidden: false,
+      stream: stream,
+      connected: true,
+      muted: true,
+    };
+    expect(manager.getState()).toEqual(expectedState);
     expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        microphone: {
-          connected: true,
-          muted: true,
-        },
+        microphone: expectedState,
       }),
     );
 
     manager.disconnect();
+
+    expectedState = {
+      forbidden: false,
+      stream: undefined,
+      connected: false,
+      muted: true,
+    };
+    expect(manager.getState()).toEqual(expectedState);
     expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        microphone: {
-          connected: false,
-          muted: true,
-        },
+        microphone: expectedState,
       }),
     );
   });

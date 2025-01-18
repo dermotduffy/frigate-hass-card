@@ -1,36 +1,33 @@
 import { errorToConsole } from '../utils/basic';
 import { Timer } from '../utils/timer';
-import { CardMicrophoneAPI } from './types';
+import { CardMicrophoneAPI, MicrophoneState } from './types';
 
-export type MicrophoneManagerListenerChange = 'muted' | 'unmuted';
-type MicrophoneManagerListener = (change: MicrophoneManagerListenerChange) => void;
-
-export interface ReadonlyMicrophoneManager {
-  getStream(): MediaStream | undefined;
-  addListener(listener: MicrophoneManagerListener): void;
-  removeListener(listener: MicrophoneManagerListener): void;
-  isConnected(): boolean;
-  isForbidden(): boolean;
-  isMuted(): boolean;
-}
-
-export class MicrophoneManager implements ReadonlyMicrophoneManager {
+export class MicrophoneManager {
   protected _api: CardMicrophoneAPI;
   protected _stream?: MediaStream | null;
   protected _timer = new Timer();
-  protected _listeners: MicrophoneManagerListener[] = [];
 
-  // We keep mute state separate from the stream state so that mute/unmute can
-  // be expressed before the stream is created -- and when it's create it will
-  // have the right mute status.
-  protected _mute = true;
+  protected _state: MicrophoneState = {
+    connected: false,
+    muted: true,
+    forbidden: false,
+  };
+
+  // We keep desired mute state separate from the overall state so that
+  // mute/unmute can be expressed before the stream is even created -- and when
+  // it's created it will have the right mute status.
+  protected _desireMute = true;
 
   constructor(api: CardMicrophoneAPI) {
     this._api = api;
   }
 
+  public getState(): MicrophoneState {
+    return this._state;
+  }
+
   public initialize(): void {
-    this._setConditionState();
+    this._setState();
   }
 
   public shouldConnectOnInitialization(): boolean {
@@ -63,11 +60,11 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
       errorToConsole(e as Error);
 
       this._stream = null;
-      this._api.getCardElementManager().update();
+      this._setState();
       return false;
     }
-    this._setMute();
-    this._setConditionState();
+    this._setDesiredMuteOnStream();
+    this._setState();
     return true;
   }
 
@@ -75,8 +72,7 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
     this._stream?.getTracks().forEach((track) => track.stop());
 
     this._stream = undefined;
-    this._setConditionState();
-    this._api.getCardElementManager().update();
+    this._setState();
   }
 
   public getStream(): MediaStream | undefined {
@@ -84,15 +80,9 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
   }
 
   public mute(): void {
-    const wasMuted = this.isMuted();
-
-    this._mute = true;
-    this._setMute();
-    this._setConditionState();
-
-    if (!wasMuted) {
-      this._callListeners('muted');
-    }
+    this._desireMute = true;
+    this._setDesiredMuteOnStream();
+    this._setState();
   }
 
   public async unmute(): Promise<void> {
@@ -100,29 +90,14 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
       return;
     }
 
-    const wasUnmuted = !this.isMuted();
-
-    const unmute = (): void => {
-      this._mute = false;
-      this._setMute();
-    };
+    this._desireMute = false;
 
     if (!this.isConnected() && !this.isForbidden()) {
-      // The connect() call is async and make take an arbitrary amount of
-      // time for the user to grant access to their microphone. With a
-      // momentary microphone button the mute call (on mouse release) may
-      // arrive before the connection is even granted, so we unmute first
-      // before the connection is made, so the mute call on release will not
-      // be 'overwritten' incorrectly.
-      unmute();
+      // Connecting will automatically set the desired mute.
       await this.connect();
     } else if (this.isConnected()) {
-      unmute();
-    }
-
-    this._setConditionState();
-    if (!wasUnmuted) {
-      this._callListeners('unmuted');
+      this._setDesiredMuteOnStream();
+      this._setState();
     }
   }
 
@@ -136,32 +111,19 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
 
   public isMuted(): boolean {
     // For safety, this function always returns the stream mute status directly
-    // (rather the internal state).
+    // (rather the desired internal state).
     return !this._stream || this._stream.getTracks().every((track) => !track.enabled);
   }
 
-  public addListener(listener: MicrophoneManagerListener): void {
-    this._listeners.push(listener);
-  }
-
-  public removeListener(listener: MicrophoneManagerListener): void {
-    this._listeners = this._listeners.filter((l) => l !== listener);
-  }
-
-  protected _callListeners(change: MicrophoneManagerListenerChange): void {
-    this._listeners.forEach((listener) => listener(change));
-  }
-
-  protected _setMute(): void {
+  protected _setDesiredMuteOnStream(): void {
     this._stream?.getTracks().forEach((track) => {
-      track.enabled = !this._mute;
+      track.enabled = !this._desireMute;
     });
 
-    this._startTimer();
-    this._api.getCardElementManager().update();
+    this._startDisconnectTimer();
   }
 
-  protected _startTimer(): void {
+  protected _startDisconnectTimer(): void {
     const microphoneConfig = this._api.getConfigManager().getConfig()?.live.microphone;
 
     if (microphoneConfig?.always_connected) {
@@ -177,12 +139,16 @@ export class MicrophoneManager implements ReadonlyMicrophoneManager {
     }
   }
 
-  protected _setConditionState(): void {
+  protected _setState(): void {
+    this._state = {
+      stream: this._stream,
+      connected: this.isConnected(),
+      muted: this.isMuted(),
+      forbidden: this.isForbidden(),
+    };
     this._api.getConditionsManager().setState({
-      microphone: {
-        muted: this.isMuted(),
-        connected: this.isConnected(),
-      },
+      microphone: this._state,
     });
+    this._api.getCardElementManager().update();
   }
 }

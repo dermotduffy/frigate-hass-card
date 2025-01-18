@@ -11,6 +11,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
+import { MicrophoneState } from '../../card-controller/types.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
 import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import {
@@ -64,7 +65,7 @@ export class FrigateCardLiveProvider
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public microphoneStream?: MediaStream;
+  public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
   public zoomSettings?: PartialZoomSettings | null;
@@ -351,7 +352,7 @@ export class FrigateCardLiveProvider
               .hass=${this.hass}
               .cameraConfig=${this.cameraConfig}
               .cameraEndpoints=${this.cameraEndpoints}
-              .microphoneStream=${this.microphoneStream}
+              .microphoneState=${this.microphoneState}
               .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this.liveConfig.controls.builtin}
               @frigate-card:live:error=${() => this._providerErrorHandler()}

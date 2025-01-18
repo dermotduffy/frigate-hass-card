@@ -285,6 +285,14 @@ export interface KeysState {
     meta: boolean;
   };
 }
+
+export interface MicrophoneState {
+  stream?: MediaStream | null;
+  connected: boolean;
+  muted: boolean;
+  forbidden: boolean;
+}
+
 interface TaggedAutomation extends Automation {
   tag?: unknown;
 }

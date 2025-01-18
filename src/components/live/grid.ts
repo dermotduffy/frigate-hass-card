@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { ConditionsManagerEpoch } from '../../card-controller/conditions-manager.js';
-import { ReadonlyMicrophoneManager } from '../../card-controller/microphone-manager.js';
+import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
 import { CardWideConfig, LiveConfig, Overrides } from '../../config/types.js';
@@ -46,7 +46,7 @@ export class FrigateCardLiveGrid extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
-  public microphoneManager?: ReadonlyMicrophoneManager;
+  public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
@@ -67,7 +67,7 @@ export class FrigateCardLiveGrid extends LitElement {
         .overrides=${this.overrides}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
-        .microphoneManager=${this.microphoneManager}
+        .microphoneState=${this.microphoneState}
         ?triggered=${triggeredCameraID &&
         !!this.triggeredCameraIDs?.has(triggeredCameraID)}
       >

@@ -1,7 +1,4 @@
-import {
-  MicrophoneManagerListenerChange,
-  ReadonlyMicrophoneManager,
-} from '../card-controller/microphone-manager.js';
+import { MicrophoneState } from '../card-controller/types.js';
 import {
   AutoMuteCondition,
   AutoPauseCondition,
@@ -20,7 +17,7 @@ export interface MediaActionsControllerOptions {
   autoPauseConditions?: readonly AutoPauseCondition[];
   autoMuteConditions?: readonly AutoMuteCondition[];
 
-  microphoneManager?: ReadonlyMicrophoneManager;
+  microphoneState?: MicrophoneState;
   microphoneMuteSeconds?: number;
 }
 
@@ -54,12 +51,14 @@ export class MediaActionsController {
   );
 
   public setOptions(options: MediaActionsControllerOptions): void {
-    this._options = options;
-
-    if (this._options?.microphoneManager) {
-      this._options.microphoneManager.removeListener(this._microphoneChangeHandler);
-      this._options.microphoneManager.addListener(this._microphoneChangeHandler);
+    if (this._options?.microphoneState !== options.microphoneState) {
+      this._microphoneStateChangeHandler(
+        this._options?.microphoneState,
+        options.microphoneState,
+      );
     }
+
+    this._options = options;
   }
 
   public hasRoot(): boolean {
@@ -75,7 +74,6 @@ export class MediaActionsController {
     this._target = null;
     this._mutationObserver.disconnect();
     this._intersectionObserver.disconnect();
-    this._options?.microphoneManager?.removeListener(this._microphoneChangeHandler);
     document.removeEventListener('visibilitychange', this._visibilityHandler);
   }
 
@@ -255,13 +253,20 @@ export class MediaActionsController {
       await this._muteAllIfConfigured('hidden');
     }
   };
-  protected _microphoneChangeHandler = async (
-    change: MicrophoneManagerListenerChange,
-  ): Promise<void> => {
-    if (change === 'unmuted') {
+
+  protected async _microphoneStateChangeHandler(
+    oldState?: MicrophoneState,
+    newState?: MicrophoneState,
+  ): Promise<void> {
+    if (!oldState || !newState) {
+      return;
+    }
+
+    if (oldState.muted && !newState.muted) {
       await this._unmuteTargetIfConfigured('microphone');
     } else if (
-      change === 'muted' &&
+      !oldState.muted &&
+      newState.muted &&
       this._options?.autoMuteConditions?.includes('microphone')
     ) {
       this._microphoneMuteTimer.start(
@@ -271,5 +276,5 @@ export class MediaActionsController {
         },
       );
     }
-  };
+  }
 }
