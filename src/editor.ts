@@ -36,6 +36,7 @@ import {
 } from './config/types.js';
 import {
   CONF_CAMERAS,
+  CONF_CAMERAS_ARRAY_ALWAYS_ERROR_IF_ENTITY_UNAVAILABLE,
   CONF_CAMERAS_ARRAY_CAMERA_ENTITY,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE,
   CONF_CAMERAS_ARRAY_CAPABILITIES_DISABLE_EXCEPT,
@@ -2013,6 +2014,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
               )}
               ${this._renderStringInput(
                 getArrayConfigPath(CONF_CAMERAS_ARRAY_ID, cameraIndex),
+              )}
+              ${this._renderSwitch(
+                getArrayConfigPath(
+                  CONF_CAMERAS_ARRAY_ALWAYS_ERROR_IF_ENTITY_UNAVAILABLE,
+                  cameraIndex,
+                ),
+                this._defaults.cameras.always_error_if_entity_unavailable,
               )}
               ${this._putInSubmenu(
                 MENU_CAMERAS_ENGINE,

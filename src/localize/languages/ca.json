@@ -9,6 +9,7 @@
   },
   "config": {
     "cameras": {
+      "always_error_if_entity_unavailable": "",
       "camera_entity": "Entitat de càmera",
       "capabilities": {
         "capabilities": {
