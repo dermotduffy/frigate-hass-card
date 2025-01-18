@@ -10,7 +10,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
 import { ConditionsManagerEpoch } from '../card-controller/conditions-manager.js';
-import { ReadonlyMicrophoneManager } from '../card-controller/microphone-manager.js';
+import { MicrophoneState } from '../card-controller/types.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import {
   CardWideConfig,
@@ -60,7 +60,7 @@ export class FrigateCardViews extends LitElement {
   public hide?: boolean;
 
   @property({ attribute: false })
-  public microphoneManager?: ReadonlyMicrophoneManager;
+  public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
   public triggeredCameraIDs?: Set<string>;
@@ -243,7 +243,7 @@ export class FrigateCardViews extends LitElement {
                 .overrides=${this.overriddenConfig.overrides}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
-                .microphoneManager=${this.microphoneManager}
+                .microphoneState=${this.microphoneState}
                 .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"
               >

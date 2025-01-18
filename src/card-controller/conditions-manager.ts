@@ -20,12 +20,7 @@ import { localize } from '../localize/localize';
 import { FrigateCardError } from '../types';
 import { desparsifyArrays } from '../utils/basic';
 import { isCompanionApp } from '../utils/companion';
-import { CardConditionAPI, KeysState } from './types';
-
-interface MicrophoneConditionState {
-  connected?: boolean;
-  muted?: boolean;
-}
+import { CardConditionAPI, KeysState, MicrophoneState } from './types';
 
 interface ConditionState {
   view?: string;
@@ -37,7 +32,7 @@ interface ConditionState {
   displayMode?: ViewDisplayMode;
   triggered?: Set<string>;
   interaction?: boolean;
-  microphone?: MicrophoneConditionState;
+  microphone?: MicrophoneState;
   user?: CurrentUser;
   keys?: KeysState;
   user_agent?: string;

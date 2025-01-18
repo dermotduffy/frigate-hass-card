@@ -1,8 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  MicrophoneManagerListenerChange,
-  ReadonlyMicrophoneManager,
-} from '../../src/card-controller/microphone-manager';
+import { MicrophoneState } from '../../src/card-controller/types';
 import {
   MediaActionsController,
   MediaActionsControllerOptions,
@@ -17,7 +14,6 @@ import {
   flushPromises,
 } from '../test-utils';
 import { callVisibilityHandler, createTestSlideNodes } from '../utils/embla/test-utils';
-import { mock } from 'vitest-mock-extended';
 
 const getPlayer = (
   element: HTMLElement,
@@ -48,15 +44,6 @@ const createPlayerSlideNodes = (n = 10): HTMLElement[] => {
     div.appendChild(createPlayer());
   }
   return divs;
-};
-
-const callMicrophoneListener = (
-  microphoneManager: ReadonlyMicrophoneManager,
-  action: MicrophoneManagerListenerChange,
-  n = 0,
-): void => {
-  const mock = vi.mocked(microphoneManager.addListener).mock;
-  mock.calls[n][0](action);
 };
 
 // @vitest-environment jsdom
@@ -541,7 +528,7 @@ describe('MediaActionsController', () => {
     );
   });
 
-  describe('should take action on microphone changes', () => {
+  describe('should take action on microphone state changes', () => {
     beforeAll(() => {
       vi.useFakeTimers();
     });
@@ -550,14 +537,24 @@ describe('MediaActionsController', () => {
       vi.useRealTimers();
     });
 
+    const createMicrophoneState = (
+      state?: Partial<MicrophoneState>,
+    ): MicrophoneState => {
+      return {
+        muted: true,
+        forbidden: false,
+        connected: false,
+        ...state,
+      };
+    };
+
     it('should unmute when microphone unmuted', async () => {
-      const microphoneManager = mock<ReadonlyMicrophoneManager>();
       const controller = new MediaActionsController();
 
       controller.setOptions({
         autoUnmuteConditions: ['microphone' as const],
         playerSelector: 'video',
-        microphoneManager: microphoneManager,
+        microphoneState: createMicrophoneState({ muted: true }),
       });
 
       const children = createPlayerSlideNodes();
@@ -565,19 +562,22 @@ describe('MediaActionsController', () => {
 
       await controller.setTarget(0, true);
 
-      callMicrophoneListener(microphoneManager, 'unmuted');
+      controller.setOptions({
+        autoUnmuteConditions: ['microphone' as const],
+        playerSelector: 'video',
+        microphoneState: createMicrophoneState({ muted: false }),
+      });
 
       expect(getPlayer(children[0], 'video')?.unmute).toBeCalled();
     });
 
-    it('should re-mute after delay after microphone unmuted', async () => {
-      const microphoneManager = mock<ReadonlyMicrophoneManager>();
+    it('should mute after delay after microphone muted', async () => {
       const controller = new MediaActionsController();
 
       controller.setOptions({
         autoMuteConditions: ['microphone' as const],
         playerSelector: 'video',
-        microphoneManager: microphoneManager,
+        microphoneState: createMicrophoneState({ muted: false }),
       });
 
       const children = createPlayerSlideNodes();
@@ -585,21 +585,24 @@ describe('MediaActionsController', () => {
 
       await controller.setTarget(0, true);
 
-      callMicrophoneListener(microphoneManager, 'muted');
+      controller.setOptions({
+        autoMuteConditions: ['microphone' as const],
+        playerSelector: 'video',
+        microphoneState: createMicrophoneState({ muted: true }),
+      });
 
       vi.runOnlyPendingTimers();
 
       expect(getPlayer(children[0], 'video')?.mute).toBeCalled();
     });
 
-    it('should not re-mute after delay after microphone unmuted', async () => {
-      const microphoneManager = mock<ReadonlyMicrophoneManager>();
+    it('should not mute after delay after microphone muted', async () => {
       const controller = new MediaActionsController();
 
       controller.setOptions({
         autoMuteConditions: [],
         playerSelector: 'video',
-        microphoneManager: microphoneManager,
+        microphoneState: createMicrophoneState({ muted: false }),
       });
 
       const children = createPlayerSlideNodes();
@@ -607,7 +610,11 @@ describe('MediaActionsController', () => {
 
       await controller.setTarget(0, true);
 
-      callMicrophoneListener(microphoneManager, 'muted');
+      controller.setOptions({
+        autoMuteConditions: ['microphone' as const],
+        playerSelector: 'video',
+        microphoneState: createMicrophoneState({ muted: true }),
+      });
 
       vi.runOnlyPendingTimers();
 

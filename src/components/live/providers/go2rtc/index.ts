@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { CameraEndpoints } from '../../../../camera-manager/types.js';
+import { MicrophoneState } from '../../../../card-controller/types.js';
 import { dispatchLiveErrorEvent } from '../../../../components-lib/live/utils/dispatch-live-error.js';
 import { CameraConfig, MicrophoneConfig } from '../../../../config/types.js';
 import { localize } from '../../../../localize/localize.js';
@@ -44,7 +45,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
   public cameraEndpoints?: CameraEndpoints;
 
   @property({ attribute: false })
-  public microphoneStream?: MediaStream;
+  public microphoneState?: MicrophoneState;
 
   @property({ attribute: false })
   public microphoneConfig?: MicrophoneConfig;
@@ -147,7 +148,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
 
     this._player = new VideoRTC();
     this._player.containingPlayer = this;
-    this._player.microphoneStream = this.microphoneStream ?? null;
+    this._player.microphoneStream = this.microphoneState?.stream ?? null;
     this._player.src = address;
     this._player.visibilityCheck = false;
     this._player.controls = this.controls;
@@ -172,14 +173,16 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
       this._player.controls = this.controls;
     }
 
-    if (this._player && changedProps.has('microphoneStream')) {
-      if (this._player?.microphoneStream !== this.microphoneStream) {
-        this._player.microphoneStream = this.microphoneStream ?? null;
+    if (
+      this._player &&
+      changedProps.has('microphoneState') &&
+      this._player?.microphoneStream !== this.microphoneState?.stream
+    ) {
+      this._player.microphoneStream = this.microphoneState?.stream ?? null;
 
-        // Need to force a reconnect if the microphone stream changes since
-        // WebRTC cannot introduce a new stream after the offer is already made.
-        this._player.reconnect();
-      }
+      // Need to force a reconnect if the microphone stream changes since
+      // WebRTC cannot introduce a new stream after the offer is already made.
+      this._player.reconnect();
     }
   }
 

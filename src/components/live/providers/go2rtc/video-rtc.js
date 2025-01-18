@@ -394,9 +394,10 @@ export class VideoRTC extends HTMLElement {
 
     this.pcState = WebSocket.CLOSED;
     if (this.pc) {
-      this.pc.getSenders().forEach((sender) => {
-        if (sender.track) sender.track.stop();
-      });
+      // Do not close the (microphone) track attached to the peer connection as
+      // that is controlled by MicrophoneManager.
+      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1810
+
       this.pc.close();
       this.pc = null;
     }
