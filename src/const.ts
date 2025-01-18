@@ -4,6 +4,9 @@ export const TROUBLESHOOTING_URL = `https://card.camera/#/troubleshooting` as co
 export const CONF_AUTOMATIONS = 'automations' as const;
 
 export const CONF_CAMERAS = 'cameras' as const;
+
+export const CONF_CAMERAS_ARRAY_ALWAYS_ERROR_IF_ENTITY_UNAVAILABLE =
+  `${CONF_CAMERAS}.#.always_error_if_entity_unavailable` as const;
 export const CONF_CAMERAS_ARRAY_CAMERA_ENTITY =
   `${CONF_CAMERAS}.#.camera_entity` as const;
 export const CONF_CAMERAS_ARRAY_FRIGATE_CAMERA_NAME =
