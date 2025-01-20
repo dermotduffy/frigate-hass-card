@@ -30,7 +30,10 @@ import {
 } from '../../../utils/media.js';
 import { screenshotMedia } from '../../../utils/screenshot.js';
 import { renderTask } from '../../../utils/task.js';
-import { renderMessage, renderProgressIndicator } from '../../message.js';
+import '../../message.js';
+import { renderMessage } from '../../message.js';
+import '../../progress-indicator.js';
+import { renderProgressIndicator } from '../../progress-indicator.js';
 import { VideoRTC } from './go2rtc/video-rtc.js';
 
 // Create a wrapper for AlexxIT's WebRTC card

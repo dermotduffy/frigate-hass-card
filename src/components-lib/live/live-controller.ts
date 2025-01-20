@@ -1,10 +1,10 @@
 import { LitElement, ReactiveController } from 'lit';
-import { FrigateCardMessageEventTarget } from '../../components/message.js';
 import { MediaLoadedInfo } from '../../types.js';
 import {
   FrigateCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
 } from '../../utils/media-info.js';
+import { FrigateCardMessageEventTarget } from '../message/dispatch.js';
 
 interface LiveViewContext {
   // A cameraID override (used for dependencies/substreams to force a different

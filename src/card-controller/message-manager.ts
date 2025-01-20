@@ -1,11 +1,17 @@
-import {
-  FrigateCardError,
-  MESSAGE_TYPE_PRIORITIES,
-  Message,
-  MessageType,
-} from '../types';
+import { FrigateCardError, Message, MessageType } from '../types';
 import { errorToConsole } from '../utils/basic';
 import { CardMessageAPI } from './types';
+
+type MessagePriority = {
+  [type in MessageType]: number;
+};
+
+const MESSAGE_TYPE_PRIORITIES: MessagePriority = {
+  info: 10,
+  error: 20,
+  connection: 30,
+  diagnostics: 40,
+};
 
 export class MessageManager {
   protected _message: Message | null = null;
@@ -52,17 +58,20 @@ export class MessageManager {
 
     errorToConsole(error);
     this.setMessageIfHigherPriority({
-      message: prefix ? `${prefix}: ${error.message}` : error.message,
+      message: prefix ? `${prefix}: ${error.message}` : String(error.message),
       type: 'error',
       ...(error instanceof FrigateCardError && { context: error.context }),
     });
   }
 
   public setMessageIfHigherPriority(message: Message): boolean {
+    const resolveMessageType = (message: Message): MessageType => {
+      return message.type ?? 'info';
+    };
     const currentPriority = this._message
-      ? MESSAGE_TYPE_PRIORITIES[this._message.type]
+      ? MESSAGE_TYPE_PRIORITIES[resolveMessageType(this._message)]
       : 0;
-    const newPriority = MESSAGE_TYPE_PRIORITIES[message.type];
+    const newPriority = MESSAGE_TYPE_PRIORITIES[resolveMessageType(message)];
 
     if (this._message && newPriority < currentPriority) {
       return false;

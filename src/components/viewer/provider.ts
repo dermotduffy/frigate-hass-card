@@ -51,7 +51,7 @@ import { screenshotMedia } from '../../utils/screenshot.js';
 import { ViewMediaClassifier } from '../../view/media-classifier.js';
 import { MediaQueriesClassifier } from '../../view/media-queries-classifier.js';
 import { VideoContentType, ViewMedia } from '../../view/media.js';
-import { renderProgressIndicator } from '../message.js';
+import { renderProgressIndicator } from '../progress-indicator.js';
 
 @customElement('frigate-card-viewer-provider')
 export class FrigateCardViewerProvider

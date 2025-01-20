@@ -12,6 +12,7 @@ import {
   ConditionsManagerEpoch,
   evaluateConditionViaEvent,
 } from '../card-controller/conditions-manager.js';
+import { dispatchFrigateCardErrorEvent } from '../components-lib/message/dispatch.js';
 import {
   FrigateConditional,
   MenuIcon,
@@ -29,7 +30,6 @@ import { localize } from '../localize/localize.js';
 import elementsStyle from '../scss/elements.scss';
 import { FrigateCardError } from '../types.js';
 import { dispatchFrigateCardEvent, errorToConsole } from '../utils/basic.js';
-import { dispatchFrigateCardErrorEvent } from './message.js';
 
 /* A note on picture element rendering:
  *
