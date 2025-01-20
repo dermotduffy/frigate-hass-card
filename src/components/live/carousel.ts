@@ -18,6 +18,7 @@ import {
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
+import { dispatchFrigateCardErrorEvent } from '../../components-lib/message/dispatch.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import {
@@ -42,7 +43,6 @@ import { getTextDirection } from '../../utils/text-direction.js';
 import { View } from '../../view/view.js';
 import '../carousel';
 import { EmblaCarouselPlugins } from '../carousel.js';
-import { dispatchFrigateCardErrorEvent } from '../message.js';
 import '../next-prev-control.js';
 import '../ptz.js';
 import { FrigateCardPTZ } from '../ptz.js';

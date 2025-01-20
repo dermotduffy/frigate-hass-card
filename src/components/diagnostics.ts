@@ -41,8 +41,7 @@ export class FrigateCardDiagnostics extends LitElement {
   protected render(): TemplateResult | void {
     return renderMessage({
       message: localize('error.diagnostics'),
-      type: 'diagnostics',
-      icon: 'mdi:information',
+      icon: 'mdi:cogs',
       context: this._diagnostics,
     });
   }

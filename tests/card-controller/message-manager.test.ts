@@ -6,7 +6,7 @@ import { createCardAPI } from '../test-utils';
 const createMessage = (options?: Partial<Message>): Message => {
   return {
     message: options?.message ?? 'message',
-    type: options?.type ?? 'info',
+    ...(!!options?.type && { type: options.type }),
     ...(!!options?.icon && { icon: options.icon }),
     ...(!!options?.context && { context: options.context }),
     ...(!!options?.dotdotdot && { dotdotdot: options.dotdotdot }),
@@ -97,8 +97,11 @@ describe('MessageManager', () => {
     const errorMessage = createMessage({ type: 'error' });
     manager.setMessageIfHigherPriority(errorMessage);
 
-    const infoMessage = createMessage({ type: 'info' });
-    manager.setMessageIfHigherPriority(infoMessage);
+    const explicitInfoMessage = createMessage({ type: 'info' });
+    manager.setMessageIfHigherPriority(explicitInfoMessage);
+
+    const implicitInfoMessage = createMessage();
+    manager.setMessageIfHigherPriority(implicitInfoMessage);
 
     expect(manager.getMessage()).toBe(errorMessage);
 

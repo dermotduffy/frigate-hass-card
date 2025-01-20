@@ -26,7 +26,10 @@ import {
   dispatchMediaPlayEvent,
 } from '../../../utils/media-info.js';
 import { Timer } from '../../../utils/timer.js';
-import { renderMessage, renderProgressIndicator } from '../../message.js';
+import '../../message.js';
+import { renderMessage } from '../../message.js';
+import '../../progress-indicator.js';
+import { renderProgressIndicator } from '../../progress-indicator.js';
 
 // Number of seconds a signed URL is valid for.
 const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;

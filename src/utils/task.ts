@@ -1,6 +1,6 @@
 import { Task } from '@lit-labs/task';
 import { html, TemplateResult } from 'lit';
-import { renderProgressIndicator } from '../components/message';
+import { renderProgressIndicator } from '../components/progress-indicator';
 import { CardWideConfig } from '../config/types';
 import { errorToConsole } from './basic';
 

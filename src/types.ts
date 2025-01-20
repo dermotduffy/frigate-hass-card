@@ -45,23 +45,13 @@ export interface MediaLoadedInfo {
 
 export type MessageType = 'info' | 'error' | 'connection' | 'diagnostics';
 
-type MessagePriority = {
-  [type in MessageType]: number;
-};
-
-export const MESSAGE_TYPE_PRIORITIES: MessagePriority = {
-  info: 10,
-  error: 20,
-  connection: 30,
-  diagnostics: 40,
-};
-
 export interface Message {
-  message: unknown;
-  type: MessageType;
+  message: string;
+  type?: MessageType;
   icon?: string;
   context?: unknown;
   dotdotdot?: boolean;
+  troubleshootingURL?: string;
 }
 
 export interface FrigateCardMediaPlayer {

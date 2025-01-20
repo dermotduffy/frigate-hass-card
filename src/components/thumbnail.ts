@@ -14,6 +14,7 @@ import { CameraManager } from '../camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../camera-manager/types.js';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
+import { dispatchFrigateCardErrorEvent } from '../components-lib/message/dispatch.js';
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
 import thumbnailFeatureTextStyle from '../scss/thumbnail-feature-text.scss';
@@ -32,7 +33,6 @@ import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask, FetchThumbnailTaskArgs } from '../utils/thumbnail.js';
 import { ViewMediaClassifier } from '../view/media-classifier.js';
 import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js';
-import { dispatchFrigateCardErrorEvent } from './message.js';
 
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;

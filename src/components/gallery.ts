@@ -30,7 +30,10 @@ import { EventMediaQueries, RecordingMediaQueries } from '../view/media-queries'
 import { MediaQueriesClassifier } from '../view/media-queries-classifier';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import './media-filter';
-import { renderMessage, renderProgressIndicator } from './message.js';
+import './message.js';
+import { renderMessage } from './message.js';
+import './progress-indicator.js';
+import { renderProgressIndicator } from './progress-indicator.js';
 import './surround-basic';
 import './thumbnail.js';
 import { THUMBNAIL_DETAILS_WIDTH_MIN } from './thumbnail.js';
