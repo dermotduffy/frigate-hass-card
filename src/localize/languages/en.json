@@ -646,6 +646,7 @@
     "no_supported_camera": "The selected camera does not support this view",
     "no_supported_cameras": "No cameras support this view",
     "reconnecting": "Reconnecting",
+    "stream_not_loading": "The video stream has not yet loaded. This is could for any number of reasons. If configured (and by default), there will be an image refreshing every second until the stream loads correctly",
     "too_many_automations": "Too many nested automation calls, please check your configuration for loops",
     "troubleshooting": "Check troubleshooting",
     "unknown": "Unknown error",

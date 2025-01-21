@@ -7,13 +7,24 @@ import messageStyle from '../scss/message.scss';
 import { Message } from '../types.js';
 import './icon.js';
 
-export function renderMessage(message: Message | null): TemplateResult {
-  return html` <frigate-card-message .message=${message}></frigate-card-message>`;
+export function renderMessage(
+  message: Message | null,
+  renderOptions?: {
+    overlay?: boolean;
+  },
+): TemplateResult {
+  return html` <frigate-card-message
+    .message=${message}
+    ?overlay=${!!renderOptions?.overlay}
+  ></frigate-card-message>`;
 }
 @customElement('frigate-card-message')
 export class FrigateCardMessage extends LitElement {
   @property({ attribute: false })
   public message?: Message;
+
+  @property({ attribute: true, type: Boolean })
+  public overlay = false;
 
   private _controller = new MessageController();
 

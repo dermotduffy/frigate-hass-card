@@ -21,6 +21,7 @@ import {
   LiveConfig,
   LiveProvider,
 } from '../../config/types.js';
+import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
 import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
@@ -75,6 +76,9 @@ export class FrigateCardLiveProvider
 
   @state()
   protected _hasProviderError = false;
+
+  @state()
+  protected _showStreamTroubleshooting = false;
 
   protected _refProvider: Ref<LitElement & FrigateCardMediaPlayer> = createRef();
 
@@ -168,9 +172,11 @@ export class FrigateCardLiveProvider
    */
   protected _shouldShowImageDuringLoading(): boolean {
     return (
+      !this._isVideoMediaLoaded &&
       !!this.cameraConfig?.camera_entity &&
       !!this.hass &&
       !!this.liveConfig?.show_image_during_load &&
+      !this._showStreamTroubleshooting &&
       // Do not continue to show image during loading if an error has occurred.
       !this._hasProviderError
     );
@@ -182,6 +188,7 @@ export class FrigateCardLiveProvider
 
   protected _videoMediaShowHandler(): void {
     this._isVideoMediaLoaded = true;
+    this._showStreamTroubleshooting = false;
   }
 
   protected _providerErrorHandler(): void {
@@ -267,8 +274,8 @@ export class FrigateCardLiveProvider
     this.ariaLabel = this.label;
 
     const provider = this._getResolvedProvider();
-    const showImageDuringLoading =
-      !this._isVideoMediaLoaded && this._shouldShowImageDuringLoading();
+    const showImageDuringLoading = this._shouldShowImageDuringLoading();
+    const showLoadingIcon = !this._isVideoMediaLoaded;
     const providerClasses = {
       hidden: showImageDuringLoading,
     };
@@ -386,12 +393,26 @@ export class FrigateCardLiveProvider
                 </frigate-card-live-jsmpeg>`
               : html``}
     `)}
-    ${showImageDuringLoading && !this._isVideoMediaLoaded
+    ${showLoadingIcon
       ? html`<frigate-card-icon
           title=${localize('error.awaiting_live')}
           .icon=${{ icon: 'mdi:progress-helper' }}
+          @click=${() => {
+            this._showStreamTroubleshooting = !this._showStreamTroubleshooting;
+          }}
         ></frigate-card-icon>`
-      : ''} `;
+      : ''}
+    ${this._showStreamTroubleshooting
+      ? renderMessage(
+          {
+            type: 'error',
+            icon: 'mdi:camera-off',
+            message: localize('error.stream_not_loading'),
+            troubleshootingURL: STREAM_TROUBLESHOOTING_URL,
+          },
+          { overlay: true },
+        )
+      : ''}`;
   }
 
   static get styles(): CSSResultGroup {

@@ -1,5 +1,57 @@
 # Troubleshooting
 
+## Highlighted Issues
+
+### Stream does not load
+
+Stream not loading? Permanent "loading circle"?
+
+A stream not loading is a relatively common error, but can be caused by any
+number of issues (e.g. installation problems, networking problems, video/codec
+problems, a Home Assistant bug or card bug).
+
+During the stream load, the card will show a "loading circle" icon and, for
+cameras with a `camera_entity` configured, will show images refreshing once per
+second until the stream has fully loaded (unless `live.show_image_during_load`
+is set to false).
+
+Debugging broken streams:
+
+1. If you're using the default `auto` live provider, or explicitly setting the
+   `ha` live provider, try opening the `camera_entity` in Home Assistant and
+   verifying whether the stream loads there. You can press the `e` key on any
+   Home Assistant dashboard, choose the relevant entity, and see if the stream
+   loads. If it does not, you have a upstream installation issue with your
+   camera / the integration for the camera, and need to resolve that first.
+   Your issue is not related to the card itself.
+1. Check whether any URLs specified in your card configuration are accessible
+   _from the network of the browser_.
+1. Check whether or not there are helpful clues shown on your Javascript
+   console (`F12` in many browsers) that might indicate the source of the
+   issue.
+1. Check you are using the latest version of all relevant camera integrations
+   (e.g.
+   [Frigate](https://github.com/blakeblackshear/frigate-hass-integration)).
+1. If you're using a Frigate camera and are requesting a `webrtc` stream,
+   ensure [you have configured Frigate
+   accordingly](https://docs.frigate.video/configuration/live/#webrtc-extra-configuration).
+1. Search for your symptoms on the [card issues
+   page](https://github.com/dermotduffy/frigate-hass-card/issues) and see if
+   you find any prior relevant discussions.
+
+If you're happy with just using an image stream but want the small circle to go
+away, use the [`image live provider`](./configuration/cameras/live-provider.md?id=image) .
+
+### Unknown Command
+
+`Camera initialization failed: Unknown command`
+
+Your Frigate integration may not be up to date. Check [the latest Frigate
+Integration
+releases](https://github.com/blakeblackshear/frigate-hass-integration/releases/tag/v5.7.0).
+
+## Other Issues
+
 ### 2-way audio doesn't work
 
 There are many requirements for 2-way audio to work. See [Using 2-way
@@ -49,12 +101,6 @@ stills are used during initial Frigate card load of the `live` view if the
 `live.show_image_during_load` option is enabled. Disabling this option should
 show the default media loading controls (e.g. a spinner or empty video player)
 instead of the blank white image.
-
-### `Camera initialization failed: Unknown command`
-
-This may be a sign that your Frigate integration is not up to date. Check [the
-latest Frigate Integration
-releases](https://github.com/blakeblackshear/frigate-hass-integration/releases/tag/v5.7.0).
 
 ### Casting to Chromecast broken
 
@@ -194,15 +240,6 @@ Status popup can be disabled with this configuration:
 status_bar:
   style: none
 ```
-
-### Watermark shown on livestream
-
-If the `live.show_image_during_load` option is enabled (the default), a
-temporary image from Home Assistant is rendered and refreshed every `1s` while
-the full stream is loading. When this temporary image is being shown, a small
-circular icon is rendered on the top-right of the livestream to indicate to the
-user that this is not the true stream. If the icon persists, it means your
-underlying stream is not actually loading and may be misconfigured / broken.
 
 ### `webrtc_card` unloads in the background
 
