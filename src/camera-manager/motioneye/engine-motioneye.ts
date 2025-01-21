@@ -90,6 +90,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
           seek: false,
           snapshots: true,
           substream: true,
+          trigger: true,
           ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
         },
         {

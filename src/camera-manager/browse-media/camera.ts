@@ -25,7 +25,7 @@ export class BrowseMediaCamera extends Camera {
       throw new CameraInitializationError(localize('error.no_camera_entity'), config);
     }
     this._entity = entity;
-    return this;
+    return await super.initialize(options);
   }
 
   public getEntity(): Entity | null {

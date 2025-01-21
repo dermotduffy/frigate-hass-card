@@ -106,6 +106,8 @@ export interface CapabilitiesRaw {
   ptz?: PTZCapabilities;
 
   menu?: boolean;
+
+  trigger?: boolean;
 }
 
 export type CapabilityKey = keyof CapabilitiesRaw;
@@ -120,6 +122,7 @@ export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   'seek',
   'snapshots',
   'substream',
+  'trigger',
 ] as const;
 
 export interface Icon {

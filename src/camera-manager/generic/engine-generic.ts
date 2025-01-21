@@ -70,6 +70,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
           seek: false,
           snapshots: false,
           substream: true,
+          trigger: true,
           ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
         },
         {

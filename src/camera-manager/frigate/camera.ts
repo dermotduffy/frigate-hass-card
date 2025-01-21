@@ -49,7 +49,11 @@ export class FrigateCamera extends Camera {
   public async initialize(options: FrigateCameraInitializationOptions): Promise<Camera> {
     await this._initializeConfig(options.hass, options.entityRegistryManager);
     await this._initializeCapabilities(options.hass);
-    await this._subscribeToEvents(options.hass, options.frigateEventWatcher);
+
+    if (this._capabilities?.has('trigger')) {
+      await this._subscribeToEvents(options.hass, options.frigateEventWatcher);
+    }
+
     return await super.initialize(options);
   }
 
@@ -142,6 +146,7 @@ export class FrigateCamera extends Camera {
         live: true,
         menu: true,
         substream: true,
+        trigger: true,
         ...(combinedPTZCapabilities && { ptz: combinedPTZCapabilities }),
       },
       {
