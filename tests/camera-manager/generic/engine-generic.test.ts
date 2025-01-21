@@ -37,6 +37,7 @@ describe('GenericCameraManagerEngine', () => {
     expect(camera.getCapabilities()?.has('clips')).toBeFalsy();
     expect(camera.getCapabilities()?.has('recordings')).toBeFalsy();
     expect(camera.getCapabilities()?.has('snapshots')).toBeFalsy();
+    expect(camera.getCapabilities()?.has('trigger')).toBeTruthy();
   });
 
   it('should generate default event query', () => {

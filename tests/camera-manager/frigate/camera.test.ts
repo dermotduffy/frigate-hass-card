@@ -162,6 +162,7 @@ describe('FrigateCamera', () => {
       expect(camera.getCapabilities()?.has('live')).toBeTruthy();
       expect(camera.getCapabilities()?.has('snapshots')).toBeTruthy();
       expect(camera.getCapabilities()?.has('recordings')).toBeTruthy();
+      expect(camera.getCapabilities()?.has('trigger')).toBeTruthy();
       expect(vi.mocked(getPTZInfo)).toBeCalled();
     });
 
@@ -188,6 +189,7 @@ describe('FrigateCamera', () => {
       expect(camera.getCapabilities()?.has('live')).toBeTruthy();
       expect(camera.getCapabilities()?.has('snapshots')).toBeFalsy();
       expect(camera.getCapabilities()?.has('recordings')).toBeFalsy();
+      expect(camera.getCapabilities()?.has('trigger')).toBeTruthy();
       expect(vi.mocked(getPTZInfo)).not.toBeCalled();
     });
 
@@ -342,6 +344,31 @@ describe('FrigateCamera', () => {
         frigateEventWatcher: eventWatcher,
       }),
         expect(eventWatcher.subscribe).not.toBeCalled();
+    });
+
+    it('should not subscribe without trigger capability', async () => {
+      const camera = new FrigateCamera(
+        createCameraConfig({
+          frigate: {
+            client_id: 'CLIENT_ID',
+            camera_name: 'CAMERA',
+          },
+          capabilities: {
+            disable: ['trigger'],
+          },
+        }),
+        mock<CameraManagerEngine>(),
+      );
+      const hass = createHASS();
+
+      const eventWatcher = mock<FrigateEventWatcher>();
+      await camera.initialize({
+        hass: hass,
+        entityRegistryManager: mock<EntityRegistryManager>(),
+        stateWatcher: mock<StateWatcher>(),
+        frigateEventWatcher: eventWatcher,
+      });
+      expect(eventWatcher.subscribe).not.toBeCalled();
     });
 
     it('should not subscribe with no camera name', async () => {

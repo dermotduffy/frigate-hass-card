@@ -248,6 +248,7 @@ describe('ReolinkCameraManagerEngine', () => {
       seek: false,
       snapshots: false,
       substream: true,
+      trigger: true,
     });
   });
 
