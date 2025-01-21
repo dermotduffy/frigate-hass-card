@@ -29,7 +29,7 @@ not providing this information, please do not be offended. I want to help, just
 need to prioritize my limited development time well. Feel free to re-open your
 issue, providing the requested information.
 
-## Misconceptions About open source
+## Misconceptions About Open Source
 
 - The fixes aren't fast enough!
 - The features aren't good enough!
@@ -52,6 +52,6 @@ hobbiest-level skills and ... at best ... hobbiest level support.
 
 If you find yourself complaining, your expectations are incorrect! This is
 undoubtedly frustrating (and I have often shared in this frustration), but it is
-nonetheless just "the way open source is".
+nonetheless just the way open source is. Take it or leave it.
 
 Thank you for understanding!

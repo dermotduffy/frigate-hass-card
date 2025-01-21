@@ -64,6 +64,7 @@ cameras:
 | `seek`                | Clips can be seeked / scrubbed by the timeline.          |
 | `snapshots`           | Snapshots can be fetched from the camera.                |
 | `substream`           | The camera can be used as a substream on another camera. |
+| `trigger`             | The camera can be triggered.                             |
 
 ## `cast`
 
@@ -415,6 +416,22 @@ cameras:
       dynamic: true
       ssl_verification: auto
       ssl_ciphers: auto
+  - camera_entity: camera.capabilities_reference
+    capabilities:
+      disable_except:
+        - clips
+        - favorite-events
+        - favorite-recordings
+        - live
+        - menu
+        - ptz
+        - recordings
+        - seek
+        - snapshots
+        - substream
+        - trigger
+      disable:
+        # Capabilities to selectively disable.
 cameras_global:
   triggers:
     motion: false

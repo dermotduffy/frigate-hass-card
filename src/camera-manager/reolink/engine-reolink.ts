@@ -144,6 +144,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
           seek: false,
           snapshots: false,
           substream: true,
+          trigger: true,
           ptz: getPTZCapabilitiesFromCameraConfig(cameraConfig) ?? undefined,
         },
         {

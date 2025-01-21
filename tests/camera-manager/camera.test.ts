@@ -81,6 +81,9 @@ describe('Camera', () => {
         },
       }),
       new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+      {
+        capabilities: createCapabilities({ trigger: true }),
+      },
     );
 
     const stateWatcher = mock<StateWatcherSubscriptionInterface>();
@@ -117,13 +120,18 @@ describe('Camera', () => {
             },
           }),
           new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
-          { eventCallback: eventCallback },
+          {
+            capabilities: createCapabilities({ trigger: true }),
+            eventCallback: eventCallback,
+          },
         );
 
         const stateWatcher = mock<StateWatcherSubscriptionInterface>();
         await camera.initialize({
           stateWatcher: stateWatcher,
         });
+
+        expect(stateWatcher.subscribe).toBeCalled();
 
         const diff = {
           entityID: 'sensor.force_update',
@@ -138,6 +146,30 @@ describe('Camera', () => {
         });
       },
     );
+
+    it('should not trigger without trigger capability', async () => {
+      const eventCallback = vi.fn();
+      const camera = new Camera(
+        createCameraConfig({
+          id: 'camera_1',
+          triggers: {
+            entities: ['binary_sensor.foo'],
+          },
+        }),
+        new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>()),
+        {
+          capabilities: createCapabilities({ trigger: false }),
+          eventCallback: eventCallback,
+        },
+      );
+
+      const stateWatcher = mock<StateWatcherSubscriptionInterface>();
+      await camera.initialize({
+        stateWatcher: stateWatcher,
+      });
+
+      expect(stateWatcher.subscribe).not.toBeCalled();
+    });
   });
 
   describe('should get proxy config', () => {
