@@ -133,4 +133,15 @@
     --frigate-card-control-background-transparent
   );
   --frigate-card-loading-foreground-color: var(--frigate-card-control-foreground);
+
+  /*********
+   * Message
+   *********/
+  --frigate-card-message-color: var(--frigate-card-text-color);
+  --frigate-card-message-background: var(--frigate-card-background);
+
+  --frigate-card-message-overlay-background: var(
+    --frigate-card-control-background-transparent
+  );
+  --frigate-card-message-overlay-color: var(--frigate-card-control-foreground);
 }

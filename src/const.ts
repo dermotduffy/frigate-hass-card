@@ -1,5 +1,7 @@
 export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
 export const TROUBLESHOOTING_URL = `https://card.camera/#/troubleshooting` as const;
+export const STREAM_TROUBLESHOOTING_URL =
+  `${TROUBLESHOOTING_URL}?id=stream-does-not-load` as const;
 
 export const CONF_AUTOMATIONS = 'automations' as const;
 
