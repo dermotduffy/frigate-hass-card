@@ -987,18 +987,6 @@ export class FrigateCameraManagerEngine
       };
     };
 
-    const getWebRTCCard = (): CameraEndpoint | null => {
-      // By default use the frigate camera name which is the default recommended
-      // setup as per:
-      // https://deploy-preview-4055--frigate-docs.netlify.app/guides/configuring_go2rtc/
-      //
-      // The user may override this in their webrtc_card configuration.
-      const endpoint = cameraConfig.frigate.camera_name
-        ? cameraConfig.frigate.camera_name
-        : null;
-      return endpoint ? { endpoint: endpoint } : null;
-    };
-
     const ui = getUIEndpoint();
     const go2rtc = getDefaultGo2RTCEndpoint(cameraConfig, {
       url:
@@ -1010,14 +998,12 @@ export class FrigateCameraManagerEngine
       stream: cameraConfig.go2rtc?.stream ?? cameraConfig.frigate.camera_name,
     });
     const jsmpeg = getJSMPEG();
-    const webrtcCard = getWebRTCCard();
 
     return {
       ...super.getCameraEndpoints(cameraConfig, context),
       ...(ui && { ui: ui }),
       ...(go2rtc && { go2rtc: go2rtc }),
       ...(jsmpeg && { jsmpeg: jsmpeg }),
-      ...(webrtcCard && { webrtcCard: webrtcCard }),
     };
   }
 

@@ -178,9 +178,7 @@ export class FrigateCardLiveWebRTCCard
         ...this.cameraConfig.webrtc_card,
       };
       if (!config.url && !config.entity && this.cameraEndpoints?.webrtcCard) {
-        // This will never need to be signed, it is just used internally by the
-        // card as a stream name lookup.
-        config.url = this.cameraEndpoints.webrtcCard.endpoint;
+        config.entity = this.cameraEndpoints.webrtcCard.endpoint;
       }
       webrtc.setConfig(config);
       webrtc.hass = this.hass;

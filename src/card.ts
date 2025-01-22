@@ -411,11 +411,11 @@ class FrigateCard extends LitElement {
               : undefined}
             .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
           ></frigate-card-views>
-          ${
-            // Keep message rendering to last to show messages that may have been
-            // generated during the render.
-            renderMessage(this._controller.getMessageManager().getMessage())
-          }
+          ${this._controller.getMessageManager().hasMessage()
+            ? // Keep message rendering to last to show messages that may have been
+              // generated during the render.
+              renderMessage(this._controller.getMessageManager().getMessage())
+            : ''}
         </div>
         ${this._renderMenuStatusContainer('bottom')}
         ${this._config?.elements

@@ -80,6 +80,7 @@ const createFrigateCameraConfig = (config?: RawFrigateCardConfig): CameraConfig 
     frigate: {
       camera_name: 'camera-1',
     },
+    camera_entity: 'camera.office',
     ...config,
   });
 };
@@ -149,7 +150,7 @@ describe('getCameraEndpoints', () => {
         sign: true,
       },
       webrtcCard: {
-        endpoint: 'camera-1',
+        endpoint: 'camera.office',
       },
     });
   });
