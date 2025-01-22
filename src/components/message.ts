@@ -34,11 +34,12 @@ export class FrigateCardMessage extends LitElement {
     }
 
     const messageTemplate = html`
-      ${this._controller.getMessageString(this.message)}.
+      ${this._controller.getMessageString(this.message)}
       ${this._controller.shouldShowTroubleshootingURL(this.message)
-        ? html`<a href="${this._controller.getTroubleshootingURL(this.message)}"
-            >${localize('error.troubleshooting')}</a
-          >`
+        ? html`.
+            <a href="${this._controller.getTroubleshootingURL(this.message)}"
+              >${localize('error.troubleshooting')}</a
+            >`
         : ''}
     `;
 
