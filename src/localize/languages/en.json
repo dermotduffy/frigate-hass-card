@@ -626,6 +626,7 @@
     "failed_response": "Failed to receive response from Home Assistant for request",
     "failed_retain": "Could not retain event",
     "failed_sign": "Could not sign Home Assistant URL",
+    "fetching_diagnostics": "Fetching diagnostics",
     "image_load_error": "The image could not be loaded",
     "invalid_configuration": "Invalid configuration",
     "invalid_configuration_no_hint": "No location hint available (bad or missing type?)",

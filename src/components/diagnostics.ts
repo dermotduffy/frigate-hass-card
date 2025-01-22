@@ -1,16 +1,17 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
-import { CSSResultGroup, LitElement, TemplateResult, unsafeCSS } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { until } from 'lit/directives/until.js';
 import { RawFrigateCardConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { Diagnostics, getDiagnostics } from '../utils/diagnostics';
-import { renderMessage } from './message';
+import { getDiagnostics } from '../utils/diagnostics';
 import { DeviceRegistryManager } from '../utils/ha/registry/device';
+import { renderMessage } from './message';
 
 @customElement('frigate-card-diagnostics')
 export class FrigateCardDiagnostics extends LitElement {
-  @property({ attribute: false })
+  // Not a reactive property to avoid multiple diagnostics fetches.
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
@@ -19,31 +20,29 @@ export class FrigateCardDiagnostics extends LitElement {
   @property({ attribute: false })
   public rawConfig?: RawFrigateCardConfig;
 
-  @state()
-  protected _diagnostics: Diagnostics | null = null;
-
-  protected async _fetchDiagnostics(): Promise<void> {
-    this._diagnostics = await getDiagnostics(
+  protected async _renderDiagnostics(): Promise<TemplateResult> {
+    const diagnostics = await getDiagnostics(
       this.hass,
       this.deviceRegistryManager,
       this.rawConfig,
     );
-  }
 
-  protected shouldUpdate(): boolean {
-    if (!this._diagnostics) {
-      this._fetchDiagnostics().then(() => this.requestUpdate());
-      return false;
-    }
-    return true;
-  }
-
-  protected render(): TemplateResult | void {
     return renderMessage({
       message: localize('error.diagnostics'),
       icon: 'mdi:cogs',
-      context: this._diagnostics,
+      context: diagnostics,
     });
+  }
+
+  protected render(): TemplateResult | void {
+    return html`${until(
+      this._renderDiagnostics(),
+      renderMessage({
+        message: localize('error.fetching_diagnostics'),
+        dotdotdot: true,
+        icon: 'mdi:cogs',
+      }),
+    )}`;
   }
 
   static get styles(): CSSResultGroup {
