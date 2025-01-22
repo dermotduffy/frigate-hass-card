@@ -313,6 +313,20 @@ describe('GenericCameraManagerEngine', () => {
         },
       });
     });
+
+    it('for webrtc-card', () => {
+      expect(
+        createEngine().getCameraEndpoints(
+          createGenericCameraConfig({
+            camera_entity: 'camera.office',
+          }),
+        ),
+      ).toEqual({
+        webrtcCard: {
+          endpoint: 'camera.office',
+        },
+      });
+    });
   });
 
   it('should execute PTZ action', () => {

@@ -219,10 +219,19 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
     cameraConfig: CameraConfig,
     _context?: CameraEndpointsContext,
   ): CameraEndpoints | null {
+    const getWebRTCCard = (): CameraEndpoint | null => {
+      // The user may override this in their webrtc_card configuration.
+      const endpoint = cameraConfig.camera_entity ? cameraConfig.camera_entity : null;
+      return endpoint ? { endpoint: endpoint } : null;
+    };
+
     const go2rtc = getDefaultGo2RTCEndpoint(cameraConfig);
-    return go2rtc
+    const webrtcCard = getWebRTCCard();
+
+    return go2rtc || webrtcCard
       ? {
-          go2rtc: go2rtc,
+          ...(go2rtc && { go2rtc: go2rtc }),
+          ...(webrtcCard && { webrtcCard: webrtcCard }),
         }
       : null;
   }
