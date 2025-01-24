@@ -9,7 +9,7 @@
   },
   "config": {
     "cameras": {
-      "always_error_if_entity_unavailable": "",
+      "always_error_if_entity_unavailable": "Toujours afficher les entités indisponibles comme erreur",
       "camera_entity": "Entité caméra",
       "capabilities": {
         "capabilities": {
@@ -22,10 +22,10 @@
           "recordings": "Enregistrements",
           "seek": "Recherche",
           "snapshots": "Snapshots",
-          "substream": "flux secondaire"
+          "substream": "Flux secondaire"
         },
         "disable": "Désactiver",
-        "disable_except": "Désactive sauf",
+        "disable_except": "Désactiver sauf",
         "editor_label": "Capacités de la caméra"
       },
       "cast": {
@@ -36,7 +36,7 @@
         "editor_label": "Options de diffusion",
         "method": "Méthodes de diffusion",
         "methods": {
-          "dashboard": "Dashboard",
+          "dashboard": "Tableau de bord",
           "standard": "Standard"
         }
       },
@@ -66,11 +66,11 @@
             "y": "Pourcentage de positionnement vertical"
           },
           "view_box": {
-            "bottom": "",
-            "editor_label": "",
-            "left": "",
-            "right": "",
-            "top": ""
+            "bottom": "Pourcentage d'écart en bas",
+            "editor_label": "Disposition de zone de visualisation",
+            "left": "Pourcentage d'écart à gauche",
+            "right": "Pourcentage d'écart à droite",
+            "top": "Pourcentage d'écart en haut"
           },
           "zoom": "Facteur de zoom"
         }
@@ -95,7 +95,7 @@
           "mse": "Extensions de sources multimédias (MSE)",
           "webrtc": "Web Real-Time Communication (WebRTC)"
         },
-        "stream": "nom du flux go2rtc"
+        "stream": "Nom du flux go2rtc"
       },
       "icon": "Icône pour cette caméra (auto-détectée par l'entité)",
       "id": "ID unique pour cette caméra dans cette carte",
@@ -114,7 +114,7 @@
         "ha": "Flux vidéo Home Assistant (c'est-à-dire HLS, LL-HLS, WebRTC via HA)",
         "image": "Images d'Home Assistant",
         "jsmpeg": "JSMpeg",
-        "webrtc-card": "Carte WebRTC (c.-⁠à-⁠d. La carte WebRTC d'AlexxIT)"
+        "webrtc-card": "Carte WebRTC (c.-⁠à-⁠d. la carte WebRTC d'AlexxIT)"
       },
       "motioneye": {
         "editor_label": "Options de MotionEye",
@@ -129,33 +129,33 @@
         "url": "URL de l’interface MotionEye"
       },
       "proxy": {
-        "dynamic": "",
-        "editor_label": "",
+        "dynamic": "Proxy dynamique",
+        "editor_label": "Proxy de la caméra",
         "media": {
-          "auto": "",
-          "editor_label": "",
-          "false": "",
-          "true": ""
+          "auto": "Proxy média automatique",
+          "editor_label": "Proxy média",
+          "false": "Proxy média désactivé",
+          "true": "Proxy média activé"
         },
         "ssl_ciphers": {
-          "auto": "",
-          "default": "",
-          "editor_label": "",
-          "insecure": "",
-          "intermediate": "",
-          "modern": ""
+          "auto": "Chiffrement SSL automatique",
+          "default": "Chiffrement SSL par défaut",
+          "editor_label": "Chiffrement SSL",
+          "insecure": "Chiffrement SSL non sécurisé",
+          "intermediate": "Chiffrement SSL intermédiaire",
+          "modern": "Chiffrement SSL moderne"
         },
         "ssl_verification": {
-          "auto": "",
-          "editor_label": "",
-          "false": "",
-          "true": ""
+          "auto": "Vérification SSL automatique",
+          "editor_label": "Vérification SSL",
+          "false": "Vérification SSL désactivée",
+          "true": "Vérification SSL activée"
         }
       },
       "reolink": {
         "editor_label": "Option Reolink",
         "media_resolution": {
-          "editor_label": "Désolution du média",
+          "editor_label": "Résolution du média",
           "high": "Haute résolution",
           "low": "Basse résolution"
         },
@@ -277,8 +277,8 @@
         "visible": "Sur la visibilité du navigateur/onglet"
       },
       "timeline": {
-        "clustering_threshold": "Le nombre d'événements pour lesquels ils sont regroupés (0 = pas de clustering)",
-        "events_media_type": "Les médias affichés par la chronologie",
+        "clustering_threshold": "Nombre d'événements pour lesquels ils sont regroupés (0 = pas de clustering)",
+        "events_media_type": "Médias affichés par la chronologie",
         "events_media_types": {
           "all": "Tous types de médias",
           "clips": "Extraits",
@@ -290,14 +290,14 @@
           "ribbon": "Événements sur un seul ruban",
           "stack": "Événements empilés et groupés"
         },
-        "window_seconds": "La durée par défaut de la vue chronologique en secondes"
+        "window_seconds": "Durée par défaut de la vue chronologique en secondes"
       }
     },
     "dimensions": {
       "aspect_ratio": "Format d'image par défaut (par exemple '16:9')",
       "aspect_ratio_mode": "Mode rapport hauteur/largeur",
       "aspect_ratio_modes": {
-        "dynamic": "Le rapport hauteur/largeur s'adapte au média",
+        "dynamic": "Rapport hauteur/largeur s'adapte au média",
         "static": "Rapport hauteur/largeur statique",
         "unconstrained": "Rapport hauteur/largeur sans contrainte"
       },
@@ -317,15 +317,15 @@
           "hide_zoom": "Cacher le bouton de zoom",
           "mode": "Mode",
           "modes": {
-            "off": "Eteint",
-            "on": "Allumé"
+            "off": "Désactivé",
+            "on": "Activé"
           },
-          "orientation": "",
+          "orientation": "Orientation",
           "orientations": {
             "horizontal": "Horizontale",
             "vertical": "Verticale"
           },
-          "position": "",
+          "position": "Position",
           "positions": {
             "bottom-left": "En bas à gauche",
             "bottom-right": "En bas à droite",
@@ -336,7 +336,7 @@
       },
       "draggable": "La vue des caméras en direct peut être déplacée/glissée",
       "lazy_load": "Les caméras en direct sont chargeés en différé",
-      "lazy_unload": "Les caméras en direct sont déchargés en différé",
+      "lazy_unload": "Les caméras en direct sont déchargées en différé",
       "microphone": {
         "always_connected": "Toujours garder le microphone connecté",
         "disconnect_seconds": "Secondes après quoi déconnecter le microphone (0=jamais)",
@@ -383,12 +383,12 @@
           "opposing": "S'opposer à l'alignement des menus"
         },
         "camera_ui": "Interface utilisateur de la caméra",
-        "cameras": "Cameras",
+        "cameras": "Caméras",
         "clips": "Extraits",
-        "display_mode": "Mode d'afficahge",
+        "display_mode": "Mode d'affichage",
         "download": "Télécharger",
         "enabled": "Bouton activé",
-        "expand": "Développer",
+        "expand": "Étendre",
         "frigate": "Menu Frigate / Vue par défaut",
         "fullscreen": "Plein écran",
         "icon": "Icône",
@@ -396,7 +396,7 @@
         "live": "En direct",
         "media_player": "Envoyer au lecteur multimédia",
         "microphone": "Microphone",
-        "mute": "Désactiver/Réactiver le son",
+        "mute": "Désactiver / Réactiver le son",
         "permanent": "Afficher lorsque le menu est caché",
         "play": "Jouer / Pause",
         "priority": "Priorité",
@@ -405,7 +405,7 @@
         "recordings": "Enregistrements",
         "screenshot": "Capture d'écran",
         "snapshots": "Instantanés",
-        "substreams": "flux secondaires",
+        "substreams": "Flux secondaires",
         "timeline": "Chronologie",
         "type": "Type de bouton",
         "types": {
@@ -436,7 +436,7 @@
     "performance": {
       "features": {
         "animated_progress_indicator": "Indicateur de progression animé",
-        "card_loading_indicator": "",
+        "card_loading_indicator": "Indicateur de chargement de la carte",
         "editor_label": "Options de fonctionnalités",
         "max_simultaneous_engine_requests": "Nombre maximal de requêtes simultanées au moteur de caméra",
         "media_chunk_size": "Taille du morceau de média"
@@ -446,7 +446,7 @@
         "box_shadow": "Ombres",
         "editor_label": "Options de style"
       },
-      "warning": "Cette carte est en mode profil bas, les paramètres par défaut ont donc été modifiés pour optimiser les performances."
+      "warning": "Cette carte est en mode basse performance, les paramètres par défaut ont donc été modifiés pour optimiser les performances."
     },
     "profiles": {
       "casting": "Diffusion",
@@ -457,10 +457,10 @@
     "status_bar": {
       "height": "Hauteur de la barre d'état en pixels",
       "items": {
-        "enabled": "Item activé",
+        "enabled": "Élément activé",
         "engine": "Moteur de camera",
-        "live_provider": "fournisseur de flux en direc",
-        "priority": "Priorité de l'item",
+        "live_provider": "Fournisseur de flux en direct",
+        "priority": "Priorité de l'élément",
         "resolution": "Résolution",
         "technology": "Technologie",
         "title": "Titre"
@@ -482,9 +482,9 @@
       }
     },
     "view": {
-      "camera_select": "Afficher les caméras nouvellement sélectionnées",
+      "camera_select": "Vue pour les caméras nouvellement sélectionnées",
       "default": "Vue par défaut",
-      "default_cycle_camera": "Parcourez les caméras lorsque la vue par défaut est mise à jour",
+      "default_cycle_camera": "Parcourir les caméras lorsque la vue par défaut est mise à jour",
       "default_reset": {
         "after_interaction": "Réinitialiser à la vue par défaut après la fin de l'interaction de l'utilisateur",
         "editor_label": "Comportement de réinitialisation de la vue par défaut",
@@ -497,7 +497,7 @@
           "inactive": "Réinitialiser uniquement lorsque la carte n'a pas d'interaction humaine"
         }
       },
-      "dim": "",
+      "dim": "Assombrir si pas d'interaction",
       "interaction_seconds": "Secondes après l'action de l'utilisateur pour maintenir l'interaction (0=jamais)",
       "keyboard_shortcuts": {
         "editor_label": "Raccourcis clavier",
@@ -512,11 +512,11 @@
       },
       "theme": {
         "themes": {
-          "dark": "",
-          "editor_label": "",
-          "ha": "",
-          "light": "",
-          "traditional": ""
+          "dark": "Sombre",
+          "editor_label": "Thèmes",
+          "ha": "Home Assistant",
+          "light": "Clair",
+          "traditional": "Traditionnel"
         }
       },
       "triggers": {
@@ -530,10 +530,10 @@
           },
           "trigger": "Actions de déclenchement",
           "triggers": {
-            "default": "Changement ou mise à jour de la vue par défaut",
-            "live": "Change ou met a jour la vue en direct",
+            "default": "Changement vers ou mise à jour de la vue par défaut",
+            "live": "Changement vers ou mise à jour de la vue en direct",
             "media": "Changement d'affichage pour les nouveaux médias",
-            "none": "Pas d'acction"
+            "none": "Pas d'action"
           },
           "untrigger": "Action de désactivation",
           "untriggers": {
@@ -561,7 +561,7 @@
     }
   },
   "display_modes": {
-    "grid": "Afficher la visionneuse de médias pour chaque caméra d'une grille",
+    "grid": "Afficher la visionneuse de médias pour chaque caméra dans une grille",
     "single": "Afficher une seule visionneuse"
   },
   "editor": {
@@ -585,11 +585,11 @@
     "menu_secondary": "Options d'apparence et de convivialité du menu",
     "move_down": "Descendre",
     "move_up": "Déplacer vers le haut",
-    "overrides": "Les remplacements sont actifs",
+    "overrides": "Remplacements activés",
     "overrides_secondary": "Remplacements de configuration dynamique détectés",
     "performance": "Performance",
     "performance_secondary": "Options de performances de la carte",
-    "profiles": "Profils de confi",
+    "profiles": "Profils de configuration",
     "profiles_secondary": "Choisir des ensembles de paramètres par défaut pré-configurés",
     "status_bar": "Barre d'état",
     "status_bar_secondary": "Options d'apparence et de comportement de la barre d'état",
@@ -597,7 +597,7 @@
     "timeline_secondary": "Options de chronologie des événements",
     "upgrade": "Mise à niveau",
     "upgrade_available": "Une mise à niveau automatique de la configuration de la carte est disponible",
-    "view": "Voir",
+    "view": "Vue",
     "view_secondary": "Ce que la carte doit montrer et comment la montrer"
   },
   "elements": {
@@ -626,7 +626,7 @@
     "failed_response": "Échec de la réponse de Home Assistant à la demande",
     "failed_retain": "Impossible de conserver l'événement",
     "failed_sign": "Impossible de signer l'URL de Home Assistant",
-    "fetching_diagnostics": "",
+    "fetching_diagnostics": "Récupération des diagnostics",
     "image_load_error": "L'image n'a pas pu être chargée",
     "invalid_configuration": "Configuration invalide",
     "invalid_configuration_no_hint": "Aucune indication de localisation disponible (type incorrect ou manquant ?)",
@@ -647,7 +647,7 @@
     "no_supported_camera": "La caméra sélectionnée ne prend pas en charge cette vue",
     "no_supported_cameras": "Aucune caméra ne prend en charge cette vue",
     "reconnecting": "Reconnexion",
-    "stream_not_loading": "",
+    "stream_not_loading": "Le flux vidéo n'a pas encore été chargé. Cela peut être du à plusieurs raisons. Si configurée (et par défaut), une image se rafraichira toutes les secondes jusqu'au chargement correct du flux.",
     "too_many_automations": "Trop d'appels d'automatisation imbriqués, veuillez vérifier votre configuration pour les boucles",
     "troubleshooting": "Vérifier le dépannage",
     "unknown": "Erreur inconnue",
@@ -698,7 +698,7 @@
     "what": "Quoi",
     "when": "Quand",
     "whens": {
-      "custom": "",
+      "custom": "Personnalisé",
       "past_month": "Mois passé",
       "past_week": "La semaine dernière",
       "today": "Aujourd'hui",
