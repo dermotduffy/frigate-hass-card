@@ -112,8 +112,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
       }
 
       if (
-        (ev.type === "touchcancel" ||
-        (ev.type === "touchend" && this.cancelled)) &&
+        (ev.type === 'touchcancel' || (ev.type === 'touchend' && this.cancelled)) &&
         // This action handler by default relies on synthetic click events for
         // touch devices, in order to ensure that embedded cards (e.g. WebRTC)
         // can use stock click handlers. The exception is for hold events.
