@@ -1,10 +1,11 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import isEqual from 'lodash-es/isEqual';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Capabilities } from '../../src/camera-manager/capabilities';
 import { CameraManager } from '../../src/camera-manager/manager';
 import { CameraManagerCameraMetadata } from '../../src/camera-manager/types';
+import { FullscreenManager } from '../../src/card-controller/fullscreen/fullscreen-manager';
 import { MediaPlayerManager } from '../../src/card-controller/media-player-manager';
 import { MicrophoneManager } from '../../src/card-controller/microphone-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
@@ -1121,10 +1122,19 @@ describe('MenuButtonController', () => {
   });
 
   describe('should have fullscreen button', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
     it('when not in fullscreen mode', () => {
       // Need to write a readonly property.
       vi.stubGlobal('navigator', { userAgent: 'foo' });
-      const buttons = calculateButtons(controller, { inFullscreenMode: false });
+
+      const fullscreenManager = mock<FullscreenManager>();
+      vi.mocked(fullscreenManager.isInFullscreen).mockReturnValue(false);
+      vi.mocked(fullscreenManager.isSupported).mockReturnValue(true);
+
+      const buttons = calculateButtons(controller, { fullscreenManager });
 
       expect(buttons).toContainEqual({
         icon: 'mdi:fullscreen',
@@ -1139,7 +1149,11 @@ describe('MenuButtonController', () => {
 
     it('when in fullscreen mode', () => {
       vi.stubGlobal('navigator', { userAgent: 'foo' });
-      const buttons = calculateButtons(controller, { inFullscreenMode: true });
+      const fullscreenManager = mock<FullscreenManager>();
+      vi.mocked(fullscreenManager.isInFullscreen).mockReturnValue(true);
+      vi.mocked(fullscreenManager.isSupported).mockReturnValue(true);
+
+      const buttons = calculateButtons(controller, { fullscreenManager });
 
       expect(buttons).toContainEqual({
         icon: 'mdi:fullscreen-exit',
@@ -1150,6 +1164,19 @@ describe('MenuButtonController', () => {
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
         style: { color: 'var(--frigate-card-menu-button-active-color)' },
       });
+    });
+
+    it('when not supported', () => {
+      // Need to write a readonly property.
+      vi.stubGlobal('navigator', { userAgent: 'foo' });
+      const fullscreenManager = mock<FullscreenManager>();
+      vi.mocked(fullscreenManager.isSupported).mockReturnValue(false);
+
+      const buttons = calculateButtons(controller, { fullscreenManager });
+
+      expect(buttons).not.toContainEqual(
+        expect.objectContaining({ title: 'Fullscreen' }),
+      );
     });
   });
 
@@ -1767,8 +1794,11 @@ describe('MenuButtonController', () => {
         tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
       };
       controller.addDynamicMenuButton(button);
+      const fullscreenManager = mock<FullscreenManager>();
+      vi.mocked(fullscreenManager.isInFullscreen).mockReturnValue(true);
+      vi.mocked(fullscreenManager.isSupported).mockReturnValue(true);
 
-      expect(calculateButtons(controller, { inFullscreenMode: true })).toContainEqual({
+      expect(calculateButtons(controller, { fullscreenManager })).toContainEqual({
         ...button,
         style: { color: 'var(--frigate-card-menu-button-active-color)' },
       });

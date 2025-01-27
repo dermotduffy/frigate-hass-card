@@ -7,7 +7,7 @@ import '../../../patches/ha-camera-stream';
 import '../../../patches/ha-hls-player.js';
 import '../../../patches/ha-web-rtc-player.js';
 import liveHAStyle from '../../../scss/live-ha.scss';
-import { FrigateCardMediaPlayer } from '../../../types.js';
+import { FrigateCardMediaPlayer, FullscreenElement } from '../../../types.js';
 
 @customElement('frigate-card-live-ha')
 export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPlayer {
@@ -56,6 +56,10 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
 
   public async getScreenshotURL(): Promise<string | null> {
     return (await this._playerRef.value?.getScreenshotURL()) ?? null;
+  }
+
+  public getFullscreenElement(): FullscreenElement | null {
+    return this._playerRef.value?.getFullscreenElement() ?? null;
   }
 
   protected render(): TemplateResult | void {

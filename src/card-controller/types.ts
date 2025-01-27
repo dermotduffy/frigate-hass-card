@@ -11,7 +11,7 @@ import type { ConfigManager } from './config/config-manager';
 import type { DefaultManager } from './default-manager';
 import type { DownloadManager } from './download-manager';
 import type { ExpandManager } from './expand-manager';
-import type { FullscreenManager } from './fullscreen-manager';
+import type { FullscreenManager } from './fullscreen/fullscreen-manager';
 import type { HASSManager } from './hass/hass-manager';
 import type { InitializationManager } from './initialization-manager';
 import type { InteractionManager } from './interaction-manager';
@@ -150,6 +150,7 @@ export interface CardFullscreenAPI {
   getCardElementManager(): CardElementManager;
   getConditionsManager(): ConditionsManager;
   getExpandManager(): ExpandManager;
+  getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
 }
 
@@ -205,6 +206,7 @@ export interface CardMediaLoadedAPI {
   getCardElementManager(): CardElementManager;
   getConditionsManager(): ConditionsManager;
   getConfigManager(): ConfigManager;
+  getFullscreenManager(): FullscreenManager;
   getStyleManager(): StyleManager;
 }
 

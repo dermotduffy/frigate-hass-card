@@ -4,7 +4,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraConfig } from '../../../config/types';
 import basicBlockStyle from '../../../scss/basic-block.scss';
-import { FrigateCardMediaPlayer } from '../../../types.js';
+import { FrigateCardMediaPlayer, FullscreenElement } from '../../../types.js';
 import '../../image-base.js';
 
 @customElement('frigate-card-live-image')
@@ -51,6 +51,10 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
 
   public async getScreenshotURL(): Promise<string | null> {
     return (await this._refImage.value?.getScreenshotURL()) ?? null;
+  }
+
+  public getFullscreenElement(): FullscreenElement | null {
+    return this._refImage.value?.getFullscreenElement() ?? null;
   }
 
   protected render(): TemplateResult | void {

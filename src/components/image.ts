@@ -17,7 +17,7 @@ import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-vie
 import { CameraConfig, ImageViewConfig } from '../config/types';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { FrigateCardMediaPlayer } from '../types.js';
+import { FrigateCardMediaPlayer, FullscreenElement } from '../types.js';
 import { aspectRatioToString } from '../utils/basic';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import './image-base';
@@ -77,6 +77,10 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
 
   public async getScreenshotURL(): Promise<string | null> {
     return (await this._refImage.value?.getScreenshotURL()) ?? null;
+  }
+
+  public getFullscreenElement(): FullscreenElement | null {
+    return this._refImage.value?.getFullscreenElement() ?? null;
   }
 
   protected willUpdate(changedProps: PropertyValues): void {

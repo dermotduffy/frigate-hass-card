@@ -17,25 +17,25 @@ import {
   ViewDisplayMode,
 } from '../config/types';
 import { localize } from '../localize/localize';
-import { FrigateCardError } from '../types';
+import { FrigateCardError, MediaLoadedInfo } from '../types';
 import { desparsifyArrays } from '../utils/basic';
 import { isCompanionApp } from '../utils/companion';
 import { CardConditionAPI, KeysState, MicrophoneState } from './types';
 
-interface ConditionState {
-  view?: string;
-  fullscreen?: boolean;
-  expand?: boolean;
+export interface ConditionState {
   camera?: string;
-  state?: HassEntities;
-  media_loaded?: boolean;
   displayMode?: ViewDisplayMode;
-  triggered?: Set<string>;
+  expand?: boolean;
+  fullscreen?: boolean;
   interaction?: boolean;
-  microphone?: MicrophoneState;
-  user?: CurrentUser;
   keys?: KeysState;
-  user_agent?: string;
+  mediaLoadedInfo?: MediaLoadedInfo | null;
+  microphone?: MicrophoneState;
+  state?: HassEntities;
+  triggered?: Set<string>;
+  user?: CurrentUser;
+  userAgent?: string;
+  view?: string;
 }
 
 class OverrideConfigurationError extends FrigateCardError {}
@@ -152,7 +152,10 @@ export interface ConditionsManagerEpoch {
   manager: Readonly<ConditionsManager>;
 }
 
-export type ConditionsManagerListener = () => void;
+export type ConditionsManagerListener = (
+  newState: ConditionState,
+  oldState?: ConditionState,
+) => void;
 
 export class ConditionsManager {
   protected _api: CardConditionAPI;
@@ -166,7 +169,7 @@ export class ConditionsManager {
   // the configuration needs to consume it.
   protected _hasHAStateConditions = false;
   protected _mediaQueries: MediaQueryList[] = [];
-  protected _mediaQueryTrigger = () => this._triggerChange();
+  protected _mediaQueryTrigger = () => this._triggerChange(this._state);
 
   constructor(api: CardConditionAPI, listener?: ConditionsManagerListener) {
     this._api = api;
@@ -175,6 +178,14 @@ export class ConditionsManager {
       () => this._api.getAutomationsManager().execute(),
       ...(listener ? [listener] : []),
     ];
+  }
+
+  public addListener(listener: ConditionsManagerListener): void {
+    this._listeners.push(listener);
+  }
+
+  public removeListener(listener: ConditionsManagerListener): void {
+    this._listeners = this._listeners.filter((l) => l !== listener);
   }
 
   public removeConditions(): void {
@@ -233,12 +244,12 @@ export class ConditionsManager {
     if (Object.keys(state).every((key) => isEqual(state[key], this._state[key]))) {
       return;
     }
-
+    const oldState = this._state;
     this._state = {
-      ...this._state,
+      ...oldState,
       ...state,
     };
-    this._triggerChange();
+    this._triggerChange(oldState);
   }
 
   public getState(): ConditionState {
@@ -313,8 +324,8 @@ export class ConditionsManager {
         return !!state.user && conditionObj.users.includes(state.user.id);
       case 'media_loaded':
         return (
-          state.media_loaded !== undefined &&
-          conditionObj.media_loaded === state.media_loaded
+          state.mediaLoadedInfo !== undefined &&
+          conditionObj.media_loaded === !!state.mediaLoadedInfo
         );
       case 'screen':
         return window.matchMedia(conditionObj.media_query).matches;
@@ -352,12 +363,12 @@ export class ConditionsManager {
         );
       case 'user_agent':
         return (
-          !!state.user_agent &&
-          (!conditionObj.user_agent || conditionObj.user_agent === state.user_agent) &&
+          !!state.userAgent &&
+          (!conditionObj.user_agent || conditionObj.user_agent === state.userAgent) &&
           (conditionObj.companion === undefined ||
-            conditionObj.companion === isCompanionApp(state.user_agent)) &&
+            conditionObj.companion === isCompanionApp(state.userAgent)) &&
           (conditionObj.user_agent_re === undefined ||
-            new RegExp(conditionObj.user_agent_re).test(state.user_agent))
+            new RegExp(conditionObj.user_agent_re).test(state.userAgent))
         );
     }
   }
@@ -366,8 +377,8 @@ export class ConditionsManager {
     return { manager: this };
   }
 
-  protected _triggerChange(): void {
+  protected _triggerChange(oldState?: ConditionState): void {
     this._epoch = this._createEpoch();
-    this._listeners.forEach((listener) => listener());
+    this._listeners.forEach((listener) => listener(this._state, oldState));
   }
 }

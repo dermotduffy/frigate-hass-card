@@ -54,6 +54,15 @@ export interface Message {
   troubleshootingURL?: string;
 }
 
+export type WebkitHTMLVideoElement = HTMLVideoElement & {
+  webkitDisplayingFullscreen: boolean;
+  webkitSupportsFullscreen: boolean;
+  webkitEnterFullscreen: () => void;
+  webkitExitFullscreen: () => void;
+};
+
+export type FullscreenElement = HTMLElement;
+
 export interface FrigateCardMediaPlayer {
   play(): Promise<void>;
   pause(): Promise<void>;
@@ -65,6 +74,7 @@ export interface FrigateCardMediaPlayer {
   // If no value for controls if specified, the player should use the default.
   setControls(controls?: boolean): Promise<void>;
   isPaused(): boolean;
+  getFullscreenElement(): FullscreenElement | null;
 }
 
 export type LovelaceCardWithEditor = LovelaceCard & {

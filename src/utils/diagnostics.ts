@@ -36,7 +36,7 @@ export const getReleaseVersion = (): string => {
   return releaseVersion;
 };
 
-export interface Diagnostics {
+interface Diagnostics {
   card_version: string;
   browser: string;
   date: Date;

@@ -17,6 +17,7 @@ import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
 import {
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
+  FullscreenElement,
   Message,
 } from '../../../types.js';
 import { convertEndpointAddressToSignedWebsocket } from '../../../utils/endpoint.js';
@@ -99,6 +100,10 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
 
   public async getScreenshotURL(): Promise<string | null> {
     return this._jsmpegCanvasElement?.toDataURL('image/jpeg') ?? null;
+  }
+
+  public getFullscreenElement(): FullscreenElement | null {
+    return this._jsmpegCanvasElement ?? null;
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {

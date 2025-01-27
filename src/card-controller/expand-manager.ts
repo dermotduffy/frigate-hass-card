@@ -23,7 +23,7 @@ export class ExpandManager {
   public setExpanded(expanded: boolean): void {
     if (expanded && this._api.getFullscreenManager().isInFullscreen()) {
       // Fullscreen and expanded mode are mutually exclusive.
-      this._api.getFullscreenManager().stopFullscreen();
+      this._api.getFullscreenManager().setFullscreen(false);
     }
 
     this._expanded = expanded;

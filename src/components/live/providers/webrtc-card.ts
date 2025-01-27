@@ -15,7 +15,12 @@ import { getTechnologyForVideoRTC } from '../../../components-lib/live/utils/get
 import { CameraConfig, CardWideConfig } from '../../../config/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
-import { FrigateCardError, FrigateCardMediaPlayer, Message } from '../../../types.js';
+import {
+  FrigateCardError,
+  FrigateCardMediaPlayer,
+  FullscreenElement,
+  Message,
+} from '../../../types.js';
 import { mayHaveAudio } from '../../../utils/audio.js';
 import {
   dispatchMediaLoadedEvent,
@@ -64,52 +69,56 @@ export class FrigateCardLiveWebRTCCard
   protected _webrtcTask = new Task(this, this._getWebRTCCardElement, () => [1]);
 
   public async play(): Promise<void> {
-    return this._getPlayer()?.play();
+    return this._getVideo()?.play();
   }
 
   public async pause(): Promise<void> {
-    this._getPlayer()?.pause();
+    this._getVideo()?.pause();
   }
 
   public async mute(): Promise<void> {
-    const player = this._getPlayer();
+    const player = this._getVideo();
     if (player) {
       player.muted = true;
     }
   }
 
   public async unmute(): Promise<void> {
-    const player = this._getPlayer();
+    const player = this._getVideo();
     if (player) {
       player.muted = false;
     }
   }
 
   public isMuted(): boolean {
-    return this._getPlayer()?.muted ?? true;
+    return this._getVideo()?.muted ?? true;
   }
 
   public async seek(seconds: number): Promise<void> {
-    const player = this._getPlayer();
+    const player = this._getVideo();
     if (player) {
       player.currentTime = seconds;
     }
   }
 
   public async setControls(controls?: boolean): Promise<void> {
-    const player = this._getPlayer();
+    const player = this._getVideo();
     if (player) {
       setControlsOnVideo(player, controls ?? this.controls);
     }
   }
 
   public isPaused(): boolean {
-    return this._getPlayer()?.paused ?? true;
+    return this._getVideo()?.paused ?? true;
   }
 
   public async getScreenshotURL(): Promise<string | null> {
-    const video = this._getPlayer();
+    const video = this._getVideo();
     return video ? screenshotMedia(video) : null;
+  }
+
+  public getFullscreenElement(): FullscreenElement | null {
+    return this._getVideo();
   }
 
   connectedCallback(): void {
@@ -141,7 +150,7 @@ export class FrigateCardLiveWebRTCCard
    * Get the underlying video player.
    * @returns The player or `null` if not found.
    */
-  protected _getPlayer(): HTMLVideoElement | null {
+  protected _getVideo(): HTMLVideoElement | null {
     return this._getVideoRTC()?.video ?? null;
   }
 
@@ -236,7 +245,7 @@ export class FrigateCardLiveWebRTCCard
     // media load event.
     this.updateComplete.then(() => {
       const videoRTC = this._getVideoRTC();
-      const video = this._getPlayer();
+      const video = this._getVideo();
       if (video) {
         setControlsOnVideo(video, this.controls);
         video.onloadeddata = () => {

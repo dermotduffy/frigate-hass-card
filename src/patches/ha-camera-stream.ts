@@ -12,14 +12,14 @@
 import { css, CSSResultGroup, html, nothing, PropertyValues, unsafeCSS } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
-import { FrigateCardMediaPlayer, MediaLoadedInfo } from '../types.js';
+import liveHAComponentsStyle from '../scss/live-ha-components.scss';
+import { FrigateCardMediaPlayer, FullscreenElement, MediaLoadedInfo } from '../types.js';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
 } from '../utils/media-info.js';
 import './ha-hls-player';
 import './ha-web-rtc-player';
-import liveHAComponentsStyle from '../scss/live-ha-components.scss';
 
 customElements.whenDefined('ha-camera-stream').then(() => {
   // ========================================================================================
@@ -91,6 +91,10 @@ customElements.whenDefined('ha-camera-stream').then(() => {
 
     public async getScreenshotURL(): Promise<string | null> {
       return this._player ? await this._player.getScreenshotURL() : null;
+    }
+
+    public getFullscreenElement(): FullscreenElement | null {
+      return this._player?.getFullscreenElement() ?? null;
     }
 
     protected _storeMediaLoadedInfoHandler(

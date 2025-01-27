@@ -128,7 +128,7 @@ export class CardElementManager {
     );
 
     this._api.getConditionsManager()?.setState({
-      user_agent: navigator.userAgent,
+      userAgent: navigator.userAgent,
     });
 
     // Manually request query string execute as the card will be
