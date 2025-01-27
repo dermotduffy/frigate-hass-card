@@ -19,7 +19,12 @@ import { CameraConfig, ImageMode, ImageViewConfig } from '../config/types.js';
 import defaultImage from '../images/frigate-bird-in-sky.jpg';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
-import { FrigateCardMediaPlayer, MediaLoadedInfo, Message } from '../types.js';
+import {
+  FrigateCardMediaPlayer,
+  FullscreenElement,
+  MediaLoadedInfo,
+  Message,
+} from '../types.js';
 import { contentsChanged } from '../utils/basic.js';
 import { isHassDifferent } from '../utils/ha/index.js';
 import {
@@ -121,6 +126,10 @@ export class FrigateCardImageBase extends LitElement implements FrigateCardMedia
 
   public async getScreenshotURL(): Promise<string | null> {
     return this._cachedValueController?.value ?? null;
+  }
+
+  public getFullscreenElement(): FullscreenElement | null {
+    return this._refImage.value ?? null;
   }
 
   /**

@@ -189,8 +189,15 @@ live:
 ### Fullscreen doesn't work on iPhone
 
 Unfortunately, [iOS does not support the Javascript fullscreen
-API](https://caniuse.com/fullscreen). As a result, card-level fullscreen support
-for the iPhone is not currently possible.
+API](https://caniuse.com/fullscreen) on the iPhone, which severely limits the
+fullscreen functionality available. On iPhone, fullscreen is only possible of
+the selected video element. As a result, there will be no menu, status bar, grid
+support, gallery / timeline support, nor support for non-video based [live
+providers](./configuration/cameras/live-provider.md) such as `image` or `jsmpeg`
+-- exclusively viewing a selected live video or media video in fullscreen.
+
+The card will only show the fullscreen menu button when fullscreen can usefully
+be activated, which means for certain views on the iPhone it will be absent.
 
 ### iOS App not updating after card version change
 

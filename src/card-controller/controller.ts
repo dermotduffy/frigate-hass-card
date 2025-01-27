@@ -25,7 +25,7 @@ import { ConfigManager } from './config/config-manager';
 import { DefaultManager } from './default-manager';
 import { DownloadManager } from './download-manager';
 import { ExpandManager } from './expand-manager';
-import { FullscreenManager } from './fullscreen-manager';
+import { FullscreenManager } from './fullscreen/fullscreen-manager';
 import { HASSManager } from './hass/hass-manager';
 import { InitializationManager } from './initialization-manager';
 import { InteractionManager } from './interaction-manager';

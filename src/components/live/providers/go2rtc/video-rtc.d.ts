@@ -29,8 +29,9 @@ export class VideoRTC extends HTMLElement {
   onmessage: Record<string, (msg: { type: string; value: string }) => void>;
 
   // Custom methods/members.
-  controls: boolean;
   containingPlayer: FrigateCardMediaPlayer | null;
   microphoneStream: MediaStream | null;
   reconnect();
+
+  setControls(controls: boolean): void;
 }

@@ -25,7 +25,7 @@ describe('ExpandManager', () => {
     manager.setExpanded(true);
 
     expect(manager.isExpanded()).toBeTruthy();
-    expect(api.getFullscreenManager().stopFullscreen).toBeCalled();
+    expect(api.getFullscreenManager().setFullscreen).toBeCalledWith(false);
     expect(api.getConditionsManager().setState).toBeCalledWith({ expand: true });
     expect(api.getCardElementManager().update).toBeCalled();
   });
@@ -37,7 +37,7 @@ describe('ExpandManager', () => {
 
     manager.setExpanded(true);
 
-    expect(api.getFullscreenManager().stopFullscreen).not.toBeCalled();
+    expect(api.getFullscreenManager().setFullscreen).not.toBeCalled();
   });
 
   it('should toggle expanded', () => {

@@ -16,21 +16,21 @@ export class MediaLoadedInfoManager {
     this.clear();
   }
 
-  public set(mediaInfo: MediaLoadedInfo): void {
-    if (!isValidMediaLoadedInfo(mediaInfo)) {
+  public set(mediaLoadedInfo: MediaLoadedInfo): void {
+    if (!isValidMediaLoadedInfo(mediaLoadedInfo)) {
       return;
     }
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
       `Frigate Card media load: `,
-      mediaInfo,
+      mediaLoadedInfo,
     );
 
-    this._current = mediaInfo;
-    this._lastKnown = mediaInfo;
+    this._current = mediaLoadedInfo;
+    this._lastKnown = mediaLoadedInfo;
 
-    this._api.getConditionsManager().setState({ media_loaded: true });
+    this._api.getConditionsManager().setState({ mediaLoadedInfo: mediaLoadedInfo });
 
     // Fresh media information may change how the card is rendered.
     this._api.getStyleManager().setExpandedMode();
@@ -47,7 +47,7 @@ export class MediaLoadedInfoManager {
 
   public clear(): void {
     this._current = null;
-    this._api.getConditionsManager().setState({ media_loaded: false });
+    this._api.getConditionsManager().setState({ mediaLoadedInfo: null });
   }
 
   public has(): boolean {

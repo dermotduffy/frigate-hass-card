@@ -15,7 +15,7 @@ import { query } from 'lit/decorators/query.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { renderMessage } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import { FrigateCardMediaPlayer } from '../types.js';
+import { FrigateCardMediaPlayer, FullscreenElement } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
 import { errorToConsole } from '../utils/basic.js';
 import {
@@ -89,6 +89,10 @@ customElements.whenDefined('ha-hls-player').then(() => {
 
     public async getScreenshotURL(): Promise<string | null> {
       return this._video ? screenshotMedia(this._video) : null;
+    }
+
+    public getFullscreenElement(): FullscreenElement | null {
+      return this._video;
     }
 
     // =====================================================================================

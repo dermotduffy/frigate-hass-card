@@ -19,6 +19,7 @@ import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import {
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
+  FullscreenElement,
   ResolvedMedia,
 } from '../../types.js';
 import { mayHaveAudio } from '../../utils/audio.js';
@@ -165,6 +166,15 @@ export class FrigateCardViewerProvider
       return screenshotMedia(this._refVideoProvider.value);
     } else if (this._refImageProvider.value) {
       return this._refImageProvider.value.src;
+    }
+    return null;
+  }
+
+  public getFullscreenElement(): FullscreenElement | null {
+    if (this._refFrigateCardMediaPlayer.value) {
+      return this._refFrigateCardMediaPlayer.value.getFullscreenElement();
+    } else if (this._refVideoProvider.value) {
+      return this._refVideoProvider.value;
     }
     return null;
   }

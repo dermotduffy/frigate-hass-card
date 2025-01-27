@@ -16,7 +16,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { renderMessage } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import { FrigateCardMediaPlayer } from '../types.js';
+import { FrigateCardMediaPlayer, FullscreenElement } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
 import {
   dispatchMediaLoadedEvent,
@@ -88,6 +88,10 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
 
     public async getScreenshotURL(): Promise<string | null> {
       return this._video ? screenshotMedia(this._video) : null;
+    }
+
+    public getFullscreenElement(): FullscreenElement | null {
+      return this._video ?? null;
     }
 
     // =====================================================================================

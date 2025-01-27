@@ -24,7 +24,11 @@ import {
 import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
-import { ExtendedHomeAssistant, FrigateCardMediaPlayer } from '../../types.js';
+import {
+  ExtendedHomeAssistant,
+  FrigateCardMediaPlayer,
+  FullscreenElement,
+} from '../../types.js';
 import { aspectRatioToString } from '../../utils/basic.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import { updateElementStyleFromMediaLayoutConfig } from '../../utils/media-layout.js';
@@ -142,6 +146,10 @@ export class FrigateCardLiveProvider
     await this.updateComplete;
     await this._refProvider.value?.updateComplete;
     return (await this._refProvider.value?.getScreenshotURL()) ?? null;
+  }
+
+  public getFullscreenElement(): FullscreenElement | null {
+    return this._refProvider.value?.getFullscreenElement() ?? null;
   }
 
   /**

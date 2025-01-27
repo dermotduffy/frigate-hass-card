@@ -16,6 +16,7 @@ import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import {
   ExtendedHomeAssistant,
   FrigateCardMediaPlayer,
+  FullscreenElement,
   Message,
 } from '../../../../types.js';
 import { convertEndpointAddressToSignedWebsocket } from '../../../../utils/endpoint.js';
@@ -102,6 +103,10 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     return this._player?.video ? screenshotMedia(this._player.video) : null;
   }
 
+  public getFullscreenElement(): FullscreenElement | null {
+    return this._player?.video ?? null;
+  }
+
   disconnectedCallback(): void {
     this._player = undefined;
     this._message = null;
@@ -151,7 +156,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     this._player.microphoneStream = this.microphoneState?.stream ?? null;
     this._player.src = address;
     this._player.visibilityCheck = false;
-    this._player.controls = this.controls;
+    this._player.setControls(this.controls);
 
     if (this.cameraConfig?.go2rtc?.modes && this.cameraConfig.go2rtc.modes.length) {
       this._player.mode = this.cameraConfig.go2rtc.modes.join(',');
@@ -170,7 +175,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     }
 
     if (changedProps.has('controls') && this._player) {
-      this._player.controls = this.controls;
+      this._player.setControls(this.controls);
     }
 
     if (

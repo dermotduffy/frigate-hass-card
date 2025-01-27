@@ -6,11 +6,13 @@ import {
   evaluateConditionViaEvent,
   getOverriddenConfig,
 } from '../../src/card-controller/conditions-manager';
+import { MicrophoneState } from '../../src/card-controller/types';
 import { FrigateCardCondition } from '../../src/config/types';
 import {
   createCardAPI,
   createCondition,
   createConfig,
+  createMediaLoadedInfo,
   createStateEntity,
   createUser,
 } from '../test-utils';
@@ -780,9 +782,9 @@ describe('ConditionsManager', () => {
       const manager = new ConditionsManager(createCardAPI());
       const conditions = [{ condition: 'media_loaded' as const, media_loaded: true }];
       expect(manager.evaluateConditions(conditions)).toBeFalsy();
-      manager.setState({ media_loaded: true });
+      manager.setState({ mediaLoadedInfo: createMediaLoadedInfo() });
       expect(manager.evaluateConditions(conditions)).toBeTruthy();
-      manager.setState({ media_loaded: false });
+      manager.setState({ mediaLoadedInfo: null });
       expect(manager.evaluateConditions(conditions)).toBeFalsy();
     });
 
@@ -898,17 +900,27 @@ describe('ConditionsManager', () => {
     });
 
     describe('with microphone condition', () => {
+      const createMicrophoneState = (
+        state: Partial<MicrophoneState>,
+      ): MicrophoneState => {
+        return {
+          connected: false,
+          muted: false,
+          forbidden: false,
+          ...state,
+        };
+      };
       it('empty', () => {
         const manager = new ConditionsManager(createCardAPI());
         const conditions = [{ condition: 'microphone' as const }];
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
-        manager.setState({ microphone: { connected: true } });
+        manager.setState({ microphone: createMicrophoneState({ connected: true }) });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
-        manager.setState({ microphone: { connected: false } });
+        manager.setState({ microphone: createMicrophoneState({ connected: false }) });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
-        manager.setState({ microphone: { muted: true } });
+        manager.setState({ microphone: createMicrophoneState({ muted: true }) });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
-        manager.setState({ microphone: { muted: false } });
+        manager.setState({ microphone: createMicrophoneState({ muted: false }) });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
 
@@ -916,9 +928,9 @@ describe('ConditionsManager', () => {
         const manager = new ConditionsManager(createCardAPI());
         const conditions = [{ condition: 'microphone' as const, connected: true }];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { connected: true } });
+        manager.setState({ microphone: createMicrophoneState({ connected: true }) });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
-        manager.setState({ microphone: { connected: false } });
+        manager.setState({ microphone: createMicrophoneState({ connected: false }) });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
 
@@ -926,9 +938,9 @@ describe('ConditionsManager', () => {
         const manager = new ConditionsManager(createCardAPI());
         const conditions = [{ condition: 'microphone' as const, connected: false }];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { connected: true } });
+        manager.setState({ microphone: createMicrophoneState({ connected: true }) });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { connected: false } });
+        manager.setState({ microphone: createMicrophoneState({ connected: false }) });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
 
@@ -936,9 +948,9 @@ describe('ConditionsManager', () => {
         const manager = new ConditionsManager(createCardAPI());
         const conditions = [{ condition: 'microphone' as const, muted: true }];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { muted: true } });
+        manager.setState({ microphone: createMicrophoneState({ muted: true }) });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
-        manager.setState({ microphone: { muted: false } });
+        manager.setState({ microphone: createMicrophoneState({ muted: false }) });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
 
@@ -946,9 +958,9 @@ describe('ConditionsManager', () => {
         const manager = new ConditionsManager(createCardAPI());
         const conditions = [{ condition: 'microphone' as const, muted: false }];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { muted: true } });
+        manager.setState({ microphone: createMicrophoneState({ muted: true }) });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { muted: false } });
+        manager.setState({ microphone: createMicrophoneState({ muted: false }) });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
 
@@ -958,13 +970,17 @@ describe('ConditionsManager', () => {
           { condition: 'microphone' as const, muted: false, connected: true },
         ];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { muted: true } });
+        manager.setState({ microphone: createMicrophoneState({ muted: true }) });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { muted: false } });
+        manager.setState({ microphone: createMicrophoneState({ muted: false }) });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { connected: false, muted: false } });
+        manager.setState({
+          microphone: createMicrophoneState({ connected: false, muted: false }),
+        });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
-        manager.setState({ microphone: { connected: true, muted: false } });
+        manager.setState({
+          microphone: createMicrophoneState({ connected: true, muted: false }),
+        });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
       });
     });
@@ -1033,11 +1049,11 @@ describe('ConditionsManager', () => {
         const conditions = [{ condition: 'user_agent' as const, user_agent: userAgent }];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({
-          user_agent: userAgent,
+          userAgent: userAgent,
         });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({
-          user_agent: 'Something else',
+          userAgent: 'Something else',
         });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
@@ -1049,11 +1065,11 @@ describe('ConditionsManager', () => {
         ];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({
-          user_agent: userAgent,
+          userAgent: userAgent,
         });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({
-          user_agent: 'Something else',
+          userAgent: 'Something else',
         });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
@@ -1063,11 +1079,11 @@ describe('ConditionsManager', () => {
         const conditions = [{ condition: 'user_agent' as const, companion: true }];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({
-          user_agent: 'Home Assistant/',
+          userAgent: 'Home Assistant/',
         });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({
-          user_agent: userAgent,
+          userAgent: userAgent,
         });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
@@ -1084,14 +1100,37 @@ describe('ConditionsManager', () => {
         ];
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
         manager.setState({
-          user_agent: 'Home Assistant/',
+          userAgent: 'Home Assistant/',
         });
         expect(manager.evaluateConditions(conditions)).toBeTruthy();
         manager.setState({
-          user_agent: 'Something else',
+          userAgent: 'Something else',
         });
         expect(manager.evaluateConditions(conditions)).toBeFalsy();
       });
     });
+  });
+
+  it('should add listener', () => {
+    const listener = vi.fn();
+    const manager = new ConditionsManager(createCardAPI());
+    manager.addListener(listener);
+
+    const state = { fullscreen: true };
+    manager.setState(state);
+
+    expect(listener).toBeCalledWith(state, {});
+  });
+
+  it('should remove listener', () => {
+    const listener = vi.fn();
+    const manager = new ConditionsManager(createCardAPI());
+    manager.addListener(listener);
+    manager.removeListener(listener);
+
+    const state = { fullscreen: true };
+    manager.setState(state);
+
+    expect(listener).not.toBeCalled();
   });
 });

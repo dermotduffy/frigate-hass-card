@@ -8,7 +8,9 @@ describe('MediaLoadedInfoManager', () => {
     const manager = new MediaLoadedInfoManager(api);
 
     manager.initialize();
-    expect(api.getConditionsManager().setState).toBeCalledWith({ media_loaded: false });
+    expect(api.getConditionsManager().setState).toBeCalledWith({
+      mediaLoadedInfo: null,
+    });
   });
 
   it('should set', () => {
@@ -21,7 +23,7 @@ describe('MediaLoadedInfoManager', () => {
     expect(manager.has()).toBeTruthy();
     expect(manager.get()).toBe(mediaInfo);
     expect(api.getConditionsManager().setState).toBeCalledWith(
-      expect.objectContaining({ media_loaded: true }),
+      expect.objectContaining({ mediaLoadedInfo: mediaInfo }),
     );
     expect(api.getStyleManager().setExpandedMode).toBeCalled();
     expect(api.getCardElementManager().update).toBeCalled();
@@ -30,9 +32,9 @@ describe('MediaLoadedInfoManager', () => {
   it('should not set invalid media info', () => {
     const api = createCardAPI();
     const manager = new MediaLoadedInfoManager(api);
-    const mediaInfo = createMediaLoadedInfo({ width: 0, height: 0 });
+    const mediaLoadedInfo = createMediaLoadedInfo({ width: 0, height: 0 });
 
-    manager.set(mediaInfo);
+    manager.set(mediaLoadedInfo);
 
     expect(manager.has()).toBeFalsy();
     expect(manager.get()).toBeNull();
@@ -42,18 +44,18 @@ describe('MediaLoadedInfoManager', () => {
   it('should get last known', () => {
     const api = createCardAPI();
     const manager = new MediaLoadedInfoManager(api);
-    const mediaInfo = createMediaLoadedInfo();
+    const mediaLoadedInfo = createMediaLoadedInfo();
 
-    manager.set(mediaInfo);
+    manager.set(mediaLoadedInfo);
 
     expect(manager.has()).toBeTruthy();
 
     manager.clear();
 
     expect(manager.has()).toBeFalsy();
-    expect(manager.getLastKnown()).toBe(mediaInfo);
+    expect(manager.getLastKnown()).toBe(mediaLoadedInfo);
     expect(api.getConditionsManager().setState).toBeCalledWith(
-      expect.objectContaining({ media_loaded: false }),
+      expect.objectContaining({ mediaLoadedInfo }),
     );
   });
 });

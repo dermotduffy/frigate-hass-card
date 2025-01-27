@@ -168,7 +168,7 @@ export class VideoRTC extends HTMLElement {
     this.containingPlayer = null;
 
     /**
-     * Whether to show or hide video controls.
+     * Whether to show or hide video controls for videos created in future.
      * @type {boolean}}
      */
     this.controls = true;
@@ -188,6 +188,15 @@ export class VideoRTC extends HTMLElement {
       // terminate even if the websocket is closed.
       this.ondisconnect();
       this.onconnect();
+    }
+  }
+
+  setControls(controls) {
+    this.controls = controls;
+
+    // If the video already exists the controls won't be changed by default.
+    if (this.video) {
+      setControlsOnVideo(this.video, controls);
     }
   }
 

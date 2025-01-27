@@ -1,6 +1,7 @@
 import { CurrentUser, HASSDomEvent } from '@dermotduffy/custom-card-helpers';
 import { HassEntities, HassEntity } from 'home-assistant-js-websocket';
 import { LitElement } from 'lit';
+import screenfull from 'screenfull';
 import { expect, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { Camera } from '../src/camera-manager/camera';
@@ -24,7 +25,7 @@ import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';
 import { DownloadManager } from '../src/card-controller/download-manager';
 import { ExpandManager } from '../src/card-controller/expand-manager';
-import { FullscreenManager } from '../src/card-controller/fullscreen-manager';
+import { FullscreenManager } from '../src/card-controller/fullscreen/fullscreen-manager';
 import { HASSManager } from '../src/card-controller/hass/hass-manager';
 import { StateWatcherSubscriptionInterface } from '../src/card-controller/hass/state-watcher';
 import { InitializationManager } from '../src/card-controller/initialization-manager';
@@ -534,4 +535,8 @@ export const createInteractionEvent = (
       config: config,
     },
   });
+};
+
+export const setScreenfulEnabled = (enabled: boolean): void => {
+  Object.defineProperty(screenfull, 'isEnabled', { value: enabled, writable: true });
 };

@@ -1,6 +1,7 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { StyleInfo } from 'lit/directives/style-map';
 import { CameraManager } from '../camera-manager/manager';
+import { FullscreenManager } from '../card-controller/fullscreen/fullscreen-manager';
 import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
 import { ViewManager } from '../card-controller/view/view-manager';
@@ -32,7 +33,7 @@ import { getCameraIDsForViewName } from '../view/view-to-cameras';
 export interface MenuButtonControllerOptions {
   currentMediaLoadedInfo?: MediaLoadedInfo | null;
   showCameraUIButton?: boolean;
-  inFullscreenMode?: boolean;
+  fullscreenManager?: FullscreenManager | null;
   inExpandedMode?: boolean;
   microphoneManager?: MicrophoneManager | null;
   mediaPlayerController?: MediaPlayerManager | null;
@@ -84,7 +85,7 @@ export class MenuButtonController {
         options?.currentMediaLoadedInfo,
       ),
       this._getExpandButton(config, options?.inExpandedMode),
-      this._getFullscreenButton(config, options?.inFullscreenMode),
+      this._getFullscreenButton(config, options?.fullscreenManager),
       this._getCastButton(
         hass,
         config,
@@ -420,16 +421,17 @@ export class MenuButtonController {
 
   protected _getFullscreenButton(
     config: FrigateCardConfig,
-    inFullscreenMode?: boolean,
+    fullscreenManager?: FullscreenManager | null,
   ): MenuItem | null {
-    return !isBeingCasted()
+    const inFullscreen = fullscreenManager?.isInFullscreen();
+    return fullscreenManager?.isSupported()
       ? {
-          icon: inFullscreenMode ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
+          icon: inFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
           ...config.menu.buttons.fullscreen,
           type: 'custom:frigate-card-menu-icon',
           title: localize('config.menu.buttons.fullscreen'),
           tap_action: createGeneralAction('fullscreen') as FrigateCardCustomAction,
-          style: inFullscreenMode ? this._getEmphasizedStyle() : {},
+          style: inFullscreen ? this._getEmphasizedStyle() : {},
         }
       : null;
   }
@@ -694,7 +696,7 @@ export class MenuButtonController {
           (frigateCardAction.frigate_card_action === 'default' &&
             options?.view?.is(config.view.default)) ||
           (frigateCardAction.frigate_card_action === 'fullscreen' &&
-            !!options?.inFullscreenMode) ||
+            !!options?.fullscreenManager?.isInFullscreen()) ||
           (frigateCardAction.frigate_card_action === 'camera_select' &&
             options?.view?.camera === frigateCardAction.camera)
         ) {
