@@ -105,6 +105,9 @@ describe('config defaults', () => {
           timeline: {
             clustering_threshold: 3,
             events_media_type: 'all',
+            format: {
+              '24h': true,
+            },
             mode: 'none',
             pan_mode: 'pan',
             show_recordings: true,
@@ -170,6 +173,9 @@ describe('config defaults', () => {
           timeline: {
             clustering_threshold: 3,
             events_media_type: 'all',
+            format: {
+              '24h': true,
+            },
             mode: 'none',
             pan_mode: 'pan',
             show_recordings: true,
@@ -324,6 +330,9 @@ describe('config defaults', () => {
           },
         },
         events_media_type: 'all',
+        format: {
+          '24h': true,
+        },
         pan_mode: 'pan',
         show_recordings: true,
         style: 'stack',
