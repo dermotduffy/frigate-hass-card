@@ -231,6 +231,10 @@
         },
         "timeline": {
           "editor_label": "Controles da linha do tempo",
+          "format": {
+            "24h": "",
+            "editor_label": ""
+          },
           "mode": "Modo",
           "modes": {
             "above": "Acima",

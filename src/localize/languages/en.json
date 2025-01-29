@@ -231,6 +231,10 @@
         },
         "timeline": {
           "editor_label": "Mini Timeline",
+          "format": {
+            "editor_label": "Time & date format",
+            "24h": "Use 24-hour clock"
+          },
           "mode": "Mode",
           "modes": {
             "above": "Above",

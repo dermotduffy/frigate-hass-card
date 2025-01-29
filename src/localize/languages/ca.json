@@ -231,6 +231,10 @@
         },
         "timeline": {
           "editor_label": "Mini cronologia",
+          "format": {
+            "24h": "",
+            "editor_label": ""
+          },
           "mode": "Mode",
           "modes": {
             "above": "A dalt",

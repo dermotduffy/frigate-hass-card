@@ -231,6 +231,10 @@
         },
         "timeline": {
           "editor_label": "Mini Cronologia",
+          "format": {
+            "24h": "",
+            "editor_label": ""
+          },
           "mode": "Modalità",
           "modes": {
             "above": "sopra",
