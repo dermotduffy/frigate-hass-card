@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { isCompanionApp, isAndroidCompanionApp, isIOSCompanionApp } from '../../src/utils/companion';
-
+import {
+  isCompanionApp,
+  isAndroidCompanionApp,
+  isIOSCompanionApp,
+} from '../../src/utils/companion';
 
 describe('isCompanionApp', () => {
   it('should return true for userAgent starting with "Home Assistant/"', () => {
@@ -34,10 +37,13 @@ describe('isAndroidCompanionApp', () => {
   });
 
   it('should return false for userAgent containing "Home Assistant/" or "HomeAssistant/" and iOS', () => {
-    expect(isAndroidCompanionApp('Home Assistant/2025.1.1 (io.robbie.HomeAssistant; build:2025.1077; iOS 18.3.0')).toBe(false);
+    expect(
+      isAndroidCompanionApp(
+        'Home Assistant/2025.1.1 (io.robbie.HomeAssistant; build:2025.1077; iOS 18.3.0',
+      ),
+    ).toBe(false);
   });
 });
-
 
 describe('isIOSCompanionApp', () => {
   it('should return true for userAgent containing "Home Assistant" and "iOS"', () => {
@@ -53,6 +59,10 @@ describe('isIOSCompanionApp', () => {
   });
 
   it('should return false for userAgent containing "Home Assistant/" or "HomeAssistant/" and Android', () => {
-    expect(isIOSCompanionApp('Home Assistant/2025.1.1 (io.robbie.HomeAssistant; build:2025.1077; Android 18.3.0')).toBe(false);
+    expect(
+      isIOSCompanionApp(
+        'Home Assistant/2025.1.1 (io.robbie.HomeAssistant; build:2025.1077; Android 18.3.0',
+      ),
+    ).toBe(false);
   });
 });
