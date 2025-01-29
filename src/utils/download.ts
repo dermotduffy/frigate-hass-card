@@ -3,7 +3,7 @@ import { localize } from '../localize/localize';
 import { ExtendedHomeAssistant, FrigateCardError } from '../types';
 import { ViewMedia } from '../view/media';
 import { errorToConsole } from './basic';
-import { isCompanionApp } from './companion';
+import { isAndroidCompanionApp } from './companion';
 import { homeAssistantSignPath } from './ha';
 
 export const downloadURL = (url: string, filename = 'download'): void => {
@@ -12,7 +12,7 @@ export const downloadURL = (url: string, filename = 'download'): void => {
   const isSameOrigin = new URL(url).origin === window.location.origin;
   const dataURL = url.startsWith('data:');
 
-  if (isCompanionApp(navigator.userAgent) || (!isSameOrigin && !dataURL)) {
+  if (isAndroidCompanionApp(navigator.userAgent) || (!isSameOrigin && !dataURL)) {
     // Home Assistant companion apps cannot download files without opening a
     // new browser window.
     //
