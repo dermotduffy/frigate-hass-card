@@ -825,12 +825,12 @@ export class FrigateCardTimelineCore extends LitElement {
     // See: https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
     return {
       minorLabels: {
-        minute: format24Hour ? 'HH:mm' : 'hh:mm A',
-        hour: format24Hour ? 'HH:mm' : 'hh:mm A',
+        minute: format24Hour ? 'HH:mm' : 'h:mm A',
+        hour: format24Hour ? 'HH:mm' : 'h:mm A',
       },
       majorLabels: {
-        millisecond: format24Hour ? 'HH:mm:ss' : 'hh:mm:ss A',
-        second: format24Hour ? 'D MMMM HH:mm' : 'D MMMM hh:mm A',
+        millisecond: format24Hour ? 'HH:mm:ss' : 'h:mm:ss A',
+        second: format24Hour ? 'D MMMM HH:mm' : 'D MMMM h:mm A',
       },
     };
   }
