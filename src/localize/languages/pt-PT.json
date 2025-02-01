@@ -95,7 +95,8 @@
           "mse": "Mse",
           "webrtc": "Webrtc"
         },
-        "stream": "Stream"
+        "stream": "Stream",
+        "url": ""
       },
       "icon": "Ícone para esta câmera (detectado automaticamente pela entidade)",
       "id": "ID exclusivo para esta câmera nesse cartão",

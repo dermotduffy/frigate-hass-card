@@ -95,7 +95,8 @@
           "mse": "",
           "webrtc": ""
         },
-        "stream": "nom del flux de go2rtc"
+        "stream": "nom del flux de go2rtc",
+        "url": ""
       },
       "icon": "Icona d'aquesta càmera (detecció automàtica des de l'entitat)",
       "id": "Identificador únic per a aquesta càmera en aquesta targeta",
