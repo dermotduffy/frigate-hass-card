@@ -34,6 +34,7 @@ export const CONF_CAMERAS_ARRAY_FRIGATE_ZONES =
 export const CONF_CAMERAS_ARRAY_GO2RTC_MODES = `${CONF_CAMERAS}.#.go2rtc.modes` as const;
 export const CONF_CAMERAS_ARRAY_GO2RTC_STREAM =
   `${CONF_CAMERAS}.#.go2rtc.stream` as const;
+export const CONF_CAMERAS_ARRAY_GO2RTC_URL = `${CONF_CAMERAS}.#.go2rtc.url` as const;
 export const CONF_CAMERAS_ARRAY_ICON = `${CONF_CAMERAS}.#.icon` as const;
 export const CONF_CAMERAS_ARRAY_ID = `${CONF_CAMERAS}.#.id` as const;
 export const CONF_CAMERAS_ARRAY_IMAGE_ENTITY = `${CONF_CAMERAS}.#.image.entity` as const;

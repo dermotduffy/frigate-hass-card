@@ -95,7 +95,8 @@
           "mse": "Media Source Extensions (MSE)",
           "webrtc": "Web Real-Time Communication (WebRTC)"
         },
-        "stream": "go2rtc stream name"
+        "stream": "go2rtc stream name",
+        "url": "go2rtc URL"
       },
       "icon": "Icon for this camera (Autodetected from entity)",
       "id": "Unique id for this camera in this card",

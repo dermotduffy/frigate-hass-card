@@ -63,6 +63,7 @@ import {
   CONF_CAMERAS_ARRAY_FRIGATE_ZONES,
   CONF_CAMERAS_ARRAY_GO2RTC_MODES,
   CONF_CAMERAS_ARRAY_GO2RTC_STREAM,
+  CONF_CAMERAS_ARRAY_GO2RTC_URL,
   CONF_CAMERAS_ARRAY_ICON,
   CONF_CAMERAS_ARRAY_ID,
   CONF_CAMERAS_ARRAY_IMAGE_ENTITY,
@@ -2164,7 +2165,10 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   )}
                   ${this._renderStringInput(
                     getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_STREAM, cameraIndex),
-                  )}`,
+                  )}
+                  ${this._renderStringInput(
+                    getArrayConfigPath(CONF_CAMERAS_ARRAY_GO2RTC_URL, cameraIndex),
+                  )} `,
                 )}
                 ${this._putInSubmenu(
                   MENU_CAMERAS_IMAGE,
