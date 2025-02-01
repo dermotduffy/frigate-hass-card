@@ -224,6 +224,8 @@ export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_MEDIA_VIEWER}.controls.timeline.clustering_threshold` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.events_media_type` as const;
+export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT_24H =
+  `${CONF_MEDIA_VIEWER}.controls.timeline.format.24h` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE =
   `${CONF_MEDIA_VIEWER}.controls.timeline.mode` as const;
 export const CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE =
@@ -277,6 +279,8 @@ export const CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_LIVE}.controls.timeline.clustering_threshold` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE =
   `${CONF_LIVE}.controls.timeline.events_media_type` as const;
+export const CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H =
+  `${CONF_LIVE}.controls.timeline.format.24h` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_MODE =
   `${CONF_LIVE}.controls.timeline.mode` as const;
 export const CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE =
@@ -322,6 +326,7 @@ export const CONF_TIMELINE_CLUSTERING_THRESHOLD =
   `${CONF_TIMELINE}.clustering_threshold` as const;
 export const CONF_TIMELINE_EVENTS_MEDIA_TYPE =
   `${CONF_TIMELINE}.events_media_type` as const;
+export const CONF_TIMELINE_FORMAT_24H = `${CONF_TIMELINE}.format.24h` as const;
 export const CONF_TIMELINE_SHOW_RECORDINGS = `${CONF_TIMELINE}.show_recordings` as const;
 export const CONF_TIMELINE_STYLE = `${CONF_TIMELINE}.style` as const;
 export const CONF_TIMELINE_CONTROLS_THUMBNAILS_MODE =

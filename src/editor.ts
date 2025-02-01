@@ -120,6 +120,7 @@ import {
   CONF_LIVE_CONTROLS_THUMBNAILS_SIZE,
   CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+  CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H,
   CONF_LIVE_CONTROLS_TIMELINE_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
   CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
@@ -160,6 +161,7 @@ import {
   CONF_MEDIA_VIEWER_CONTROLS_THUMBNAILS_SIZE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
+  CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT_24H,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
@@ -200,6 +202,7 @@ import {
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SHOW_TIMELINE_CONTROL,
   CONF_TIMELINE_CONTROLS_THUMBNAILS_SIZE,
   CONF_TIMELINE_EVENTS_MEDIA_TYPE,
+  CONF_TIMELINE_FORMAT_24H,
   CONF_TIMELINE_SHOW_RECORDINGS,
   CONF_TIMELINE_STYLE,
   CONF_TIMELINE_WINDOW_SECONDS,
@@ -278,6 +281,7 @@ const MENU_OPTIONS = 'options';
 const MENU_PERFORMANCE_FEATURES = 'performance.features';
 const MENU_PERFORMANCE_STYLE = 'performance.style';
 const MENU_STATUS_BAR_ITEMS = 'status_bar.items';
+const MENU_TIMELINE_FORMAT = 'timeline.format';
 const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
 const MENU_VIEW_DEFAULT_RESET = 'view.default_reset';
 const MENU_VIEW_KEYBOARD_SHORTCUTS = 'view.keyboard_shortcuts';
@@ -1535,12 +1539,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @returns A rendered template.
    */
   protected _renderTimelineCoreControls(
+    domain: string,
     configPathStyle: string,
     configPathWindowSeconds: string,
     configPathClusteringThreshold: string,
     configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
+    configPathFormat24h: string,
     defaultShowRecordings: boolean,
+    defaultFormat24h: boolean,
     configPathPanMode?: string,
   ): TemplateResult {
     return html`
@@ -1568,6 +1575,17 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
       ${this._renderSwitch(configPathShowRecordings, defaultShowRecordings, {
         label: localize(`config.common.${CONF_TIMELINE_SHOW_RECORDINGS}`),
       })}
+      ${this._putInSubmenu(
+        `${domain}.format`,
+        true,
+        'config.common.controls.timeline.format.editor_label',
+        'mdi:clock-edit',
+        html`
+          ${this._renderSwitch(configPathFormat24h, defaultFormat24h, {
+            label: localize('config.common.controls.timeline.format.24h'),
+          })}
+        `,
+      )}
     `;
   }
 
@@ -1588,7 +1606,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPathClusteringThreshold: string,
     configPathTimelineEventsMediaType: string,
     configPathShowRecordings: string,
-    showRecordingsDefault: boolean,
+    configPathFormat24h: string,
+    defaultShowRecordings: boolean,
+    defaultFormat24h: boolean,
     configPathPanMode: string,
   ): TemplateResult | void {
     return this._putInSubmenu(
@@ -1600,12 +1620,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         label: localize('config.common.controls.timeline.mode'),
       })}
       ${this._renderTimelineCoreControls(
+        domain,
         configPathStyle,
         configPathWindowSeconds,
         configPathClusteringThreshold,
         configPathTimelineEventsMediaType,
         configPathShowRecordings,
-        showRecordingsDefault,
+        configPathFormat24h,
+        defaultShowRecordings,
+        defaultFormat24h,
         configPathPanMode,
       )}`,
     );
@@ -2722,7 +2745,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       CONF_LIVE_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
                       CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                       CONF_LIVE_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+                      CONF_LIVE_CONTROLS_TIMELINE_FORMAT_24H,
                       this._defaults.live.controls.timeline.show_recordings,
+                      this._defaults.live.controls.timeline.format['24h'],
                       CONF_LIVE_CONTROLS_TIMELINE_PAN_MODE,
                     )}
                     ${this._putInSubmenu(
@@ -2904,7 +2929,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_CLUSTERING_THRESHOLD,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_SHOW_RECORDINGS,
+                    CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_FORMAT_24H,
                     this._defaults.media_viewer.controls.timeline.show_recordings,
+                    this._defaults.media_viewer.controls.timeline.format['24h'],
                     CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_PAN_MODE,
                   )}
                 `,
@@ -2927,12 +2954,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         ${this._expandedMenus[MENU_OPTIONS] === 'timeline'
           ? html` <div class="values">
               ${this._renderTimelineCoreControls(
+                MENU_TIMELINE_FORMAT,
                 CONF_TIMELINE_STYLE,
                 CONF_TIMELINE_WINDOW_SECONDS,
                 CONF_TIMELINE_CLUSTERING_THRESHOLD,
                 CONF_TIMELINE_EVENTS_MEDIA_TYPE,
                 CONF_TIMELINE_SHOW_RECORDINGS,
+                CONF_TIMELINE_FORMAT_24H,
                 this._defaults.timeline.show_recordings,
+                this._defaults.timeline.format['24h'],
               )}
               ${this._renderThumbnailsControls(
                 MENU_TIMELINE_CONTROLS_THUMBNAILS,

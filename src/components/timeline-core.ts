@@ -13,7 +13,12 @@ import isEqual from 'lodash-es/isEqual';
 import throttle from 'lodash-es/throttle';
 import { ViewContext } from 'view';
 import { DataSet } from 'vis-data/esnext';
-import type { DataGroupCollectionType, DateType, IdType } from 'vis-timeline/esnext';
+import type {
+  DataGroupCollectionType,
+  DateType,
+  IdType,
+  TimelineFormatOption,
+} from 'vis-timeline/esnext';
 import {
   Timeline,
   TimelineEventPropertiesResult,
@@ -814,6 +819,22 @@ export class FrigateCardTimelineCore extends LitElement {
     );
   }
 
+  protected _getDateTimeFormat(): TimelineFormatOption {
+    const format24Hour = !!this.timelineConfig?.format?.['24h'];
+
+    // See: https://visjs.github.io/vis-timeline/docs/timeline/#Configuration_Options
+    return {
+      minorLabels: {
+        minute: format24Hour ? 'HH:mm' : 'h:mm A',
+        hour: format24Hour ? 'HH:mm' : 'h:mm A',
+      },
+      majorLabels: {
+        millisecond: format24Hour ? 'HH:mm:ss' : 'h:mm:ss A',
+        second: format24Hour ? 'D MMMM HH:mm' : 'D MMMM h:mm A',
+      },
+    };
+  }
+
   /**
    * Get timeline options.
    */
@@ -883,6 +904,7 @@ export class FrigateCardTimelineCore extends LitElement {
         overflowMethod: 'cap',
         template: this._getTooltip.bind(this),
       },
+      format: this._getDateTimeFormat(),
       xss: {
         disabled: false,
         filterOptions: {
