@@ -3,7 +3,6 @@ import { localize } from '../localize/localize';
 import { ExtendedHomeAssistant, FrigateCardError } from '../types';
 import { ViewMedia } from '../view/media';
 import { errorToConsole } from './basic';
-import { isCompanionApp } from './companion';
 import { homeAssistantSignPath } from './ha';
 
 export const downloadURL = (url: string, filename = 'download'): void => {
@@ -12,23 +11,18 @@ export const downloadURL = (url: string, filename = 'download'): void => {
   const isSameOrigin = new URL(url).origin === window.location.origin;
   const dataURL = url.startsWith('data:');
 
-  if (isCompanionApp(navigator.userAgent) || (!isSameOrigin && !dataURL)) {
-    // Home Assistant companion apps cannot download files without opening a
-    // new browser window.
-    //
-    // User-agents are specified here:
-    //  - Android: https://github.com/home-assistant/android/blob/b285c9525dd4837a82db931c1b2321c0511494e6/common/src/main/java/io/homeassistant/companion/android/common/data/HomeAssistantApis.kt#L23
-    //  - iOS: https://github.com/home-assistant/iOS/blob/master/Sources/Shared/API/HAAPI.swift#L75
+  if (!isSameOrigin && !dataURL) {
     window.open(url, '_blank');
-  } else {
-    // Use the HTML5 download attribute to prevent a new window from
-    // temporarily opening.
-    const link = document.createElement('a');
-    link.setAttribute('download', filename);
-    link.href = url;
-    link.click();
-    link.remove();
+    return;
   }
+
+  // Use the HTML5 download attribute to prevent a new window from
+  // temporarily opening.
+  const link = document.createElement('a');
+  link.setAttribute('download', filename);
+  link.href = url;
+  link.click();
+  link.remove();
 };
 
 export const downloadMedia = async (

@@ -46,20 +46,16 @@ describe('downloadURL', () => {
     expect(link.click).toBeCalled();
   });
 
-  it('should download in apps via window.open', () => {
+  it('should download different origin via window.open', () => {
     // Set the origin to the same.
     const location: Location & { origin: string } = mock<Location>();
     location.origin = 'http://foo';
     global.window.location = location;
 
-    vi.stubGlobal('navigator', {
-      userAgent: 'Home Assistant/2023.3.0-3260 (Android 13; Pixel 7 Pro)',
-    });
-
     const windowSpy = vi.spyOn(window, 'open').mockReturnValue(null);
 
-    downloadURL('http://foo/url.mp4');
-    expect(windowSpy).toBeCalledWith('http://foo/url.mp4', '_blank');
+    downloadURL('http://bar/url.mp4');
+    expect(windowSpy).toBeCalledWith('http://bar/url.mp4', '_blank');
   });
 });
 
