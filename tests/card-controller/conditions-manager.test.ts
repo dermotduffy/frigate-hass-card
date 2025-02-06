@@ -7,7 +7,7 @@ import {
   getOverriddenConfig,
 } from '../../src/card-controller/conditions-manager';
 import { MicrophoneState } from '../../src/card-controller/types';
-import { FrigateCardCondition } from '../../src/config/types';
+import { AdvancedCameraCardCondition } from '../../src/config/types';
 import {
   createCardAPI,
   createCondition,
@@ -26,7 +26,7 @@ describe('ConditionEvaluateRequestEvent', () => {
       composed: true,
     });
 
-    expect(event.type).toBe('frigate-card:conditions:evaluate');
+    expect(event.type).toBe('advanced-camera-card:conditions:evaluate');
     expect(event.conditions).toBe(conditions);
     expect(event.bubbles).toBeTruthy();
     expect(event.composed).toBeTruthy();
@@ -45,7 +45,7 @@ describe('evaluateConditionViaEvent', () => {
       expect(ev.conditions).toBe(conditions);
       ev.evaluation = true;
     });
-    element.addEventListener('frigate-card:conditions:evaluate', handler);
+    element.addEventListener('advanced-camera-card:conditions:evaluate', handler);
 
     expect(evaluateConditionViaEvent(element, conditions)).toBeTruthy();
     expect(handler).toBeCalled();
@@ -57,7 +57,7 @@ describe('evaluateConditionViaEvent', () => {
       expect(ev.conditions).toBe(conditions);
       ev.evaluation = false;
     });
-    element.addEventListener('frigate-card:conditions:evaluate', handler);
+    element.addEventListener('advanced-camera-card:conditions:evaluate', handler);
 
     expect(evaluateConditionViaEvent(element, conditions)).toBeFalsy();
     expect(handler).toBeCalled();
@@ -66,7 +66,7 @@ describe('evaluateConditionViaEvent', () => {
     const element = document.createElement('div');
     const conditions = [createCondition({ condition: 'fullscreen', fullscreen: true })];
     const handler = vi.fn();
-    element.addEventListener('frigate-card:conditions:evaluate', handler);
+    element.addEventListener('advanced-camera-card:conditions:evaluate', handler);
 
     expect(evaluateConditionViaEvent(element, conditions)).toBeFalsy();
     expect(handler).toBeCalled();
@@ -464,7 +464,7 @@ describe('ConditionsManager', () => {
       vi.restoreAllMocks();
     });
 
-    const createSuitableConfig = (conditions: FrigateCardCondition[]) => {
+    const createSuitableConfig = (conditions: AdvancedCameraCardCondition[]) => {
       return createConfig({
         overrides: [
           {
@@ -790,11 +790,11 @@ describe('ConditionsManager', () => {
 
     describe('with screen condition', () => {
       const mediaQueryConfig = {
-        type: 'custom:frigate-card',
+        type: 'custom:advanced-camera-card',
         cameras: [{}],
         elements: [
           {
-            type: 'custom:frigate-card-conditional',
+            type: 'custom:advanced-camera-card-conditional',
             conditions: [
               {
                 condition: 'fullscreen' as const,
@@ -805,7 +805,7 @@ describe('ConditionsManager', () => {
               {
                 type: 'custom:nested-unknown-object',
                 unknown_key: {
-                  type: 'custom:frigate-card-conditional',
+                  type: 'custom:advanced-camera-card-conditional',
                   conditions: [
                     {
                       condition: 'screen' as const,

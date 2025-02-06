@@ -14,7 +14,7 @@ describe('should handle media_player action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'media_player',
+        advanced_camera_card_action: 'media_player',
         media_player_action: 'stop',
         media_player: 'this_is_a_media_player',
       },
@@ -38,7 +38,7 @@ describe('should handle media_player action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'media_player',
+        advanced_camera_card_action: 'media_player',
         media_player_action: 'play',
         media_player: 'this_is_a_media_player',
       },
@@ -65,7 +65,7 @@ describe('should handle media_player action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'media_player',
+        advanced_camera_card_action: 'media_player',
         media_player_action: 'play',
         media_player: 'this_is_a_media_player',
       },
@@ -91,7 +91,7 @@ describe('should handle media_player action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'media_player',
+        advanced_camera_card_action: 'media_player',
         media_player_action: 'play',
         media_player: 'this_is_a_media_player',
       },

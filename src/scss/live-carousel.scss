@@ -14,7 +14,7 @@
 // when the carousel is part of a media-grid. Without this next/prev controls
 // will enlarge on hover, and the wheel-gestures plugin may block scrolling.
 // See matching in viewer-carousel.scss .
-:host([unselected]) frigate-card-carousel {
+:host([unselected]) advanced-camera-card-carousel {
   pointer-events: none;
 }
 

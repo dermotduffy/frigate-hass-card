@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 import { getOverriddenConfig } from '../../../src/card-controller/conditions-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
-import { frigateCardConfigSchema } from '../../../src/config/types';
+import { advancedCameraCardConfigSchema } from '../../../src/config/types';
 import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
 
 vi.mock('../../../src/card-controller/conditions-manager.js');
@@ -20,7 +20,7 @@ describe('ConfigManager', () => {
     });
 
     it('invalid configuration', () => {
-      const spy = vi.spyOn(frigateCardConfigSchema, 'safeParse').mockReturnValue({
+      const spy = vi.spyOn(advancedCameraCardConfigSchema, 'safeParse').mockReturnValue({
         success: false,
         error: new ZodError([]),
       });
@@ -44,18 +44,14 @@ describe('ConfigManager', () => {
       const manager = new ConfigManager(createCardAPI());
       expect(() =>
         manager.setConfig({
-          cameras: [
-            {
-              frigate: {
-                label: 'foo',
-              },
-            },
-          ],
+          // This key needs to be upgradeable in `management.ts` .
+          type: 'custom:frigate-card',
+          cameras: 'WILL_NOT_PARSE',
         }),
       ).toThrowError(
         'An automated card configuration upgrade is ' +
           'available, please visit the visual card editor. ' +
-          'Invalid configuration: [\n "type"\n]',
+          'Invalid configuration: [\n "cameras"\n]',
       );
     });
   });
@@ -72,7 +68,7 @@ describe('ConfigManager', () => {
     const api = createCardAPI();
     const manager = new ConfigManager(api);
     const config = {
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
     };
 
@@ -105,7 +101,7 @@ describe('ConfigManager', () => {
   it('should apply profiles', () => {
     const manager = new ConfigManager(createCardAPI());
     const config = {
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
       profiles: ['low-performance'],
     };
@@ -120,7 +116,7 @@ describe('ConfigManager', () => {
     const api = createCardAPI();
     const manager = new ConfigManager(api);
     const config = {
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
     };
 
@@ -137,7 +133,7 @@ describe('ConfigManager', () => {
     const api = createCardAPI();
     const manager = new ConfigManager(api);
     const config = {
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
       debug: {
         logging: true,
@@ -183,7 +179,7 @@ describe('ConfigManager', () => {
     const api = createCardAPI();
     const manager = new ConfigManager(api);
     const config = {
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
     };
     vi.mocked(getOverriddenConfig).mockReturnValue(config);
@@ -201,14 +197,14 @@ describe('ConfigManager', () => {
     const api = createCardAPI();
     const manager = new ConfigManager(api);
     const config_1 = {
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
     };
     manager.setConfig(config_1);
     vi.mocked(api.getStyleManager().updateFromConfig).mockClear();
 
     const config_2 = {
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.kitchen' }],
     };
     vi.mocked(getOverriddenConfig).mockReturnValue(config_2);
@@ -223,7 +219,7 @@ describe('ConfigManager', () => {
     const api = createCardAPI();
     const manager = new ConfigManager(api);
     manager.setConfig({
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
     });
 
@@ -242,7 +238,7 @@ describe('ConfigManager', () => {
       const api = createCardAPI();
       const manager = new ConfigManager(api);
       const config_1 = {
-        type: 'custom:frigate-card',
+        type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
       };
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
@@ -253,7 +249,7 @@ describe('ConfigManager', () => {
       );
 
       const config_2 = {
-        type: 'custom:frigate-card',
+        type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.kitchen' }],
       };
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
@@ -268,7 +264,7 @@ describe('ConfigManager', () => {
       const api = createCardAPI();
       const manager = new ConfigManager(api);
       const config_1 = {
-        type: 'custom:frigate-card',
+        type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
       };
       vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
@@ -296,7 +292,7 @@ describe('ConfigManager', () => {
       const api = createCardAPI();
       const manager = new ConfigManager(api);
       const config_1 = {
-        type: 'custom:frigate-card',
+        type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
         live: {
           microphone: {
@@ -332,7 +328,7 @@ describe('ConfigManager', () => {
     const api = createCardAPI();
     const manager = new ConfigManager(api);
     const config = {
-      type: 'custom:frigate-card',
+      type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
     };
     vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config));

@@ -2,20 +2,15 @@
 <!-- markdownlint-disable fenced-code-language -->
 <!-- markdownlint-disable no-inline-html -->
 
-<img src="https://raw.githubusercontent.com/blakeblackshear/frigate-hass-integration/master/images/frigate.png"
-     alt="Frigate icon"
-     width="35%"
-     align="right"
-     style="float: right; margin: 10px 0px 20px 20px;" />
-[![GitHub Release](https://img.shields.io/github/release/dermotduffy/frigate-hass-card.svg?style=flat-square)](https://github.com/dermotduffy/frigate-hass-card/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/dermotduffy/frigate-hass-card/build.yml?style=flat-square)](https://github.com/dermotduffy/frigate-hass-card/actions/workflows/build.yml)
-[![License](https://img.shields.io/github/license/dermotduffy/frigate-hass-card.svg?style=flat-square)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/release/dermotduffy/advanced-camera-card.svg?style=flat-square)](https://github.com/dermotduffy/advanced-camera-card/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/dermotduffy/advanced-camera-card/build.yml?style=flat-square)](https://github.com/dermotduffy/advanced-camera-card/actions/workflows/build.yml)
+[![License](https://img.shields.io/github/license/dermotduffy/advanced-camera-card.svg?style=flat-square)](LICENSE)
 [![HACS](https://img.shields.io/badge/HACS-default-orange.svg?style=flat-square)](https://hacs.xyz)
 [![Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86&style=flat-square)](https://github.com/sponsors/dermotduffy)
 
-<img src="https://raw.githubusercontent.com/dermotduffy/frigate-hass-card/main/docs/images/image-view.png" alt="Frigate Card" width="400px">
+<img src="https://raw.githubusercontent.com/dermotduffy/advanced-camera-card/main/docs/images/advanced-camera-card.png" alt="Advanced Camera Card" width="500px">
 
-# Frigate Card
+# Advanced Camera Card
 
 A comprehensive camera card for Home Assistant.
 
@@ -31,4 +26,6 @@ A comprehensive camera card for Home Assistant.
 - Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
 - Theme friendly.
 
-See [full documentation](https://dermotduffy.github.io/frigate-hass-card).
+Formerly known as: Frigate Card
+
+See [full documentation](https://dermotduffy.github.io/advanced-camera-card).

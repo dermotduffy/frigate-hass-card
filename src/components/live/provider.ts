@@ -17,7 +17,7 @@ import { PartialZoomSettings } from '../../components-lib/zoom/types.js';
 import {
   CameraConfig,
   CardWideConfig,
-  frigateCardConfigDefaults,
+  configDefaults,
   LiveConfig,
   LiveProvider,
 } from '../../config/types.js';
@@ -26,7 +26,7 @@ import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
 import {
   ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
+  AdvancedCameraCardMediaPlayer,
   FullscreenElement,
 } from '../../types.js';
 import { aspectRatioToString } from '../../utils/basic.js';
@@ -39,10 +39,10 @@ import '../next-prev-control.js';
 import '../ptz.js';
 import '../surround.js';
 
-@customElement('frigate-card-live-provider')
-export class FrigateCardLiveProvider
+@customElement('advanced-camera-card-live-provider')
+export class AdvancedCameraCardLiveProvider
   extends LitElement
-  implements FrigateCardMediaPlayer
+  implements AdvancedCameraCardMediaPlayer
 {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
@@ -84,7 +84,7 @@ export class FrigateCardLiveProvider
   @state()
   protected _showStreamTroubleshooting = false;
 
-  protected _refProvider: Ref<LitElement & FrigateCardMediaPlayer> = createRef();
+  protected _refProvider: Ref<LitElement & AdvancedCameraCardMediaPlayer> = createRef();
 
   // A note on dynamic imports:
   //
@@ -94,7 +94,7 @@ export class FrigateCardLiveProvider
   // underlying code is not yet loaded.
   //
   // Test case: A card with a non-live view, but live pre-loaded, attempts to
-  // call mute() when the <frigate-card-live> element first renders in the
+  // call mute() when the <advanced-camera-card-live> element first renders in the
   // background. These calls fail without waiting for loading here.
   protected _importPromises: Promise<unknown>[] = [];
 
@@ -168,7 +168,7 @@ export class FrigateCardLiveProvider
       } else if (this.cameraConfig?.frigate.camera_name) {
         return 'jsmpeg';
       }
-      return frigateCardConfigDefaults.cameras.live_provider;
+      return configDefaults.cameras.live_provider;
     }
     return this.cameraConfig?.live_provider || 'image';
   }
@@ -254,7 +254,7 @@ export class FrigateCardLiveProvider
 
   protected _useZoomIfRequired(template: TemplateResult): TemplateResult {
     return this.liveConfig?.zoomable
-      ? html` <frigate-card-zoomer
+      ? html` <advanced-camera-card-zoomer
           .defaultSettings=${guard([this.cameraConfig?.dimensions?.layout], () =>
             this.cameraConfig?.dimensions?.layout
               ? {
@@ -264,11 +264,11 @@ export class FrigateCardLiveProvider
               : undefined,
           )}
           .settings=${this.zoomSettings}
-          @frigate-card:zoom:zoomed=${() => this.setControls(false)}
-          @frigate-card:zoom:unzoomed=${() => this.setControls()}
+          @advanced-camera-card:zoom:zoomed=${() => this.setControls(false)}
+          @advanced-camera-card:zoom:unzoomed=${() => this.setControls()}
         >
           ${template}
-        </frigate-card-zoomer>`
+        </advanced-camera-card-zoomer>`
       : template;
   }
 
@@ -331,12 +331,12 @@ export class FrigateCardLiveProvider
 
     return html`${this._useZoomIfRequired(html`
       ${showImageDuringLoading || provider === 'image'
-        ? html` <frigate-card-live-image
+        ? html` <advanced-camera-card-live-image
             ${ref(this._refProvider)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
-            @frigate-card:live:error=${() => this._providerErrorHandler()}
-            @frigate-card:media:loaded=${(ev: Event) => {
+            @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+            @advanced-camera-card:media:loaded=${(ev: Event) => {
               if (provider === 'image') {
                 // Only count the media has loaded if the required provider is
                 // the image (not just the temporary image shown during
@@ -347,21 +347,21 @@ export class FrigateCardLiveProvider
               }
             }}
           >
-          </frigate-card-live-image>`
+          </advanced-camera-card-live-image>`
         : html``}
       ${provider === 'ha'
-        ? html` <frigate-card-live-ha
+        ? html` <advanced-camera-card-live-ha
             ${ref(this._refProvider)}
             class=${classMap(providerClasses)}
             .hass=${this.hass}
             .cameraConfig=${this.cameraConfig}
             ?controls=${this.liveConfig.controls.builtin}
-            @frigate-card:live:error=${() => this._providerErrorHandler()}
-            @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+            @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+            @advanced-camera-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
           >
-          </frigate-card-live-ha>`
+          </advanced-camera-card-live-ha>`
         : provider === 'go2rtc'
-          ? html`<frigate-card-live-go2rtc
+          ? html`<advanced-camera-card-live-go2rtc
               ${ref(this._refProvider)}
               class=${classMap(providerClasses)}
               .hass=${this.hass}
@@ -370,12 +370,14 @@ export class FrigateCardLiveProvider
               .microphoneState=${this.microphoneState}
               .microphoneConfig=${this.liveConfig.microphone}
               ?controls=${this.liveConfig.controls.builtin}
-              @frigate-card:live:error=${() => this._providerErrorHandler()}
-              @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+              @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+              @advanced-camera-card:media:loaded=${this._videoMediaShowHandler.bind(
+                this,
+              )}
             >
-            </frigate-card-live-go2rtc>`
+            </advanced-camera-card-live-go2rtc>`
           : provider === 'webrtc-card'
-            ? html`<frigate-card-live-webrtc-card
+            ? html`<advanced-camera-card-live-webrtc-card
                 ${ref(this._refProvider)}
                 class=${classMap(providerClasses)}
                 .hass=${this.hass}
@@ -383,32 +385,36 @@ export class FrigateCardLiveProvider
                 .cameraEndpoints=${this.cameraEndpoints}
                 .cardWideConfig=${this.cardWideConfig}
                 ?controls=${this.liveConfig.controls.builtin}
-                @frigate-card:live:error=${() => this._providerErrorHandler()}
-                @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+                @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+                @advanced-camera-card:media:loaded=${this._videoMediaShowHandler.bind(
+                  this,
+                )}
               >
-              </frigate-card-live-webrtc-card>`
+              </advanced-camera-card-live-webrtc-card>`
             : provider === 'jsmpeg'
-              ? html` <frigate-card-live-jsmpeg
+              ? html` <advanced-camera-card-live-jsmpeg
                   ${ref(this._refProvider)}
                   class=${classMap(providerClasses)}
                   .hass=${this.hass}
                   .cameraConfig=${this.cameraConfig}
                   .cameraEndpoints=${this.cameraEndpoints}
                   .cardWideConfig=${this.cardWideConfig}
-                  @frigate-card:live:error=${() => this._providerErrorHandler()}
-                  @frigate-card:media:loaded=${this._videoMediaShowHandler.bind(this)}
+                  @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
+                  @advanced-camera-card:media:loaded=${this._videoMediaShowHandler.bind(
+                    this,
+                  )}
                 >
-                </frigate-card-live-jsmpeg>`
+                </advanced-camera-card-live-jsmpeg>`
               : html``}
     `)}
     ${showLoadingIcon
-      ? html`<frigate-card-icon
+      ? html`<advanced-camera-card-icon
           title=${localize('error.awaiting_live')}
           .icon=${{ icon: 'mdi:progress-helper' }}
           @click=${() => {
             this._showStreamTroubleshooting = !this._showStreamTroubleshooting;
           }}
-        ></frigate-card-icon>`
+        ></advanced-camera-card-icon>`
       : ''}
     ${this._showStreamTroubleshooting
       ? renderMessage(
@@ -430,6 +436,6 @@ export class FrigateCardLiveProvider
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-provider': FrigateCardLiveProvider;
+    'advanced-camera-card-live-provider': AdvancedCameraCardLiveProvider;
   }
 }

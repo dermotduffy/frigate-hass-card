@@ -3,7 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { GenericCameraManagerEngine } from '../../../src/camera-manager/generic/engine-generic';
 import { Engine, QueryResultsType, QueryType } from '../../../src/camera-manager/types';
 import { StateWatcherSubscriptionInterface } from '../../../src/card-controller/hass/state-watcher';
-import { CameraConfig, RawFrigateCardConfig } from '../../../src/config/types';
+import { CameraConfig, RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import {
   TestViewMedia,
   createCameraConfig,
@@ -16,7 +16,9 @@ const createEngine = (): GenericCameraManagerEngine => {
   return new GenericCameraManagerEngine(mock<StateWatcherSubscriptionInterface>());
 };
 
-const createGenericCameraConfig = (config?: RawFrigateCardConfig): CameraConfig => {
+const createGenericCameraConfig = (
+  config?: RawAdvancedCameraCardConfig,
+): CameraConfig => {
   return createCameraConfig(config);
 };
 

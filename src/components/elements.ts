@@ -12,9 +12,9 @@ import {
   ConditionsManagerEpoch,
   evaluateConditionViaEvent,
 } from '../card-controller/conditions-manager.js';
-import { dispatchFrigateCardErrorEvent } from '../components-lib/message/dispatch.js';
+import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
 import {
-  FrigateConditional,
+  AdvancedCameraCardConditional,
   MenuIcon,
   MenuItem,
   MenuStateIcon,
@@ -28,8 +28,8 @@ import {
 } from '../config/types.js';
 import { localize } from '../localize/localize.js';
 import elementsStyle from '../scss/elements.scss';
-import { FrigateCardError } from '../types.js';
-import { dispatchFrigateCardEvent, errorToConsole } from '../utils/basic.js';
+import { AdvancedCameraCardError } from '../types.js';
+import { dispatchAdvancedCameraCardEvent, errorToConsole } from '../utils/basic.js';
 
 /* A note on picture element rendering:
  *
@@ -52,7 +52,7 @@ import { dispatchFrigateCardEvent, errorToConsole } from '../utils/basic.js';
  * correctly. These custom elements 'render' by firing events that are caught by
  * the card to call for inclusion/exclusion of the menu icon in question.
  *
- * One major complexity here is that the top <frigate-card-elements> element
+ * One major complexity here is that the top <advanced-camera-card-elements> element
  * will not necessarily know when a menu icon is no longer rendered because of a
  * conditional that no-longer evaluates to true. As such, it cannot know when to
  * signal for the menu icon removal. Furthermore, the menu icon element itself
@@ -60,7 +60,7 @@ import { dispatchFrigateCardEvent, errorToConsole } from '../utils/basic.js';
  * so normal event propagation at that point will not work. Instead, we must
  * catch the menu icon _addition_ and register the eventhandler for the removal
  * directly on the child (which will have no parent at time of calling). That
- * then triggers <frigate-card-elements> to re-dispatch a removal event for
+ * then triggers <advanced-camera-card-elements> to re-dispatch a removal event for
  * upper layers to handle correctly.
  */
 
@@ -71,8 +71,8 @@ interface HuiConditionalElement extends HTMLElement {
 
 // A small wrapper around a HA conditional element used to render a set of
 // picture elements.
-@customElement('frigate-card-elements-core')
-export class FrigateCardElementsCore extends LitElement {
+@customElement('advanced-camera-card-elements-core')
+export class AdvancedCameraCardElementsCore extends LitElement {
   @property({ attribute: false })
   public elements?: PictureElements;
 
@@ -116,7 +116,7 @@ export class FrigateCardElementsCore extends LitElement {
       element.setConfig(config);
     } catch (e) {
       errorToConsole(e as Error, console.error);
-      throw new FrigateCardError(localize('error.invalid_elements_config'));
+      throw new AdvancedCameraCardError(localize('error.invalid_elements_config'));
     }
     return element;
   }
@@ -133,7 +133,7 @@ export class FrigateCardElementsCore extends LitElement {
         this._root = this._createRoot();
       }
     } catch (e) {
-      return dispatchFrigateCardErrorEvent(this, e as FrigateCardError);
+      return dispatchAdvancedCameraCardErrorEvent(this, e as AdvancedCameraCardError);
     }
   }
 
@@ -148,17 +148,17 @@ export class FrigateCardElementsCore extends LitElement {
   protected updated(): void {
     if (this.hass && this._root) {
       // Always update hass. It is used as a trigger to re-evaluate conditions
-      // down the chain, see the note on FrigateCardElementsConditional.
+      // down the chain, see the note on AdvancedCameraCardElementsConditional.
       this._root.hass = this.hass;
     }
   }
 }
 
 /**
- * The master <frigate-card-elements> class, handles event listeners and styles.
+ * The master <advanced-camera-card-elements> class, handles event listeners and styles.
  */
-@customElement('frigate-card-elements')
-export class FrigateCardElements extends LitElement {
+@customElement('advanced-camera-card-elements')
+export class AdvancedCameraCardElements extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -181,13 +181,17 @@ export class FrigateCardElements extends LitElement {
   protected _menuRemoveHandler = (ev: Event): void => {
     // Re-dispatch event from this element (instead of the disconnected one, as
     // there is no parent of the disconnected element).
-    dispatchFrigateCardEvent<MenuItem>(this, 'menu:remove', (ev as CustomEvent).detail);
+    dispatchAdvancedCameraCardEvent<MenuItem>(
+      this,
+      'menu:remove',
+      (ev as CustomEvent).detail,
+    );
   };
 
   protected _statusBarRemoveHandler = (ev: Event): void => {
     // Re-dispatch event from this element (instead of the disconnected one, as
     // there is no parent of the disconnected element).
-    dispatchFrigateCardEvent<StatusBarItem>(
+    dispatchAdvancedCameraCardEvent<StatusBarItem>(
       this,
       'status-bar:remove',
       (ev as CustomEvent).detail,
@@ -200,7 +204,11 @@ export class FrigateCardElements extends LitElement {
     if (!path.length) {
       return;
     }
-    this._addHandler(path[0], 'frigate-card:menu:remove', this._menuRemoveHandler);
+    this._addHandler(
+      path[0],
+      'advanced-camera-card:menu:remove',
+      this._menuRemoveHandler,
+    );
   };
 
   protected _statusBarAddHandler = (ev: Event): void => {
@@ -211,7 +219,7 @@ export class FrigateCardElements extends LitElement {
     }
     this._addHandler(
       path[0],
-      'frigate-card:status-bar:add',
+      'advanced-camera-card:status-bar:add',
       this._statusBarRemoveHandler,
     );
   };
@@ -221,23 +229,29 @@ export class FrigateCardElements extends LitElement {
 
     // Catch icons being added to the menu or status-bar (so their removal can
     // be subsequently handled).
-    this.addEventListener('frigate-card:menu:add', this._menuAddHandler);
-    this.addEventListener('frigate-card:status-bar:add', this._statusBarAddHandler);
+    this.addEventListener('advanced-camera-card:menu:add', this._menuAddHandler);
+    this.addEventListener(
+      'advanced-camera-card:status-bar:add',
+      this._statusBarAddHandler,
+    );
   }
 
   disconnectedCallback(): void {
-    this.removeEventListener('frigate-card:menu:add', this._menuAddHandler);
-    this.addEventListener('frigate-card:status-bar:add', this._statusBarAddHandler);
+    this.removeEventListener('advanced-camera-card:menu:add', this._menuAddHandler);
+    this.addEventListener(
+      'advanced-camera-card:status-bar:add',
+      this._statusBarAddHandler,
+    );
     super.disconnectedCallback();
   }
 
   protected render(): TemplateResult {
-    return html`<frigate-card-elements-core
+    return html`<advanced-camera-card-elements-core
       .hass=${this.hass}
       .conditionsManagerEpoch=${this.conditionsManagerEpoch}
       .elements=${this.elements}
     >
-    </frigate-card-elements-core>`;
+    </advanced-camera-card-elements-core>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -246,19 +260,19 @@ export class FrigateCardElements extends LitElement {
 }
 
 /**
- * An element that can render others based on Frigate state (e.g. only show
- * overlays in particular views). This is the Frigate Card equivalent to the HA
- * conditional card.
+ * An element that can render others based on card state (e.g. only show
+ * overlays in particular views). This is the Advanced Camera Card equivalent to
+ * the HA conditional card.
  */
-@customElement('frigate-card-conditional')
-export class FrigateCardElementsConditional extends LitElement {
-  protected _config?: FrigateConditional;
+@customElement('advanced-camera-card-conditional')
+export class AdvancedCameraCardElementsConditional extends LitElement {
+  protected _config?: AdvancedCameraCardConditional;
 
   // A note on hass as an update mechanism:
   //
   // Every set of hass is treated as a reason to re-evaluate. Given that this
-  // node may be buried down the DOM (as a descendent of non-Frigate card
-  // elements), the hass object is used as the (only) trigger for condition
+  // node may be buried down the DOM (as a descendent of non-Advanced Camera
+  // Card elements), the hass object is used as the (only) trigger for condition
   // re-fetch even if hass itself has not changed.
   @property({ attribute: false, hasChanged: () => true })
   public hass?: HomeAssistant;
@@ -267,7 +281,7 @@ export class FrigateCardElementsConditional extends LitElement {
    * Set the card configuration.
    * @param config The card configuration.
    */
-  public setConfig(config: FrigateConditional): void {
+  public setConfig(config: AdvancedCameraCardConditional): void {
     this._config = config;
   }
 
@@ -296,17 +310,17 @@ export class FrigateCardElementsConditional extends LitElement {
    */
   protected render(): TemplateResult | void {
     if (evaluateConditionViaEvent(this, this._config?.conditions)) {
-      return html` <frigate-card-elements-core
+      return html` <advanced-camera-card-elements-core
         .hass=${this.hass}
         .elements=${this._config?.elements}
       >
-      </frigate-card-elements-core>`;
+      </advanced-camera-card-elements-core>`;
     }
   }
 }
 
 // A base class for rendering menu icons / menu state icons.
-export class FrigateCardElementsBaseItem<ConfigType> extends LitElement {
+export class AdvancedCameraCardElementsBaseItem<ConfigType> extends LitElement {
   protected _eventCategory: string;
 
   constructor(eventCategory: string) {
@@ -324,7 +338,7 @@ export class FrigateCardElementsBaseItem<ConfigType> extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     if (this._config) {
-      dispatchFrigateCardEvent<ConfigType>(
+      dispatchAdvancedCameraCardEvent<ConfigType>(
         this,
         `${this._eventCategory}:add`,
         this._config,
@@ -334,7 +348,7 @@ export class FrigateCardElementsBaseItem<ConfigType> extends LitElement {
 
   disconnectedCallback(): void {
     if (this._config) {
-      dispatchFrigateCardEvent<ConfigType>(
+      dispatchAdvancedCameraCardEvent<ConfigType>(
         this,
         `${this._eventCategory}:remove`,
         this._config,
@@ -344,56 +358,56 @@ export class FrigateCardElementsBaseItem<ConfigType> extends LitElement {
   }
 }
 
-export class FrigateCardElementsBaseMenuItem<
+export class AdvancedCameraCardElementsBaseMenuItem<
   ConfigType,
-> extends FrigateCardElementsBaseItem<ConfigType> {
+> extends AdvancedCameraCardElementsBaseItem<ConfigType> {
   constructor() {
     super('menu');
   }
 }
 
-@customElement('frigate-card-menu-icon')
-export class FrigateCardElementsMenuIcon extends FrigateCardElementsBaseMenuItem<MenuIcon> {}
+@customElement('advanced-camera-card-menu-icon')
+export class AdvancedCameraCardElementsMenuIcon extends AdvancedCameraCardElementsBaseMenuItem<MenuIcon> {}
 
-@customElement('frigate-card-menu-state-icon')
-export class FrigateCardElementsMenuStateIcon extends FrigateCardElementsBaseMenuItem<MenuStateIcon> {}
+@customElement('advanced-camera-card-menu-state-icon')
+export class AdvancedCameraCardElementsMenuStateIcon extends AdvancedCameraCardElementsBaseMenuItem<MenuStateIcon> {}
 
-@customElement('frigate-card-menu-submenu')
-export class FrigateCardElementsMenuSubmenu extends FrigateCardElementsBaseMenuItem<MenuSubmenu> {}
+@customElement('advanced-camera-card-menu-submenu')
+export class AdvancedCameraCardElementsMenuSubmenu extends AdvancedCameraCardElementsBaseMenuItem<MenuSubmenu> {}
 
-@customElement('frigate-card-menu-submenu-select')
-export class FrigateCardElementsMenuSubmenuSelect extends FrigateCardElementsBaseMenuItem<MenuSubmenuSelect> {}
+@customElement('advanced-camera-card-menu-submenu-select')
+export class AdvancedCameraCardElementsMenuSubmenuSelect extends AdvancedCameraCardElementsBaseMenuItem<MenuSubmenuSelect> {}
 
-export class FrigateCardElementsBaseStatusBarItem<
+export class AdvancedCameraCardElementsBaseStatusBarItem<
   ConfigType,
-> extends FrigateCardElementsBaseItem<ConfigType> {
+> extends AdvancedCameraCardElementsBaseItem<ConfigType> {
   constructor() {
     super('status-bar');
   }
 }
 
-@customElement('frigate-card-status-bar-icon')
-export class FrigateCardElementsStatusBarIcon extends FrigateCardElementsBaseStatusBarItem<StatusBarIcon> {}
+@customElement('advanced-camera-card-status-bar-icon')
+export class AdvancedCameraCardElementsStatusBarIcon extends AdvancedCameraCardElementsBaseStatusBarItem<StatusBarIcon> {}
 
-@customElement('frigate-card-status-bar-image')
-export class FrigateCardElementsStatusBarImage extends FrigateCardElementsBaseStatusBarItem<StatusBarImage> {}
+@customElement('advanced-camera-card-status-bar-image')
+export class AdvancedCameraCardElementsStatusBarImage extends AdvancedCameraCardElementsBaseStatusBarItem<StatusBarImage> {}
 
-@customElement('frigate-card-status-bar-string')
-export class FrigateCardElementsStatusBarString extends FrigateCardElementsBaseStatusBarItem<StatusBarString> {}
+@customElement('advanced-camera-card-status-bar-string')
+export class AdvancedCameraCardElementsStatusBarString extends AdvancedCameraCardElementsBaseStatusBarItem<StatusBarString> {}
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-conditional': FrigateCardElementsConditional;
-    'frigate-card-elements': FrigateCardElements;
-    'frigate-card-elements-core': FrigateCardElementsCore;
+    'advanced-camera-card-conditional': AdvancedCameraCardElementsConditional;
+    'advanced-camera-card-elements': AdvancedCameraCardElements;
+    'advanced-camera-card-elements-core': AdvancedCameraCardElementsCore;
 
-    'frigate-card-menu-icon': FrigateCardElementsMenuIcon;
-    'frigate-card-menu-state-icon': FrigateCardElementsMenuStateIcon;
-    'frigate-card-menu-submenu': FrigateCardElementsMenuSubmenu;
-    'frigate-card-menu-submenu-select': FrigateCardElementsMenuSubmenuSelect;
+    'advanced-camera-card-menu-icon': AdvancedCameraCardElementsMenuIcon;
+    'advanced-camera-card-menu-state-icon': AdvancedCameraCardElementsMenuStateIcon;
+    'advanced-camera-card-menu-submenu': AdvancedCameraCardElementsMenuSubmenu;
+    'advanced-camera-card-menu-submenu-select': AdvancedCameraCardElementsMenuSubmenuSelect;
 
-    'frigate-card-status-bar-icon': FrigateCardElementsStatusBarIcon;
-    'frigate-card-status-bar-image': FrigateCardElementsStatusBarImage;
-    'frigate-card-status-bar-string': FrigateCardElementsStatusBarString;
+    'advanced-camera-card-status-bar-icon': AdvancedCameraCardElementsStatusBarIcon;
+    'advanced-camera-card-status-bar-image': AdvancedCameraCardElementsStatusBarImage;
+    'advanced-camera-card-status-bar-string': AdvancedCameraCardElementsStatusBarString;
   }
 }

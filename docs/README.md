@@ -10,6 +10,8 @@
 Home Assistant > HACS > Frontend > "Explore & Add Integrations" > Frigate Card
 ```
 
+[](./common/rename-hacs.md ':include')
+
 - Click `Download this repository with HACS`.
 
 See [Advanced Installation](advanced-installation.md) for other installation resources, or [Rolling Back](./rolling-back.md) to rollback to prior versions.
@@ -23,14 +25,14 @@ See [Advanced Installation](advanced-installation.md) for other installation res
 ```
 
 - Click `+ Add Card` shown on the bottom of the screen
-- Choose `Custom: Frigate card` from the list
+- Choose `Custom: Advanced Camera Card` from the list
 
 ## Initial configuration
 
 ### Minimal configuration
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 ```
@@ -38,7 +40,7 @@ cameras:
 ### Video scrubbing configuration
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 profiles:
@@ -48,7 +50,7 @@ profiles:
 ### Multi-camera grid configuration
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
   - camera_entity: camera.kitchen

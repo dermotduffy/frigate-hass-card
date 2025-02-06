@@ -4,15 +4,15 @@ import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { localize } from '../localize/localize';
 import datePickerStyle from '../scss/date-picker.scss';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
-import { dispatchFrigateCardEvent } from '../utils/basic';
+import { dispatchAdvancedCameraCardEvent } from '../utils/basic';
 import './icon';
 
 export interface DatePickerEvent {
   date: Date | null;
 }
 
-@customElement('frigate-card-date-picker')
-export class FrigateCardDatePicker extends LitElement {
+@customElement('advanced-camera-card-date-picker')
+export class AdvancedCameraCardDatePicker extends LitElement {
   @property({ attribute: false })
   public icon?: string;
 
@@ -32,7 +32,7 @@ export class FrigateCardDatePicker extends LitElement {
     const changed = () => {
       const value = this._refInput.value?.value;
 
-      dispatchFrigateCardEvent<DatePickerEvent>(this, 'date-picker:change', {
+      dispatchAdvancedCameraCardEvent<DatePickerEvent>(this, 'date-picker:change', {
         date: value ? new Date(value) : null,
       });
     };
@@ -45,7 +45,7 @@ export class FrigateCardDatePicker extends LitElement {
         @input=${() => changed()}
         @change=${() => changed()}
       />
-      <frigate-card-icon
+      <advanced-camera-card-icon
         aria-label="${localize('timeline.select_date')}"
         title="${localize('timeline.select_date')}"
         .icon=${{ icon: this.icon ?? `mdi:calendar-search` }}
@@ -54,7 +54,7 @@ export class FrigateCardDatePicker extends LitElement {
           this._refInput.value?.showPicker();
         }}
       >
-      </frigate-card-icon>`;
+      </advanced-camera-card-icon>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -64,6 +64,6 @@ export class FrigateCardDatePicker extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-date-picker': FrigateCardDatePicker;
+    'advanced-camera-card-date-picker': AdvancedCameraCardDatePicker;
   }
 }

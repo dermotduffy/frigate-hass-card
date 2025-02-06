@@ -5,9 +5,9 @@
   width: 100%;
   height: 100%;
 
-  background-color: var(--frigate-card-thumbnail-background);
+  background-color: var(--advanced-camera-card-thumbnail-background);
 
-  --frigate-card-carousel-thumbnail-opacity: 1;
+  --advanced-camera-card-carousel-thumbnail-opacity: 1;
 }
 
 :host([direction='vertical']) {
@@ -21,19 +21,19 @@
 
 .embla__slide {
   flex: 0 0 auto;
-  opacity: var(--frigate-card-carousel-thumbnail-opacity);
+  opacity: var(--advanced-camera-card-carousel-thumbnail-opacity);
 }
 .embla__slide.slide-selected {
   opacity: 1;
 }
 
-frigate-card-thumbnail {
-  width: var(--frigate-card-thumbnail-size);
-  height: var(--frigate-card-thumbnail-size);
+advanced-camera-card-thumbnail {
+  width: var(--advanced-camera-card-thumbnail-size);
+  height: var(--advanced-camera-card-thumbnail-size);
 
   // Do not let thumbnails span beyond the width of the carousel.
   max-width: 100%;
 }
-frigate-card-thumbnail[details] {
-  width: var(--frigate-card-thumbnail-details-width);
+advanced-camera-card-thumbnail[details] {
+  width: var(--advanced-camera-card-thumbnail-details-width);
 }

@@ -1,8 +1,8 @@
 import { StatusBarActionConfig } from '../../../config/types';
 import { CardActionsAPI } from '../../types';
-import { FrigateCardAction } from './base';
+import { AdvancedCameraCardAction } from './base';
 
-export class StatusBarAction extends FrigateCardAction<StatusBarActionConfig> {
+export class StatusBarAction extends AdvancedCameraCardAction<StatusBarActionConfig> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async execute(api: CardActionsAPI): Promise<void> {
     switch (this._action.status_bar_action) {

@@ -1,6 +1,6 @@
 import { CameraManager } from '../camera-manager/manager';
 import { CapabilitySearchOptions } from '../camera-manager/types';
-import { FrigateCardView } from '../config/types';
+import { AdvancedCameraCardView } from '../config/types';
 
 /**
  * Get cameraIDs that are relevant for a given view name based on camera
@@ -8,7 +8,7 @@ import { FrigateCardView } from '../config/types';
  */
 export const getCameraIDsForViewName = (
   cameraManager: CameraManager,
-  viewName: FrigateCardView,
+  viewName: AdvancedCameraCardView,
   cameraID?: string,
 ): Set<string> => {
   const capabilityMatchAnyMedia: CapabilitySearchOptions = {

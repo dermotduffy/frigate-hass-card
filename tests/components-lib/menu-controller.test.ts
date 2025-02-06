@@ -18,7 +18,7 @@ describe('MenuController', () => {
   };
   const menuToggleAction = {
     action: 'fire-dom-event' as const,
-    frigate_card_action: 'menu_toggle' as const,
+    advanced_camera_card_action: 'menu_toggle' as const,
   };
   const tapActionConfig = {
     camera_entity: 'foo',
@@ -46,7 +46,9 @@ describe('MenuController', () => {
     controller.setMenuConfig(config);
     expect(controller.getMenuConfig()).toBe(config);
 
-    expect(host.style.getPropertyValue('--frigate-card-menu-button-size')).toBe('21px');
+    expect(host.style.getPropertyValue('--advanced-camera-card-menu-button-size')).toBe(
+      '21px',
+    );
     expect(host.getAttribute('data-style')).toBe('hover');
     expect(host.getAttribute('data-position')).toBe('left');
     expect(host.getAttribute('data-alignment')).toBe('top');
@@ -79,24 +81,24 @@ describe('MenuController', () => {
 
       controller.setButtons([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
           priority: 20,
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:goat',
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:chicken',
           priority: 40,
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:horse',
           priority: 40,
           alignment: 'matching',
@@ -105,7 +107,7 @@ describe('MenuController', () => {
           permanent: true,
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
           priority: 30,
           alignment: 'matching',
@@ -114,13 +116,13 @@ describe('MenuController', () => {
 
       expect(controller.getButtons('matching')).toEqual([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:chicken',
           priority: 40,
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:horse',
           priority: 40,
           alignment: 'matching',
@@ -130,16 +132,16 @@ describe('MenuController', () => {
           alignment: 'matching',
           icon: 'mdi:sheep',
           priority: 30,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
         },
         {
           alignment: 'matching',
           icon: 'mdi:cow',
           priority: 20,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:goat',
           alignment: 'matching',
         },
@@ -156,19 +158,19 @@ describe('MenuController', () => {
       controller.setExpanded(true);
       controller.setButtons([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
           priority: 99,
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
-          icon: 'frigate',
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'iris',
           alignment: 'matching',
           permanent: true,
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
           priority: 100,
           alignment: 'matching',
@@ -177,19 +179,19 @@ describe('MenuController', () => {
 
       expect(controller.getButtons('matching')).toEqual([
         {
-          type: 'custom:frigate-card-menu-icon',
-          icon: 'frigate',
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'iris',
           alignment: 'matching',
           permanent: true,
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
           priority: 100,
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
           priority: 99,
           alignment: 'matching',
@@ -207,25 +209,25 @@ describe('MenuController', () => {
       controller.setExpanded(false);
       controller.setButtons([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
           priority: 100,
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
-          icon: 'frigate',
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'iris',
           alignment: 'matching',
           permanent: true,
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
           priority: 100,
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
           alignment: 'matching',
           priority: 100,
@@ -235,15 +237,15 @@ describe('MenuController', () => {
 
       expect(controller.getButtons('matching')).toEqual([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
           alignment: 'matching',
           priority: 100,
           permanent: true,
         },
         {
-          type: 'custom:frigate-card-menu-icon',
-          icon: 'frigate',
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'iris',
           alignment: 'matching',
           permanent: true,
         },
@@ -256,29 +258,29 @@ describe('MenuController', () => {
       const controller = new MenuController(createLitElement());
       controller.setButtons([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
           alignment: 'opposing',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
         },
       ]);
 
       expect(controller.getButtons('matching')).toEqual([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
           alignment: 'matching',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
         },
       ]);
@@ -288,16 +290,16 @@ describe('MenuController', () => {
       const controller = new MenuController(createLitElement());
       controller.setButtons([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
           enabled: false,
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:goat',
           enabled: true,
         },
@@ -305,11 +307,11 @@ describe('MenuController', () => {
 
       expect(controller.getButtons('matching')).toEqual([
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:cow',
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:goat',
           enabled: true,
         },
@@ -326,20 +328,20 @@ describe('MenuController', () => {
 
       controller.setButtons([
         {
-          type: 'custom:frigate-card-menu-icon',
-          icon: 'frigate',
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'iris',
           permanent: true,
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
         },
       ]);
 
       expect(controller.getButtons('matching')).toEqual([
         {
-          type: 'custom:frigate-card-menu-icon',
-          icon: 'frigate',
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'iris',
           permanent: true,
         },
       ]);
@@ -348,12 +350,12 @@ describe('MenuController', () => {
 
       expect(controller.getButtons('matching')).toEqual([
         {
-          type: 'custom:frigate-card-menu-icon',
-          icon: 'frigate',
+          type: 'custom:advanced-camera-card-menu-icon',
+          icon: 'iris',
           permanent: true,
         },
         {
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           icon: 'mdi:sheep',
         },
       ]);
@@ -370,7 +372,7 @@ describe('MenuController', () => {
     it('should execute simple action in non-hidden menu', () => {
       const host = createLitElement();
       const handler = vi.fn();
-      host.addEventListener('frigate-card:action:execution-request', handler);
+      host.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new MenuController(host);
 
@@ -386,7 +388,7 @@ describe('MenuController', () => {
     it('should execute simple action in with config in event', () => {
       const host = createLitElement();
       const handler = vi.fn();
-      host.addEventListener('frigate-card:action:execution-request', handler);
+      host.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new MenuController(host);
 
@@ -401,7 +403,7 @@ describe('MenuController', () => {
     it('should execute simple array of actions in non-hidden menu', () => {
       const host = createLitElement();
       const handler = vi.fn();
-      host.addEventListener('frigate-card:action:execution-request', handler);
+      host.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new MenuController(host);
 

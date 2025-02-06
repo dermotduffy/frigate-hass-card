@@ -16,8 +16,8 @@ import { CameraConfig, CardWideConfig } from '../../../config/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveWebRTCCardStyle from '../../../scss/live-webrtc-card.scss';
 import {
-  FrigateCardError,
-  FrigateCardMediaPlayer,
+  AdvancedCameraCardError,
+  AdvancedCameraCardMediaPlayer,
   FullscreenElement,
   Message,
 } from '../../../types.js';
@@ -43,10 +43,10 @@ import { VideoRTC } from './go2rtc/video-rtc.js';
 
 // Create a wrapper for AlexxIT's WebRTC card
 //  - https://github.com/AlexxIT/WebRTC
-@customElement('frigate-card-live-webrtc-card')
-export class FrigateCardLiveWebRTCCard
+@customElement('advanced-camera-card-live-webrtc-card')
+export class AdvancedCameraCardLiveWebRTCCard
   extends LitElement
-  implements FrigateCardMediaPlayer
+  implements AdvancedCameraCardMediaPlayer
 {
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
@@ -125,7 +125,7 @@ export class FrigateCardLiveWebRTCCard
     super.connectedCallback();
 
     // Reset the player when reconnected to the DOM.
-    // https://github.com/dermotduffy/frigate-hass-card/issues/996
+    // https://github.com/dermotduffy/advanced-camera-card/issues/996
     this.requestUpdate();
   }
 
@@ -177,11 +177,11 @@ export class FrigateCardLiveWebRTCCard
         // hidden. This is incompatible with the card zoom support, since the
         // video will easily stop if the user zooms in too much. Disable this
         // feature by default.
-        // See: https://github.com/dermotduffy/frigate-hass-card/issues/1614
+        // See: https://github.com/dermotduffy/advanced-camera-card/issues/1614
         intersection: 0,
 
-        // Frigate card always starts muted (unlike webrtc-card).
-        // See: https://github.com/dermotduffy/frigate-hass-card/issues/1654
+        // Advanced Camera Card always starts muted (unlike webrtc-card).
+        // See: https://github.com/dermotduffy/advanced-camera-card/issues/1654
         muted: true,
 
         ...this.cameraConfig.webrtc_card,
@@ -209,12 +209,12 @@ export class FrigateCardLiveWebRTCCard
         this._message = {
           type: 'error',
           message:
-            e instanceof FrigateCardError
+            e instanceof AdvancedCameraCardError
               ? e.message
               : localize('error.webrtc_card_reported_error') +
                 ': ' +
                 (e as Error).message,
-          context: (e as FrigateCardError).context,
+          context: (e as AdvancedCameraCardError).context,
         };
         dispatchLiveErrorEvent(this);
         return;
@@ -275,6 +275,6 @@ export class FrigateCardLiveWebRTCCard
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-webrtc-card': FrigateCardLiveWebRTCCard;
+    'advanced-camera-card-live-webrtc-card': AdvancedCameraCardLiveWebRTCCard;
   }
 }

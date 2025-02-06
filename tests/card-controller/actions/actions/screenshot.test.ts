@@ -8,7 +8,7 @@ it('should handle screenshot action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'screenshot',
+      advanced_camera_card_action: 'screenshot',
     },
   );
 

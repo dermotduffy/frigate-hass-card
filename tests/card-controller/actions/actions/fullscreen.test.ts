@@ -8,7 +8,7 @@ it('should handle fullscreen action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'fullscreen',
+      advanced_camera_card_action: 'fullscreen',
     },
   );
 

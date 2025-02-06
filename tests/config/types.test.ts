@@ -4,9 +4,9 @@ import {
   conditionalSchema,
   customSchema,
   dimensionsConfigSchema,
-  frigateCardConditionSchema,
-  frigateCardCustomActionsBaseSchema,
-  frigateCardCustomActionSchema,
+  advancedCameraCardConditionSchema,
+  advancedCameraCardCustomActionsBaseSchema,
+  advancedCameraCardCustomActionSchema,
 } from '../../src/config/types';
 import { createConfig } from '../test-utils';
 
@@ -217,16 +217,16 @@ describe('config defaults', () => {
             enabled: false,
             priority: 50,
           },
-          frigate: {
-            enabled: true,
-            priority: 50,
-          },
           fullscreen: {
             enabled: true,
             priority: 50,
           },
           image: {
             enabled: false,
+            priority: 50,
+          },
+          iris: {
+            enabled: true,
             priority: 50,
           },
           live: {
@@ -338,7 +338,7 @@ describe('config defaults', () => {
         style: 'stack',
         window_seconds: 3600,
       },
-      type: 'frigate-hass-card',
+      type: 'advanced-camera-card',
       view: {
         camera_select: 'current',
         default: 'live',
@@ -416,7 +416,7 @@ it('should transform dimensions.aspect_ratio', () => {
 describe('should refine user_agent_re conditions', () => {
   it('should successfully parse valid user_agent_re condition', () => {
     expect(
-      frigateCardConditionSchema.parse({
+      advancedCameraCardConditionSchema.parse({
         condition: 'user_agent',
         user_agent_re: 'Chrome/',
       }),
@@ -428,7 +428,7 @@ describe('should refine user_agent_re conditions', () => {
 
   it('should reject invalid user_agent_re conditions', () => {
     expect(() =>
-      frigateCardConditionSchema.parse({
+      advancedCameraCardConditionSchema.parse({
         condition: 'user_agent',
         user_agent_re: '[',
       }),
@@ -438,15 +438,15 @@ describe('should refine user_agent_re conditions', () => {
 
 it('should transform action', () => {
   expect(
-    frigateCardCustomActionsBaseSchema.parse({
-      action: 'custom:frigate-card-action',
+    advancedCameraCardCustomActionsBaseSchema.parse({
+      action: 'custom:advanced-camera-card-action',
     }),
   ).toEqual({
     action: 'fire-dom-event',
   });
 });
 
-describe('should convert webrtc card PTZ to Frigate card PTZ', () => {
+describe('should convert webrtc card PTZ to Advanced Camera Card PTZ', () => {
   describe('relative actions', () => {
     it.each([
       ['left' as const],
@@ -632,29 +632,29 @@ describe('should lazy evaluate schemas', () => {
   it('status bar actions', () => {
     const input = {
       action: 'fire-dom-event',
-      frigate_card_action: 'status_bar',
+      advanced_camera_card_action: 'status_bar',
       status_bar_action: 'reset',
       items: [
         {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item',
         },
       ],
     };
-    expect(frigateCardCustomActionSchema.parse(input)).toEqual(input);
+    expect(advancedCameraCardCustomActionSchema.parse(input)).toEqual(input);
   });
 });
 
-describe('should handle custom frigate elements', () => {
-  it('should add custom error on frigate entry', () => {
+describe('should handle custom advanced camera card elements', () => {
+  it('should add custom error on advanced camera card element', () => {
     const result = customSchema.safeParse({
-      type: 'custom:frigate-card-foo',
+      type: 'custom:advanced-camera-card-foo',
     });
     expect(result.success).toBeFalsy();
     if (!result.success) {
       expect(result.error.errors[0]).toEqual({
         code: 'custom',
-        message: 'Frigate-card custom elements must match specific schemas',
+        message: 'advanced-camera-card custom elements must match specific schemas',
         fatal: true,
         path: ['type'],
       });
@@ -669,7 +669,7 @@ describe('should handle custom frigate elements', () => {
   });
 });
 
-// https://github.com/dermotduffy/frigate-hass-card/issues/1280
+// https://github.com/dermotduffy/advanced-camera-card/issues/1280
 it('should not require title controls to specify all options', () => {
   expect(
     createConfig({

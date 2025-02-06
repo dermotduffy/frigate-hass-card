@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CardController } from '../../../../src/card-controller/controller';
 import { SubstreamOnViewModifier } from '../../../../src/card-controller/view/modifiers/substream-on';
-import { RawFrigateCardConfig } from '../../../../src/config/types';
+import { RawAdvancedCameraCardConfig } from '../../../../src/config/types';
 import {
   getStreamCameraID,
   hasSubstream,
@@ -17,7 +17,9 @@ import {
   createView,
 } from '../../../test-utils';
 
-const createAPIWithSubstreams = (config?: RawFrigateCardConfig): CardController => {
+const createAPIWithSubstreams = (
+  config?: RawAdvancedCameraCardConfig,
+): CardController => {
   const api = createCardAPI();
   vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
   vi.mocked(api.getCameraManager().getStore).mockReturnValue(

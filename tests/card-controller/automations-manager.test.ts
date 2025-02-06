@@ -8,7 +8,7 @@ describe('AutomationsManager', () => {
   const actions = [
     {
       action: 'fire-dom-event' as const,
-      frigate_card_action: 'clips',
+      advanced_camera_card_action: 'clips',
     },
   ];
   const conditions = [{ condition: 'fullscreen' as const, fullscreen: true }];

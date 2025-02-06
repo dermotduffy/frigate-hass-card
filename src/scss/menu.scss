@@ -1,8 +1,8 @@
 @use './button.scss';
 
 :host {
-  --frigate-card-menu-button-size: 40px;
-  --mdc-icon-button-size: var(--frigate-card-menu-button-size);
+  --advanced-camera-card-menu-button-size: 40px;
+  --mdc-icon-button-size: var(--advanced-camera-card-menu-button-size);
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 
   pointer-events: auto;
@@ -102,8 +102,8 @@ div.opposing {
  ****************************/
 
 :host(:not([data-style='outside'])[data-position='bottom']) div {
-  // If the menu has more content that allows, "wrap upwards" to keep the
-  // Frigate button in the same place.
+  // If the menu has more content that allows, "wrap upwards" to keep the Iris
+  // button in the same place.
   flex-wrap: wrap-reverse;
 }
 
@@ -139,15 +139,15 @@ div.opposing {
 // permanent menu buttons use the menu background color instead of the button
 // background color.
 :host([data-style='hidden']:not([expanded])) ha-icon-button {
-  background: var(--frigate-card-menu-background);
+  background: var(--advanced-camera-card-menu-background);
 }
 
-// Icons in the menu are expected to follow Frigate card theming unless they are
+// Icons in the menu are expected to follow Advanced Camera Card theming unless they are
 // active (in which case we want to take advantage of the whatever styling is
 // appropriate, e.g. light icon partially lit).
 :host ha-icon-button {
-  --state-unavailable-color: var(--frigate-card-button-color);
-  --state-inactive-color: var(--frigate-card-button-color);
+  --state-unavailable-color: var(--advanced-camera-card-button-color);
+  --state-inactive-color: var(--advanced-camera-card-button-color);
 }
 
 // Further theme related styling is dynamically applied by `menu.ts`, see

@@ -1,6 +1,10 @@
 import { deepRemoveDefaults } from '../../utils/zod.js';
 import { getConfigValue, setConfigValue } from '../management.js';
-import { ProfileType, RawFrigateCardConfig, frigateCardConfigSchema } from '../types.js';
+import {
+  ProfileType,
+  RawAdvancedCameraCardConfig,
+  advancedCameraCardConfigSchema,
+} from '../types.js';
 import { CASTING_PROFILE } from './casting.js';
 import { LOW_PERFORMANCE_PROFILE } from './low-performance.js';
 import { SCRUBBING_PROFILE } from './scrubbing.js';
@@ -18,14 +22,14 @@ const PROFILES = {
  * @param outputConfig The output config to write to.
  * @returns A changed (in-place) parsed input configuration.
  */
-export const setProfiles = <T extends RawFrigateCardConfig>(
-  inputConfig: RawFrigateCardConfig,
+export const setProfiles = <T extends RawAdvancedCameraCardConfig>(
+  inputConfig: RawAdvancedCameraCardConfig,
   outputConfig: T,
   profiles?: ProfileType[],
 ): T => {
-  const defaultLessParseResult = deepRemoveDefaults(frigateCardConfigSchema).safeParse(
-    inputConfig,
-  );
+  const defaultLessParseResult = deepRemoveDefaults(
+    advancedCameraCardConfigSchema,
+  ).safeParse(inputConfig);
   if (!defaultLessParseResult.success) {
     return outputConfig;
   }

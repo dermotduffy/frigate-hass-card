@@ -21,14 +21,14 @@ import {
 import { CardWideConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import mediaFilterStyle from '../scss/media-filter.scss';
-import { FrigateCardDatePicker } from './date-picker';
+import { AdvancedCameraCardDatePicker } from './date-picker';
 import './date-picker.js';
-import { FrigateCardSelect } from './select';
+import { AdvancedCameraCardSelect } from './select';
 import './select.js';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 
-@customElement('frigate-card-media-filter')
-class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
+@customElement('advanced-camera-card-media-filter')
+class AdvancedCameraCardMediaFilter extends ScopedRegistryHost(LitElement) {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -42,21 +42,21 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
   public cardWideConfig?: CardWideConfig;
 
   static elementDefinitions = {
-    'frigate-card-select': FrigateCardSelect,
-    'frigate-card-date-picker': FrigateCardDatePicker,
+    'advanced-camera-card-select': AdvancedCameraCardSelect,
+    'advanced-camera-card-date-picker': AdvancedCameraCardDatePicker,
   };
 
   protected _mediaFilterController = new MediaFilterController(this);
 
-  protected _refMediaType: Ref<FrigateCardSelect> = createRef();
-  protected _refCamera: Ref<FrigateCardSelect> = createRef();
-  protected _refWhen: Ref<FrigateCardSelect> = createRef();
-  protected _refWhenFrom: Ref<FrigateCardDatePicker> = createRef();
-  protected _refWhenTo: Ref<FrigateCardDatePicker> = createRef();
-  protected _refWhat: Ref<FrigateCardSelect> = createRef();
-  protected _refWhere: Ref<FrigateCardSelect> = createRef();
-  protected _refFavorite: Ref<FrigateCardSelect> = createRef();
-  protected _refTags: Ref<FrigateCardSelect> = createRef();
+  protected _refMediaType: Ref<AdvancedCameraCardSelect> = createRef();
+  protected _refCamera: Ref<AdvancedCameraCardSelect> = createRef();
+  protected _refWhen: Ref<AdvancedCameraCardSelect> = createRef();
+  protected _refWhenFrom: Ref<AdvancedCameraCardDatePicker> = createRef();
+  protected _refWhenTo: Ref<AdvancedCameraCardDatePicker> = createRef();
+  protected _refWhat: Ref<AdvancedCameraCardSelect> = createRef();
+  protected _refWhere: Ref<AdvancedCameraCardSelect> = createRef();
+  protected _refFavorite: Ref<AdvancedCameraCardSelect> = createRef();
+  protected _refTags: Ref<AdvancedCameraCardSelect> = createRef();
 
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewManagerEpoch')) {
@@ -132,48 +132,48 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
     const tagsOptions = this._mediaFilterController.getTagsOptions();
     const whereOptions = this._mediaFilterController.getWhereOptions();
 
-    return html` <frigate-card-select
+    return html` <advanced-camera-card-select
         ${ref(this._refMediaType)}
         label=${localize('media_filter.media_type')}
         placeholder=${localize('media_filter.select_media_type')}
         .options=${this._mediaFilterController.getMediaTypeOptions()}
         .initialValue=${defaults?.mediaType}
-        @frigate-card:select:change=${() => valueChange()}
+        @advanced-camera-card:select:change=${() => valueChange()}
       >
-      </frigate-card-select>
+      </advanced-camera-card-select>
       <div class="when">
-        <frigate-card-select
+        <advanced-camera-card-select
           ${ref(this._refWhen)}
           .label=${localize('media_filter.when')}
           placeholder=${localize('media_filter.select_when')}
           .options=${this._mediaFilterController.getWhenOptions()}
           .initialValue=${defaults?.when}
           clearable
-          @frigate-card:select:change=${() => whenChange('selected')}
+          @advanced-camera-card:select:change=${() => whenChange('selected')}
         >
-        </frigate-card-select>
-        <frigate-card-date-picker
+        </advanced-camera-card-select>
+        <advanced-camera-card-date-picker
           class="${classMap({
             selected: !!this._refWhenFrom.value?.value,
             hidden: this._refWhen.value?.value !== MediaFilterCoreWhen.Custom,
           })}"
           ${ref(this._refWhenFrom)}
           .icon=${'mdi:calendar-arrow-right'}
-          @frigate-card:date-picker:change=${() => whenChange('custom')}
+          @advanced-camera-card:date-picker:change=${() => whenChange('custom')}
         >
-        </frigate-card-date-picker>
-        <frigate-card-date-picker
+        </advanced-camera-card-date-picker>
+        <advanced-camera-card-date-picker
           class="${classMap({
             selected: !!this._refWhenTo.value?.value,
             hidden: this._refWhen.value?.value !== MediaFilterCoreWhen.Custom,
           })}"
           ${ref(this._refWhenTo)}
           .icon=${'mdi:calendar-arrow-left'}
-          @frigate-card:date-picker:change=${() => whenChange('custom')}
+          @advanced-camera-card:date-picker:change=${() => whenChange('custom')}
         >
-        </frigate-card-date-picker>
+        </advanced-camera-card-date-picker>
       </div>
-      <frigate-card-select
+      <advanced-camera-card-select
         ${ref(this._refCamera)}
         .label=${localize('media_filter.camera')}
         placeholder=${localize('media_filter.select_camera')}
@@ -181,11 +181,11 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
         .initialValue=${defaults?.cameraIDs}
         clearable
         multiple
-        @frigate-card:select:change=${() => valueChange()}
+        @advanced-camera-card:select:change=${() => valueChange()}
       >
-      </frigate-card-select>
+      </advanced-camera-card-select>
       ${controls.events && whatOptions.length
-        ? html` <frigate-card-select
+        ? html` <advanced-camera-card-select
             ${ref(this._refWhat)}
             label=${localize('media_filter.what')}
             placeholder=${localize('media_filter.select_what')}
@@ -193,12 +193,12 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
             multiple
             .options=${whatOptions}
             .initialValue=${defaults?.what}
-            @frigate-card:select:change=${() => valueChange()}
+            @advanced-camera-card:select:change=${() => valueChange()}
           >
-          </frigate-card-select>`
+          </advanced-camera-card-select>`
         : ''}
       ${controls.events && tagsOptions.length
-        ? html` <frigate-card-select
+        ? html` <advanced-camera-card-select
             ${ref(this._refTags)}
             label=${localize('media_filter.tag')}
             placeholder=${localize('media_filter.select_tag')}
@@ -206,12 +206,12 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
             multiple
             .options=${tagsOptions}
             .initialValue=${defaults?.tags}
-            @frigate-card:select:change=${() => valueChange()}
+            @advanced-camera-card:select:change=${() => valueChange()}
           >
-          </frigate-card-select>`
+          </advanced-camera-card-select>`
         : ''}
       ${controls.events && whereOptions.length
-        ? html` <frigate-card-select
+        ? html` <advanced-camera-card-select
             ${ref(this._refWhere)}
             label=${localize('media_filter.where')}
             placeholder=${localize('media_filter.select_where')}
@@ -219,22 +219,22 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
             multiple
             .options=${whereOptions}
             .initialValue=${defaults?.where}
-            @frigate-card:select:change=${() => valueChange()}
+            @advanced-camera-card:select:change=${() => valueChange()}
           >
-          </frigate-card-select>`
+          </advanced-camera-card-select>`
         : ''}
       ${controls.favorites
         ? html`
-            <frigate-card-select
+            <advanced-camera-card-select
               ${ref(this._refFavorite)}
               label=${localize('media_filter.favorite')}
               placeholder=${localize('media_filter.select_favorite')}
               .options=${this._mediaFilterController.getFavoriteOptions()}
               .initialValue=${defaults?.favorite}
               clearable
-              @frigate-card:select:change=${() => valueChange()}
+              @advanced-camera-card:select:change=${() => valueChange()}
             >
-            </frigate-card-select>
+            </advanced-camera-card-select>
           `
         : ''}`;
   }
@@ -246,6 +246,6 @@ class FrigateCardMediaFilter extends ScopedRegistryHost(LitElement) {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-media-filter': FrigateCardMediaFilter;
+    'advanced-camera-card-media-filter': AdvancedCameraCardMediaFilter;
   }
 }

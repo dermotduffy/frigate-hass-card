@@ -5,7 +5,7 @@ import { dispatchLiveErrorEvent } from '../../../../src/components-lib/live/util
 it('should dispatch live error event', () => {
   const element = document.createElement('div');
   const handler = vi.fn();
-  element.addEventListener('frigate-card:live:error', handler);
+  element.addEventListener('advanced-camera-card:live:error', handler);
 
   dispatchLiveErrorEvent(element);
   expect(handler).toBeCalled();

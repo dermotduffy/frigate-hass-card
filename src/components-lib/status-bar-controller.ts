@@ -5,7 +5,7 @@ import orderBy from 'lodash-es/orderBy';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request';
 import {
   ActionsConfig,
-  FRIGATE_STATUS_BAR_PRIORITY_DEFAULT,
+  STATUS_BAR_PRIORITY_DEFAULT,
   StatusBarConfig,
   StatusBarItem,
 } from '../config/types';
@@ -33,7 +33,7 @@ export class StatusBarController {
 
     const newItems = orderBy(
       exclusiveItems.length ? exclusiveItems : items,
-      (item) => item.priority ?? FRIGATE_STATUS_BAR_PRIORITY_DEFAULT,
+      (item) => item.priority ?? STATUS_BAR_PRIORITY_DEFAULT,
       'desc',
     );
 
@@ -53,7 +53,7 @@ export class StatusBarController {
   public setConfig(config: StatusBarConfig): void {
     this._config = config;
     this._host.style.setProperty(
-      '--frigate-card-status-bar-height',
+      '--advanced-camera-card-status-bar-height',
       `${config.height}px`,
     );
 
@@ -97,11 +97,11 @@ export class StatusBarController {
 
   protected _getSufficientValue(item: StatusBarItem): string | null {
     /* istanbul ignore else: cannot happen -- @preserve */
-    if (item.type === 'custom:frigate-card-status-bar-icon') {
+    if (item.type === 'custom:advanced-camera-card-status-bar-icon') {
       return item.icon;
-    } else if (item.type === 'custom:frigate-card-status-bar-string') {
+    } else if (item.type === 'custom:advanced-camera-card-status-bar-string') {
       return item.string;
-    } else if (item.type === 'custom:frigate-card-status-bar-image') {
+    } else if (item.type === 'custom:advanced-camera-card-status-bar-image') {
       return item.image;
     } else {
       return null;

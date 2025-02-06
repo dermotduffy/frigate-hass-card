@@ -1,5 +1,5 @@
 import { ViewContext } from 'view';
-import { FrigateCardView } from '../../config/types';
+import { AdvancedCameraCardView } from '../../config/types';
 import { log } from '../../utils/debug';
 import { getStreamCameraID } from '../../utils/substream';
 import { MediaQueriesClassifier } from '../../view/media-queries-classifier';
@@ -217,7 +217,7 @@ export class ViewManager implements ViewManagerInterface {
     // target media of the gallery (e.g. clips, snapshots or recordings) is
     // equal to the queries that are currently used in the viewer.
     //
-    // See: https://github.com/dermotduffy/frigate-hass-card/issues/885
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/885
 
     const switchingFromViewerToGallery =
       this._view?.isViewerView() && newView?.isGalleryView();
@@ -233,7 +233,10 @@ export class ViewManager implements ViewManagerInterface {
     }
   }
 
-  public isViewSupportedByCamera(cameraID: string, view: FrigateCardView): boolean {
+  public isViewSupportedByCamera(
+    cameraID: string,
+    view: AdvancedCameraCardView,
+  ): boolean {
     return !!getCameraIDsForViewName(this._api.getCameraManager(), view, cameraID).size;
   }
 
@@ -266,7 +269,7 @@ export class ViewManager implements ViewManagerInterface {
     // If the query string contains a view related action, we don't set any view
     // here and allow that action to be triggered by the next call of to execute
     // query actions (called at least once per render cycle).
-    // Related: https://github.com/dermotduffy/frigate-hass-card/issues/1200
+    // Related: https://github.com/dermotduffy/advanced-camera-card/issues/1200
     if (!this._api.getQueryStringManager().hasViewRelatedActionsToRun()) {
       // This is not awaited to allow the initialization to complete before the
       // query is answered.
@@ -280,7 +283,7 @@ export class ViewManager implements ViewManagerInterface {
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
-      `Frigate Card view change: `,
+      `Advanced Camera Card view change: `,
       view,
     );
 

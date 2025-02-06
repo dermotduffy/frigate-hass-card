@@ -18,8 +18,8 @@ import { ExtendedHomeAssistant } from '../../types.js';
 import { ResolvedMediaCache } from '../../utils/ha/resolved-media.js';
 import './carousel';
 
-@customElement('frigate-card-viewer-grid')
-export class FrigateCardViewerGrid extends LitElement {
+@customElement('advanced-camera-card-viewer-grid')
+export class AdvancedCameraCardViewerGrid extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -41,7 +41,7 @@ export class FrigateCardViewerGrid extends LitElement {
   protected _renderCarousel(filterCamera?: string): TemplateResult {
     const selectedCameraID = this.viewManagerEpoch?.manager.getView()?.camera;
     return html`
-      <frigate-card-viewer-carousel
+      <advanced-camera-card-viewer-carousel
         grid-id=${ifDefined(filterCamera)}
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
@@ -52,7 +52,7 @@ export class FrigateCardViewerGrid extends LitElement {
         .cardWideConfig=${this.cardWideConfig}
         .showControls=${!filterCamera || selectedCameraID === filterCamera}
       >
-      </frigate-card-viewer-carousel>
+      </advanced-camera-card-viewer-carousel>
     `;
   }
 
@@ -92,14 +92,15 @@ export class FrigateCardViewerGrid extends LitElement {
     }
 
     return html`
-      <frigate-card-media-grid
+      <advanced-camera-card-media-grid
         .selected=${view?.camera}
         .displayConfig=${this.viewerConfig?.display}
-        @frigate-card:media-grid:selected=${(ev: CustomEvent<MediaGridSelected>) =>
-          this._gridSelectCamera(ev.detail.selected)}
+        @advanced-camera-card:media-grid:selected=${(
+          ev: CustomEvent<MediaGridSelected>,
+        ) => this._gridSelectCamera(ev.detail.selected)}
       >
         ${[...cameraIDs].map((cameraID) => this._renderCarousel(cameraID))}
-      </frigate-card-media-grid>
+      </advanced-camera-card-media-grid>
     `;
   }
 
@@ -110,6 +111,6 @@ export class FrigateCardViewerGrid extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-viewer-grid': FrigateCardViewerGrid;
+    'advanced-camera-card-viewer-grid': AdvancedCameraCardViewerGrid;
   }
 }

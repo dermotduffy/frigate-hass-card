@@ -1,4 +1,4 @@
-import { CameraConfig, RawFrigateCardConfig } from '../config/types.js';
+import { CameraConfig, RawAdvancedCameraCardConfig } from '../config/types.js';
 
 /**
  * Get a camera id.
@@ -6,7 +6,7 @@ import { CameraConfig, RawFrigateCardConfig } from '../config/types.js';
  * @returns A camera id.
  */
 export function getCameraID(
-  config?: CameraConfig | RawFrigateCardConfig | null,
+  config?: CameraConfig | RawAdvancedCameraCardConfig | null,
 ): string {
   return (
     (typeof config?.id === 'string' && config.id) ||

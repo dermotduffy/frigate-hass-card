@@ -3,7 +3,7 @@ import { LitElement } from 'lit';
 import { orderBy } from 'lodash-es';
 import { dispatchActionExecutionRequest } from '../card-controller/actions/utils/execution-request.js';
 import {
-  FRIGATE_MENU_PRIORITY_MAX,
+  MENU_PRIORITY_MAX,
   type ActionType,
   type ActionsConfig,
   type MenuConfig,
@@ -28,7 +28,7 @@ export class MenuController {
   public setMenuConfig(config: MenuConfig): void {
     this._config = config;
     this._host.style.setProperty(
-      '--frigate-card-menu-button-size',
+      '--advanced-camera-card-menu-button-size',
       `${config.button_size}px`,
     );
 
@@ -164,8 +164,7 @@ export class MenuController {
         // If the menu is hidden, the buttons that toggle the menu must come
         // first.
         return (
-          priority +
-          (this._isHidingMenu() && button.permanent ? FRIGATE_MENU_PRIORITY_MAX : 0)
+          priority + (this._isHidingMenu() && button.permanent ? MENU_PRIORITY_MAX : 0)
         );
       },
       ['desc'],
@@ -178,6 +177,6 @@ export class MenuController {
 
   protected _isUnknownActionMenuToggleAction(action: ActionType): boolean {
     const parsedAction = convertActionToCardCustomAction(action);
-    return !!parsedAction && parsedAction.frigate_card_action == 'menu_toggle';
+    return !!parsedAction && parsedAction.advanced_camera_card_action == 'menu_toggle';
   }
 }

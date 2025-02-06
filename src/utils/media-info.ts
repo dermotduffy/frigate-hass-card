@@ -1,10 +1,10 @@
 import {
-  FrigateCardMediaPlayer,
+  AdvancedCameraCardMediaPlayer,
   MediaLoadedCapabilities,
   MediaLoadedInfo,
   MediaTechnology,
 } from '../types.js';
-import { dispatchFrigateCardEvent } from './basic.js';
+import { dispatchAdvancedCameraCardEvent } from './basic.js';
 
 const MEDIA_INFO_HEIGHT_CUTOFF = 50;
 const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
@@ -17,7 +17,7 @@ const MEDIA_INFO_WIDTH_CUTOFF = MEDIA_INFO_HEIGHT_CUTOFF;
 export function createMediaLoadedInfo(
   source: Event | HTMLElement,
   options?: {
-    player?: FrigateCardMediaPlayer;
+    player?: AdvancedCameraCardMediaPlayer;
     capabilities?: MediaLoadedCapabilities;
     technology?: MediaTechnology[];
   },
@@ -53,7 +53,7 @@ export function createMediaLoadedInfo(
 }
 
 /**
- * Dispatch a Frigate card media loaded event.
+ * Dispatch an Advanced Camera Card media loaded event.
  * @param element The element to send the event.
  * @param source An event or HTMLElement that should be used as a source.
  */
@@ -61,7 +61,7 @@ export function dispatchMediaLoadedEvent(
   target: HTMLElement,
   source: Event | HTMLElement,
   options?: {
-    player?: FrigateCardMediaPlayer;
+    player?: AdvancedCameraCardMediaPlayer;
     capabilities?: MediaLoadedCapabilities;
     technology?: MediaTechnology[];
   },
@@ -81,7 +81,11 @@ export function dispatchExistingMediaLoadedInfoAsEvent(
   target: EventTarget,
   MediaLoadedInfo: MediaLoadedInfo,
 ): void {
-  dispatchFrigateCardEvent<MediaLoadedInfo>(target, 'media:loaded', MediaLoadedInfo);
+  dispatchAdvancedCameraCardEvent<MediaLoadedInfo>(
+    target,
+    'media:loaded',
+    MediaLoadedInfo,
+  );
 }
 
 /**
@@ -89,19 +93,19 @@ export function dispatchExistingMediaLoadedInfoAsEvent(
  * @param element The element to send the event.
  */
 export function dispatchMediaUnloadedEvent(element: HTMLElement): void {
-  dispatchFrigateCardEvent(element, 'media:unloaded');
+  dispatchAdvancedCameraCardEvent(element, 'media:unloaded');
 }
 
 export function dispatchMediaVolumeChangeEvent(target: HTMLElement): void {
-  dispatchFrigateCardEvent(target, 'media:volumechange');
+  dispatchAdvancedCameraCardEvent(target, 'media:volumechange');
 }
 
 export function dispatchMediaPlayEvent(target: HTMLElement): void {
-  dispatchFrigateCardEvent(target, 'media:play');
+  dispatchAdvancedCameraCardEvent(target, 'media:play');
 }
 
 export function dispatchMediaPauseEvent(target: HTMLElement): void {
-  dispatchFrigateCardEvent(target, 'media:pause');
+  dispatchAdvancedCameraCardEvent(target, 'media:pause');
 }
 
 /**
@@ -116,18 +120,18 @@ export function isValidMediaLoadedInfo(info: MediaLoadedInfo): boolean {
 }
 
 // Facilitates correct typing of event handlers.
-export interface FrigateCardMediaLoadedEventTarget extends EventTarget {
+export interface AdvancedCameraCardMediaLoadedEventTarget extends EventTarget {
   addEventListener(
-    event: 'frigate-card:media:loaded',
+    event: 'advanced-camera-card:media:loaded',
     listener: (
-      this: FrigateCardMediaLoadedEventTarget,
+      this: AdvancedCameraCardMediaLoadedEventTarget,
       ev: CustomEvent<MediaLoadedInfo>,
     ) => void,
     options?: AddEventListenerOptions | boolean,
   ): void;
   addEventListener(
-    event: 'frigate-card:media:unloaded',
-    listener: (this: FrigateCardMediaLoadedEventTarget, ev: CustomEvent) => void,
+    event: 'advanced-camera-card:media:unloaded',
+    listener: (this: AdvancedCameraCardMediaLoadedEventTarget, ev: CustomEvent) => void,
     options?: AddEventListenerOptions | boolean,
   ): void;
   addEventListener(
@@ -136,16 +140,16 @@ export interface FrigateCardMediaLoadedEventTarget extends EventTarget {
     options?: AddEventListenerOptions | boolean,
   ): void;
   removeEventListener(
-    event: 'frigate-card:media:loaded',
+    event: 'advanced-camera-card:media:loaded',
     listener: (
-      this: FrigateCardMediaLoadedEventTarget,
+      this: AdvancedCameraCardMediaLoadedEventTarget,
       ev: CustomEvent<MediaLoadedInfo>,
     ) => void,
     options?: boolean | EventListenerOptions,
   ): void;
   removeEventListener(
-    event: 'frigate-card:media:unloaded',
-    listener: (this: FrigateCardMediaLoadedEventTarget, ev: CustomEvent) => void,
+    event: 'advanced-camera-card:media:unloaded',
+    listener: (this: AdvancedCameraCardMediaLoadedEventTarget, ev: CustomEvent) => void,
     options?: boolean | EventListenerOptions,
   ): void;
   removeEventListener(

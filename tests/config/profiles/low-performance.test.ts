@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { setProfiles } from '../../../src/config/profiles';
 import { LOW_PERFORMANCE_PROFILE } from '../../../src/config/profiles/low-performance';
-import { frigateCardConfigSchema } from '../../../src/config/types';
+import { advancedCameraCardConfigSchema } from '../../../src/config/types';
 import { createRawConfig } from '../../test-utils';
 
 it('should contain expected defaults', () => {
@@ -37,7 +37,7 @@ it('should contain expected defaults', () => {
     'media_viewer.draggable': false,
     'media_viewer.snapshot_click_plays_clip': false,
     'media_viewer.transition_effect': 'none',
-    'menu.buttons.frigate.enabled': false,
+    'menu.buttons.iris.enabled': false,
     'menu.buttons.media_player.enabled': false,
     'menu.buttons.timeline.enabled': false,
     'menu.style': 'outside',
@@ -60,11 +60,11 @@ it('should contain expected defaults', () => {
 
 it('should be parseable after application', () => {
   const rawInputConfig = createRawConfig();
-  const parsedConfig = frigateCardConfigSchema.parse(rawInputConfig);
+  const parsedConfig = advancedCameraCardConfigSchema.parse(rawInputConfig);
 
   setProfiles(rawInputConfig, parsedConfig, ['low-performance']);
 
   // Reparse the config to ensure the profile did not introduce errors.
-  const parseResult = frigateCardConfigSchema.safeParse(parsedConfig);
+  const parseResult = advancedCameraCardConfigSchema.safeParse(parsedConfig);
   expect(parseResult.success, parseResult.error?.toString()).toBeTruthy();
 });

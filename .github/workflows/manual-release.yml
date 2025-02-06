@@ -26,7 +26,7 @@ jobs:
         with:
           type: zip
           path: dist
-          filename: frigate-hass-card.zip
+          filename: advanced-camera-card.zip
 
       - name: Upload JS files to release
         uses: svenstaro/upload-release-action@2.9.0
@@ -43,7 +43,7 @@ jobs:
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: frigate-hass-card.zip
+          file: advanced-camera-card.zip
           tag: ${{ github.ref }}
           overwrite: true
 

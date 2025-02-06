@@ -12,7 +12,7 @@ describe('should handle camera_select action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'camera_select',
+        advanced_camera_card_action: 'camera_select',
         camera: 'camera',
       },
     );
@@ -44,7 +44,7 @@ describe('should handle camera_select action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'camera_select',
+        advanced_camera_card_action: 'camera_select',
         camera: 'camera',
       },
     );
@@ -83,7 +83,7 @@ describe('should handle camera_select action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'camera_select',
+        advanced_camera_card_action: 'camera_select',
         camera: 'camera',
       },
     );
@@ -113,7 +113,7 @@ describe('should handle camera_select action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'camera_select',
+        advanced_camera_card_action: 'camera_select',
         triggered: true,
       },
     );
@@ -143,7 +143,7 @@ describe('should handle camera_select action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'camera_select',
+        advanced_camera_card_action: 'camera_select',
       },
     );
 
@@ -159,7 +159,7 @@ describe('should handle camera_select action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'camera_select',
+        advanced_camera_card_action: 'camera_select',
         camera: 'camera',
       },
     );

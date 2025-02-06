@@ -5,8 +5,8 @@ import {
   AutoPlayCondition,
   AutoUnmuteCondition,
 } from '../config/types.js';
-import { FrigateCardMediaPlayer } from '../types.js';
-import { FrigateCardMediaLoadedEventTarget } from '../utils/media-info.js';
+import { AdvancedCameraCardMediaPlayer } from '../types.js';
+import { AdvancedCameraCardMediaLoadedEventTarget } from '../utils/media-info.js';
 import { Timer } from '../utils/timer.js';
 
 export interface MediaActionsControllerOptions {
@@ -21,8 +21,8 @@ export interface MediaActionsControllerOptions {
   microphoneMuteSeconds?: number;
 }
 
-type RenderRoot = HTMLElement & FrigateCardMediaLoadedEventTarget;
-type PlayerElement = HTMLElement & FrigateCardMediaPlayer;
+type RenderRoot = HTMLElement & AdvancedCameraCardMediaLoadedEventTarget;
+type PlayerElement = HTMLElement & AdvancedCameraCardMediaPlayer;
 
 /**
  * General note: Always unmute before playing, since Chrome may pause a piece of
@@ -191,7 +191,7 @@ export class MediaActionsController {
 
   protected _removeChildHandlers(): void {
     for (const [child, callback] of this._eventListeners.entries()) {
-      child.removeEventListener('frigate-card:media:loaded', callback);
+      child.removeEventListener('advanced-camera-card:media:loaded', callback);
     }
     this._eventListeners.clear();
   }
@@ -223,7 +223,7 @@ export class MediaActionsController {
     for (const [index, child] of this._children.entries()) {
       const eventListener = () => this._mediaLoadedHandler(index);
       this._eventListeners.set(child, eventListener);
-      child.addEventListener('frigate-card:media:loaded', eventListener);
+      child.addEventListener('advanced-camera-card:media:loaded', eventListener);
     }
   }
   protected async _intersectionHandler(

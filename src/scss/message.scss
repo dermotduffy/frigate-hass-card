@@ -15,16 +15,16 @@
   height: 100%;
   width: 100%;
 
-  background: var(--frigate-card-message-background);
-  color: var(--frigate-card-message-color);
+  background: var(--advanced-camera-card-message-background);
+  color: var(--advanced-camera-card-message-color);
 }
 
 :host([overlay]) {
   position: absolute;
   inset: 5%;
 
-  background: var(--frigate-card-message-overlay-background);
-  color: var(--frigate-card-message-overlay-color);
+  background: var(--advanced-camera-card-message-overlay-background);
+  color: var(--advanced-camera-card-message-overlay-color);
 }
 
 div.wrapper {
@@ -65,16 +65,16 @@ a {
 }
 
 :host(:not([overlay])) a {
-  color: var(--frigate-card-message-color);
+  color: var(--advanced-camera-card-message-color);
 }
 
 :host([overlay]) a {
-  color: var(--frigate-card-message-overlay-color);
+  color: var(--advanced-camera-card-message-overlay-color);
 }
 
 .message pre {
   margin-top: 20px;
   overflow-x: auto;
-  border: 1px dotted var(--frigate-card-divider-color);
+  border: 1px dotted var(--advanced-camera-card-divider-color);
   padding: 1em;
 }

@@ -36,7 +36,7 @@ Debugging broken streams:
    ensure [you have configured Frigate
    accordingly](https://docs.frigate.video/configuration/live/#webrtc-extra-configuration).
 1. Search for your symptoms on the [card issues
-   page](https://github.com/dermotduffy/frigate-hass-card/issues) and see if
+   page](https://github.com/dermotduffy/advanced-camera-card/issues) and see if
    you find any prior relevant discussions.
 
 If you're happy with just using an image stream but want the small circle to go
@@ -81,7 +81,7 @@ live:
       disableGl: true
 ```
 
-[This bug](https://github.com/dermotduffy/frigate-hass-card/issues/191) has some
+[This bug](https://github.com/dermotduffy/advanced-camera-card/issues/191) has some
 more discussion on this topic. New ideas to address this underlying limitation
 most welcome!
 
@@ -97,7 +97,7 @@ by the card. Other browsers (e.g. Firefox, Safari) do not exhibit this behavior.
 For some slowly loading cameras, for which [Home Assistant stream
 preloading](https://www.home-assistant.io/integrations/camera/) is not enabled,
 Home Assistant may return a blank white image when asked for a still. These
-stills are used during initial Frigate card load of the `live` view if the
+stills are used during initial Advanced Camera Card load of the `live` view if the
 `live.show_image_during_load` option is enabled. Disabling this option should
 show the default media loading controls (e.g. a spinner or empty video player)
 instead of the blank white image.
@@ -130,7 +130,7 @@ The Android video player swallows `double_tap` interactions in order to
 rewind or fast-forward. Workarounds:
 
 - Use `hold` instead of `double_tap` for your card-wide action.
-- Use a [Frigate Card Element](configuration/elements/README.md) or menu icon to
+- Use an [Advanced Camera Card Element](configuration/elements/README.md) or menu icon to
   trigger the action instead.
 
 ### Dragging in carousels broken in Firefox
@@ -252,10 +252,10 @@ status_bar:
 
 [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) which is embedded by
 the `webrtc_card` live provider internally disconnects the stream when the
-browser tab is changed (regardless of any Frigate card configuration settings,
+browser tab is changed (regardless of any Advanced Camera Card configuration settings,
 e.g. `lazy_unload`). To allow the stream to continue running in the background,
 pass the `background` argument to the `webrtc_card` live provider as shown
-below. This effectively allows the Frigate card to decide whether or not to
+below. This effectively allows the Advanced Camera Card to decide whether or not to
 unload the stream.
 
 ```yaml

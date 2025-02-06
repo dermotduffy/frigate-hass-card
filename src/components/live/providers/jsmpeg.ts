@@ -15,8 +15,8 @@ import { CameraConfig, CardWideConfig } from '../../../config/types.js';
 import { localize } from '../../../localize/localize.js';
 import liveJSMPEGStyle from '../../../scss/live-jsmpeg.scss';
 import {
+  AdvancedCameraCardMediaPlayer,
   ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
   FullscreenElement,
   Message,
 } from '../../../types.js';
@@ -38,8 +38,11 @@ const JSMPEG_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 // Number of seconds before the expiry to trigger a refresh.
 const JSMPEG_URL_SIGN_REFRESH_THRESHOLD_SECONDS = 1 * 60 * 60;
 
-@customElement('frigate-card-live-jsmpeg')
-export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMediaPlayer {
+@customElement('advanced-camera-card-live-jsmpeg')
+export class AdvancedCameraCardLiveJSMPEG
+  extends LitElement
+  implements AdvancedCameraCardMediaPlayer
+{
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
@@ -303,6 +306,6 @@ export class FrigateCardLiveJSMPEG extends LitElement implements FrigateCardMedi
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-jsmpeg': FrigateCardLiveJSMPEG;
+    'advanced-camera-card-live-jsmpeg': AdvancedCameraCardLiveJSMPEG;
   }
 }

@@ -162,8 +162,8 @@ export class VideoRTC extends HTMLElement {
     this.microphoneStream = null;
 
     /**
-     * A reference to a containing FrigateCardMediaPlayer object.
-     * @type {FrigateCardMediaPlayer}}
+     * A reference to a containing AdvancedCameraCardMediaPlayer object.
+     * @type {AdvancedCameraCardMediaPlayer}}
      */
     this.containingPlayer = null;
 
@@ -222,7 +222,7 @@ export class VideoRTC extends HTMLElement {
    * https://developer.chrome.com/blog/autoplay/
    */
   play() {
-    // Frigate card controls playing at a higher level.
+    // Advanced Camera Card controls playing at a higher level.
   }
 
   /**
@@ -303,7 +303,7 @@ export class VideoRTC extends HTMLElement {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     this.video.addEventListener('error', (_ev) => {
-      // For Frigate Card, we avoid log spam here from errors, and also don't
+      // For Advanced Camera Card, we avoid log spam here from errors, and also don't
       // attempt to close the websocket unless the connection is open (otherwise
       // on reconnect() an exception will be thrown here that we're attempting
       // to close a connection that's not open)
@@ -405,7 +405,7 @@ export class VideoRTC extends HTMLElement {
     if (this.pc) {
       // Do not close the (microphone) track attached to the peer connection as
       // that is controlled by MicrophoneManager.
-      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1810
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1810
 
       this.pc.close();
       this.pc = null;

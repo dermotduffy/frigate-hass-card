@@ -1,5 +1,5 @@
+import { AdvancedCameraCardView, SSLCiphers } from '../config/types';
 import { CapabilityKey, Icon } from '../types';
-import { FrigateCardView, SSLCiphers } from '../config/types';
 import { ViewMedia } from '../view/media';
 
 // ====
@@ -114,7 +114,7 @@ export interface CameraManagerCameraMetadata {
 
 export interface CameraEndpointsContext {
   media?: ViewMedia;
-  view?: FrigateCardView;
+  view?: AdvancedCameraCardView;
 }
 
 export interface CameraEndpoint {

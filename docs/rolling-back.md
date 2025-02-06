@@ -13,6 +13,8 @@ There may be many versions of this card (see [release philosophy](./developing.m
 - Click "Download"
 - Reload your browser
 
+[](./common/rename-hacs.md ':include')
+
 ### Rolling Back Manually
 
 If you didn't use `HACS` to install the card, you're on your own to roll it

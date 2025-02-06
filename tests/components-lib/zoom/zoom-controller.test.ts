@@ -231,8 +231,8 @@ describe('ZoomController', () => {
       const element = document.createElement('div');
       const zoomedFunc = vi.fn();
       const unzoomedFunc = vi.fn();
-      element.addEventListener('frigate-card:zoom:zoomed', zoomedFunc);
-      element.addEventListener('frigate-card:zoom:unzoomed', unzoomedFunc);
+      element.addEventListener('advanced-camera-card:zoom:zoomed', zoomedFunc);
+      element.addEventListener('advanced-camera-card:zoom:unzoomed', unzoomedFunc);
 
       vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
       createAndRegisterZoom(element);
@@ -267,8 +267,8 @@ describe('ZoomController', () => {
       const element = document.createElement('div');
       const zoomedFunc = vi.fn();
       const unzoomedFunc = vi.fn();
-      element.addEventListener('frigate-card:zoom:zoomed', zoomedFunc);
-      element.addEventListener('frigate-card:zoom:unzoomed', unzoomedFunc);
+      element.addEventListener('advanced-camera-card:zoom:zoomed', zoomedFunc);
+      element.addEventListener('advanced-camera-card:zoom:unzoomed', unzoomedFunc);
 
       vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
       createAndRegisterZoom(element);
@@ -312,7 +312,7 @@ describe('ZoomController', () => {
         setElementToDefaultCardSize(element);
 
         const changeFunc = vi.fn();
-        element.addEventListener('frigate-card:zoom:change', changeFunc);
+        element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
 
         vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
         createAndRegisterZoom(element);
@@ -357,7 +357,7 @@ describe('ZoomController', () => {
         setElementToDefaultCardSize(element);
 
         const changeFunc = vi.fn();
-        element.addEventListener('frigate-card:zoom:change', changeFunc);
+        element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
 
         vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
         const controller = createAndRegisterZoom(element);
@@ -403,7 +403,7 @@ describe('ZoomController', () => {
         setElementToDefaultCardSize(element);
 
         const changeFunc = vi.fn();
-        element.addEventListener('frigate-card:zoom:change', changeFunc);
+        element.addEventListener('advanced-camera-card:zoom:change', changeFunc);
 
         vi.mocked(Panzoom).mockReturnValueOnce(createMockPanZoom());
         const controller = createAndRegisterZoom(element);

@@ -1,6 +1,6 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { localize } from '../../localize/localize';
-import { FrigateCardError } from '../../types';
+import { AdvancedCameraCardError } from '../../types';
 import { homeAssistantWSRequest } from '../../utils/ha/ws-request';
 import { RecordingSegment } from '../types';
 import {
@@ -38,7 +38,7 @@ export const getRecordingsSummary = async (
       camera: camera_name,
 
       // Ask for the summary relative to HA timezone
-      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1267
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1267
       timezone: hass.config.time_zone,
     },
     true,
@@ -100,7 +100,7 @@ export async function retainEvent(
     true,
   );
   if (!response.success) {
-    throw new FrigateCardError(localize('error.failed_retain'), {
+    throw new AdvancedCameraCardError(localize('error.failed_retain'), {
       request: retainRequest,
       response: response,
     });
@@ -153,7 +153,7 @@ export const getEventSummary = async (
       instance_id: clientID,
 
       // Ask for the summary relative to HA timezone
-      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1267
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1267
       timezone: hass.config.time_zone,
     },
     true,

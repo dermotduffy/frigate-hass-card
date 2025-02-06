@@ -20,15 +20,15 @@ import {
 } from './config/management.js';
 import { setProfiles } from './config/profiles/index.js';
 import {
+  AdvancedCameraCardConfig,
   BUTTON_SIZE_MIN,
-  FRIGATE_MENU_PRIORITY_MAX,
-  FRIGATE_STATUS_BAR_PRIORITY_MAX,
-  FrigateCardConfig,
-  frigateCardConfigDefaults,
+  configDefaults,
+  MENU_PRIORITY_MAX,
   profilesSchema,
-  RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
+  RawAdvancedCameraCardConfig,
+  RawAdvancedCameraCardConfigArray,
   STATUS_BAR_HEIGHT_MIN,
+  STATUS_BAR_PRIORITY_MAX,
   THUMBNAIL_WIDTH_MAX,
   THUMBNAIL_WIDTH_MIN,
   ZOOM_MAX,
@@ -238,7 +238,7 @@ import {
   MEDIA_CHUNK_SIZE_MAX,
 } from './const.js';
 import { localize } from './localize/localize.js';
-import frigate_card_editor_style from './scss/editor.scss';
+import editorStyle from './scss/editor.scss';
 import { arrayMove, prettifyTitle } from './utils/basic.js';
 import { getCameraID } from './utils/camera.js';
 import {
@@ -376,11 +376,11 @@ const options: EditorOptions = {
   },
 };
 
-@customElement('frigate-card-editor')
-export class FrigateCardEditor extends LitElement implements LovelaceCardEditor {
+@customElement('advanced-camera-card-editor')
+export class AdvancedCameraCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass?: HomeAssistant;
-  @state() protected _config?: RawFrigateCardConfig;
-  @state() protected _defaults = copyConfig(frigateCardConfigDefaults);
+  @state() protected _config?: RawAdvancedCameraCardConfig;
+  @state() protected _defaults = copyConfig(configDefaults);
 
   protected _initialized = false;
   protected _configUpgradeable = false;
@@ -923,20 +923,20 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     { value: 'traditional', label: localize('config.view.theme.themes.traditional') },
   ];
 
-  public setConfig(config: RawFrigateCardConfig): void {
+  public setConfig(config: RawAdvancedCameraCardConfig): void {
     // Note: This does not use Zod to parse the full configuration, so it may be
     // partially or completely invalid. It's more useful to have a partially
     // valid configuration here, to allow the user to fix the broken parts. As
-    // such, RawFrigateCardConfig is used as the type.
+    // such, RawAdvancedCameraCardConfig is used as the type.
     this._config = config;
     this._configUpgradeable = isConfigUpgradeable(config);
 
     const profiles = profilesSchema.safeParse(
-      (this._config as FrigateCardConfig).profiles,
+      (this._config as AdvancedCameraCardConfig).profiles,
     );
 
     if (profiles.success) {
-      const defaults = copyConfig(frigateCardConfigDefaults);
+      const defaults = copyConfig(configDefaults);
       setProfiles(this._config, defaults, profiles.data);
       this._defaults = defaults;
     }
@@ -971,9 +971,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .key=${optionSetName}
       >
         <div class="row">
-          <frigate-card-icon
+          <advanced-camera-card-icon
             .icon=${{ icon: `mdi:${optionSet.icon}` }}
-          ></frigate-card-icon>
+          ></advanced-camera-card-icon>
           <div class="title ${titleClass ?? ''}">${optionSet.name}</div>
         </div>
         <div class="secondary">${optionSet.secondary}</div>
@@ -1151,7 +1151,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    */
   protected _getEditorCameraTitle(
     cameraIndex: number,
-    cameraConfig: RawFrigateCardConfig,
+    cameraConfig: RawAdvancedCameraCardConfig,
   ): string {
     // Attempt to render a recognizable name for the camera, starting with the
     // most likely to be useful and working our ways towards the least useful.
@@ -1269,13 +1269,13 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     configPath: string,
     defaultValue: KeyboardShortcut,
   ): TemplateResult {
-    return html` <frigate-card-key-assigner
+    return html` <advanced-camera-card-key-assigner
       .label=${localize(`config.${configPath}`)}
       .value=${this._config
         ? getConfigValue(this._config, configPath, defaultValue)
         : null}
       @value-changed=${(ev) => this._valueChangedHandler(configPath, ev)}
-    ></frigate-card-key-assigner>`;
+    ></advanced-camera-card-key-assigner>`;
   }
 
   protected _renderViewKeyboardShortcutMenu(): TemplateResult {
@@ -1339,7 +1339,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           },
         )}
         ${this._renderNumberInput(`${CONF_STATUS_BAR_ITEMS}.${item}.priority`, {
-          max: FRIGATE_STATUS_BAR_PRIORITY_MAX,
+          max: STATUS_BAR_PRIORITY_MAX,
           default: this._defaults.status_bar.items[item]?.priority,
           label: localize('config.status_bar.items.priority'),
         })}
@@ -1385,7 +1385,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           },
         )}
         ${this._renderNumberInput(`${CONF_MENU_BUTTONS}.${button}.priority`, {
-          max: FRIGATE_MENU_PRIORITY_MAX,
+          max: MENU_PRIORITY_MAX,
           default: this._defaults.menu.buttons[button]?.priority,
           label: localize('config.menu.buttons.priority'),
         })}
@@ -1426,7 +1426,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
         .domain=${domain}
         .key=${key}
       >
-        <frigate-card-icon .icon=${{ icon: icon }}></frigate-card-icon>
+        <advanced-camera-card-icon .icon=${{ icon: icon }}></advanced-camera-card-icon>
         <span>${localize(labelPath)}</span>
       </div>
       ${selected ? html`<div class="values">${template}</div>` : ''}
@@ -1878,7 +1878,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
    * @returns A rendered template.
    */
   protected _renderCamera(
-    cameras: RawFrigateCardConfigArray,
+    cameras: RawAdvancedCameraCardConfigArray,
     cameraIndex: number,
     entities: string[],
     addNewCamera?: boolean,
@@ -1916,7 +1916,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     });
 
     // Make a new config and update the editor with changes on it,
-    const modifyConfig = (func: (config: RawFrigateCardConfig) => boolean): void => {
+    const modifyConfig = (
+      func: (config: RawAdvancedCameraCardConfig) => boolean,
+    ): void => {
       if (this._config) {
         const newConfig = copyConfig(this._config);
         if (func(newConfig)) {
@@ -1938,9 +1940,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
           .domain=${MENU_CAMERAS}
           .key=${cameraIndex}
         >
-          <frigate-card-icon
+          <advanced-camera-card-icon
             .icon=${{ icon: addNewCamera ? 'mdi:video-plus' : 'mdi:video' }}
-          ></frigate-card-icon>
+          ></advanced-camera-card-icon>
           <span>
             ${addNewCamera
               ? html` <span class="new-camera">
@@ -1965,7 +1967,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   cameraIndex <= 0}
                   @click=${() =>
                     !addNewCamera &&
-                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                    modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
                       if (Array.isArray(config.cameras) && cameraIndex > 0) {
                         arrayMove(config.cameras, cameraIndex, cameraIndex - 1);
                         this._openMenu(MENU_CAMERAS, cameraIndex - 1);
@@ -1974,9 +1976,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       return false;
                     })}
                 >
-                  <frigate-card-icon
+                  <advanced-camera-card-icon
                     .icon=${{ icon: 'mdi:arrow-up' }}
-                  ></frigate-card-icon>
+                  ></advanced-camera-card-icon>
                 </ha-icon-button>
                 <ha-icon-button
                   .label=${localize('editor.move_down')}
@@ -1986,7 +1988,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                   cameraIndex >= this._config.cameras.length - 1}
                   @click=${() =>
                     !addNewCamera &&
-                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                    modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
                       if (
                         Array.isArray(config.cameras) &&
                         cameraIndex < config.cameras.length - 1
@@ -1998,15 +2000,15 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                       return false;
                     })}
                 >
-                  <frigate-card-icon
+                  <advanced-camera-card-icon
                     .icon=${{ icon: 'mdi:arrow-down' }}
-                  ></frigate-card-icon>
+                  ></advanced-camera-card-icon>
                 </ha-icon-button>
                 <ha-icon-button
                   .label=${localize('editor.delete')}
                   .disabled=${addNewCamera}
                   @click=${() => {
-                    modifyConfig((config: RawFrigateCardConfig): boolean => {
+                    modifyConfig((config: RawAdvancedCameraCardConfig): boolean => {
                       if (Array.isArray(config.cameras)) {
                         config.cameras.splice(cameraIndex, 1);
                         this._closeMenu(MENU_CAMERAS);
@@ -2016,7 +2018,9 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                     });
                   }}
                 >
-                  <frigate-card-icon .icon=${{ icon: 'mdi:delete' }}></frigate-card-icon>
+                  <advanced-camera-card-icon
+                    .icon=${{ icon: 'mdi:delete' }}
+                  ></advanced-camera-card-icon>
                 </ha-icon-button>
               </div>
               ${this._renderEntitySelector(
@@ -2497,7 +2501,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
     `;
   }
 
-  protected _updateConfig(config: RawFrigateCardConfig): void {
+  protected _updateConfig(config: RawAdvancedCameraCardConfig): void {
     this._config = config;
     fireEvent(this, 'config-changed', { config: this._config });
   }
@@ -2509,7 +2513,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
 
     const entities = getEntitiesFromHASS(this.hass);
     const cameras = (getConfigValue(this._config, CONF_CAMERAS) ||
-      []) as RawFrigateCardConfigArray;
+      []) as RawAdvancedCameraCardConfigArray;
 
     return html`
       ${this._configUpgradeable
@@ -2587,7 +2591,7 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._renderNumberInput(CONF_MENU_BUTTON_SIZE, {
                   min: BUTTON_SIZE_MIN,
                 })}
-                ${this._renderMenuButton('frigate') /* */}
+                ${this._renderMenuButton('iris') /* */}
                 ${this._renderMenuButton('cameras') /* */}
                 ${this._renderMenuButton('substreams') /* */}
                 ${this._renderMenuButton('live') /* */}
@@ -3128,12 +3132,12 @@ export class FrigateCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   static get styles(): CSSResultGroup {
-    return unsafeCSS(frigate_card_editor_style);
+    return unsafeCSS(editorStyle);
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-editor': FrigateCardEditor;
+    'advanced-camera-card-editor': AdvancedCameraCardEditor;
   }
 }

@@ -61,7 +61,7 @@ it('handleZoomSettingsObservedEvent', () => {
   const viewManager = mock<ViewManager>();
 
   handleZoomSettingsObservedEvent(
-    new CustomEvent('frigate-card:zoom:change', {
+    new CustomEvent('advanced-camera-card:zoom:change', {
       detail: {
         pan: { x: 1, y: 2 },
         zoom: 3,

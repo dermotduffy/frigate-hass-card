@@ -19,7 +19,7 @@ incrementally improve, and I think time is better spent working on reproducible
 issues or new features, than guessing what versions/options you are using. The
 new issue template asks for the minimum possible information to support you:
 
-- **Diagnostics**: On the card, hold down the Default/Frigate menu button for a
+- **Diagnostics**: On the card, hold down the Iris (default) menu button for a
   few seconds then paste the diagnostics into the issue between the backticks.
 - **Description of the problem**: I need to understand the issue in sufficient
   detail.
@@ -44,7 +44,7 @@ fixes should be provided, or new features developed, is misunderstanding the
 fundamental dynamics of open source. I am sorry you feel this way, but open
 source software (including this card) is typically provided "as-is". Take it or
 leave it. If you want things to go faster / differently, [please
-contribute](https://github.com/dermotduffy/frigate-hass-card/issues/1248). If
+contribute](https://github.com/dermotduffy/advanced-camera-card/issues/1248). If
 you don't want to contribute to the shared codebase, fork it and make your own.
 Or pay for a (different) Enterprise grade solution to your problem. This is
 certainly not that -- a card, developed in hobbiest-level time, with

@@ -2,15 +2,15 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { until } from 'lit/directives/until.js';
-import { RawFrigateCardConfig } from '../config/types';
+import { RawAdvancedCameraCardConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { getDiagnostics } from '../utils/diagnostics';
 import { DeviceRegistryManager } from '../utils/ha/registry/device';
 import { renderMessage } from './message';
 
-@customElement('frigate-card-diagnostics')
-export class FrigateCardDiagnostics extends LitElement {
+@customElement('advanced-camera-card-diagnostics')
+export class AdvancedCameraCardDiagnostics extends LitElement {
   // Not a reactive property to avoid multiple diagnostics fetches.
   public hass?: HomeAssistant;
 
@@ -18,7 +18,7 @@ export class FrigateCardDiagnostics extends LitElement {
   public deviceRegistryManager?: DeviceRegistryManager;
 
   @property({ attribute: false })
-  public rawConfig?: RawFrigateCardConfig;
+  public rawConfig?: RawAdvancedCameraCardConfig;
 
   protected async _renderDiagnostics(): Promise<TemplateResult> {
     const diagnostics = await getDiagnostics(
@@ -52,6 +52,6 @@ export class FrigateCardDiagnostics extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-diagnostics': FrigateCardDiagnostics;
+    'advanced-camera-card-diagnostics': AdvancedCameraCardDiagnostics;
   }
 }

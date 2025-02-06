@@ -11,19 +11,19 @@ describe('updateElementStyleFromMediaLayoutConfig', () => {
         fit: 'cover',
       });
 
-      expect(video.style.getPropertyValue('--frigate-card-media-layout-fit')).toBe(
-        'cover',
-      );
+      expect(
+        video.style.getPropertyValue('--advanced-camera-card-media-layout-fit'),
+      ).toBe('cover');
     });
 
     it('unset', () => {
       const video = document.createElement('video');
-      video.style.setProperty('--frigate-card-media-layout-fit', 'cover');
+      video.style.setProperty('--advanced-camera-card-media-layout-fit', 'cover');
 
       updateElementStyleFromMediaLayoutConfig(video);
 
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-fit'),
+        video.style.getPropertyValue('--advanced-camera-card-media-layout-fit'),
       ).toBeFalsy();
     });
   });
@@ -40,25 +40,25 @@ describe('updateElementStyleFromMediaLayoutConfig', () => {
       });
 
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-position-x'),
+        video.style.getPropertyValue('--advanced-camera-card-media-layout-position-x'),
       ).toBe('10%');
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-position-y'),
+        video.style.getPropertyValue('--advanced-camera-card-media-layout-position-y'),
       ).toBe('20%');
     });
 
     it('unset', () => {
       const video = document.createElement('video');
-      video.style.setProperty('--frigate-card-media-layout-position-x', '10%');
-      video.style.setProperty('--frigate-card-media-layout-position-y', '20%');
+      video.style.setProperty('--advanced-camera-card-media-layout-position-x', '10%');
+      video.style.setProperty('--advanced-camera-card-media-layout-position-y', '20%');
 
       updateElementStyleFromMediaLayoutConfig(video);
 
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-position-x'),
+        video.style.getPropertyValue('--advanced-camera-card-media-layout-position-x'),
       ).toBeFalsy();
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-position-y'),
+        video.style.getPropertyValue('--advanced-camera-card-media-layout-position-y'),
       ).toBeFalsy();
     });
   });
@@ -77,39 +77,57 @@ describe('updateElementStyleFromMediaLayoutConfig', () => {
       });
 
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-view-box-top'),
+        video.style.getPropertyValue('--advanced-camera-card-media-layout-view-box-top'),
       ).toBe('1%');
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-view-box-bottom'),
+        video.style.getPropertyValue(
+          '--advanced-camera-card-media-layout-view-box-bottom',
+        ),
       ).toBe('2%');
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-view-box-left'),
+        video.style.getPropertyValue(
+          '--advanced-camera-card-media-layout-view-box-left',
+        ),
       ).toBe('3%');
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-view-box-right'),
+        video.style.getPropertyValue(
+          '--advanced-camera-card-media-layout-view-box-right',
+        ),
       ).toBe('4%');
     });
 
     it('unset', () => {
       const video = document.createElement('video');
-      video.style.setProperty('--frigate-card-media-layout-view-box-top', '1%');
-      video.style.setProperty('--frigate-card-media-layout-view-box-bottom', '2%');
-      video.style.setProperty('--frigate-card-media-layout-view-box-left', '3%');
-      video.style.setProperty('--frigate-card-media-layout-view-box-right', '4%');
+      video.style.setProperty('--advanced-camera-card-media-layout-view-box-top', '1%');
+      video.style.setProperty(
+        '--advanced-camera-card-media-layout-view-box-bottom',
+        '2%',
+      );
+      video.style.setProperty('--advanced-camera-card-media-layout-view-box-left', '3%');
+      video.style.setProperty(
+        '--advanced-camera-card-media-layout-view-box-right',
+        '4%',
+      );
 
       updateElementStyleFromMediaLayoutConfig(video);
 
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-view-box-top'),
+        video.style.getPropertyValue('--advanced-camera-card-media-layout-view-box-top'),
       ).toBeFalsy();
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-view-box-bottom'),
+        video.style.getPropertyValue(
+          '--advanced-camera-card-media-layout-view-box-bottom',
+        ),
       ).toBeFalsy();
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-view-box-left'),
+        video.style.getPropertyValue(
+          '--advanced-camera-card-media-layout-view-box-left',
+        ),
       ).toBeFalsy();
       expect(
-        video.style.getPropertyValue('--frigate-card-media-layout-view-box-right'),
+        video.style.getPropertyValue(
+          '--advanced-camera-card-media-layout-view-box-right',
+        ),
       ).toBeFalsy();
     });
   });

@@ -16,11 +16,11 @@ import { CameraManager } from '../camera-manager/manager.js';
 import { getCameraEntityFromConfig } from '../camera-manager/utils/camera-entity-from-config.js';
 import { CachedValueController } from '../components-lib/cached-value-controller.js';
 import { CameraConfig, ImageMode, ImageViewConfig } from '../config/types.js';
-import defaultImage from '../images/frigate-bird-in-sky.jpg';
+import defaultImage from '../images/iris-screensaver.jpg';
 import { localize } from '../localize/localize.js';
 import imageStyle from '../scss/image.scss';
 import {
-  FrigateCardMediaPlayer,
+  AdvancedCameraCardMediaPlayer,
   FullscreenElement,
   MediaLoadedInfo,
   Message,
@@ -60,8 +60,11 @@ export const resolveImageMode = (options?: {
   return 'screensaver';
 };
 
-@customElement('frigate-card-image-base')
-export class FrigateCardImageBase extends LitElement implements FrigateCardMediaPlayer {
+@customElement('advanced-camera-card-image-base')
+export class AdvancedCameraCardImageBase
+  extends LitElement
+  implements AdvancedCameraCardMediaPlayer
+{
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -215,7 +218,7 @@ export class FrigateCardImageBase extends LitElement implements FrigateCardMedia
    * (detects old or disconnected states). Using an old state is problematic as
    * it runs the risk that the JS has an old access token for the camera, and
    * that results in a notification on the HA UI about a failed login. See:
-   * https://github.com/dermotduffy/frigate-hass-card/issues/398 .
+   * https://github.com/dermotduffy/advanced-camera-card/issues/398 .
    * @param entity The entity.
    * @returns The state or null if not acceptable.
    */
@@ -263,7 +266,7 @@ export class FrigateCardImageBase extends LitElement implements FrigateCardMedia
       // image may be using an old-expired token and re-use prior to
       // re-generation of a new URL would generate an unauthorized request
       // (401), see:
-      // https://github.com/dermotduffy/frigate-hass-card/issues/398
+      // https://github.com/dermotduffy/advanced-camera-card/issues/398
       this._cachedValueController?.stopTimer();
       this._cachedValueController?.clearValue();
       this._forceSafeImage();
@@ -409,6 +412,6 @@ export class FrigateCardImageBase extends LitElement implements FrigateCardMedia
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-image-base': FrigateCardImageBase;
+    'advanced-camera-card-image-base': AdvancedCameraCardImageBase;
   }
 }

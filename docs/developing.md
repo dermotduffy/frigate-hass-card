@@ -1,6 +1,6 @@
 # Developing
 
-?> Want to contribute? Development help [**welcome**](https://github.com/dermotduffy/frigate-hass-card/issues/1248)!
+?> Want to contribute? Development help [**welcome**](https://github.com/dermotduffy/advanced-camera-card/issues/1248)!
 
 ## Building
 
@@ -13,13 +13,13 @@ However, if you are not using Volta, you can check the `volta` key in the
 `package.json` to see which version of Node and Yarn should be used.
 
 ```sh
-$ git clone https://github.com/dermotduffy/frigate-hass-card
-$ cd frigate-hass-card
+$ git clone https://github.com/dermotduffy/advanced-camera-card
+$ cd advanced-camera-card
 $ yarn install
 $ yarn run build
 ```
 
-Resultant build entry file will be in `dist/frigate-hass-card.js`. This could be
+Resultant build entry file will be in `dist/advanced-camera-card.js`. This could be
 installed via the [manual installation
 instructions](advanced-installation.md?id=manual-installation).
 
@@ -38,7 +38,7 @@ Releases follow [Semantic Versioning](https://semver.org/) with the following de
 ### Manual Releases
 
 1. Merge a PR that contains only a `package.json` version number bump.
-1. Go to the [releases page](https://github.com/dermotduffy/frigate-hass-card/releases).
+1. Go to the [releases page](https://github.com/dermotduffy/advanced-camera-card/releases).
 1. A release draft will automatically have been created, click 'Edit'.
 1. Use the same version number for the release title and tag.
 1. Choose 'This is a pre-release' for a beta version.
@@ -46,14 +46,14 @@ Releases follow [Semantic Versioning](https://semver.org/) with the following de
 
 ## Translations
 
-[![translation badge](https://badge.inlang.com/?url=github.com/dermotduffy/frigate-hass-card)](https://fink.inlang.com/github.com/dermotduffy/frigate-hass-card?ref=badge)
+[![translation badge](https://badge.inlang.com/?url=github.com/dermotduffy/advanced-camera-card)](https://fink.inlang.com/github.com/dermotduffy/advanced-camera-card?ref=badge)
 
 To add translations, you can manually edit the JSON translation files in
 `src/localize/languages` or use the [inlang](https://inlang.com/) online editor.
 
 ## Using a dev container
 
-[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/dermotduffy/frigate-hass-card)
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/dermotduffy/advanced-camera-card)
 
 You can use the [VS Code Dev Containers](https://code.visualstudio.com/docs/remote/containers) extension to
 speed up the development environment creation. Simply:

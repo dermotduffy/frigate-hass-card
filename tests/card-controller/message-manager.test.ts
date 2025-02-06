@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { FrigateCardError, Message } from '../../src/types';
 import { MessageManager } from '../../src/card-controller/message-manager';
+import { AdvancedCameraCardError, Message } from '../../src/types';
 import { createCardAPI } from '../test-utils';
 
 const createMessage = (options?: Partial<Message>): Message => {
@@ -111,7 +111,7 @@ describe('MessageManager', () => {
     expect(manager.getMessage()).toBe(connectionMessage);
   });
 
-  it('should set FrigateCardError object', () => {
+  it('should set AdvancedCameraCardError object', () => {
     const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
     const api = createCardAPI();
@@ -119,11 +119,11 @@ describe('MessageManager', () => {
     const context = { foo: 'bar' };
 
     manager.setErrorIfHigherPriority(
-      new FrigateCardError('frigate card message', context),
+      new AdvancedCameraCardError('advanced camera card message', context),
     );
     expect(manager.hasMessage()).toBeTruthy();
     expect(manager.getMessage()).toEqual({
-      message: 'frigate card message',
+      message: 'advanced camera card message',
       type: 'error',
       context: context,
     });

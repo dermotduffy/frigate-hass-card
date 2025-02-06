@@ -60,7 +60,7 @@ const plugins = [
     preventAssignment: true,
     values: {
       'process.env.NODE_ENV': JSON.stringify(dev ? 'development' : 'production'),
-      __FRIGATE_CARD_RELEASE_VERSION__:
+      __ADVANCED_CAMERA_CARD_RELEASE_VERSION__:
         process.env.RELEASE_VERSION ?? (dev ? 'dev' : 'pkg'),
     },
   }),
@@ -71,6 +71,23 @@ const plugins = [
     template: 'treemap',
   }),
 ];
+
+const outputEntryTemplate = {
+  entryFileNames: 'advanced-camera-card.js',
+  dir: 'dist',
+  chunkFileNames: (chunk) => {
+    // Add "lang-" to the front of the language chunk names for readability.
+    if (
+      chunk.facadeModuleId &&
+      chunk.facadeModuleId.match(/localize\/languages\/.*\.json/)
+    ) {
+      return 'lang-[name]-[hash].js';
+    }
+    return '[name]-[hash].js';
+  },
+  format: 'es',
+  sourcemap: dev,
+};
 
 /**
  * @type {import('rollup').RollupOptions}
@@ -83,22 +100,15 @@ const config = {
   // the hacstag, causing a re-download of the same content and functionality
   // problems.
   preserveEntrySignatures: 'strict',
-  output: {
-    entryFileNames: 'frigate-hass-card.js',
-    dir: 'dist',
-    chunkFileNames: (chunk) => {
-      // Add "lang-" to the front of the language chunk names for readability.
-      if (
-        chunk.facadeModuleId &&
-        chunk.facadeModuleId.match(/localize\/languages\/.*\.json/)
-      ) {
-        return 'lang-[name]-[hash].js';
-      }
-      return '[name]-[hash].js';
+  output: [
+    outputEntryTemplate,
+
+    // Continue to include the old file name for backwards compatibility.
+    {
+      ...outputEntryTemplate,
+      entryFileNames: 'frigate-hass-card.js',
     },
-    format: 'es',
-    sourcemap: dev,
-  },
+  ],
   plugins: plugins,
   // These files use this at the toplevel, which causes rollup warning
   // spam on build: `this` has been rewritten to `undefined`.

@@ -22,9 +22,9 @@ describe('StatusBarController', () => {
       controller.setConfig(config);
 
       expect(controller.getConfig()).toEqual(config);
-      expect(host.style.getPropertyValue('--frigate-card-status-bar-height')).toBe(
-        '50px',
-      );
+      expect(
+        host.style.getPropertyValue('--advanced-camera-card-status-bar-height'),
+      ).toBe('50px');
       expect(host.getAttribute('data-style')).toBe('hover');
       expect(host.getAttribute('data-position')).toBe('top');
       expect(host.requestUpdate).toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe('StatusBarController', () => {
       const controller = new StatusBarController(host);
       const items = [
         {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Test',
         },
       ];
@@ -92,22 +92,22 @@ describe('StatusBarController', () => {
       const host = createLitElement();
       const controller = new StatusBarController(host);
       const item1 = {
-        type: 'custom:frigate-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string',
         string: 'Item 1',
         priority: 40,
       };
       const item2 = {
-        type: 'custom:frigate-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string',
         string: 'Item 2',
         priority: 10,
       };
       const item3 = {
-        type: 'custom:frigate-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string',
         string: 'Item 3',
         priority: 60,
       };
       const item4 = {
-        type: 'custom:frigate-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string',
         string: 'Item 4',
         priority: undefined,
       };
@@ -120,12 +120,12 @@ describe('StatusBarController', () => {
       const host = createLitElement();
       const controller = new StatusBarController(host);
       const item1 = {
-        type: 'custom:frigate-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string',
         string: 'Item 1',
         priority: 100,
       };
       const exclusiveItem = {
-        type: 'custom:frigate-card-status-bar-string',
+        type: 'custom:advanced-camera-card-status-bar-string',
         string: 'Item 2',
         priority: 1,
         exclusive: true,
@@ -140,12 +140,12 @@ describe('StatusBarController', () => {
         const host = createLitElement();
         const controller = new StatusBarController(host);
         const insufficientItem = {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item 1',
           sufficient: false,
         };
         const sufficientItem = {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item 2',
           sufficient: true,
         };
@@ -159,12 +159,12 @@ describe('StatusBarController', () => {
         const host = createLitElement();
         const controller = new StatusBarController(host);
         const insufficientItem = {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item 1',
           sufficient: false,
         };
         const sufficientItem = {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item 2',
           sufficient: false,
         };
@@ -188,7 +188,7 @@ describe('StatusBarController', () => {
         );
 
         const sufficientItem = {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item 1',
           priority: 100,
           sufficient: true,
@@ -210,7 +210,7 @@ describe('StatusBarController', () => {
         );
 
         const insufficientItem = {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item 1',
           priority: 100,
           sufficient: false,
@@ -231,19 +231,19 @@ describe('StatusBarController', () => {
         );
 
         const sufficientString = {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'String',
           priority: 100,
           sufficient: true,
         };
         const sufficientIcon = {
-          type: 'custom:frigate-card-status-bar-icon',
+          type: 'custom:advanced-camera-card-status-bar-icon',
           icon: 'Icon',
           priority: 100,
           sufficient: true,
         };
         const sufficientImage = {
-          type: 'custom:frigate-card-status-bar-image',
+          type: 'custom:advanced-camera-card-status-bar-image',
           image: 'Image',
           priority: 100,
           sufficient: true,
@@ -275,7 +275,7 @@ describe('StatusBarController', () => {
         );
 
         const sufficientItem = {
-          type: 'custom:frigate-card-status-bar-string',
+          type: 'custom:advanced-camera-card-status-bar-string',
           string: 'Item 1',
           priority: 100,
           sufficient: true,
@@ -297,7 +297,7 @@ describe('StatusBarController', () => {
     it('should bail without action', () => {
       const host = createLitElement();
       const handler = vi.fn();
-      host.addEventListener('frigate-card:action:execution-request', handler);
+      host.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new StatusBarController(host);
       controller.actionHandler(createInteractionEvent('tap'));
@@ -307,7 +307,7 @@ describe('StatusBarController', () => {
     it('should request action execution', () => {
       const host = createLitElement();
       const handler = vi.fn();
-      host.addEventListener('frigate-card:action:execution-request', handler);
+      host.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new StatusBarController(host);
 

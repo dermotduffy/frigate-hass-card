@@ -1,6 +1,6 @@
 import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import pkg from '../../package.json';
-import { RawFrigateCardConfig } from '../config/types';
+import { RawAdvancedCameraCardConfig } from '../config/types';
 import { getLanguage } from '../localize/localize';
 import { getIntegrationManifest } from './ha/integration';
 import { IntegrationManifest } from './ha/integration/types';
@@ -21,7 +21,7 @@ interface IntegrationDiagnostics {
 }
 
 export const getReleaseVersion = (): string => {
-  const releaseVersion: string = '__FRIGATE_CARD_RELEASE_VERSION__';
+  const releaseVersion: string = '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__';
 
   /* istanbul ignore if: depends on rollup substitution -- @preserve */
   if (releaseVersion === 'pkg') {
@@ -45,7 +45,7 @@ interface Diagnostics {
   git: GitDiagnostics;
 
   ha_version?: string;
-  config?: RawFrigateCardConfig;
+  config?: RawAdvancedCameraCardConfig;
 
   custom_integrations: {
     frigate: IntegrationDiagnostics & {
@@ -78,7 +78,7 @@ const getIntegrationDiagnostics = async (
 export const getDiagnostics = async (
   hass?: HomeAssistant,
   deviceRegistryManager?: DeviceRegistryManager,
-  rawConfig?: RawFrigateCardConfig,
+  rawConfig?: RawAdvancedCameraCardConfig,
 ): Promise<Diagnostics> => {
   // Get the Frigate devices in order to extract the Frigate integration and
   // server version numbers.

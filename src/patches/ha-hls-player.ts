@@ -15,7 +15,7 @@ import { query } from 'lit/decorators/query.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { renderMessage } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import { FrigateCardMediaPlayer, FullscreenElement } from '../types.js';
+import { AdvancedCameraCardMediaPlayer, FullscreenElement } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
 import { errorToConsole } from '../utils/basic.js';
 import {
@@ -32,11 +32,11 @@ import {
 import { screenshotMedia } from '../utils/screenshot.js';
 
 customElements.whenDefined('ha-hls-player').then(() => {
-  @customElement('frigate-card-ha-hls-player')
+  @customElement('advanced-camera-card-ha-hls-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class FrigateCardHaHlsPlayer
+  class AdvancedCameraCardHaHlsPlayer
     extends customElements.get('ha-hls-player')
-    implements FrigateCardMediaPlayer
+    implements AdvancedCameraCardMediaPlayer
   {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
@@ -171,6 +171,6 @@ customElements.whenDefined('ha-hls-player').then(() => {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-ha-hls-player': FrigateCardHaHlsPlayer;
+    'advanced-camera-card-ha-hls-player': AdvancedCameraCardHaHlsPlayer;
   }
 }

@@ -1,7 +1,7 @@
 # go2rtc Player
 
 This is a modified version of the go2rtc example video player code, modified for
-use in the Frigate card. In order to make future maintenance easier,
+use in the Advanced Camera Card. In order to make future maintenance easier,
 modifications have been kept to a minimum.
 
 ## Original Example Code

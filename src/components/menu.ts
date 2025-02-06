@@ -6,14 +6,14 @@ import { actionHandler } from '../action-handler-directive.js';
 import { MenuController } from '../components-lib/menu-controller.js';
 import type { MenuConfig, MenuItem } from '../config/types.js';
 import menuStyle from '../scss/menu.scss';
-import { frigateCardHasAction } from '../utils/action.js';
+import { hasAction } from '../utils/action.js';
 import { getEntityTitle } from '../utils/ha/index.js';
 import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
 import './icon.js';
 import './submenu.js';
 
-@customElement('frigate-card-menu')
-export class FrigateCardMenu extends LitElement {
+@customElement('advanced-camera-card-menu')
+export class AdvancedCameraCardMenu extends LitElement {
   protected _controller = new MenuController(this);
 
   @property({ attribute: false })
@@ -43,37 +43,39 @@ export class FrigateCardMenu extends LitElement {
       return;
     }
 
-    if (button.type === 'custom:frigate-card-menu-submenu') {
-      return html` <frigate-card-submenu
+    if (button.type === 'custom:advanced-camera-card-menu-submenu') {
+      return html` <advanced-camera-card-submenu
         .hass=${this.hass}
         .submenu=${button}
         @action=${(ev) => this._controller.actionHandler(ev)}
       >
-      </frigate-card-submenu>`;
-    } else if (button.type === 'custom:frigate-card-menu-submenu-select') {
-      return html` <frigate-card-submenu-select
+      </advanced-camera-card-submenu>`;
+    } else if (button.type === 'custom:advanced-camera-card-menu-submenu-select') {
+      return html` <advanced-camera-card-submenu-select
         .hass=${this.hass}
         .submenuSelect=${button}
         .entityRegistryManager=${this.entityRegistryManager}
         @action=${(ev) => this._controller.actionHandler(ev)}
       >
-      </frigate-card-submenu-select>`;
+      </advanced-camera-card-submenu-select>`;
     }
 
     const title =
-      this.hass && button.type === 'custom:frigate-card-menu-state-icon' && !button.title
+      this.hass &&
+      button.type === 'custom:advanced-camera-card-menu-state-icon' &&
+      !button.title
         ? getEntityTitle(this.hass, button.entity)
         : button.title;
 
     return html` <ha-icon-button
       .actionHandler=${actionHandler({
-        hasHold: frigateCardHasAction(button.hold_action),
-        hasDoubleClick: frigateCardHasAction(button.double_tap_action),
+        hasHold: hasAction(button.hold_action),
+        hasDoubleClick: hasAction(button.double_tap_action),
       })}
       .label=${title ?? ''}
       @action=${(ev) => this._controller.actionHandler(ev, button)}
     >
-      <frigate-card-icon
+      <advanced-camera-card-icon
         ?allow-override-non-active-styles=${true}
         style="${styleMap(button.style || {})}"
         .hass=${this.hass}
@@ -83,7 +85,7 @@ export class FrigateCardMenu extends LitElement {
           stateColor: button.state_color,
           fallback: 'mdi:gesture-tap-button',
         }}
-      ></frigate-card-icon>
+      ></advanced-camera-card-icon>
     </ha-icon-button>`;
   }
 
@@ -108,13 +110,13 @@ export class FrigateCardMenu extends LitElement {
 
     const generateValue = (suffix: string): string => {
       return `
-        var(--frigate-card-menu-override-${suffix},
-        var(--frigate-card-menu-position-${position}-alignment-${alignment}-style-${style}-${suffix},
-        var(--frigate-card-menu-position-${position}-alignment-${alignment}-${suffix},
-        var(--frigate-card-menu-position-${position}-${suffix},
-        var(--frigate-card-menu-style-${style}-${suffix},
-        var(--frigate-card-menu-alignment-${alignment}-${suffix},
-        var(--frigate-card-menu-${suffix})))))))`;
+        var(--advanced-camera-card-menu-override-${suffix},
+        var(--advanced-camera-card-menu-position-${position}-alignment-${alignment}-style-${style}-${suffix},
+        var(--advanced-camera-card-menu-position-${position}-alignment-${alignment}-${suffix},
+        var(--advanced-camera-card-menu-position-${position}-${suffix},
+        var(--advanced-camera-card-menu-style-${style}-${suffix},
+        var(--advanced-camera-card-menu-alignment-${alignment}-${suffix},
+        var(--advanced-camera-card-menu-${suffix})))))))`;
     };
 
     // By definition `rule` will match the current configuration, the choice is
@@ -169,6 +171,6 @@ export class FrigateCardMenu extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-menu': FrigateCardMenu;
+    'advanced-camera-card-menu': AdvancedCameraCardMenu;
   }
 }

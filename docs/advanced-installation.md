@@ -14,7 +14,7 @@ For most users, HACS should automatically add the necessary resources. Should th
 Three dots menu -> "Edit Dashboard" -> Three dots menu -> "Manage resources" -> "Add Resource"
 ```
 
-- URL: `/hacsfiles/frigate-hass-card/frigate-hass-card.js`
+- URL: `/hacsfiles/advanced-camera-card/advanced-camera-card.js`
 - Resource type: `JavaScript Module`
 
 #### Lovelace in "YAML mode" (rare)
@@ -26,7 +26,7 @@ You would see`mode: yaml` under `lovelace:` in your `configuration.yaml` if this
 ```yaml
 lovelace:
   resources:
-    - url: /hacsfiles/frigate-hass-card/frigate-hass-card.js
+    - url: /hacsfiles/advanced-camera-card/advanced-camera-card.js
       type: module
 ```
 
@@ -34,15 +34,15 @@ lovelace:
 
 ### Manual installation
 
-- Download the `frigate-hass-card.zip` attachment of the desired [release](https://github.com/dermotduffy/frigate-hass-card/releases) to a location accessible by Home Assistant. Note that the release will have a series of `.js` files (for HACS users) **and** a `frigate-hass-card.zip` for the convenience of manual installers.
-- Unzip the file and move the contents of the `dist/` folder to any subfolder name you'd like, e.g. `frigate-card` is used in the below example.
+- Download the `advanced-camera-card.zip` attachment of the desired [release](https://github.com/dermotduffy/advanced-camera-card/releases) to a location accessible by Home Assistant. Note that the release will have a series of `.js` files (for HACS users) **and** a `advanced-camera-card.zip` for the convenience of manual installers.
+- Unzip the file and move the contents of the `dist/` folder to any subfolder name you'd like, e.g. `advanced-camera-card` is used in the below example.
 - Add the location as a Lovelace resource via the UI, or via [YAML configuration](https://www.home-assistant.io/lovelace/dashboards/#resources) such as:
 
 ```yaml
 lovelace:
   mode: yaml
   resources:
-    - url: /local/frigate-card/frigate-hass-card.js
+    - url: /local/advanced-camera-card/advanced-camera-card.js
       type: module
 ```
 

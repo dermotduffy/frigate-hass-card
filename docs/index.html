@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Frigate Card</title>
+    <title>Advanced Camera Card</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <meta name="description" content="Frigate Card Documentation" />
+    <meta name="description" content="Advanced Camera Card Documentation" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover"
@@ -27,12 +27,16 @@
     <style>
       :root {
         --content-max-width: 95vw;
+        --cover-heading-font-size-max: 48;
       }
       .svg-icon {
         background-color: rgb(255, 255, 255);
         vertical-align: middle;
         background: repeating-conic-gradient(#80808091 0% 25%, transparent 0% 50%) 50% /
           4px 4px;
+      }
+      #__sidebar img {
+        max-width: 100px;
       }
     </style>
   </head>
@@ -43,12 +47,13 @@
         // Full reference: https://docsify.js.org/#/configuration
 
         // The repo to link to.
-        repo: 'dermotduffy/frigate-hass-card',
+        repo: 'dermotduffy/advanced-camera-card',
 
         // The overall documentation name.
-        name: 'Frigate Card',
+        name: 'Advanced Camera Card',
 
-        logo: 'images/icons/frigate.svg',
+        // The logo to show on the top of the sidebar.
+        logo: 'images/icons/iris.svg',
 
         // Automatically go to the top of a page on route change.
         auto2top: true,
@@ -59,7 +64,7 @@
         // Automatically use headings up to H2 for sider.
         subMaxLevel: 2,
 
-        // Show the Frigate Card cover page.
+        // Show the Advanced Camera Card cover page.
         coverpage: true,
 
         // Use relative links (this way both vscode and docsify work on clicking

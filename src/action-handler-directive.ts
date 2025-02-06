@@ -1,8 +1,8 @@
-import { fireEvent } from '@dermotduffy/custom-card-helpers';
 import type {
   ActionHandlerDetail,
   ActionHandlerOptions,
 } from '@dermotduffy/custom-card-helpers';
+import { fireEvent } from '@dermotduffy/custom-card-helpers';
 import { noChange } from 'lit';
 import {
   AttributePart,
@@ -18,10 +18,10 @@ interface ActionHandlerInterface extends HTMLElement {
   bind(element: Element, options): void;
 }
 interface ActionHandlerElement extends HTMLElement {
-  actionHandlerOptions?: FrigateCardActionHandlerOptions;
+  actionHandlerOptions?: AdvancedCameraCardActionHandlerOptions;
 }
 
-interface FrigateCardActionHandlerOptions extends ActionHandlerOptions {
+interface AdvancedCameraCardActionHandlerOptions extends ActionHandlerOptions {
   allowPropagation?: boolean;
 }
 
@@ -56,7 +56,7 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
 
   public bind(
     element: ActionHandlerElement,
-    options?: FrigateCardActionHandlerOptions,
+    options?: AdvancedCameraCardActionHandlerOptions,
   ): void {
     if (element.actionHandlerOptions) {
       // Reset the options on an existing actionHandler.
@@ -160,15 +160,15 @@ class ActionHandler extends HTMLElement implements ActionHandlerInterface {
   }
 }
 
-customElements.define('action-handler-frigate-card', ActionHandler);
+customElements.define('action-handler-advanced-camera-card', ActionHandler);
 
 const getActionHandler = (): ActionHandler => {
   const body = document.body;
-  if (body.querySelector('action-handler-frigate-card')) {
-    return body.querySelector('action-handler-frigate-card') as ActionHandler;
+  if (body.querySelector('action-handler-advanced-camera-card')) {
+    return body.querySelector('action-handler-advanced-camera-card') as ActionHandler;
   }
 
-  const actionhandler = document.createElement('action-handler-frigate-card');
+  const actionhandler = document.createElement('action-handler-advanced-camera-card');
   body.appendChild(actionhandler);
 
   return actionhandler as ActionHandler;
@@ -176,7 +176,7 @@ const getActionHandler = (): ActionHandler => {
 
 const actionHandlerBind = (
   element: ActionHandlerElement,
-  options?: FrigateCardActionHandlerOptions,
+  options?: AdvancedCameraCardActionHandlerOptions,
 ): void => {
   const actionhandler: ActionHandler = getActionHandler();
   if (!actionhandler) {
@@ -193,7 +193,7 @@ export const actionHandler = directive(
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-    render(_options?: FrigateCardActionHandlerOptions) {}
+    render(_options?: AdvancedCameraCardActionHandlerOptions) {}
   },
 );
 
@@ -222,7 +222,7 @@ export interface ActionEventTarget extends EventTarget {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'action-handler-frigate-card': ActionHandler;
+    'action-handler-advanced-camera-card': ActionHandler;
   }
   interface HASSDomEvents {
     action: ActionHandlerDetail;

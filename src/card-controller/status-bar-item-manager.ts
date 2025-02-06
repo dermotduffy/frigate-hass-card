@@ -62,7 +62,7 @@ export class StatusBarItemManager {
       ...(title
         ? [
             {
-              type: 'custom:frigate-card-status-bar-string' as const,
+              type: 'custom:advanced-camera-card-status-bar-string' as const,
               string: title,
               expand: true,
               sufficient: true,
@@ -74,7 +74,7 @@ export class StatusBarItemManager {
       ...(resolution
         ? [
             {
-              type: 'custom:frigate-card-status-bar-string' as const,
+              type: 'custom:advanced-camera-card-status-bar-string' as const,
               string: resolution,
               ...options?.statusConfig?.items.resolution,
             },
@@ -84,7 +84,7 @@ export class StatusBarItemManager {
       ...(technology && technology === 'webrtc'
         ? [
             {
-              type: 'custom:frigate-card-status-bar-icon' as const,
+              type: 'custom:advanced-camera-card-status-bar-icon' as const,
               icon: 'mdi:webrtc',
               ...options?.statusConfig?.items.technology,
             },
@@ -92,7 +92,7 @@ export class StatusBarItemManager {
         : !!technology
           ? [
               {
-                type: 'custom:frigate-card-status-bar-string' as const,
+                type: 'custom:advanced-camera-card-status-bar-string' as const,
                 string: technology.toUpperCase(),
                 ...options?.statusConfig?.items.technology,
               },
@@ -102,7 +102,7 @@ export class StatusBarItemManager {
       ...(engineIcon
         ? [
             {
-              type: 'custom:frigate-card-status-bar-icon' as const,
+              type: 'custom:advanced-camera-card-status-bar-icon' as const,
               icon: engineIcon,
               ...options?.statusConfig?.items.engine,
             },

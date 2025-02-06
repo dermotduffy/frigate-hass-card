@@ -1,11 +1,14 @@
-import { FrigateCardError, Message } from '../../types';
-import { dispatchFrigateCardEvent } from '../../utils/basic';
+import { AdvancedCameraCardError, Message } from '../../types';
+import { dispatchAdvancedCameraCardEvent } from '../../utils/basic';
 
 // Facilitates correct typing of event handlers.
-export interface FrigateCardMessageEventTarget extends EventTarget {
+export interface AdvancedCameraCardMessageEventTarget extends EventTarget {
   addEventListener(
-    event: 'frigate-card:message',
-    listener: (this: FrigateCardMessageEventTarget, ev: CustomEvent<Message>) => void,
+    event: 'advanced-camera-card:message',
+    listener: (
+      this: AdvancedCameraCardMessageEventTarget,
+      ev: CustomEvent<Message>,
+    ) => void,
     options?: AddEventListenerOptions | boolean,
   ): void;
   addEventListener(
@@ -14,8 +17,11 @@ export interface FrigateCardMessageEventTarget extends EventTarget {
     options?: AddEventListenerOptions | boolean,
   ): void;
   removeEventListener(
-    event: 'frigate-card:message',
-    listener: (this: FrigateCardMessageEventTarget, ev: CustomEvent<Message>) => void,
+    event: 'advanced-camera-card:message',
+    listener: (
+      this: AdvancedCameraCardMessageEventTarget,
+      ev: CustomEvent<Message>,
+    ) => void,
     options?: boolean | EventListenerOptions,
   ): void;
   removeEventListener(
@@ -33,15 +39,15 @@ export interface FrigateCardMessageEventTarget extends EventTarget {
  * @param element The element to send the event.
  * @param message The message to show.
  */
-export const dispatchFrigateCardErrorEvent = (
+export const dispatchAdvancedCameraCardErrorEvent = (
   element: EventTarget,
   error: unknown,
 ): void => {
   if (error instanceof Error) {
-    dispatchFrigateCardEvent<Message>(element, 'message', {
+    dispatchAdvancedCameraCardEvent<Message>(element, 'message', {
       message: error.message,
       type: 'error',
-      ...(error instanceof FrigateCardError && { context: error.context }),
+      ...(error instanceof AdvancedCameraCardError && { context: error.context }),
     });
   }
 };

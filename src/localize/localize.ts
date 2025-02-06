@@ -14,7 +14,7 @@ const languages: Record<string, any> = {
 // The language is calculated and stored once, then re-used to avoid needing to
 // repeat the lookups and to ensure minimal information needs to be plumbed
 // through on each localization call.
-let frigateCardLanguage: string | undefined;
+let advancedCameraCardLanguage: string | undefined;
 
 /**
  * Get the configured language.
@@ -67,7 +67,7 @@ export const loadLanguages = async (hass: HomeAssistant): Promise<boolean> => {
   }
 
   if (lang) {
-    frigateCardLanguage = lang;
+    advancedCameraCardLanguage = lang;
   }
   return true;
 };
@@ -85,7 +85,7 @@ export function localize(string: string, search = '', replace = ''): string {
   try {
     translated = string
       .split('.')
-      .reduce((o, i) => o[i], languages[frigateCardLanguage ?? DEFAULT_LANG]);
+      .reduce((o, i) => o[i], languages[advancedCameraCardLanguage ?? DEFAULT_LANG]);
   } catch (_) {}
 
   if (!translated) {

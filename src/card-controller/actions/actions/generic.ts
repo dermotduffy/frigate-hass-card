@@ -3,7 +3,7 @@ import { CardActionsAPI } from '../../types';
 import { BaseAction } from './base';
 
 /**
- * Handles generic HA (non-Frigate) actions (e.g. 'more-info')
+ * Handles generic HA actions (e.g. 'more-info')
  */
 export class GenericAction extends BaseAction<ActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {

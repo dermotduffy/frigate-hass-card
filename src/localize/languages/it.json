@@ -1,7 +1,7 @@
 {
   "common": {
-    "frigate_card": "Frigate card",
-    "frigate_card_description": "Una scheda Lovelace per l'uso con Frigate",
+    "advanced_camera_card": "",
+    "advanced_camera_card_description": "",
     "live": "Live",
     "no_media": "Nessun contenuto multimediale da visualizzare",
     "recordings": "Registrazioni",
@@ -265,7 +265,7 @@
         "modes": {
           "camera": "Istantanea della telecamera di Home Assistant dell'entità telecamera",
           "entity": "",
-          "screensaver": "Logo Frigate incorporato",
+          "screensaver": "",
           "url": "Immagine arbitraria specificata dall'URL"
         },
         "refresh_seconds": "Numero di secondi dopo i quali aggiornare (0 = mai)",
@@ -394,10 +394,10 @@
         "download": "Download",
         "enabled": "Pulsante abilitato",
         "expand": "Espandere",
-        "frigate": "Frigate menu / Visualizzazione predefinita",
         "fullscreen": "A schermo intero",
         "icon": "Icona",
         "image": "Immagine",
+        "iris": "",
         "live": "Abitare",
         "media_player": "Invia a Media Player",
         "microphone": "",
@@ -646,7 +646,6 @@
     "no_camera_entity": "Impossibile trovare l'entità fotocamera",
     "no_camera_entity_for_triggers": "È necessaria un'entità telecamera per rilevare automaticamente i trigger",
     "no_camera_id": "Impossibile determinare l'ID della telecamera , potrebbe essere necessario impostare manualmente il parametro 'ID'",
-    "no_camera_name": "Impossibile determinare un nome della telecamera in Frigate, si prega di specificare 'camera_enty' o 'camera_name'",
     "no_dashboard_or_view": "",
     "no_live_camera": "Il parametro fotocamera_enty deve essere impostato e valido per questo provider live",
     "no_supported_camera": "",

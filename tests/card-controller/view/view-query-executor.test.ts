@@ -3,7 +3,7 @@ import { mock } from 'vitest-mock-extended';
 import { applyViewModifiers } from '../../../src/card-controller/view/modifiers';
 import { QueryExecutor } from '../../../src/card-controller/view/query-executor';
 import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
-import { FrigateCardView } from '../../../src/config/types';
+import { AdvancedCameraCardView } from '../../../src/config/types';
 import {
   EventMediaQueries,
   RecordingMediaQueries,
@@ -271,7 +271,10 @@ describe('ViewQueryExecutor', () => {
         ['snapshots' as const, 'snapshots' as const],
       ])(
         '%s',
-        async (viewName: FrigateCardView, eventsMediaType: 'clips' | 'snapshots') => {
+        async (
+          viewName: AdvancedCameraCardView,
+          eventsMediaType: 'clips' | 'snapshots',
+        ) => {
           const executor = mock<QueryExecutor>();
           const query = new EventMediaQueries();
           const queryResults = new MediaQueriesResults();
@@ -310,7 +313,7 @@ describe('ViewQueryExecutor', () => {
     describe('with a recordings-based view', () => {
       it.each([['recording' as const], ['recordings' as const]])(
         '%s',
-        async (viewName: FrigateCardView) => {
+        async (viewName: AdvancedCameraCardView) => {
           const executor = mock<QueryExecutor>();
           const query = new RecordingMediaQueries();
           const queryResults = new MediaQueriesResults();

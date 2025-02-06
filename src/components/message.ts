@@ -13,13 +13,13 @@ export function renderMessage(
     overlay?: boolean;
   },
 ): TemplateResult {
-  return html` <frigate-card-message
+  return html` <advanced-camera-card-message
     .message=${message}
     ?overlay=${!!renderOptions?.overlay}
-  ></frigate-card-message>`;
+  ></advanced-camera-card-message>`;
 }
-@customElement('frigate-card-message')
-export class FrigateCardMessage extends LitElement {
+@customElement('advanced-camera-card-message')
+export class AdvancedCameraCardMessage extends LitElement {
   @property({ attribute: false })
   public message?: Message;
 
@@ -51,7 +51,9 @@ export class FrigateCardMessage extends LitElement {
     return html` <div class="wrapper">
       <div class="message padded">
         <div class="icon">
-          <frigate-card-icon .icon="${{ icon: icon }}"></frigate-card-icon>
+          <advanced-camera-card-icon
+            .icon="${{ icon: icon }}"
+          ></advanced-camera-card-icon>
         </div>
         <div class="contents">
           <span class="${classMap(classes)}">${messageTemplate}</span>
@@ -70,6 +72,6 @@ export class FrigateCardMessage extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-message': FrigateCardMessage;
+    'advanced-camera-card-message': AdvancedCameraCardMessage;
   }
 }

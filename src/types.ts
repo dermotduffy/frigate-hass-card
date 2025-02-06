@@ -10,7 +10,7 @@ import { z } from 'zod';
 export type ClipsOrSnapshots = 'clips' | 'snapshots';
 export type ClipsOrSnapshotsOrAll = 'clips' | 'snapshots' | 'all';
 
-export class FrigateCardError extends Error {
+export class AdvancedCameraCardError extends Error {
   context?: unknown;
 
   constructor(message: string, context?: unknown) {
@@ -39,7 +39,7 @@ export interface MediaLoadedInfo {
   width: number;
   height: number;
   technology?: MediaTechnology[];
-  player?: FrigateCardMediaPlayer;
+  player?: AdvancedCameraCardMediaPlayer;
   capabilities?: MediaLoadedCapabilities;
 }
 
@@ -63,7 +63,7 @@ export type WebkitHTMLVideoElement = HTMLVideoElement & {
 
 export type FullscreenElement = HTMLElement;
 
-export interface FrigateCardMediaPlayer {
+export interface AdvancedCameraCardMediaPlayer {
   play(): Promise<void>;
   pause(): Promise<void>;
   mute(): Promise<void>;

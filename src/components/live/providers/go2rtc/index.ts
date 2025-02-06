@@ -15,7 +15,7 @@ import { localize } from '../../../../localize/localize.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import {
   ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
+  AdvancedCameraCardMediaPlayer,
   FullscreenElement,
   Message,
 } from '../../../../types.js';
@@ -25,7 +25,7 @@ import { screenshotMedia } from '../../../../utils/screenshot.js';
 import { renderMessage } from '../../../message.js';
 import { VideoRTC } from './video-rtc.js';
 
-customElements.define('frigate-card-live-go2rtc-player', VideoRTC);
+customElements.define('advanced-camera-card-live-go2rtc-player', VideoRTC);
 
 // Note (2023-02-18): Depending on the behavior of the player / browser is
 // possible this URL will need to be re-signed in order to avoid HA spamming
@@ -34,8 +34,11 @@ customElements.define('frigate-card-live-go2rtc-player', VideoRTC);
 // provider).
 const GO2RTC_URL_SIGN_EXPIRY_SECONDS = 24 * 60 * 60;
 
-@customElement('frigate-card-live-go2rtc')
-export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPlayer {
+@customElement('advanced-camera-card-live-go2rtc')
+export class AdvancedCameraCardGo2RTC
+  extends LitElement
+  implements AdvancedCameraCardMediaPlayer
+{
   // Not an reactive property to avoid resetting the video.
   public hass?: ExtendedHomeAssistant;
 
@@ -116,7 +119,7 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
     super.connectedCallback();
 
     // Reset the player when reconnected to the DOM.
-    // https://github.com/dermotduffy/frigate-hass-card/issues/996
+    // https://github.com/dermotduffy/advanced-camera-card/issues/996
     this.requestUpdate();
   }
 
@@ -205,6 +208,6 @@ export class FrigateCardGo2RTC extends LitElement implements FrigateCardMediaPla
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-go2rtc': FrigateCardGo2RTC;
+    'advanced-camera-card-live-go2rtc': AdvancedCameraCardGo2RTC;
   }
 }

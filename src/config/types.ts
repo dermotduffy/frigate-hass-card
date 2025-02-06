@@ -26,13 +26,13 @@ import { PTZ_ACTIONS } from './ptz';
 export const BUTTON_SIZE_MIN = 20;
 export const STATUS_BAR_HEIGHT_MIN = BUTTON_SIZE_MIN;
 
-const FRIGATE_MENU_PRIORITY_DEFAULT = 50;
-export const FRIGATE_MENU_PRIORITY_MAX = 100;
+const MENU_PRIORITY_DEFAULT = 50;
+export const MENU_PRIORITY_MAX = 100;
 
-export const FRIGATE_STATUS_BAR_PRIORITY_DEFAULT = FRIGATE_MENU_PRIORITY_DEFAULT;
-export const FRIGATE_STATUS_BAR_PRIORITY_MAX = FRIGATE_MENU_PRIORITY_MAX;
+export const STATUS_BAR_PRIORITY_DEFAULT = MENU_PRIORITY_DEFAULT;
+export const STATUS_BAR_PRIORITY_MAX = MENU_PRIORITY_MAX;
 
-export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
+export const VIEWS_USER_SPECIFIED = [
   'diagnostics',
   'live',
   'clip',
@@ -44,21 +44,20 @@ export const FRIGATE_CARD_VIEWS_USER_SPECIFIED = [
   'image',
   'timeline',
 ] as const;
-export type FrigateCardUserSpecifiedView =
-  (typeof FRIGATE_CARD_VIEWS_USER_SPECIFIED)[number];
+export type AdvancedCameraCardUserSpecifiedView = (typeof VIEWS_USER_SPECIFIED)[number];
 
-const FRIGATE_CARD_VIEWS = [
-  ...FRIGATE_CARD_VIEWS_USER_SPECIFIED,
+const VIEWS = [
+  ...VIEWS_USER_SPECIFIED,
   'diagnostics',
 
   // Media: A generic piece of media (could be clip, snapshot, recording).
   'media',
 ] as const;
 
-export type FrigateCardView = (typeof FRIGATE_CARD_VIEWS)[number];
+export type AdvancedCameraCardView = (typeof VIEWS)[number];
 
 // The default view (may not be supported on all cameras).
-export const FRIGATE_CARD_VIEW_DEFAULT = 'live' as const;
+export const VIEW_DEFAULT = 'live' as const;
 
 export const MEDIA_ACTION_NEGATIVE_CONDITIONS = ['unselected', 'hidden'] as const;
 export type LazyUnloadCondition = (typeof MEDIA_ACTION_NEGATIVE_CONDITIONS)[number];
@@ -243,9 +242,9 @@ const noActionSchema = schemaForType<
   }),
 );
 
-export const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
+export const advancedCameraCardCustomActionsBaseSchema = customActionSchema.extend({
   action: z
-    .literal('custom:frigate-card-action')
+    .literal('custom:advanced-camera-card-action')
     // Syntactic sugar to avoid 'fire-dom-event' as part of an external API.
     .transform((): 'fire-dom-event' => 'fire-dom-event')
     .or(z.literal('fire-dom-event')),
@@ -261,7 +260,7 @@ export const frigateCardCustomActionsBaseSchema = customActionSchema.extend({
 //                           Custom Actions
 // *************************************************************************
 
-const FRIGATE_CARD_GENERAL_ACTIONS = [
+const GENERAL_ACTIONS = [
   'camera_ui',
   'default',
   'download',
@@ -280,48 +279,50 @@ const FRIGATE_CARD_GENERAL_ACTIONS = [
   'screenshot',
   'unmute',
 ] as const;
-export type FrigateCardGeneralAction = (typeof FRIGATE_CARD_GENERAL_ACTIONS)[number];
+export type AdvancedCameraCardGeneralAction = (typeof GENERAL_ACTIONS)[number];
 
-const viewActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED),
+const viewActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.enum(VIEWS_USER_SPECIFIED),
 });
 export type ViewActionConfig = z.infer<typeof viewActionConfigSchema>;
 
-const generalActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.enum(FRIGATE_CARD_GENERAL_ACTIONS),
+const generalActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.enum(GENERAL_ACTIONS),
 });
 export type GeneralActionConfig = z.infer<typeof generalActionConfigSchema>;
 
-const cameraSelectActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('camera_select'),
+const cameraSelectActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('camera_select'),
   camera: z.string().optional(),
   triggered: z.boolean().optional(),
 });
 export type CameraSelectActionConfig = z.infer<typeof cameraSelectActionConfigSchema>;
 
-const substreamSelectActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('live_substream_select'),
-  camera: z.string(),
-});
+const substreamSelectActionConfigSchema =
+  advancedCameraCardCustomActionsBaseSchema.extend({
+    advanced_camera_card_action: z.literal('live_substream_select'),
+    camera: z.string(),
+  });
 export type SubstreamSelectActionConfig = z.infer<
   typeof substreamSelectActionConfigSchema
 >;
 
-const mediaPlayerActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('media_player'),
+const mediaPlayerActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('media_player'),
   media_player: z.string(),
   media_player_action: z.enum(['play', 'stop']),
 });
 export type MediaPlayerActionConfig = z.infer<typeof mediaPlayerActionConfigSchema>;
 
-const viewDisplayModeActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('display_mode_select'),
-  display_mode: viewDisplayModeSchema,
-});
+const viewDisplayModeActionConfigSchema =
+  advancedCameraCardCustomActionsBaseSchema.extend({
+    advanced_camera_card_action: z.literal('display_mode_select'),
+    display_mode: viewDisplayModeSchema,
+  });
 export type DisplayModeActionConfig = z.infer<typeof viewDisplayModeActionConfigSchema>;
 
-const ptzActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('ptz'),
+const ptzActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('ptz'),
   camera: z.string().optional(),
   ptz_action: z.enum(PTZ_ACTIONS).optional(),
   ptz_phase: z.enum(ACTION_PHASES).optional(),
@@ -329,8 +330,8 @@ const ptzActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
 });
 export type PTZActionConfig = z.infer<typeof ptzActionConfigSchema>;
 
-const ptzDigitalActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('ptz_digital'),
+const ptzDigitalActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('ptz_digital'),
   target_id: z.string().optional(),
   absolute: z
     .object({
@@ -343,8 +344,8 @@ const ptzDigitalActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
 });
 export type PTZDigitialActionConfig = z.infer<typeof ptzDigitalActionConfigSchema>;
 
-const ptzMultiActionSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('ptz_multi'),
+const ptzMultiActionSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('ptz_multi'),
   target_id: z.string().optional(),
 
   ptz_action: z.enum(PTZ_ACTIONS).optional(),
@@ -353,8 +354,8 @@ const ptzMultiActionSchema = frigateCardCustomActionsBaseSchema.extend({
 });
 export type PTZMultiActionConfig = z.infer<typeof ptzMultiActionSchema>;
 
-const ptzControlsActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('ptz_controls'),
+const ptzControlsActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('ptz_controls'),
   enabled: z.boolean(),
 });
 export type PTZControlsActionConfig = z.infer<typeof ptzControlsActionConfigSchema>;
@@ -367,14 +368,14 @@ const timeDeltaSchema = z.object({
 });
 export type TimeDelta = z.infer<typeof timeDeltaSchema>;
 
-const sleepActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('sleep'),
+const sleepActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('sleep'),
   duration: timeDeltaSchema.optional().default({ s: 1 }),
 });
 export type SleepActionConfig = z.infer<typeof sleepActionConfigSchema>;
 
-const statusBarActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('status_bar'),
+const statusBarActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('status_bar'),
   status_bar_action: z.enum(['add', 'remove', 'reset']),
 
   // This needs to be lazily evaluated since statusBarItemSchema may itself
@@ -389,14 +390,14 @@ export type StatusBarActionConfig = z.infer<typeof statusBarActionConfigSchema>;
 const LOG_ACTIONS_LEVELS = ['debug', 'info', 'warn', 'error'] as const;
 export type LogActionLevel = (typeof LOG_ACTIONS_LEVELS)[number];
 
-const logActionConfigSchema = frigateCardCustomActionsBaseSchema.extend({
-  frigate_card_action: z.literal('log'),
+const logActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
+  advanced_camera_card_action: z.literal('log'),
   message: z.string(),
   level: z.enum(LOG_ACTIONS_LEVELS).default('info'),
 });
 export type LogActionConfig = z.infer<typeof logActionConfigSchema>;
 
-export const frigateCardCustomActionSchema = z.union([
+export const advancedCameraCardCustomActionSchema = z.union([
   cameraSelectActionConfigSchema,
   generalActionConfigSchema,
   substreamSelectActionConfigSchema,
@@ -411,10 +412,12 @@ export const frigateCardCustomActionSchema = z.union([
   sleepActionConfigSchema,
   statusBarActionConfigSchema,
 ]);
-export type FrigateCardCustomAction = z.infer<typeof frigateCardCustomActionSchema>;
+export type AdvancedCameraCardCustomAction = z.infer<
+  typeof advancedCameraCardCustomActionSchema
+>;
 
-// Cannot use discriminatedUnion since frigateCardCustomActionSchema uses a
-// transform on the discriminated union key.
+// Cannot use discriminatedUnion since advancedCameraCardCustomActionSchema uses
+// a transform on the discriminated union key.
 export const actionSchema = z.union([
   toggleActionSchema,
   callServiceActionSchema,
@@ -424,7 +427,7 @@ export const actionSchema = z.union([
   moreInfoActionSchema,
   noActionSchema,
   customActionSchema,
-  frigateCardCustomActionSchema,
+  advancedCameraCardCustomActionSchema,
 ]);
 export type ActionType = z.infer<typeof actionSchema>;
 
@@ -459,9 +462,9 @@ const elementsBaseSchema = actionsBaseSchema.extend({
 // *************************************************************************
 //                         Picture Elements
 //
-// All picture element types are validated (not just the Frigate card custom
-// ones) as a convenience to present the user with a consistent error display
-// up-front regardless of where they made their error.
+// All picture element types are validated (not just the Advanced Camera Card
+// custom ones) as a convenience to present the user with a consistent error
+// display up-front regardless of where they made their error.
 // *************************************************************************
 
 // https://www.home-assistant.io/lovelace/picture-elements/#state-badge
@@ -564,12 +567,12 @@ export const conditionalSchema = z.object({
 // https://www.home-assistant.io/lovelace/picture-elements/#custom-elements
 export const customSchema = z
   .object({
-    // Insist that Frigate card custom elements are handled by other schemas.
+    // Insist that Advanced Camera Card custom elements are handled by other schemas.
     type: z.string().superRefine((val, ctx) => {
-      if (!val.match(/^custom:(?!frigate-card).+/)) {
+      if (!val.match(/^custom:(?!advanced-camera-card).+/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Frigate-card custom elements must match specific schemas',
+          message: 'advanced-camera-card custom elements must match specific schemas',
           fatal: true,
         });
       }
@@ -586,8 +589,8 @@ const menuBaseSchema = z.object({
   priority: z
     .number()
     .min(0)
-    .max(FRIGATE_MENU_PRIORITY_MAX)
-    .default(FRIGATE_MENU_PRIORITY_DEFAULT)
+    .max(MENU_PRIORITY_MAX)
+    .default(MENU_PRIORITY_DEFAULT)
     .optional(),
   alignment: z.enum(['matching', 'opposing']).default('matching').optional(),
   icon: z.string().optional(),
@@ -595,14 +598,14 @@ const menuBaseSchema = z.object({
 });
 
 const menuIconSchema = menuBaseSchema.merge(iconSchema).extend({
-  type: z.literal('custom:frigate-card-menu-icon'),
+  type: z.literal('custom:advanced-camera-card-menu-icon'),
 });
 export type MenuIcon = z.infer<typeof menuIconSchema>;
 
 const menuStateIconSchema = menuBaseSchema
   .merge(stateIconSchema)
   .extend({
-    type: z.literal('custom:frigate-card-menu-state-icon'),
+    type: z.literal('custom:advanced-camera-card-menu-state-icon'),
   })
   .merge(menuBaseSchema);
 export type MenuStateIcon = z.infer<typeof menuStateIconSchema>;
@@ -618,13 +621,13 @@ const menuSubmenuItemSchema = elementsBaseSchema.extend({
 export type MenuSubmenuItem = z.infer<typeof menuSubmenuItemSchema>;
 
 const menuSubmenuSchema = menuBaseSchema.merge(iconSchema).extend({
-  type: z.literal('custom:frigate-card-menu-submenu'),
+  type: z.literal('custom:advanced-camera-card-menu-submenu'),
   items: menuSubmenuItemSchema.array(),
 });
 export type MenuSubmenu = z.infer<typeof menuSubmenuSchema>;
 
 const menuSubmenuSelectSchema = menuBaseSchema.merge(stateIconSchema).extend({
-  type: z.literal('custom:frigate-card-menu-submenu-select'),
+  type: z.literal('custom:advanced-camera-card-menu-submenu-select'),
   options: z.record(menuSubmenuItemSchema.deepPartial()).optional(),
 });
 export type MenuSubmenuSelect = z.infer<typeof menuSubmenuSelectSchema>;
@@ -639,8 +642,8 @@ const statusBarItemBaseSchema = z.object({
   priority: z
     .number()
     .min(0)
-    .max(FRIGATE_STATUS_BAR_PRIORITY_MAX)
-    .default(FRIGATE_STATUS_BAR_PRIORITY_DEFAULT)
+    .max(STATUS_BAR_PRIORITY_MAX)
+    .default(STATUS_BAR_PRIORITY_DEFAULT)
     .optional(),
 });
 
@@ -652,19 +655,19 @@ const statusBarItemElementsBaseSchema = statusBarItemBaseSchema.extend({
 });
 
 const statusBarIconItemSchema = statusBarItemElementsBaseSchema.extend({
-  type: z.literal('custom:frigate-card-status-bar-icon'),
+  type: z.literal('custom:advanced-camera-card-status-bar-icon'),
   icon: z.string(),
 });
 export type StatusBarIcon = z.infer<typeof statusBarIconItemSchema>;
 
 const statusBarImageItemSchema = statusBarItemElementsBaseSchema.extend({
-  type: z.literal('custom:frigate-card-status-bar-image'),
+  type: z.literal('custom:advanced-camera-card-status-bar-image'),
   image: z.string(),
 });
 export type StatusBarImage = z.infer<typeof statusBarImageItemSchema>;
 
 const statusBarStringItemSchema = statusBarItemElementsBaseSchema.extend({
-  type: z.literal('custom:frigate-card-status-bar-string'),
+  type: z.literal('custom:advanced-camera-card-status-bar-string'),
   string: z.string(),
 });
 export type StatusBarString = z.infer<typeof statusBarStringItemSchema>;
@@ -746,7 +749,7 @@ const userAgentConditionSchema = z.object({
   companion: z.boolean().optional(),
 });
 
-export const frigateCardConditionSchema = z.discriminatedUnion('condition', [
+export const advancedCameraCardConditionSchema = z.discriminatedUnion('condition', [
   // Stock conditions:
   stateConditionSchema,
   numericStateConditionSchema,
@@ -766,14 +769,18 @@ export const frigateCardConditionSchema = z.discriminatedUnion('condition', [
   keyConditionSchema,
   userAgentConditionSchema,
 ]);
-export type FrigateCardCondition = z.infer<typeof frigateCardConditionSchema>;
+export type AdvancedCameraCardCondition = z.infer<
+  typeof advancedCameraCardConditionSchema
+>;
 
-export const frigateConditionalSchema = z.object({
-  type: z.literal('custom:frigate-card-conditional'),
-  conditions: frigateCardConditionSchema.array(),
+export const advancedCameraCardConditionalSchema = z.object({
+  type: z.literal('custom:advanced-camera-card-conditional'),
+  conditions: advancedCameraCardConditionSchema.array(),
   elements: z.lazy(() => pictureElementsSchema),
 });
-export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
+export type AdvancedCameraCardConditional = z.infer<
+  typeof advancedCameraCardConditionalSchema
+>;
 
 // *************************************************************************
 //       Custom Element Configuration: Stock Picture Elements + Custom
@@ -784,7 +791,7 @@ export type FrigateConditional = z.infer<typeof frigateConditionalSchema>;
 const pictureElementSchema = z.union([
   conditionalSchema,
   customSchema,
-  frigateConditionalSchema,
+  advancedCameraCardConditionalSchema,
   iconSchema,
   imageSchema,
   menuIconSchema,
@@ -1324,7 +1331,7 @@ export type LiveConfig = z.infer<typeof liveConfigSchema>;
 // This schema is used when the live config needs to be overridden (see
 // `live.ts`). Overrides will always be "relative" to the config root, so this
 // schema maintains that 'depth' from the root but without the other
-// requirements that frigateCardConfigSchema has. Without this, overrides
+// requirements that advancedCameraCardConfigSchema has. Without this, overrides
 // calculated in `live.ts` would fail since cameras/type are not provided (as
 // these are mandatory parameters in the full config).
 export const liveConfigAbsoluteRootSchema = z.object({
@@ -1519,7 +1526,7 @@ export const cameraConfigSchema = z
 
     proxy: proxyConfigSchema.default(cameraConfigDefault.proxy),
 
-    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1650
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/1650
     always_error_if_entity_unavailable: z
       .boolean()
       .default(cameraConfigDefault.always_error_if_entity_unavailable),
@@ -1537,7 +1544,7 @@ export type CamerasConfig = z.infer<typeof camerasConfigSchema>;
 // *************************************************************************
 
 const viewConfigDefault = {
-  default: FRIGATE_CARD_VIEW_DEFAULT,
+  default: VIEW_DEFAULT,
   camera_select: 'current' as const,
   interaction_seconds: 300,
   default_reset: {
@@ -1599,11 +1606,9 @@ export type ThemeConfig = z.infer<typeof themeConfigSchema>;
 
 const viewConfigSchema = z
   .object({
-    default: z
-      .enum(FRIGATE_CARD_VIEWS_USER_SPECIFIED)
-      .default(viewConfigDefault.default),
+    default: z.enum(VIEWS_USER_SPECIFIED).default(viewConfigDefault.default),
     camera_select: z
-      .enum([...FRIGATE_CARD_VIEWS_USER_SPECIFIED, 'current'])
+      .enum([...VIEWS_USER_SPECIFIED, 'current'])
       .default(viewConfigDefault.camera_select),
     interaction_seconds: z.number().default(viewConfigDefault.interaction_seconds),
     default_cycle_camera: z.boolean().default(viewConfigDefault.default_cycle_camera),
@@ -1638,7 +1643,7 @@ const viewConfigSchema = z
 //                         Menu Configuration
 // *************************************************************************
 
-const FRIGATE_MENU_STYLES = [
+const MENU_STYLES = [
   'none',
   'hidden',
   'overlay',
@@ -1646,16 +1651,16 @@ const FRIGATE_MENU_STYLES = [
   'hover-card',
   'outside',
 ] as const;
-const FRIGATE_MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
-const FRIGATE_MENU_ALIGNMENTS = FRIGATE_MENU_POSITIONS;
+const MENU_POSITIONS = ['left', 'right', 'top', 'bottom'] as const;
+const MENU_ALIGNMENTS = MENU_POSITIONS;
 
 const visibleButtonDefault = {
-  priority: FRIGATE_MENU_PRIORITY_DEFAULT,
+  priority: MENU_PRIORITY_DEFAULT,
   enabled: true,
 };
 
 const hiddenButtonDefault = {
-  priority: FRIGATE_MENU_PRIORITY_DEFAULT,
+  priority: MENU_PRIORITY_DEFAULT,
   enabled: false,
 };
 
@@ -1670,7 +1675,7 @@ const menuConfigDefault = {
     display_mode: visibleButtonDefault,
     download: visibleButtonDefault,
     expand: hiddenButtonDefault,
-    frigate: visibleButtonDefault,
+    iris: visibleButtonDefault,
     fullscreen: visibleButtonDefault,
     image: hiddenButtonDefault,
     live: visibleButtonDefault,
@@ -1704,9 +1709,9 @@ const hiddenButtonSchema = menuBaseSchema.extend({
 
 export const menuConfigSchema = z
   .object({
-    style: z.enum(FRIGATE_MENU_STYLES).default(menuConfigDefault.style),
-    position: z.enum(FRIGATE_MENU_POSITIONS).default(menuConfigDefault.position),
-    alignment: z.enum(FRIGATE_MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
+    style: z.enum(MENU_STYLES).default(menuConfigDefault.style),
+    position: z.enum(MENU_POSITIONS).default(menuConfigDefault.position),
+    alignment: z.enum(MENU_ALIGNMENTS).default(menuConfigDefault.alignment),
     buttons: z
       .object({
         camera_ui: visibleButtonSchema.default(menuConfigDefault.buttons.camera_ui),
@@ -1718,7 +1723,7 @@ export const menuConfigSchema = z
         ),
         download: visibleButtonSchema.default(menuConfigDefault.buttons.download),
         expand: hiddenButtonSchema.default(menuConfigDefault.buttons.expand),
-        frigate: visibleButtonSchema.default(menuConfigDefault.buttons.frigate),
+        iris: visibleButtonSchema.default(menuConfigDefault.buttons.iris),
         fullscreen: visibleButtonSchema.default(menuConfigDefault.buttons.fullscreen),
         image: hiddenButtonSchema.default(menuConfigDefault.buttons.image),
         live: visibleButtonSchema.default(menuConfigDefault.buttons.live),
@@ -1763,7 +1768,7 @@ const STATUS_BAR_STYLES = [
 const STATUS_BAR_POSITIONS = ['top', 'bottom'] as const;
 
 const statusBarItemDefault = {
-  priority: FRIGATE_STATUS_BAR_PRIORITY_DEFAULT,
+  priority: STATUS_BAR_PRIORITY_DEFAULT,
   enabled: true,
 };
 
@@ -1970,7 +1975,7 @@ export const dimensionsConfigSchema = z
 
 const overridesSchema = z
   .object({
-    conditions: frigateCardConditionSchema.array(),
+    conditions: advancedCameraCardConditionSchema.array(),
     merge: z.object({}).passthrough().optional(),
     set: z.object({}).passthrough().optional(),
     delete: z.string().array().optional(),
@@ -1988,7 +1993,7 @@ export type AutomationActions = z.infer<typeof automationActionSchema>;
 
 const automationSchema = z
   .object({
-    conditions: frigateCardConditionSchema.array(),
+    conditions: advancedCameraCardConditionSchema.array(),
     actions: automationActionSchema.optional(),
     actions_not: automationActionSchema.optional(),
   })
@@ -2075,7 +2080,7 @@ export const profilesSchema = z.enum(PROFILES).array().optional();
 //                      *** Card Configuration ***
 // *************************************************************************
 
-export const frigateCardConfigSchema = z.object({
+export const advancedCameraCardConfigSchema = z.object({
   // Defaults are stripped out of the individual cameras, since each camera will
   // be merged with `cameras_global` which *does* have defaults. If we didn't do
   // this, the default values of each individual camera would override the
@@ -2114,11 +2119,11 @@ export const frigateCardConfigSchema = z.object({
   type: z.string(),
 });
 
-export type FrigateCardConfig = z.infer<typeof frigateCardConfigSchema>;
-export type RawFrigateCardConfig = Record<string, unknown>;
-export type RawFrigateCardConfigArray = RawFrigateCardConfig[];
+export type AdvancedCameraCardConfig = z.infer<typeof advancedCameraCardConfigSchema>;
+export type RawAdvancedCameraCardConfig = Record<string, unknown>;
+export type RawAdvancedCameraCardConfigArray = RawAdvancedCameraCardConfig[];
 
-export const frigateCardConfigDefaults = {
+export const configDefaults = {
   cameras: cameraConfigDefault,
   view: viewConfigDefault,
   menu: menuConfigDefault,

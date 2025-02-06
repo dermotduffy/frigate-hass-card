@@ -11,7 +11,7 @@
   // So that absolute sidedrawer is relative to this host.
   position: relative;
 
-  background-color: var(--frigate-card-timeline-background);
+  background-color: var(--advanced-camera-card-timeline-background);
 }
 
 :host(:not([mini])) {
@@ -19,12 +19,12 @@
   height: 100%;
 }
 
-frigate-card-thumbnail {
-  height: var(--frigate-card-thumbnail-size);
-  width: var(--frigate-card-thumbnail-size);
+advanced-camera-card-thumbnail {
+  height: var(--advanced-camera-card-thumbnail-size);
+  width: var(--advanced-camera-card-thumbnail-size);
 }
-frigate-card-thumbnail[details] {
-  width: var(--frigate-card-thumbnail-details-width);
+advanced-camera-card-thumbnail[details] {
+  width: var(--advanced-camera-card-thumbnail-details-width);
 }
 
 div.timeline {
@@ -32,7 +32,7 @@ div.timeline {
 }
 
 .vis-text {
-  color: var(--frigate-card-timeline-text-color) !important;
+  color: var(--advanced-camera-card-timeline-text-color) !important;
 }
 
 .vis-timeline {
@@ -41,7 +41,7 @@ div.timeline {
 
 .vis-labelset .vis-label {
   // Group labels.
-  color: var(--frigate-card-timeline-text-color);
+  color: var(--advanced-camera-card-timeline-text-color);
 }
 
 :host([ribbon]:not([groups])) .vis-item:not(.vis-background) {
@@ -55,10 +55,10 @@ div.timeline {
   height: 6px;
 }
 .vis-item {
-  border-color: var(--frigate-card-timeline-item-color);
+  border-color: var(--advanced-camera-card-timeline-item-color);
   background: none;
-  color: var(--frigate-card-timeline-text-color);
-  background-color: var(--frigate-card-timeline-item-color);
+  color: var(--advanced-camera-card-timeline-text-color);
+  background-color: var(--advanced-camera-card-timeline-item-color);
 
   transition:
     background-color ease-in-out 1s,
@@ -66,15 +66,15 @@ div.timeline {
     box-shadow ease-in-out 1s;
 }
 .vis-item.vis-selected {
-  border-color: var(--frigate-card-active-color);
-  background-color: var(--frigate-card-active-color);
+  border-color: var(--advanced-camera-card-active-color);
+  background-color: var(--advanced-camera-card-active-color);
   box-shadow: var(
-    --frigate-card-css-box-shadow,
-    0px 0px 5px 1px var(--frigate-card-active-color)
+    --advanced-camera-card-css-box-shadow,
+    0px 0px 5px 1px var(--advanced-camera-card-active-color)
   );
 }
 .vis-item.vis-background {
-  background-color: var(--frigate-card-timeline-background-item-color);
+  background-color: var(--advanced-camera-card-timeline-background-item-color);
 }
 
 // If there are no timeline groups shown (e.g. mini mode with a single camera),
@@ -106,19 +106,19 @@ div.timeline {
 
 .vis-item.vis-cluster {
   border-style: dotted;
-  color: var(--frigate-card-timeline-text-color);
-  background-color: var(--frigate-card-timeline-background);
+  color: var(--advanced-camera-card-timeline-text-color);
+  background-color: var(--advanced-camera-card-timeline-background);
   box-shadow: var(
-    --frigate-card-css-box-shadow,
-    0px 0px 5px 1px var(--frigate-card-timeline-item-color)
+    --advanced-camera-card-css-box-shadow,
+    0px 0px 5px 1px var(--advanced-camera-card-timeline-item-color)
   );
 }
 .vis-item.vis-range {
-  border-radius: var(--frigate-card-css-border-radius, unset);
+  border-radius: var(--advanced-camera-card-css-border-radius, unset);
 }
 
 .vis-time-axis .vis-grid.vis-minor {
-  border-color: var(--frigate-card-timeline-divider-color);
+  border-color: var(--advanced-camera-card-timeline-divider-color);
 }
 
 // Give an indication that the user can interact with the axes.
@@ -129,13 +129,13 @@ div.timeline {
 :host([recordings]) .vis-text.vis-minor:hover {
   background-color: color-mix(
     in oklab,
-    var(--frigate-card-timeline-text-color),
+    var(--advanced-camera-card-timeline-text-color),
     transparent 80%
   );
 }
 
 .vis-time-axis .vis-grid.vis-major {
-  border-color: var(--frigate-card-timeline-divider-color);
+  border-color: var(--advanced-camera-card-timeline-divider-color);
 }
 
 .vis-label {
@@ -156,7 +156,7 @@ div.vis-tooltip {
 }
 
 .target_bar {
-  background-color: var(--frigate-card-timeline-target-bar-color);
+  background-color: var(--advanced-camera-card-timeline-target-bar-color);
   width: 2px;
 
   z-index: 20;
@@ -165,8 +165,8 @@ div.vis-tooltip {
   pointer-events: none;
 }
 .target_bar .vis-custom-time-marker {
-  background-color: var(--frigate-card-timeline-background);
-  color: var(--frigate-card-timeline-text-color);
+  background-color: var(--advanced-camera-card-timeline-background);
+  color: var(--advanced-camera-card-timeline-text-color);
   bottom: 0px;
   top: unset;
 }
@@ -186,7 +186,7 @@ div.vis-tooltip {
   position: absolute;
   right: 0px;
   bottom: 0px;
-  color: var(--frigate-card-timeline-tool-color);
+  color: var(--advanced-camera-card-timeline-tool-color);
   z-index: 10;
 }
 .timeline-tools * {

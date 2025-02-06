@@ -17,8 +17,8 @@ import { CardWideConfig, ViewerConfig } from '../../config/types.js';
 import '../../patches/ha-hls-player.js';
 import viewerProviderStyle from '../../scss/viewer-provider.scss';
 import {
+  AdvancedCameraCardMediaPlayer,
   ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
   FullscreenElement,
   ResolvedMedia,
 } from '../../types.js';
@@ -54,10 +54,10 @@ import { MediaQueriesClassifier } from '../../view/media-queries-classifier.js';
 import { VideoContentType, ViewMedia } from '../../view/media.js';
 import { renderProgressIndicator } from '../progress-indicator.js';
 
-@customElement('frigate-card-viewer-provider')
-export class FrigateCardViewerProvider
+@customElement('advanced-camera-card-viewer-provider')
+export class AdvancedCameraCardViewerProvider
   extends LitElement
-  implements FrigateCardMediaPlayer
+  implements AdvancedCameraCardMediaPlayer
 {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
@@ -86,8 +86,9 @@ export class FrigateCardViewerProvider
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
-  protected _refFrigateCardMediaPlayer: Ref<Element & FrigateCardMediaPlayer> =
-    createRef();
+  protected _refAdvancedCameraCardMediaPlayer: Ref<
+    Element & AdvancedCameraCardMediaPlayer
+  > = createRef();
   protected _refVideoProvider: Ref<HTMLVideoElement> = createRef();
   protected _refImageProvider: Ref<HTMLImageElement> = createRef();
 
@@ -97,33 +98,35 @@ export class FrigateCardViewerProvider
   public async play(): Promise<void> {
     await playMediaMutingIfNecessary(
       this,
-      this._refFrigateCardMediaPlayer.value ?? this._refVideoProvider.value,
+      this._refAdvancedCameraCardMediaPlayer.value ?? this._refVideoProvider.value,
     );
   }
 
   public async pause(): Promise<void> {
-    (this._refFrigateCardMediaPlayer.value || this._refVideoProvider.value)?.pause();
+    (
+      this._refAdvancedCameraCardMediaPlayer.value || this._refVideoProvider.value
+    )?.pause();
   }
 
   public async mute(): Promise<void> {
-    if (this._refFrigateCardMediaPlayer.value) {
-      this._refFrigateCardMediaPlayer.value?.mute();
+    if (this._refAdvancedCameraCardMediaPlayer.value) {
+      this._refAdvancedCameraCardMediaPlayer.value?.mute();
     } else if (this._refVideoProvider.value) {
       this._refVideoProvider.value.muted = true;
     }
   }
 
   public async unmute(): Promise<void> {
-    if (this._refFrigateCardMediaPlayer.value) {
-      this._refFrigateCardMediaPlayer.value?.mute();
+    if (this._refAdvancedCameraCardMediaPlayer.value) {
+      this._refAdvancedCameraCardMediaPlayer.value?.mute();
     } else if (this._refVideoProvider.value) {
       this._refVideoProvider.value.muted = false;
     }
   }
 
   public isMuted(): boolean {
-    if (this._refFrigateCardMediaPlayer.value) {
-      return this._refFrigateCardMediaPlayer.value?.isMuted() ?? true;
+    if (this._refAdvancedCameraCardMediaPlayer.value) {
+      return this._refAdvancedCameraCardMediaPlayer.value?.isMuted() ?? true;
     } else if (this._refVideoProvider.value) {
       return this._refVideoProvider.value.muted;
     }
@@ -131,8 +134,8 @@ export class FrigateCardViewerProvider
   }
 
   public async seek(seconds: number): Promise<void> {
-    if (this._refFrigateCardMediaPlayer.value) {
-      return this._refFrigateCardMediaPlayer.value.seek(seconds);
+    if (this._refAdvancedCameraCardMediaPlayer.value) {
+      return this._refAdvancedCameraCardMediaPlayer.value.seek(seconds);
     } else if (this._refVideoProvider.value) {
       hideMediaControlsTemporarily(this._refVideoProvider.value);
       this._refVideoProvider.value.currentTime = seconds;
@@ -140,8 +143,8 @@ export class FrigateCardViewerProvider
   }
 
   public async setControls(controls?: boolean): Promise<void> {
-    if (this._refFrigateCardMediaPlayer.value) {
-      return this._refFrigateCardMediaPlayer.value.setControls(controls);
+    if (this._refAdvancedCameraCardMediaPlayer.value) {
+      return this._refAdvancedCameraCardMediaPlayer.value.setControls(controls);
     } else if (this._refVideoProvider.value) {
       setControlsOnVideo(
         this._refVideoProvider.value,
@@ -151,8 +154,8 @@ export class FrigateCardViewerProvider
   }
 
   public isPaused(): boolean {
-    if (this._refFrigateCardMediaPlayer.value) {
-      return this._refFrigateCardMediaPlayer.value.isPaused();
+    if (this._refAdvancedCameraCardMediaPlayer.value) {
+      return this._refAdvancedCameraCardMediaPlayer.value.isPaused();
     } else if (this._refVideoProvider.value) {
       return this._refVideoProvider.value.paused;
     }
@@ -160,8 +163,8 @@ export class FrigateCardViewerProvider
   }
 
   public async getScreenshotURL(): Promise<string | null> {
-    if (this._refFrigateCardMediaPlayer.value) {
-      return await this._refFrigateCardMediaPlayer.value.getScreenshotURL();
+    if (this._refAdvancedCameraCardMediaPlayer.value) {
+      return await this._refAdvancedCameraCardMediaPlayer.value.getScreenshotURL();
     } else if (this._refVideoProvider.value) {
       return screenshotMedia(this._refVideoProvider.value);
     } else if (this._refImageProvider.value) {
@@ -171,8 +174,8 @@ export class FrigateCardViewerProvider
   }
 
   public getFullscreenElement(): FullscreenElement | null {
-    if (this._refFrigateCardMediaPlayer.value) {
-      return this._refFrigateCardMediaPlayer.value.getFullscreenElement();
+    if (this._refAdvancedCameraCardMediaPlayer.value) {
+      return this._refAdvancedCameraCardMediaPlayer.value.getFullscreenElement();
     } else if (this._refVideoProvider.value) {
       return this._refVideoProvider.value;
     }
@@ -319,7 +322,7 @@ export class FrigateCardViewerProvider
     const view = this.viewManagerEpoch?.manager.getView();
 
     return this.viewerConfig?.zoomable
-      ? html` <frigate-card-zoomer
+      ? html` <advanced-camera-card-zoomer
           .defaultSettings=${guard([cameraConfig?.dimensions?.layout], () =>
             cameraConfig?.dimensions?.layout
               ? {
@@ -329,13 +332,13 @@ export class FrigateCardViewerProvider
               : undefined,
           )}
           .settings=${mediaID ? view?.context?.zoom?.[mediaID]?.requested : undefined}
-          @frigate-card:zoom:zoomed=${() => this.setControls(false)}
-          @frigate-card:zoom:unzoomed=${() => this.setControls()}
-          @frigate-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
+          @advanced-camera-card:zoom:zoomed=${() => this.setControls(false)}
+          @advanced-camera-card:zoom:unzoomed=${() => this.setControls()}
+          @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
             handleZoomSettingsObservedEvent(ev, this.viewManagerEpoch?.manager, mediaID)}
         >
           ${template}
-        </frigate-card-zoomer>`
+        </advanced-camera-card-zoomer>`
       : template;
   }
 
@@ -355,8 +358,8 @@ export class FrigateCardViewerProvider
     return this._useZoomIfRequired(html`
       ${ViewMediaClassifier.isVideo(this.media)
         ? this.media.getVideoContentType() === VideoContentType.HLS
-          ? html`<frigate-card-ha-hls-player
-              ${ref(this._refFrigateCardMediaPlayer)}
+          ? html`<advanced-camera-card-ha-hls-player
+              ${ref(this._refAdvancedCameraCardMediaPlayer)}
               allow-exoplayer
               aria-label="${this.media.getTitle() ?? ''}"
               ?autoplay=${false}
@@ -368,7 +371,7 @@ export class FrigateCardViewerProvider
               .hass=${this.hass}
               ?controls=${this.viewerConfig.controls.builtin}
             >
-            </frigate-card-ha-hls-player>`
+            </advanced-camera-card-ha-hls-player>`
           : html`
               <video
                 ${ref(this._refVideoProvider)}
@@ -428,6 +431,6 @@ export class FrigateCardViewerProvider
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-viewer-provider': FrigateCardViewerProvider;
+    'advanced-camera-card-viewer-provider': AdvancedCameraCardViewerProvider;
   }
 }

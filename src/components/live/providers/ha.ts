@@ -7,10 +7,13 @@ import '../../../patches/ha-camera-stream';
 import '../../../patches/ha-hls-player.js';
 import '../../../patches/ha-web-rtc-player.js';
 import liveHAStyle from '../../../scss/live-ha.scss';
-import { FrigateCardMediaPlayer, FullscreenElement } from '../../../types.js';
+import { AdvancedCameraCardMediaPlayer, FullscreenElement } from '../../../types.js';
 
-@customElement('frigate-card-live-ha')
-export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPlayer {
+@customElement('advanced-camera-card-live-ha')
+export class AdvancedCameraCardLiveHA
+  extends LitElement
+  implements AdvancedCameraCardMediaPlayer
+{
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -20,7 +23,7 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
-  protected _playerRef: Ref<Element & FrigateCardMediaPlayer> = createRef();
+  protected _playerRef: Ref<Element & AdvancedCameraCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
     return this._playerRef.value?.play();
@@ -67,7 +70,7 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
       return;
     }
 
-    return html` <frigate-card-ha-camera-stream
+    return html` <advanced-camera-card-ha-camera-stream
       ${ref(this._playerRef)}
       .hass=${this.hass}
       .stateObj=${this.cameraConfig?.camera_entity
@@ -76,7 +79,7 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
       .controls=${this.controls}
       .muted=${true}
     >
-    </frigate-card-ha-camera-stream>`;
+    </advanced-camera-card-ha-camera-stream>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -86,6 +89,6 @@ export class FrigateCardLiveHA extends LitElement implements FrigateCardMediaPla
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-ha': FrigateCardLiveHA;
+    'advanced-camera-card-live-ha': AdvancedCameraCardLiveHA;
   }
 }

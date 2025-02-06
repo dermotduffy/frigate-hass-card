@@ -10,14 +10,14 @@ import {
   setConfigValue,
 } from '../config/management';
 import {
-  FrigateCardCondition,
-  frigateConditionalSchema,
+  AdvancedCameraCardCondition,
+  advancedCameraCardConditionalSchema,
   Overrides,
-  RawFrigateCardConfig,
+  RawAdvancedCameraCardConfig,
   ViewDisplayMode,
 } from '../config/types';
 import { localize } from '../localize/localize';
-import { FrigateCardError, MediaLoadedInfo } from '../types';
+import { AdvancedCameraCardError, MediaLoadedInfo } from '../types';
 import { desparsifyArrays } from '../utils/basic';
 import { isCompanionApp } from '../utils/companion';
 import { CardConditionAPI, KeysState, MicrophoneState } from './types';
@@ -38,25 +38,26 @@ export interface ConditionState {
   view?: string;
 }
 
-class OverrideConfigurationError extends FrigateCardError {}
+class OverrideConfigurationError extends AdvancedCameraCardError {}
 
 export class ConditionsEvaluateRequestEvent extends Event {
-  public conditions: FrigateCardCondition[];
+  public conditions: AdvancedCameraCardCondition[];
   public evaluation?: boolean;
 
-  constructor(conditions: FrigateCardCondition[], eventInitDict?: EventInit) {
-    super('frigate-card:conditions:evaluate', eventInitDict);
+  constructor(conditions: AdvancedCameraCardCondition[], eventInitDict?: EventInit) {
+    super('advanced-camera-card:conditions:evaluate', eventInitDict);
     this.conditions = conditions;
   }
 }
 
 /**
- * Evaluate whether a frigateCardCondition is met using an event to evaluate.
+ * Evaluate whether an AdvancedCameraCardCondition is met using an event to
+ * evaluate.
  * @returns A boolean indicating whether the condition is met.
  */
 export function evaluateConditionViaEvent(
   element: HTMLElement,
-  conditions?: FrigateCardCondition[],
+  conditions?: AdvancedCameraCardCondition[],
 ): boolean {
   if (!conditions) {
     return true;
@@ -69,7 +70,7 @@ export function evaluateConditionViaEvent(
 
   /* Special note on what's going on here:
    *
-   * Some parts of the card (e.g. <frigate-card-elements>) may have arbitrary
+   * Some parts of the card (e.g. <advanced-camera-card-elements>) may have arbitrary
    * complexity and layers (that this card doesn't control) between that master
    * element and the element that needs to evaluate the condition. In these
    * cases there's no clean way to pass state from the rest of card down through
@@ -83,7 +84,7 @@ export function evaluateConditionViaEvent(
   return evaluateEvent.evaluation ?? false;
 }
 
-export function getOverriddenConfig<RT extends RawFrigateCardConfig>(
+export function getOverriddenConfig<RT extends RawAdvancedCameraCardConfig>(
   manager: Readonly<ConditionsManager>,
   config: Readonly<RT>,
   options?: {
@@ -198,9 +199,9 @@ export class ConditionsManager {
   public setConditionsFromConfig(): void {
     this.removeConditions();
 
-    const getAllConditions = (): FrigateCardCondition[] => {
+    const getAllConditions = (): AdvancedCameraCardCondition[] => {
       const config = this._api.getConfigManager().getConfig();
-      const conditions: FrigateCardCondition[] = [];
+      const conditions: AdvancedCameraCardCondition[] = [];
       config?.overrides?.forEach((override) => conditions.push(...override.conditions));
       config?.automations?.forEach((automation) =>
         conditions.push(...automation.conditions),
@@ -210,7 +211,7 @@ export class ConditionsManager {
       // custom elements that this card may not known. Here we recursively parse
       // down the elements tree, parsing as we go to find valid conditions.
       const getElementsConditions = (data: unknown): void => {
-        const parseResult = frigateConditionalSchema.safeParse(data);
+        const parseResult = advancedCameraCardConditionalSchema.safeParse(data);
         if (parseResult.success) {
           conditions.push(...parseResult.data.conditions);
           parseResult.data.elements?.forEach(getElementsConditions);
@@ -265,7 +266,7 @@ export class ConditionsManager {
   }
 
   public evaluateConditions(
-    conditions: Readonly<FrigateCardCondition>[],
+    conditions: Readonly<AdvancedCameraCardCondition>[],
     stateOverrides?: Partial<ConditionState>,
   ): boolean {
     return conditions.every((conditionObj) =>
@@ -274,7 +275,7 @@ export class ConditionsManager {
   }
 
   protected _evaluateCondition(
-    conditionObj: Readonly<FrigateCardCondition>,
+    conditionObj: Readonly<AdvancedCameraCardCondition>,
     stateOverrides?: Partial<ConditionState>,
   ): boolean {
     const state = {

@@ -8,7 +8,7 @@ it('should handle default action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'display_mode_select',
+      advanced_camera_card_action: 'display_mode_select',
       display_mode: 'grid',
     },
   );

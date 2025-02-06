@@ -13,7 +13,11 @@ import { css, CSSResultGroup, html, nothing, PropertyValues, unsafeCSS } from 'l
 import { customElement } from 'lit/decorators.js';
 import { query } from 'lit/decorators/query.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import { FrigateCardMediaPlayer, FullscreenElement, MediaLoadedInfo } from '../types.js';
+import {
+  AdvancedCameraCardMediaPlayer,
+  FullscreenElement,
+  MediaLoadedInfo,
+} from '../types.js';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
@@ -36,16 +40,16 @@ customElements.whenDefined('ha-camera-stream').then(() => {
   const STREAM_TYPE_MJPEG = 'mjpeg';
   type StreamType = STREAM_TYPE_HLS | STREAM_TYPE_WEB_RTC | STREAM_TYPE_MJPEG;
 
-  @customElement('frigate-card-ha-camera-stream')
+  @customElement('advanced-camera-card-ha-camera-stream')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class FrigateCardHaCameraStream
+  class AdvancedCameraCardHaCameraStream
     extends customElements.get('ha-camera-stream')
-    implements FrigateCardMediaPlayer
+    implements AdvancedCameraCardMediaPlayer
   {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
     @query('.player:not(.hidden)')
-    protected _player: FrigateCardMediaPlayer;
+    protected _player: AdvancedCameraCardMediaPlayer;
 
     protected _mediaLoadedInfoPerStream: Record<StreamType, MediaLoadedInfo> = {};
     protected _mediaLoadedInfoDispatched: MediaLoadedInfo | null = null;
@@ -133,7 +137,7 @@ customElements.whenDefined('ha-camera-stream').then(() => {
       }
 
       if (stream.type === STREAM_TYPE_HLS) {
-        return html` <frigate-card-ha-hls-player
+        return html` <advanced-camera-card-ha-hls-player
           ?autoplay=${false}
           playsinline
           .allowExoPlayer=${this.allowExoPlayer}
@@ -142,15 +146,15 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           .hass=${this.hass}
           .entityid=${this.stateObj.entity_id}
           .posterUrl=${this._posterUrl}
-          @frigate-card:media:loaded=${(ev) =>
+          @advanced-camera-card:media:loaded=${(ev) =>
             this._storeMediaLoadedInfoHandler(STREAM_TYPE_HLS, ev)}
           @streams=${this._handleHlsStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
-        ></frigate-card-ha-hls-player>`;
+        ></advanced-camera-card-ha-hls-player>`;
       }
 
       if (stream.type === STREAM_TYPE_WEB_RTC) {
-        return html`<frigate-card-ha-web-rtc-player
+        return html`<advanced-camera-card-ha-web-rtc-player
           ?autoplay=${false}
           playsinline
           .muted=${this.muted}
@@ -158,11 +162,11 @@ customElements.whenDefined('ha-camera-stream').then(() => {
           .hass=${this.hass}
           .entityid=${this.stateObj.entity_id}
           .posterUrl=${this._posterUrl}
-          @frigate-card:media:loaded=${(ev) =>
+          @advanced-camera-card:media:loaded=${(ev) =>
             this._storeMediaLoadedInfoHandler(STREAM_TYPE_WEB_RTC, ev)}
           @streams=${this._handleWebRtcStreams}
           class="player ${stream.visible ? '' : 'hidden'}"
-        ></frigate-card-ha-web-rtc-player>`;
+        ></advanced-camera-card-ha-web-rtc-player>`;
       }
 
       return nothing;
@@ -208,6 +212,6 @@ customElements.whenDefined('ha-camera-stream').then(() => {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-ha-camera-stream': FrigateCardHaCameraStream;
+    'advanced-camera-card-ha-camera-stream': AdvancedCameraCardHaCameraStream;
   }
 }

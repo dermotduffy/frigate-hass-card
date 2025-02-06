@@ -33,7 +33,7 @@ describe('should handle ptz digital action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz_digital',
+        advanced_camera_card_action: 'ptz_digital',
         absolute: {
           zoom: 2,
           pan: {
@@ -70,7 +70,7 @@ describe('should handle ptz digital action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz_digital',
+        advanced_camera_card_action: 'ptz_digital',
       },
     );
 
@@ -93,7 +93,7 @@ describe('should handle ptz digital action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz_digital',
+        advanced_camera_card_action: 'ptz_digital',
         ptz_action: 'left',
       },
     );
@@ -117,7 +117,7 @@ describe('should handle ptz digital action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz_digital',
+        advanced_camera_card_action: 'ptz_digital',
         ptz_action: 'left',
       },
     );
@@ -330,7 +330,7 @@ describe('should handle ptz digital action', () => {
           {},
           {
             action: 'fire-dom-event',
-            frigate_card_action: 'ptz_digital',
+            advanced_camera_card_action: 'ptz_digital',
             ptz_action: ptzAction,
           },
         );
@@ -370,7 +370,7 @@ describe('should handle ptz digital action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_digital',
+          advanced_camera_card_action: 'ptz_digital',
           ptz_action: 'right',
           ptz_phase: 'start',
         },
@@ -442,7 +442,7 @@ describe('should handle ptz digital action', () => {
 
       const startAction = new PTZDigitalAction(context, {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz_digital',
+        advanced_camera_card_action: 'ptz_digital',
         ptz_action: 'right',
         ptz_phase: 'start',
       });
@@ -466,7 +466,7 @@ describe('should handle ptz digital action', () => {
 
       const stopAction = new PTZDigitalAction(context, {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz_digital',
+        advanced_camera_card_action: 'ptz_digital',
         ptz_phase: 'stop',
       });
       await stopAction.execute(api);

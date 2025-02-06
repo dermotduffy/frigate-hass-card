@@ -8,8 +8,8 @@ import { ExtendedHomeAssistant } from '../types';
 import './surround.js';
 import './timeline-core.js';
 
-@customElement('frigate-card-timeline')
-export class FrigateCardTimeline extends LitElement {
+@customElement('advanced-camera-card-timeline')
+export class AdvancedCameraCardTimeline extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -31,7 +31,7 @@ export class FrigateCardTimeline extends LitElement {
     }
 
     return html`
-      <frigate-card-timeline-core
+      <advanced-camera-card-timeline-core
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .timelineConfig=${this.timelineConfig}
@@ -45,7 +45,7 @@ export class FrigateCardTimeline extends LitElement {
           ? 'play'
           : 'select'}
       >
-      </frigate-card-timeline-core>
+      </advanced-camera-card-timeline-core>
     `;
   }
 
@@ -56,6 +56,6 @@ export class FrigateCardTimeline extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-timeline': FrigateCardTimeline;
+    'advanced-camera-card-timeline': AdvancedCameraCardTimeline;
   }
 }

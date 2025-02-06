@@ -4,7 +4,7 @@ import {
   Interaction,
   InteractionName,
 } from '../../../src/card-controller/actions/actions-manager';
-import { FrigateCardView } from '../../../src/config/types';
+import { AdvancedCameraCardView } from '../../../src/config/types';
 import { createLogAction } from '../../../src/utils/action';
 import {
   createAction,
@@ -114,7 +114,7 @@ describe('ActionsManager', () => {
           },
         ],
         ['timeline' as const, {}],
-      ])('%s', (viewName: FrigateCardView, result: Record<string, unknown>) => {
+      ])('%s', (viewName: AdvancedCameraCardView, result: Record<string, unknown>) => {
         const api = createCardAPI();
         vi.mocked(api.getViewManager().getView).mockReturnValue(
           createView({ view: viewName }),
@@ -231,7 +231,7 @@ describe('ActionsManager', () => {
 
       const consoleSpy = vi.spyOn(global.console, 'info').mockReturnValue(undefined);
       await manager.handleActionExecutionRequestEvent(
-        new CustomEvent('frigate-card:action:execution-request', {
+        new CustomEvent('advanced-camera-card:action:execution-request', {
           detail: { action: createLogAction('Hello, world!') },
         }),
       );
@@ -266,7 +266,7 @@ describe('ActionsManager', () => {
       const promise = manager.executeActions([
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         createAction({
-          frigate_card_action: 'sleep',
+          advanced_camera_card_action: 'sleep',
           duration: {
             m: 1,
           },

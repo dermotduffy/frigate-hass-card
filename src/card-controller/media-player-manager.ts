@@ -1,4 +1,4 @@
-import { CameraConfig, FrigateCardConfig } from '../config/types';
+import { AdvancedCameraCardConfig, CameraConfig } from '../config/types';
 import {
   MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA,
   MEDIA_PLAYER_SUPPORT_STOP,
@@ -6,8 +6,8 @@ import {
 } from '../const';
 import { localize } from '../localize/localize';
 import { errorToConsole } from '../utils/basic';
-import { Entity } from '../utils/ha/registry/entity/types';
 import { supportsFeature } from '../utils/ha';
+import { Entity } from '../utils/ha/registry/entity/types';
 import { ViewMedia } from '../view/media';
 import { ViewMediaClassifier } from '../view/media-classifier';
 import { CardMediaPlayerAPI } from './types';
@@ -30,7 +30,7 @@ export class MediaPlayerManager {
   }
 
   public async initializeIfNecessary(
-    previousConfig: FrigateCardConfig | null,
+    previousConfig: AdvancedCameraCardConfig | null,
   ): Promise<void> {
     if (
       previousConfig?.menu.buttons.media_player.enabled !==
@@ -80,7 +80,7 @@ export class MediaPlayerManager {
     // available in the HA state, only in the registry).
     this._mediaPlayers = mediaPlayers.filter((entityID) => {
       // Specifically allow for media players that are not found in the entity registry:
-      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1016
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1016
       const entity = mediaPlayerEntities?.get(entityID);
       return !entity || !entity.hidden_by;
     });

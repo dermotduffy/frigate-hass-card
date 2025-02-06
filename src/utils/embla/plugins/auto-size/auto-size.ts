@@ -61,7 +61,10 @@ function AutoSize(): AutoSizeType {
     // the size to large than the maxHeight is set).
     emblaApi
       .containerNode()
-      .addEventListener('frigate-card:media:loaded', debouncedSetContainerHeight);
+      .addEventListener(
+        'advanced-camera-card:media:loaded',
+        debouncedSetContainerHeight,
+      );
     emblaApi.on('settle', debouncedSetContainerHeight);
   }
 
@@ -72,7 +75,10 @@ function AutoSize(): AutoSizeType {
 
     emblaApi
       .containerNode()
-      .removeEventListener('frigate-card:media:loaded', debouncedSetContainerHeight);
+      .removeEventListener(
+        'advanced-camera-card:media:loaded',
+        debouncedSetContainerHeight,
+      );
     emblaApi.off('settle', debouncedSetContainerHeight);
   }
 
@@ -85,7 +91,7 @@ function AutoSize(): AutoSizeType {
      *   occur for some users in some circumstances causing the carousel to
      *   appear 'stuck'.
      * - Example bug when this reinitialization is not performed:
-     *   https://github.com/dermotduffy/frigate-hass-card/issues/651
+     *   https://github.com/dermotduffy/advanced-camera-card/issues/651
      */
     const isContainerIntersectingNow = entries.some((entry) => entry.isIntersecting);
 

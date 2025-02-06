@@ -3,9 +3,9 @@
   width: 100%;
   height: 100%;
 
-  --frigate-card-grid-border-size: 3px;
-  --frigate-card-grid-column-size: 100%;
-  --frigate-card-grid-selected-width-factor: 2;
+  --advanced-camera-card-grid-border-size: 3px;
+  --advanced-camera-card-grid-column-size: 100%;
+  --advanced-camera-card-grid-selected-width-factor: 2;
 
   // Allow the grid to scroll if necessary (e.g. fullscreen).
   overflow: auto;
@@ -25,22 +25,22 @@
   box-sizing: border-box;
   border-radius: var(--ha-card-border-radius, 4px);
   overflow: hidden;
-  width: var(--frigate-card-grid-column-size);
+  width: var(--advanced-camera-card-grid-column-size);
 
   // Unselected items included a transparent border to act as the effective
   // gutter between elements, and to ensure when the item is selected it does
   // not change in size (even border-box sizing appears to allow size to change
   // when the element has a non-fixed height).
-  border: var(--frigate-card-grid-border-size) solid transparent;
+  border: var(--advanced-camera-card-grid-border-size) solid transparent;
 }
 
 ::slotted([selected]) {
-  border: var(--frigate-card-grid-border-size) solid var(--primary-color);
+  border: var(--advanced-camera-card-grid-border-size) solid var(--primary-color);
   width: min(
     100%,
     calc(
-      var(--frigate-card-grid-selected-width-factor) *
-        var(--frigate-card-grid-column-size)
+      var(--advanced-camera-card-grid-selected-width-factor) *
+        var(--advanced-camera-card-grid-column-size)
     )
   );
 

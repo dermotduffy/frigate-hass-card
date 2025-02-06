@@ -1,12 +1,12 @@
 import { expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { PlayAction } from '../../../../src/card-controller/actions/actions/play';
-import { FrigateCardMediaPlayer } from '../../../../src/types';
+import { AdvancedCameraCardMediaPlayer } from '../../../../src/types';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 it('should handle play action', async () => {
   const api = createCardAPI();
-  const player = mock<FrigateCardMediaPlayer>();
+  const player = mock<AdvancedCameraCardMediaPlayer>();
   vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
     createMediaLoadedInfo({
       player: player,
@@ -16,7 +16,7 @@ it('should handle play action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'play',
+      advanced_camera_card_action: 'play',
     },
   );
 

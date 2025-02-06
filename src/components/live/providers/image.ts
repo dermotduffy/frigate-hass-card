@@ -4,18 +4,21 @@ import { customElement, property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import { CameraConfig } from '../../../config/types';
 import basicBlockStyle from '../../../scss/basic-block.scss';
-import { FrigateCardMediaPlayer, FullscreenElement } from '../../../types.js';
+import { AdvancedCameraCardMediaPlayer, FullscreenElement } from '../../../types.js';
 import '../../image-base.js';
 
-@customElement('frigate-card-live-image')
-export class FrigateCardLiveImage extends LitElement implements FrigateCardMediaPlayer {
+@customElement('advanced-camera-card-live-image')
+export class AdvancedCameraCardLiveImage
+  extends LitElement
+  implements AdvancedCameraCardMediaPlayer
+{
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
   @property({ attribute: false })
   public cameraConfig?: CameraConfig;
 
-  protected _refImage: Ref<Element & FrigateCardMediaPlayer> = createRef();
+  protected _refImage: Ref<Element & AdvancedCameraCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
     await this._refImage.value?.play();
@@ -63,13 +66,13 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
     }
 
     return html`
-      <frigate-card-image-base
+      <advanced-camera-card-image-base
         ${ref(this._refImage)}
         .hass=${this.hass}
         .imageConfig=${this.cameraConfig.image}
         .cameraConfig=${this.cameraConfig}
       >
-      </frigate-card-image-base>
+      </advanced-camera-card-image-base>
     `;
   }
 
@@ -80,6 +83,6 @@ export class FrigateCardLiveImage extends LitElement implements FrigateCardMedia
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-image': FrigateCardLiveImage;
+    'advanced-camera-card-live-image': AdvancedCameraCardLiveImage;
   }
 }

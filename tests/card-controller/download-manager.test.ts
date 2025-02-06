@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { FrigateCardMediaPlayer } from '../../src/types';
 import { DownloadManager } from '../../src/card-controller/download-manager';
+import { AdvancedCameraCardMediaPlayer } from '../../src/types';
 import { downloadMedia, downloadURL } from '../../src/utils/download.js';
 import {
   createCardAPI,
@@ -62,7 +62,7 @@ describe('DownloadManager.downloadScreenshot', () => {
 
   it('with url', async () => {
     const api = createCardAPI();
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.getScreenshotURL.mockResolvedValue('http://screenshot');
 
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
@@ -78,7 +78,7 @@ describe('DownloadManager.downloadScreenshot', () => {
 
   it('without url', async () => {
     const api = createCardAPI();
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.getScreenshotURL.mockResolvedValue(null);
 
     vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(

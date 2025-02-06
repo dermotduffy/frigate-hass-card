@@ -14,7 +14,7 @@ import { CameraManager } from '../camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../camera-manager/types.js';
 import { RemoveContextViewModifier } from '../card-controller/view/modifiers/remove-context.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import { dispatchFrigateCardErrorEvent } from '../components-lib/message/dispatch.js';
+import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
 import { localize } from '../localize/localize.js';
 import thumbnailDetailsStyle from '../scss/thumbnail-details.scss';
 import thumbnailFeatureTextStyle from '../scss/thumbnail-feature-text.scss';
@@ -37,8 +37,8 @@ import { EventViewMedia, RecordingViewMedia, ViewMedia } from '../view/media.js'
 // The minimum width of a thumbnail with details enabled.
 export const THUMBNAIL_DETAILS_WIDTH_MIN = 300;
 
-@customElement('frigate-card-thumbnail-feature-thumbnail')
-export class FrigateCardThumbnailFeatureThumbnail extends LitElement {
+@customElement('advanced-camera-card-thumbnail-feature-thumbnail')
+export class AdvancedCameraCardThumbnailFeatureThumbnail extends LitElement {
   @property({ attribute: false })
   public thumbnail?: string;
 
@@ -105,10 +105,10 @@ export class FrigateCardThumbnailFeatureThumbnail extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    const imageOff = html`<frigate-card-icon
+    const imageOff = html`<advanced-camera-card-icon
       .icon=${{ icon: 'mdi:image-off' }}
       title=${localize('thumbnail.no_thumbnail')}
-    ></frigate-card-icon> `;
+    ></advanced-camera-card-icon> `;
 
     if (!this._embedThumbnailTask || this._thumbnailError) {
       return imageOff;
@@ -134,8 +134,8 @@ export class FrigateCardThumbnailFeatureThumbnail extends LitElement {
   }
 }
 
-@customElement('frigate-card-thumbnail-feature-text')
-export class FrigateCardThumbnailFeatureText extends LitElement {
+@customElement('advanced-camera-card-thumbnail-feature-text')
+export class AdvancedCameraCardThumbnailFeatureText extends LitElement {
   @property({ attribute: false })
   public date?: Date;
 
@@ -151,10 +151,10 @@ export class FrigateCardThumbnailFeatureText extends LitElement {
     }
     return html`
       ${this.cameraMetadata?.engineIcon
-        ? html`<frigate-card-icon
+        ? html`<advanced-camera-card-icon
             class="background"
             .icon=${{ icon: this.cameraMetadata.engineIcon }}
-          ></frigate-card-icon>`
+          ></advanced-camera-card-icon>`
         : ''}
       <div class="content">
         <div class="title">${format(this.date, 'HH:mm')}</div>
@@ -171,8 +171,8 @@ export class FrigateCardThumbnailFeatureText extends LitElement {
   }
 }
 
-@customElement('frigate-card-thumbnail-details-event')
-export class FrigateCardThumbnailDetailsEvent extends LitElement {
+@customElement('advanced-camera-card-thumbnail-details-event')
+export class AdvancedCameraCardThumbnailDetailsEvent extends LitElement {
   @property({ attribute: false })
   public media?: EventViewMedia;
 
@@ -214,18 +214,18 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
       <div class="details">
         ${startTime
           ? html` <div>
-                <frigate-card-icon
+                <advanced-camera-card-icon
                   title=${localize('event.start')}
                   .icon=${{ icon: 'mdi:calendar-clock-outline' }}
-                ></frigate-card-icon>
+                ></advanced-camera-card-icon>
                 <span title="${startTime}">${startTime}</span>
               </div>
               ${duration || inProgress
                 ? html` <div>
-                    <frigate-card-icon
+                    <advanced-camera-card-icon
                       title=${localize('event.duration')}
                       .icon=${{ icon: 'mdi:clock-outline' }}
-                    ></frigate-card-icon>
+                    ></advanced-camera-card-icon>
                     ${duration ? html`<span title="${duration}">${duration}</span>` : ''}
                     ${inProgress
                       ? html`<span title="${inProgress}">${inProgress}</span>`
@@ -235,37 +235,37 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
           : ''}
         ${this.cameraTitle
           ? html` <div>
-              <frigate-card-icon
+              <advanced-camera-card-icon
                 title=${localize('event.camera')}
                 .icon=${{ icon: 'mdi:cctv' }}
-              ></frigate-card-icon>
+              ></advanced-camera-card-icon>
               <span title="${this.cameraTitle}">${this.cameraTitle}</span>
             </div>`
           : ''}
         ${where
           ? html` <div>
-              <frigate-card-icon
+              <advanced-camera-card-icon
                 title=${localize('event.where')}
                 .icon=${{ icon: 'mdi:map-marker-outline' }}
-              ></frigate-card-icon>
+              ></advanced-camera-card-icon>
               <span title="${where}">${where}</span>
             </div>`
           : html``}
         ${tags
           ? html` <div>
-              <frigate-card-icon
+              <advanced-camera-card-icon
                 title=${localize('event.tag')}
                 .icon=${{ icon: 'mdi:tag' }}
-              ></frigate-card-icon>
+              ></advanced-camera-card-icon>
               <span title="${tags}">${tags}</span>
             </div>`
           : html``}
         ${seek
           ? html` <div>
-              <frigate-card-icon
+              <advanced-camera-card-icon
                 title=${localize('event.seek')}
                 .icon=${{ icon: 'mdi:clock-fast' }}
-              ></frigate-card-icon>
+              ></advanced-camera-card-icon>
               <span title="${seek}">${seek}</span>
             </div>`
           : html``}
@@ -278,8 +278,8 @@ export class FrigateCardThumbnailDetailsEvent extends LitElement {
   }
 }
 
-@customElement('frigate-card-thumbnail-details-recording')
-export class FrigateCardThumbnailDetailsRecording extends LitElement {
+@customElement('advanced-camera-card-thumbnail-details-recording')
+export class AdvancedCameraCardThumbnailDetailsRecording extends LitElement {
   @property({ attribute: false })
   public media?: RecordingViewMedia;
 
@@ -315,18 +315,18 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
       <div class="details">
         ${startTime
           ? html` <div>
-                <frigate-card-icon
+                <advanced-camera-card-icon
                   title=${localize('recording.start')}
                   .icon=${{ icon: 'mdi:calendar-clock-outline' }}
-                ></frigate-card-icon>
+                ></advanced-camera-card-icon>
                 <span title="${startTime}">${startTime}</span>
               </div>
               ${duration || inProgress
                 ? html` <div>
-                    <frigate-card-icon
+                    <advanced-camera-card-icon
                       title=${localize('recording.duration')}
                       .icon=${{ icon: 'mdi:clock-outline' }}
-                    ></frigate-card-icon>
+                    ></advanced-camera-card-icon>
                     ${duration ? html`<span title="${duration}">${duration}</span>` : ''}
                     ${inProgress
                       ? html`<span title="${inProgress}">${inProgress}</span>`
@@ -336,19 +336,19 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
           : ''}
         ${seek
           ? html` <div>
-              <frigate-card-icon
+              <advanced-camera-card-icon
                 title=${localize('event.seek')}
                 .icon=${{ icon: 'mdi:clock-fast' }}
-              ></frigate-card-icon>
+              ></advanced-camera-card-icon>
               <span title="${seek}">${seek}</span>
             </div>`
           : html``}
         ${eventCount !== null
           ? html`<div>
-              <frigate-card-icon
+              <advanced-camera-card-icon
                 title=${localize('recording.events')}
                 .icon=${{ icon: 'mdi:shield-alert' }}
-              ></frigate-card-icon>
+              ></advanced-camera-card-icon>
               <span title="${eventCount}">${eventCount}</span>
             </div>`
           : ``}
@@ -361,8 +361,8 @@ export class FrigateCardThumbnailDetailsRecording extends LitElement {
   }
 }
 
-@customElement('frigate-card-thumbnail')
-export class FrigateCardThumbnail extends LitElement {
+@customElement('advanced-camera-card-thumbnail')
+export class AdvancedCameraCardThumbnail extends LitElement {
   // Performance: During timeline scrubbing, hass may be updated continuously.
   // As it is not needed for the thumbnail rendering itself, it does not trigger
   // a re-render. The HomeAssistant object may be required for thumbnail signing
@@ -439,25 +439,25 @@ export class FrigateCardThumbnail extends LitElement {
 
     return html`
       ${ViewMediaClassifier.isEvent(this.media) && thumbnail
-        ? html`<frigate-card-thumbnail-feature-thumbnail
+        ? html`<advanced-camera-card-thumbnail-feature-thumbnail
             aria-label="${title ?? ''}"
             title=${title}
             .hass=${this.hass}
             .date=${this.media.getStartTime() ?? undefined}
             .thumbnail=${thumbnail ?? undefined}
-          ></frigate-card-thumbnail-feature-thumbnail>`
+          ></advanced-camera-card-thumbnail-feature-thumbnail>`
         : ViewMediaClassifier.isEvent(this.media) ||
             ViewMediaClassifier.isRecording(this.media)
-          ? html`<frigate-card-thumbnail-feature-text
+          ? html`<advanced-camera-card-thumbnail-feature-text
               aria-label="${title ?? ''}"
               title="${title ?? ''}"
               .cameraMetadata=${cameraMetadata}
               .showCameraTitle=${!this.details}
               .date=${this.media.getStartTime() ?? undefined}
-            ></frigate-card-thumbnail-feature-text>`
+            ></advanced-camera-card-thumbnail-feature-text>`
           : html``}
       ${shouldShowFavoriteControl
-        ? html` <frigate-card-icon
+        ? html` <advanced-camera-card-icon
             class="${classMap(starClasses)}"
             title=${localize('thumbnail.retain_indefinitely')}
             .icon=${{ icon: this.media.isFavorite() ? 'mdi:star' : 'mdi:star-outline' }}
@@ -476,23 +476,23 @@ export class FrigateCardThumbnail extends LitElement {
                 this.requestUpdate();
               }
             }}
-          /></frigate-card-icon>`
+          /></advanced-camera-card-icon>`
         : ``}
       ${this.details && ViewMediaClassifier.isEvent(this.media)
-        ? html`<frigate-card-thumbnail-details-event
+        ? html`<advanced-camera-card-thumbnail-details-event
             .media=${this.media ?? undefined}
             .cameraTitle=${cameraMetadata?.title}
             .seek=${this.seek}
-          ></frigate-card-thumbnail-details-event>`
+          ></advanced-camera-card-thumbnail-details-event>`
         : this.details && ViewMediaClassifier.isRecording(this.media)
-          ? html`<frigate-card-thumbnail-details-recording
+          ? html`<advanced-camera-card-thumbnail-details-recording
               .media=${this.media ?? undefined}
               .cameraTitle=${cameraMetadata?.title}
               .seek=${this.seek}
-            ></frigate-card-thumbnail-details-recording>`
+            ></advanced-camera-card-thumbnail-details-recording>`
           : html``}
       ${shouldShowTimelineControl
-        ? html`<frigate-card-icon
+        ? html`<advanced-camera-card-icon
             class="timeline"
             .icon=${{ icon: 'mdi:target' }}
             title=${localize('thumbnail.timeline')}
@@ -512,10 +512,10 @@ export class FrigateCardThumbnail extends LitElement {
                 modifiers: [new RemoveContextViewModifier(['timeline'])],
               });
             }}
-          ></frigate-card-icon>`
+          ></advanced-camera-card-icon>`
         : ''}
       ${shouldShowDownloadControl
-        ? html` <frigate-card-icon
+        ? html` <advanced-camera-card-icon
             class="download"
             .icon=${{ icon: 'mdi:download' }}
             title=${localize('thumbnail.download')}
@@ -525,11 +525,11 @@ export class FrigateCardThumbnail extends LitElement {
                 try {
                   await downloadMedia(this.hass, this.cameraManager, this.media);
                 } catch (error: unknown) {
-                  dispatchFrigateCardErrorEvent(this, error);
+                  dispatchAdvancedCameraCardErrorEvent(this, error);
                 }
               }
             }}
-          ></frigate-card-icon>`
+          ></advanced-camera-card-icon>`
         : ``}
     `;
   }
@@ -544,10 +544,10 @@ export class FrigateCardThumbnail extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-thumbnail': FrigateCardThumbnail;
-    'frigate-card-thumbnail-details-recording': FrigateCardThumbnailDetailsRecording;
-    'frigate-card-thumbnail-details-event': FrigateCardThumbnailDetailsEvent;
-    'frigate-card-thumbnail-feature-text': FrigateCardThumbnailFeatureText;
-    'frigate-card-thumbnail-feature-thumbnail': FrigateCardThumbnailFeatureThumbnail;
+    'advanced-camera-card-thumbnail': AdvancedCameraCardThumbnail;
+    'advanced-camera-card-thumbnail-details-recording': AdvancedCameraCardThumbnailDetailsRecording;
+    'advanced-camera-card-thumbnail-details-event': AdvancedCameraCardThumbnailDetailsEvent;
+    'advanced-camera-card-thumbnail-feature-text': AdvancedCameraCardThumbnailFeatureText;
+    'advanced-camera-card-thumbnail-feature-thumbnail': AdvancedCameraCardThumbnailFeatureThumbnail;
   }
 }

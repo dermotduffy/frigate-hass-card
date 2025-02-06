@@ -32,7 +32,7 @@ describe('should handle ptz multi action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_multi',
+          advanced_camera_card_action: 'ptz_multi',
           ptz_action: 'left',
           ...(targetID && { target_id: targetID }),
         },
@@ -69,7 +69,7 @@ describe('should handle ptz multi action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_multi',
+          advanced_camera_card_action: 'ptz_multi',
           ptz_action: 'right',
           ...(targetID && { target_id: targetID }),
         },
@@ -108,7 +108,7 @@ describe('should handle ptz multi action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz_multi',
+        advanced_camera_card_action: 'ptz_multi',
         ptz_action: 'right',
       },
     );
@@ -137,7 +137,7 @@ describe('should handle ptz multi action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz_multi',
+        advanced_camera_card_action: 'ptz_multi',
         ptz_action: 'right',
       },
     );

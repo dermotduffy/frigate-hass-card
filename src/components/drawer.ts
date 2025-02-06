@@ -21,8 +21,8 @@ export interface DrawerIcons {
   closed?: string;
 }
 
-@customElement('frigate-card-drawer')
-export class FrigateCardDrawer extends LitElement {
+@customElement('advanced-camera-card-drawer')
+export class AdvancedCameraCardDrawer extends LitElement {
   @property({ attribute: true, reflect: true })
   public location: 'left' | 'right' = 'left';
 
@@ -122,7 +122,7 @@ export class FrigateCardDrawer extends LitElement {
                   this.open = !this.open;
                 }}
               >
-                <frigate-card-icon
+                <advanced-camera-card-icon
                   class="control"
                   .icon="${{
                     icon: this.open
@@ -133,13 +133,13 @@ export class FrigateCardDrawer extends LitElement {
                     // Only open the drawer on mousenter when the device
                     // supports hover (otherwise iOS may end up passing on
                     // subsequent click events to a different element, see:
-                    // https://github.com/dermotduffy/frigate-hass-card/issues/801
+                    // https://github.com/dermotduffy/advanced-camera-card/issues/801
                     if (this._isHoverableDevice && !this.open) {
                       this.open = true;
                     }
                   }}
                 >
-                </frigate-card-icon>
+                </advanced-camera-card-icon>
               </div>
             `
           : ''}
@@ -155,7 +155,7 @@ export class FrigateCardDrawer extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-drawer': FrigateCardDrawer;
+    'advanced-camera-card-drawer': AdvancedCameraCardDrawer;
     'side-drawer': SideDrawer;
   }
 }

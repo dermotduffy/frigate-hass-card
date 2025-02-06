@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { FrigateCardMediaPlayer } from '../../src/types.js';
+import { AdvancedCameraCardMediaPlayer } from '../../src/types.js';
 import {
-  FrigateCardHTMLVideoElement,
+  AdvancedCameraCardHTMLVideoElement,
   MEDIA_LOAD_CONTROLS_HIDE_SECONDS,
   hideMediaControlsTemporarily,
   playMediaMutingIfNecessary,
@@ -19,7 +19,7 @@ describe('setControlsOnVideo', () => {
   });
 
   it('should stop timer', () => {
-    const video: FrigateCardHTMLVideoElement = document.createElement('video');
+    const video: AdvancedCameraCardHTMLVideoElement = document.createElement('video');
     hideMediaControlsTemporarily(video);
 
     expect(video._controlsHideTimer).toBeTruthy();
@@ -41,7 +41,7 @@ describe('hideMediaControlsTemporarily', () => {
   });
 
   it('should set controls', () => {
-    const video: FrigateCardHTMLVideoElement = document.createElement('video');
+    const video: AdvancedCameraCardHTMLVideoElement = document.createElement('video');
     video.controls = true;
     hideMediaControlsTemporarily(video);
 
@@ -53,7 +53,7 @@ describe('hideMediaControlsTemporarily', () => {
   });
 
   it('should add event listener that resets controls', () => {
-    const video: FrigateCardHTMLVideoElement = document.createElement('video');
+    const video: AdvancedCameraCardHTMLVideoElement = document.createElement('video');
     video.controls = true;
 
     hideMediaControlsTemporarily(video);
@@ -77,7 +77,7 @@ class NotAllowedError extends Error {
 
 describe('playMediaMutingIfNecessary', () => {
   it('should play', async () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     const video = mock<HTMLVideoElement>();
     video.play.mockResolvedValue();
     await playMediaMutingIfNecessary(player, video);
@@ -85,7 +85,7 @@ describe('playMediaMutingIfNecessary', () => {
   });
 
   it('should mute if not allowed to play and unmuted', async () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.isMuted.mockReturnValue(false);
     player.mute.mockResolvedValue();
 
@@ -100,7 +100,7 @@ describe('playMediaMutingIfNecessary', () => {
   });
 
   it('should not mute if not allowed to play and already unmuted', async () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.isMuted.mockReturnValue(true);
 
     const video = mock<HTMLVideoElement>();
@@ -114,7 +114,7 @@ describe('playMediaMutingIfNecessary', () => {
   });
 
   it('should ignore exception if subsequent play call throws', async () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.isMuted.mockReturnValue(false);
 
     const video = mock<HTMLVideoElement>();
@@ -128,7 +128,7 @@ describe('playMediaMutingIfNecessary', () => {
   });
 
   it('should ignore calls without a video', async () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.isMuted.mockReturnValue(false);
 
     await playMediaMutingIfNecessary(player);

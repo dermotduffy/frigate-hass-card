@@ -8,7 +8,7 @@ it('should handle camera_ui action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'camera_ui',
+      advanced_camera_card_action: 'camera_ui',
     },
   );
 

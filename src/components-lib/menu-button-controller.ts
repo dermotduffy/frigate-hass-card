@@ -6,12 +6,11 @@ import { MediaPlayerManager } from '../card-controller/media-player-manager';
 import { MicrophoneManager } from '../card-controller/microphone-manager';
 import { ViewManager } from '../card-controller/view/view-manager';
 import {
-  FRIGATE_CARD_VIEWS_USER_SPECIFIED,
-  FrigateCardConfig,
-  FrigateCardCustomAction,
+  AdvancedCameraCardConfig,
+  AdvancedCameraCardCustomAction,
   MenuItem,
+  VIEWS_USER_SPECIFIED,
 } from '../config/types';
-import { FRIGATE_BUTTON_MENU_ICON } from '../const';
 import { localize } from '../localize/localize.js';
 import { MediaLoadedInfo } from '../types';
 import {
@@ -63,12 +62,12 @@ export class MenuButtonController {
    */
   public calculateButtons(
     hass: HomeAssistant,
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     options?: MenuButtonControllerOptions,
   ): MenuItem[] {
     return [
-      this._getDefaultButton(config),
+      this._getIrisButton(config),
       this._getCamerasButton(config, cameraManager, options?.view),
       this._getSubstreamsButton(config, cameraManager, options?.view),
       this._getLiveButton(config, options?.view, options?.viewManager),
@@ -107,27 +106,25 @@ export class MenuButtonController {
     ].filter(isTruthy);
   }
 
-  protected _getDefaultButton(config: FrigateCardConfig): MenuItem {
+  protected _getIrisButton(config: AdvancedCameraCardConfig): MenuItem {
     return {
-      // Use a magic icon value that the menu will use to render the custom
-      // Frigate icon.
-      icon: FRIGATE_BUTTON_MENU_ICON,
-      ...config.menu.buttons.frigate,
-      type: 'custom:frigate-card-menu-icon',
-      title: localize('config.menu.buttons.frigate'),
+      icon: 'iris',
+      ...config.menu.buttons.iris,
+      type: 'custom:advanced-camera-card-menu-icon',
+      title: localize('config.menu.buttons.iris'),
       // The default button always shows regardless of whether the menu is
       // hidden or not.
       permanent: true,
       tap_action:
         config.menu?.style === 'hidden'
-          ? (createGeneralAction('menu_toggle') as FrigateCardCustomAction)
-          : (createGeneralAction('default') as FrigateCardCustomAction),
-      hold_action: createGeneralAction('diagnostics') as FrigateCardCustomAction,
+          ? (createGeneralAction('menu_toggle') as AdvancedCameraCardCustomAction)
+          : (createGeneralAction('default') as AdvancedCameraCardCustomAction),
+      hold_action: createGeneralAction('diagnostics') as AdvancedCameraCardCustomAction,
     };
   }
 
   protected _getCamerasButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
   ): MenuItem | null {
@@ -153,7 +150,7 @@ export class MenuButtonController {
       return {
         icon: 'mdi:video-switch',
         ...config.menu.buttons.cameras,
-        type: 'custom:frigate-card-menu-submenu',
+        type: 'custom:advanced-camera-card-menu-submenu',
         title: localize('config.menu.buttons.cameras'),
         items: submenuItems,
       };
@@ -162,7 +159,7 @@ export class MenuButtonController {
   }
 
   protected _getSubstreamsButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
   ): MenuItem | null {
@@ -190,10 +187,10 @@ export class MenuButtonController {
             substreamAwareCameraID !== view.camera ? this._getEmphasizedStyle() : {},
           title: localize('config.menu.buttons.substreams'),
           ...config.menu.buttons.substreams,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           tap_action: createGeneralAction(
             hasSubstream(view) ? 'live_substream_off' : 'live_substream_on',
-          ) as FrigateCardCustomAction,
+          ) as AdvancedCameraCardCustomAction,
         };
       } else if (streams.length > 2) {
         const menuItems = Array.from(streams, (streamID) => {
@@ -216,7 +213,7 @@ export class MenuButtonController {
           style:
             substreamAwareCameraID !== view.camera ? this._getEmphasizedStyle() : {},
           ...config.menu.buttons.substreams,
-          type: 'custom:frigate-card-menu-submenu',
+          type: 'custom:advanced-camera-card-menu-submenu',
           items: menuItems,
         };
       }
@@ -225,7 +222,7 @@ export class MenuButtonController {
   }
 
   protected _getLiveButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
@@ -233,16 +230,16 @@ export class MenuButtonController {
       ? {
           icon: 'mdi:cctv',
           ...config.menu.buttons.live,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.live'),
           style: view.is('live') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('live') as FrigateCardCustomAction,
+          tap_action: createGeneralAction('live') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
 
   protected _getClipsButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
@@ -250,17 +247,17 @@ export class MenuButtonController {
       ? {
           icon: 'mdi:filmstrip',
           ...config.menu.buttons.clips,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.clips'),
           style: view?.is('clips') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('clips') as FrigateCardCustomAction,
-          hold_action: createGeneralAction('clip') as FrigateCardCustomAction,
+          tap_action: createGeneralAction('clips') as AdvancedCameraCardCustomAction,
+          hold_action: createGeneralAction('clip') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
 
   protected _getSnapshotsButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
@@ -268,17 +265,17 @@ export class MenuButtonController {
       ? {
           icon: 'mdi:camera',
           ...config.menu.buttons.snapshots,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.snapshots'),
           style: view?.is('snapshots') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('snapshots') as FrigateCardCustomAction,
-          hold_action: createGeneralAction('snapshot') as FrigateCardCustomAction,
+          tap_action: createGeneralAction('snapshots') as AdvancedCameraCardCustomAction,
+          hold_action: createGeneralAction('snapshot') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
 
   protected _getRecordingsButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
@@ -286,17 +283,21 @@ export class MenuButtonController {
       ? {
           icon: 'mdi:album',
           ...config.menu.buttons.recordings,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.recordings'),
           style: view.is('recordings') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('recordings') as FrigateCardCustomAction,
-          hold_action: createGeneralAction('recording') as FrigateCardCustomAction,
+          tap_action: createGeneralAction(
+            'recordings',
+          ) as AdvancedCameraCardCustomAction,
+          hold_action: createGeneralAction(
+            'recording',
+          ) as AdvancedCameraCardCustomAction,
         }
       : null;
   }
 
   protected _getImageButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
@@ -304,16 +305,16 @@ export class MenuButtonController {
       ? {
           icon: 'mdi:image',
           ...config.menu.buttons.image,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.image'),
           style: view?.is('image') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('image') as FrigateCardCustomAction,
+          tap_action: createGeneralAction('image') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
 
   protected _getTimelineButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     view?: View | null,
     viewManager?: ViewManager | null,
   ): MenuItem | null {
@@ -321,16 +322,16 @@ export class MenuButtonController {
       ? {
           icon: 'mdi:chart-gantt',
           ...config.menu.buttons.timeline,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.timeline'),
           style: view.is('timeline') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('timeline') as FrigateCardCustomAction,
+          tap_action: createGeneralAction('timeline') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
 
   protected _getDownloadButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
   ): MenuItem | null {
@@ -342,31 +343,31 @@ export class MenuButtonController {
       return {
         icon: 'mdi:download',
         ...config.menu.buttons.download,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.download'),
-        tap_action: createGeneralAction('download') as FrigateCardCustomAction,
+        tap_action: createGeneralAction('download') as AdvancedCameraCardCustomAction,
       };
     }
     return null;
   }
 
   protected _getCameraUIButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     showCameraUIButton?: boolean,
   ): MenuItem | null {
     return showCameraUIButton
       ? {
           icon: 'mdi:web',
           ...config.menu.buttons.camera_ui,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.camera_ui'),
-          tap_action: createGeneralAction('camera_ui') as FrigateCardCustomAction,
+          tap_action: createGeneralAction('camera_ui') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
 
   protected _getMicrophoneButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     microphoneManager?: MicrophoneManager | null,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
@@ -382,23 +383,23 @@ export class MenuButtonController {
             ? 'mdi:microphone-off'
             : 'mdi:microphone',
         ...config.menu.buttons.microphone,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.microphone'),
         style: unavailable || muted ? {} : this._getEmphasizedStyle(true),
         ...(!unavailable &&
           buttonType === 'momentary' && {
             start_tap_action: createGeneralAction(
               'microphone_unmute',
-            ) as FrigateCardCustomAction,
+            ) as AdvancedCameraCardCustomAction,
             end_tap_action: createGeneralAction(
               'microphone_mute',
-            ) as FrigateCardCustomAction,
+            ) as AdvancedCameraCardCustomAction,
           }),
         ...(!unavailable &&
           buttonType === 'toggle' && {
             tap_action: createGeneralAction(
               muted ? 'microphone_unmute' : 'microphone_mute',
-            ) as FrigateCardCustomAction,
+            ) as AdvancedCameraCardCustomAction,
           }),
       };
     }
@@ -406,21 +407,21 @@ export class MenuButtonController {
   }
 
   protected _getExpandButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     inExpandedMode?: boolean,
   ): MenuItem {
     return {
       icon: inExpandedMode ? 'mdi:arrow-collapse-all' : 'mdi:arrow-expand-all',
       ...config.menu.buttons.expand,
-      type: 'custom:frigate-card-menu-icon',
+      type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.expand'),
-      tap_action: createGeneralAction('expand') as FrigateCardCustomAction,
+      tap_action: createGeneralAction('expand') as AdvancedCameraCardCustomAction,
       style: inExpandedMode ? this._getEmphasizedStyle() : {},
     };
   }
 
   protected _getFullscreenButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     fullscreenManager?: FullscreenManager | null,
   ): MenuItem | null {
     const inFullscreen = fullscreenManager?.isInFullscreen();
@@ -428,9 +429,11 @@ export class MenuButtonController {
       ? {
           icon: inFullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen',
           ...config.menu.buttons.fullscreen,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.menu.buttons.fullscreen'),
-          tap_action: createGeneralAction('fullscreen') as FrigateCardCustomAction,
+          tap_action: createGeneralAction(
+            'fullscreen',
+          ) as AdvancedCameraCardCustomAction,
           style: inFullscreen ? this._getEmphasizedStyle() : {},
         }
       : null;
@@ -438,7 +441,7 @@ export class MenuButtonController {
 
   protected _getCastButton(
     hass: HomeAssistant,
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
     mediaPlayerController?: MediaPlayerManager | null,
@@ -475,7 +478,7 @@ export class MenuButtonController {
       return {
         icon: 'mdi:cast',
         ...config.menu.buttons.media_player,
-        type: 'custom:frigate-card-menu-submenu',
+        type: 'custom:advanced-camera-card-menu-submenu',
         title: localize('config.menu.buttons.media_player'),
         items: mediaPlayerItems,
       };
@@ -484,7 +487,7 @@ export class MenuButtonController {
   }
 
   protected _getPlayPauseButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
     if (
@@ -496,18 +499,18 @@ export class MenuButtonController {
       return {
         icon: paused ? 'mdi:play' : 'mdi:pause',
         ...config.menu.buttons.play,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.play'),
         tap_action: createGeneralAction(
           paused ? 'play' : 'pause',
-        ) as FrigateCardCustomAction,
+        ) as AdvancedCameraCardCustomAction,
       };
     }
     return null;
   }
 
   protected _getMuteUnmuteButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
     if (
@@ -519,34 +522,34 @@ export class MenuButtonController {
       return {
         icon: muted ? 'mdi:volume-off' : 'mdi:volume-high',
         ...config.menu.buttons.mute,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.mute'),
         tap_action: createGeneralAction(
           muted ? 'unmute' : 'mute',
-        ) as FrigateCardCustomAction,
+        ) as AdvancedCameraCardCustomAction,
       };
     }
     return null;
   }
 
   protected _getScreenshotButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     currentMediaLoadedInfo?: MediaLoadedInfo | null,
   ): MenuItem | null {
     if (currentMediaLoadedInfo && currentMediaLoadedInfo.player) {
       return {
         icon: 'mdi:monitor-screenshot',
         ...config.menu.buttons.screenshot,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.screenshot'),
-        tap_action: createGeneralAction('screenshot') as FrigateCardCustomAction,
+        tap_action: createGeneralAction('screenshot') as AdvancedCameraCardCustomAction,
       };
     }
     return null;
   }
 
   protected _getDisplayModeButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
   ): MenuItem | null {
@@ -563,7 +566,7 @@ export class MenuButtonController {
         icon: isGrid ? 'mdi:grid-off' : 'mdi:grid',
         ...config.menu.buttons.display_mode,
         style: isGrid ? this._getEmphasizedStyle() : {},
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: isGrid
           ? localize('display_modes.single')
           : localize('display_modes.grid'),
@@ -574,7 +577,7 @@ export class MenuButtonController {
   }
 
   protected _getPTZControlsButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
   ): MenuItem | null {
@@ -602,7 +605,7 @@ export class MenuButtonController {
         icon: 'mdi:pan',
         ...config.menu.buttons.ptz_controls,
         style: isOn ? this._getEmphasizedStyle() : {},
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: localize('config.menu.buttons.ptz_controls'),
         tap_action: createPTZControlsAction(!isOn),
       };
@@ -611,7 +614,7 @@ export class MenuButtonController {
   }
 
   protected _getPTZHomeButton(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     cameraManager: CameraManager,
     view?: View | null,
   ): MenuItem | null {
@@ -633,11 +636,11 @@ export class MenuButtonController {
     return {
       icon: 'mdi:home',
       ...config.menu.buttons.ptz_home,
-      type: 'custom:frigate-card-menu-icon',
+      type: 'custom:advanced-camera-card-menu-icon',
       title: localize('config.menu.buttons.ptz_home'),
       tap_action: createPTZMultiAction({
         targetID: target.targetID,
-      }) as FrigateCardCustomAction,
+      }) as AdvancedCameraCardCustomAction,
     };
   }
 
@@ -649,11 +652,11 @@ export class MenuButtonController {
     if (critical) {
       return {
         animation: 'pulse 3s infinite',
-        color: 'var(--frigate-card-menu-button-critical-color)',
+        color: 'var(--advanced-camera-card-menu-button-critical-color)',
       };
     }
     return {
-      color: 'var(--frigate-card-menu-button-active-color)',
+      color: 'var(--advanced-camera-card-menu-button-active-color)',
     };
   }
 
@@ -664,7 +667,7 @@ export class MenuButtonController {
    * @returns A StyleInfo object.
    */
   protected _getStyleFromActions(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     button: MenuItem,
     options?: MenuButtonControllerOptions,
   ): StyleInfo {
@@ -677,28 +680,28 @@ export class MenuButtonController {
     ]) {
       const actions = Array.isArray(actionSet) ? actionSet : [actionSet];
       for (const action of actions) {
-        // All frigate card actions will have action of 'fire-dom-event' and
+        // All advanced camera card actions will have action of 'fire-dom-event' and
         // styling only applies to those.
         if (
           !action ||
           action.action !== 'fire-dom-event' ||
-          !('frigate_card_action' in action)
+          !('advanced_camera_card_action' in action)
         ) {
           continue;
         }
-        const frigateCardAction = action as FrigateCardCustomAction;
+        const customCardAction = action as AdvancedCameraCardCustomAction;
         if (
-          FRIGATE_CARD_VIEWS_USER_SPECIFIED.some(
+          VIEWS_USER_SPECIFIED.some(
             (viewName) =>
-              viewName === frigateCardAction.frigate_card_action &&
-              options?.view?.is(frigateCardAction.frigate_card_action),
+              viewName === customCardAction.advanced_camera_card_action &&
+              options?.view?.is(customCardAction.advanced_camera_card_action),
           ) ||
-          (frigateCardAction.frigate_card_action === 'default' &&
+          (customCardAction.advanced_camera_card_action === 'default' &&
             options?.view?.is(config.view.default)) ||
-          (frigateCardAction.frigate_card_action === 'fullscreen' &&
+          (customCardAction.advanced_camera_card_action === 'fullscreen' &&
             !!options?.fullscreenManager?.isInFullscreen()) ||
-          (frigateCardAction.frigate_card_action === 'camera_select' &&
-            options?.view?.camera === frigateCardAction.camera)
+          (customCardAction.advanced_camera_card_action === 'camera_select' &&
+            options?.view?.camera === customCardAction.camera)
         ) {
           return this._getEmphasizedStyle();
         }

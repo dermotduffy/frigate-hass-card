@@ -31,7 +31,7 @@ export class AutomationsManager {
       !this._api.getHASSManager().hasHASS() ||
       // Never execute automations if the card hasn't finished initializing, as
       // it could cause a view change when camera loads are not finished.
-      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1407
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1407
       !this._api.getInitializationManager().isInitializedMandatory() ||
       // Never execute automations if there's an error (as our automation loop
       // avoidance -- which shows as an error -- would not work!).

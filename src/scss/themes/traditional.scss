@@ -1,10 +1,10 @@
 @mixin background-gradient($var, $angle) {
   #{$var}: linear-gradient(
     $angle,
-    var(--frigate-card-menu-background),
-    var(--frigate-card-menu-background),
-    var(--frigate-card-menu-background),
-    color-mix(in oklab, var(--frigate-card-menu-background), transparent 100%)
+    var(--advanced-camera-card-menu-background),
+    var(--advanced-camera-card-menu-background),
+    var(--advanced-camera-card-menu-background),
+    color-mix(in oklab, var(--advanced-camera-card-menu-background), transparent 100%)
   );
 }
 
@@ -13,59 +13,59 @@
    * General
    *********/
 
-  --frigate-card-control-background: black;
+  --advanced-camera-card-control-background: black;
 
   /******
    * Menu
    ******/
 
-  --frigate-card-menu-button-active-color: var(--primary-color, white);
-  --frigate-card-menu-button-background: rgba(0, 0, 0, 0.6);
+  --advanced-camera-card-menu-button-active-color: var(--primary-color, white);
+  --advanced-camera-card-menu-button-background: rgba(0, 0, 0, 0.6);
 
   @include background-gradient(
-    '--frigate-card-menu-position-left-alignment-top-background',
+    '--advanced-camera-card-menu-position-left-alignment-top-background',
     180deg
   );
   @include background-gradient(
-    '--frigate-card-menu-position-left-alignment-bottom-background',
+    '--advanced-camera-card-menu-position-left-alignment-bottom-background',
     0deg
   );
   @include background-gradient(
-    '--frigate-card-menu-position-right-alignment-top-background',
+    '--advanced-camera-card-menu-position-right-alignment-top-background',
     180deg
   );
   @include background-gradient(
-    '--frigate-card-menu-position-right-alignment-bottom-background',
+    '--advanced-camera-card-menu-position-right-alignment-bottom-background',
     0deg
   );
 
   @include background-gradient(
-    '--frigate-card-menu-position-top-alignment-left-background',
+    '--advanced-camera-card-menu-position-top-alignment-left-background',
     90deg
   );
   @include background-gradient(
-    '--frigate-card-menu-position-top-alignment-right-background',
+    '--advanced-camera-card-menu-position-top-alignment-right-background',
     270deg
   );
   @include background-gradient(
-    '--frigate-card-menu-position-bottom-alignment-left-background',
+    '--advanced-camera-card-menu-position-bottom-alignment-left-background',
     90deg
   );
   @include background-gradient(
-    '--frigate-card-menu-position-bottom-alignment-right-background',
+    '--advanced-camera-card-menu-position-bottom-alignment-right-background',
     270deg
   );
 
-  --frigate-card-menu-position-top-alignment-left-style-outside-background: var(
+  --advanced-camera-card-menu-position-top-alignment-left-style-outside-background: var(
     --secondary-background-color
   );
-  --frigate-card-menu-position-top-alignment-right-style-outside-background: var(
+  --advanced-camera-card-menu-position-top-alignment-right-style-outside-background: var(
     --secondary-background-color
   );
-  --frigate-card-menu-position-bottom-alignment-left-style-outside-background: var(
+  --advanced-camera-card-menu-position-bottom-alignment-left-style-outside-background: var(
     --secondary-background-color
   );
-  --frigate-card-menu-position-bottom-alignment-right-style-outside-background: var(
+  --advanced-camera-card-menu-position-bottom-alignment-right-style-outside-background: var(
     --secondary-background-color
   );
 
@@ -73,27 +73,27 @@
    * Status bar
    ************/
 
-  --frigate-card-status-bar-color: white;
+  --advanced-camera-card-status-bar-color: white;
 
   @include background-gradient(
-    '--frigate-card-status-bar-position-top-background',
+    '--advanced-camera-card-status-bar-position-top-background',
     90deg
   );
   @include background-gradient(
-    '--frigate-card-status-bar-position-bottom-background',
+    '--advanced-camera-card-status-bar-position-bottom-background',
     90deg
   );
 
-  --frigate-card-status-bar-position-top-style-outside-background: var(
+  --advanced-camera-card-status-bar-position-top-style-outside-background: var(
     --secondary-background-color
   );
-  --frigate-card-status-bar-position-bottom-style-outside-background: var(
+  --advanced-camera-card-status-bar-position-bottom-style-outside-background: var(
     --secondary-background-color
   );
-  --frigate-card-status-bar-position-top-style-outside-color: var(
+  --advanced-camera-card-status-bar-position-top-style-outside-color: var(
     --secondary-text-color
   );
-  --frigate-card-status-bar-position-bottom-style-outside-color: var(
+  --advanced-camera-card-status-bar-position-bottom-style-outside-color: var(
     --secondary-text-color
   );
 }

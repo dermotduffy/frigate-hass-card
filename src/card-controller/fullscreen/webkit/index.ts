@@ -9,7 +9,7 @@ const WEBKIT_PLAY_SECONDS = 0.5;
 /**
  * Fullscreen implementation for webkit based browsers that do not support the
  * standard Fullscreen API (expected to be exclusively iOS on an iPhone).
- * See: https://github.com/dermotduffy/frigate-hass-card/issues/1444
+ * See: https://github.com/dermotduffy/advanced-camera-card/issues/1444
  */
 export class WebkitFullScreenProvider
   extends FullscreenProviderBase

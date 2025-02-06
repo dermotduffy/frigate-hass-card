@@ -1,9 +1,9 @@
 import { GeneralActionConfig } from '../../../config/types';
 import { CardActionsAPI } from '../../types';
 import { SubstreamOffViewModifier } from '../../view/modifiers/substream-off';
-import { FrigateCardAction } from './base';
+import { AdvancedCameraCardAction } from './base';
 
-export class SubstreamOffAction extends FrigateCardAction<GeneralActionConfig> {
+export class SubstreamOffAction extends AdvancedCameraCardAction<GeneralActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     api.getViewManager().setViewByParameters({
       modifiers: [new SubstreamOffViewModifier()],

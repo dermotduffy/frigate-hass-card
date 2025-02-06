@@ -20,7 +20,7 @@ elements:
     # [...]
 ```
 
-?> See [Frigate Card custom elements](../custom//README.md) for the custom elements offered by _this_ card.
+?> See [Advanced Camera Card custom elements](../custom//README.md) for the custom elements offered by _this_ card.
 
 ## `icon`
 

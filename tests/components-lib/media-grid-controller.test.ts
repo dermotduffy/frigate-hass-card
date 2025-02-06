@@ -174,7 +174,7 @@ describe('MediaGridController', () => {
     const controller = createController(slot);
 
     const mediaLoadedInfoHandler = vi.fn();
-    host.addEventListener('frigate-card:media:loaded', mediaLoadedInfoHandler);
+    host.addEventListener('advanced-camera-card:media:loaded', mediaLoadedInfoHandler);
     dispatchExistingMediaLoadedInfoAsEvent(children[0], mediaLoadedInfo);
 
     controller.selectCell('0');
@@ -194,7 +194,7 @@ describe('MediaGridController', () => {
     controller.selectCell('0');
 
     const mediaLoadedInfoHandler = vi.fn();
-    host.addEventListener('frigate-card:media:loaded', mediaLoadedInfoHandler);
+    host.addEventListener('advanced-camera-card:media:loaded', mediaLoadedInfoHandler);
     dispatchExistingMediaLoadedInfoAsEvent(children[0], mediaLoadedInfo);
 
     expect(mediaLoadedInfoHandler).toBeCalledWith(
@@ -213,7 +213,7 @@ describe('MediaGridController', () => {
     controller.selectCell('1');
 
     const mediaLoadedInfoHandler = vi.fn();
-    host.addEventListener('frigate-card:media:loaded', mediaLoadedInfoHandler);
+    host.addEventListener('advanced-camera-card:media:loaded', mediaLoadedInfoHandler);
     dispatchExistingMediaLoadedInfoAsEvent(children[0], mediaLoadedInfo);
 
     // Another element is selected, so the event should not have propagated.
@@ -228,8 +228,11 @@ describe('MediaGridController', () => {
 
     const unselectedHandler = vi.fn();
     const unloadMediaHandler = vi.fn();
-    host.addEventListener('frigate-card:media-grid:unselected', unselectedHandler);
-    host.addEventListener('frigate-card:media:unloaded', unloadMediaHandler);
+    host.addEventListener(
+      'advanced-camera-card:media-grid:unselected',
+      unselectedHandler,
+    );
+    host.addEventListener('advanced-camera-card:media:unloaded', unloadMediaHandler);
 
     controller.selectCell('0');
     expect(controller.getSelected()).toBe('0');
@@ -401,9 +404,9 @@ describe('MediaGridController', () => {
         columnWidth: 245,
       }),
     );
-    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
-      '245px',
-    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('245px');
   });
 
   it('should respect exact columns', () => {
@@ -420,9 +423,9 @@ describe('MediaGridController', () => {
         columnWidth: 1499,
       }),
     );
-    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
-      '1499px',
-    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('1499px');
   });
 
   it('should respect selected width factor', () => {
@@ -430,13 +433,13 @@ describe('MediaGridController', () => {
     const controller = createController(parent);
     controller.setDisplayConfig({ mode: 'grid', grid_selected_width_factor: 3 });
     expect(
-      parent.style.getPropertyValue('--frigate-card-grid-selected-width-factor'),
+      parent.style.getPropertyValue('--advanced-camera-card-grid-selected-width-factor'),
     ).toBe('3');
 
     // Setting the same config again should do nothing.
     controller.setDisplayConfig({ mode: 'grid', grid_selected_width_factor: 3 });
     expect(
-      parent.style.getPropertyValue('--frigate-card-grid-selected-width-factor'),
+      parent.style.getPropertyValue('--advanced-camera-card-grid-selected-width-factor'),
     ).toBe('3');
   });
 
@@ -490,9 +493,9 @@ describe('MediaGridController', () => {
         columnWidth: 245,
       }),
     );
-    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
-      '245px',
-    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('245px');
 
     // Clear mock state.
     vi.mocked(Masonry).mockClear();
@@ -509,9 +512,9 @@ describe('MediaGridController', () => {
         columnWidth: 599,
       }),
     );
-    expect(parent.style.getPropertyValue('--frigate-card-grid-column-size')).toBe(
-      '599px',
-    );
+    expect(
+      parent.style.getPropertyValue('--advanced-camera-card-grid-column-size'),
+    ).toBe('599px');
     expect(masonry.layout).toBeCalled();
 
     // Clear mock state.

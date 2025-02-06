@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { CardController } from '../../../../src/card-controller/controller';
 import { WebkitFullScreenProvider } from '../../../../src/card-controller/fullscreen/webkit';
-import { FrigateCardMediaPlayer, WebkitHTMLVideoElement } from '../../../../src/types';
+import {
+  AdvancedCameraCardMediaPlayer,
+  WebkitHTMLVideoElement,
+} from '../../../../src/types';
 import { createCardAPI, createMediaLoadedInfo } from '../../../test-utils';
 
 const createWebkitVideoElement = (): HTMLVideoElement &
@@ -11,7 +14,7 @@ const createWebkitVideoElement = (): HTMLVideoElement &
 };
 
 const setElement = (api: CardController, element: HTMLElement): void => {
-  const player = mock<FrigateCardMediaPlayer>();
+  const player = mock<AdvancedCameraCardMediaPlayer>();
   player.getFullscreenElement.mockReturnValue(element);
 
   vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
@@ -158,7 +161,7 @@ describe('WebkitFullScreenProvider', () => {
           ).mock.calls[0][0];
 
           const element_1 = createWebkitVideoElement();
-          const player_1 = mock<FrigateCardMediaPlayer>();
+          const player_1 = mock<AdvancedCameraCardMediaPlayer>();
           player_1.getFullscreenElement.mockReturnValue(element_1);
           const mediaLoadedInfo_1 = createMediaLoadedInfo({ player: player_1 });
 
@@ -169,7 +172,7 @@ describe('WebkitFullScreenProvider', () => {
           expect(handler).toBeCalledTimes(1);
 
           const element_2 = createWebkitVideoElement();
-          const player_2 = mock<FrigateCardMediaPlayer>();
+          const player_2 = mock<AdvancedCameraCardMediaPlayer>();
           player_2.getFullscreenElement.mockReturnValue(element_2);
           const mediaLoadedInfo_2 = createMediaLoadedInfo({ player: player_2 });
 
@@ -219,7 +222,7 @@ describe('WebkitFullScreenProvider', () => {
 
     setElement(api, element);
 
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.getFullscreenElement.mockReturnValue(element);
     const mediaLoadedInfo = createMediaLoadedInfo({ player });
 

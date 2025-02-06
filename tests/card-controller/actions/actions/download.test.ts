@@ -8,7 +8,7 @@ it('should handle download action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'download',
+      advanced_camera_card_action: 'download',
     },
   );
 

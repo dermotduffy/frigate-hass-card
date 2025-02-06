@@ -14,13 +14,13 @@ assignees: ''
 
 **Checklist:**
 
-- Please try updating to the [latest available version](https://github.com/dermotduffy/frigate-hass-card/releases).
+- Please try updating to the [latest available version](https://github.com/dermotduffy/advanced-camera-card/releases).
 - Please try clearing your browser cache.
 
 **[REQUIRED] Card diagnostic information:**
 
 <!--
-On the card, hold down the Default/Frigate menu button for a few seconds then paste the diagnostics below. No help can be provided without this
+On the card, hold down the Iris (default) menu button for a few seconds then paste the diagnostics *between* the pair of triple backticks below. No help can be provided without this.
 -->
 
 ```yaml

@@ -11,8 +11,8 @@ import { ZoomController } from '../components-lib/zoom/zoom-controller.js';
 import { setOrRemoveAttribute } from '../utils/basic.js';
 import { PartialZoomSettings } from '../components-lib/zoom/types.js';
 
-@customElement('frigate-card-zoomer')
-export class FrigateCardZoomer extends LitElement {
+@customElement('advanced-camera-card-zoomer')
+export class AdvancedCameraCardZoomer extends LitElement {
   protected _zoom: ZoomController | null = null;
 
   @property({ attribute: false })
@@ -29,8 +29,8 @@ export class FrigateCardZoomer extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.addEventListener('frigate-card:zoom:zoomed', this._zoomHandler);
-    this.addEventListener('frigate-card:zoom:unzoomed', this._unzoomHandler);
+    this.addEventListener('advanced-camera-card:zoom:zoomed', this._zoomHandler);
+    this.addEventListener('advanced-camera-card:zoom:unzoomed', this._unzoomHandler);
 
     // Call for an update to activate.
     this.requestUpdate();
@@ -38,8 +38,8 @@ export class FrigateCardZoomer extends LitElement {
 
   disconnectedCallback(): void {
     this._zoom?.deactivate();
-    this.removeEventListener('frigate-card:zoom:zoomed', this._zoomHandler);
-    this.removeEventListener('frigate-card:zoom:unzoomed', this._unzoomHandler);
+    this.removeEventListener('advanced-camera-card:zoom:zoomed', this._zoomHandler);
+    this.removeEventListener('advanced-camera-card:zoom:unzoomed', this._unzoomHandler);
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -87,6 +87,6 @@ export class FrigateCardZoomer extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-zoomer': FrigateCardZoomer;
+    'advanced-camera-card-zoomer': AdvancedCameraCardZoomer;
   }
 }

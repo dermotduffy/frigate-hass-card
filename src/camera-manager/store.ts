@@ -48,7 +48,7 @@ export class CameraManagerStore implements CameraManagerReadOnlyConfigStore {
     // In setting the store cameras, take great care to replace/add first before
     // remove. Otherwise, there may be race conditions where the card attempts
     // to render a view with (momentarily) no camera.
-    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1533
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/1533
 
     // Replace/Add the new cameras.
     for (const camera of cameras) {

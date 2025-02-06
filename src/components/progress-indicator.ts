@@ -6,17 +6,17 @@ import { CardWideConfig } from '../config/types.js';
 import messageStyle from '../scss/message.scss';
 import './icon.js';
 
-type FrigateCardProgressIndicatorSize = 'tiny' | 'small' | 'medium' | 'large';
+type AdvancedCameraCardProgressIndicatorSize = 'tiny' | 'small' | 'medium' | 'large';
 
 export function renderProgressIndicator(options?: {
   message?: string;
   cardWideConfig?: CardWideConfig | null;
   componentRef?: Ref<HTMLElement>;
   classes?: ClassInfo;
-  size?: FrigateCardProgressIndicatorSize;
+  size?: AdvancedCameraCardProgressIndicatorSize;
 }): TemplateResult {
   return html`
-    <frigate-card-progress-indicator
+    <advanced-camera-card-progress-indicator
       class="${classMap(options?.classes ?? {})}"
       .size=${options?.size}
       ${options?.componentRef ? ref(options.componentRef) : ''}
@@ -24,12 +24,12 @@ export function renderProgressIndicator(options?: {
       .animated=${options?.cardWideConfig?.performance?.features
         .animated_progress_indicator ?? true}
     >
-    </frigate-card-progress-indicator>
+    </advanced-camera-card-progress-indicator>
   `;
 }
 
-@customElement('frigate-card-progress-indicator')
-export class FrigateCardProgressIndicator extends LitElement {
+@customElement('advanced-camera-card-progress-indicator')
+export class AdvancedCameraCardProgressIndicator extends LitElement {
   @property({ attribute: false })
   public message: string = '';
 
@@ -37,16 +37,16 @@ export class FrigateCardProgressIndicator extends LitElement {
   public animated = false;
 
   @property({ attribute: false })
-  public size: FrigateCardProgressIndicatorSize = 'large';
+  public size: AdvancedCameraCardProgressIndicatorSize = 'large';
 
   protected render(): TemplateResult {
     return html` <div class="message vertical">
       ${this.animated
         ? html`<ha-circular-progress indeterminate size="${this.size}">
           </ha-circular-progress>`
-        : html`<frigate-card-icon
+        : html`<advanced-camera-card-icon
             .icon=${{ icon: 'mdi:timer-sand' }}
-          ></frigate-card-icon>`}
+          ></advanced-camera-card-icon>`}
       ${this.message ? html`<span>${this.message}</span>` : html``}
     </div>`;
   }
@@ -58,6 +58,6 @@ export class FrigateCardProgressIndicator extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-progress-indicator': FrigateCardProgressIndicator;
+    'advanced-camera-card-progress-indicator': AdvancedCameraCardProgressIndicator;
   }
 }

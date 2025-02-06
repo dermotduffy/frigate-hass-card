@@ -4,7 +4,7 @@
   "key": "lovelace",
   "data": {
     "config": {
-      "title": "Frigate Card",
+      "title": "Advanced Camera Card",
       "views": [
         {
           "theme": "Backend-selected",
@@ -13,8 +13,8 @@
           "badges": [],
           "cards": [
             {
-              "type": "custom:frigate-card",
-              "name": "Frigate Card with Frigate Camera",
+              "type": "custom:advanced-camera-card",
+              "name": "Advanced Camera Card with Frigate Camera",
               "cameras": [
                 {
                   "camera_entity": "camera.big_buck_bunny",

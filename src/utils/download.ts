@@ -1,6 +1,6 @@
 import { CameraManager } from '../camera-manager/manager';
 import { localize } from '../localize/localize';
-import { ExtendedHomeAssistant, FrigateCardError } from '../types';
+import { AdvancedCameraCardError, ExtendedHomeAssistant } from '../types';
 import { ViewMedia } from '../view/media';
 import { errorToConsole } from './basic';
 import { homeAssistantSignPath } from './ha';
@@ -32,7 +32,7 @@ export const downloadMedia = async (
 ): Promise<void> => {
   const download = await cameraManager.getMediaDownloadPath(media);
   if (!download) {
-    throw new FrigateCardError(localize('error.download_no_media'));
+    throw new AdvancedCameraCardError(localize('error.download_no_media'));
   }
 
   let finalURL = download.endpoint;
@@ -45,7 +45,7 @@ export const downloadMedia = async (
     }
 
     if (!response) {
-      throw new FrigateCardError(localize('error.download_sign_failed'));
+      throw new AdvancedCameraCardError(localize('error.download_sign_failed'));
     }
     finalURL = response;
   }

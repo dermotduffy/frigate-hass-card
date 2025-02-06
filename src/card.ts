@@ -11,29 +11,29 @@ import { ConditionsEvaluateRequestEvent } from './card-controller/conditions-man
 import { CardController } from './card-controller/controller';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/elements.js';
-import { FrigateCardElements } from './components/elements.js';
+import { AdvancedCameraCardElements } from './components/elements.js';
 import './components/loading.js';
 import './components/menu.js';
-import { FrigateCardMenu } from './components/menu.js';
+import { AdvancedCameraCardMenu } from './components/menu.js';
 import './components/message.js';
 import { renderMessage } from './components/message.js';
 import './components/overlay.js';
-import { FrigateCardOverlay } from './components/overlay.js';
+import { AdvancedCameraCardOverlay } from './components/overlay.js';
 import './components/status-bar';
 import './components/thumbnail-carousel.js';
 import './components/views.js';
-import { FrigateCardViews } from './components/views.js';
+import { AdvancedCameraCardViews } from './components/views.js';
 import {
-  FrigateCardConfig,
+  AdvancedCameraCardConfig,
   MenuItem,
-  RawFrigateCardConfig,
+  RawAdvancedCameraCardConfig,
   StatusBarItem,
 } from './config/types';
 import { REPO_URL } from './const.js';
 import { localize } from './localize/localize.js';
 import cardStyle from './scss/card.scss';
 import { ExtendedHomeAssistant, MediaLoadedInfo, Message } from './types.js';
-import { frigateCardHasAction } from './utils/action.js';
+import { hasAction } from './utils/action.js';
 import { getReleaseVersion } from './utils/diagnostics';
 
 // ***************************************************************************
@@ -57,23 +57,14 @@ import { getReleaseVersion } from './utils/diagnostics';
  *  - Directly specifying hooks (e.g. for snapshot viewing with simple <img> tags)
  */
 
-/** Actions (action/menu/ll-custom events):
- *
- * The card supports actions being configured in a number of places (e.g. tap on
- * an element, double_tap on a menu item, hold on the live view). These actions
- * are handled by frigateCardHandleActionConfig(). For Frigate-card specific
- * actions, the frigateCardHandleActionConfig() call will result in an ll-custom
- * DOM event being fired, which needs to be caught at the card level to handle.
- */
-
 // ***************************************************************************
 //                          Static Initializers
 // ***************************************************************************
 
 console.info(
-  `%c FRIGATE-HASS-CARD \n` + `%c ${localize('common.version')} ` + getReleaseVersion(),
-  'color: pink; font-weight: bold; background: black',
-  'color: white; font-weight: bold; background: dimgray',
+  `%c 📷 Advanced Camera Card %c ${getReleaseVersion()} `,
+  'padding: 3px; color: black; background: pink;',
+  'padding: 3px; color: black; background: white;',
 );
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,22 +72,22 @@ console.info(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).customCards.push({
-  type: 'frigate-card',
-  name: localize('common.frigate_card'),
-  description: localize('common.frigate_card_description'),
+  type: 'advanced-camera-card',
+  name: localize('common.advanced_camera_card'),
+  description: localize('common.advanced_camera_card_description'),
   preview: true,
   documentationURL: REPO_URL,
 });
 
 // ***************************************************************************
-//                    Main FrigateCard WebComponent
+//                    Main AdvancedCameraCard WebComponent
 //
 // Any non-rendering / non-lit related functionality should be added to
 // CardController instead of this file.
 // ***************************************************************************
 
-@customElement('frigate-card')
-class FrigateCard extends LitElement {
+@customElement('advanced-camera-card')
+class AdvancedCameraCard extends LitElement {
   protected _controller = new CardController(
     this,
     // Callback to scroll the main pane back to the top (example usecase: scrolling
@@ -109,14 +100,14 @@ class FrigateCard extends LitElement {
 
   protected _menuButtonController = new MenuButtonController();
 
-  protected _refMenu: Ref<FrigateCardMenu> = createRef();
-  protected _refOverlay: Ref<FrigateCardOverlay> = createRef();
+  protected _refMenu: Ref<AdvancedCameraCardMenu> = createRef();
+  protected _refOverlay: Ref<AdvancedCameraCardOverlay> = createRef();
   protected _refMain: Ref<HTMLElement> = createRef();
-  protected _refElements: Ref<FrigateCardElements> = createRef();
-  protected _refViews: Ref<FrigateCardViews> = createRef();
+  protected _refElements: Ref<AdvancedCameraCardElements> = createRef();
+  protected _refViews: Ref<AdvancedCameraCardViews> = createRef();
 
   // Convenience methods for very frequently accessed attributes.
-  get _config(): FrigateCardConfig | null {
+  get _config(): AdvancedCameraCardConfig | null {
     return this._controller.getConfigManager().getConfig();
   }
 
@@ -145,7 +136,10 @@ class FrigateCard extends LitElement {
     return await CardController.getConfigElement();
   }
 
-  public static getStubConfig(_: HomeAssistant, entities: string[]): FrigateCardConfig {
+  public static getStubConfig(
+    _: HomeAssistant,
+    entities: string[],
+  ): AdvancedCameraCardConfig {
     return CardController.getStubConfig(entities);
   }
 
@@ -153,7 +147,7 @@ class FrigateCard extends LitElement {
     // Update the components that need to know about condition changes. Trigger
     // updates directly on them to them to avoid the performance hit of a entire
     // card re-render (esp. when using card-mod).
-    // https://github.com/dermotduffy/frigate-hass-card/issues/678
+    // https://github.com/dermotduffy/advanced-camera-card/issues/678
     if (this._refViews.value) {
       this._refViews.value.conditionsManagerEpoch =
         this._controller.getConditionsManager().getEpoch() ?? undefined;
@@ -164,7 +158,7 @@ class FrigateCard extends LitElement {
     }
   }
 
-  public setConfig(config: RawFrigateCardConfig): void {
+  public setConfig(config: RawAdvancedCameraCardConfig): void {
     this._controller.getConfigManager().setConfig(config);
   }
 
@@ -246,7 +240,9 @@ class FrigateCard extends LitElement {
 
     return html`
       ${position === 'overlay'
-        ? html`<frigate-card-overlay>${getContents('overlay')}</frigate-card-overlay>`
+        ? html`<advanced-camera-card-overlay
+            >${getContents('overlay')}</advanced-camera-card-overlay
+          >`
         : html`<div class="outerlay" data-position="${position}">
             ${getContents('outerlay')}
           </div>`}
@@ -259,7 +255,7 @@ class FrigateCard extends LitElement {
       return;
     }
     return html`
-      <frigate-card-menu
+      <advanced-camera-card-menu
         ${ref(this._refMenu)}
         slot=${ifDefined(slot)}
         .hass=${this._hass}
@@ -280,7 +276,7 @@ class FrigateCard extends LitElement {
           },
         )}
         .entityRegistryManager=${this._controller.getEntityRegistryManager()}
-      ></frigate-card-menu>
+      ></advanced-camera-card-menu>
     `;
   }
 
@@ -290,7 +286,7 @@ class FrigateCard extends LitElement {
     }
 
     return html`
-      <frigate-card-status-bar
+      <advanced-camera-card-status-bar
         slot=${ifDefined(slot)}
         .items=${this._controller.getStatusBarItemManager().calculateItems({
           statusConfig: this._config.status_bar,
@@ -299,7 +295,7 @@ class FrigateCard extends LitElement {
           mediaLoadedInfo: this._controller.getMediaLoadedInfoManager().get(),
         })}
         .config=${this._config.status_bar}
-      ></frigate-card-status-bar>
+      ></advanced-camera-card-status-bar>
     `;
   }
 
@@ -359,36 +355,36 @@ class FrigateCard extends LitElement {
       html` <ha-card
         id="ha-card"
         .actionHandler=${actionHandler({
-          hasHold: frigateCardHasAction(actions.hold_action),
-          hasDoubleClick: frigateCardHasAction(actions.double_tap_action),
+          hasHold: hasAction(actions.hold_action),
+          hasDoubleClick: hasAction(actions.double_tap_action),
         })}
         style="${styleMap(this._controller.getStyleManager().getAspectRatioStyle())}"
-        @frigate-card:message=${(ev: CustomEvent<Message>) =>
+        @advanced-camera-card:message=${(ev: CustomEvent<Message>) =>
           this._controller.getMessageManager().setMessageIfHigherPriority(ev.detail)}
-        @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
+        @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) =>
           this._controller.getMediaLoadedInfoManager().set(ev.detail)}
-        @frigate-card:media:unloaded=${() =>
+        @advanced-camera-card:media:unloaded=${() =>
           this._controller.getMediaLoadedInfoManager().clear()}
-        @frigate-card:media:volumechange=${
+        @advanced-camera-card:media:volumechange=${
           () => this.requestUpdate() /* Refresh mute menu button */
         }
-        @frigate-card:media:play=${
+        @advanced-camera-card:media:play=${
           () => this.requestUpdate() /* Refresh play/pause menu button */
         }
-        @frigate-card:media:pause=${
+        @advanced-camera-card:media:pause=${
           () => this.requestUpdate() /* Refresh play/pause menu button */
         }
-        @frigate-card:focus=${() => this.focus()}
+        @advanced-camera-card:focus=${() => this.focus()}
       >
         ${showLoading
-          ? html`<frigate-card-loading
+          ? html`<advanced-camera-card-loading
               ?loaded=${this._controller.getInitializationManager().wasEverInitialized()}
-            ></frigate-card-loading>`
+            ></advanced-camera-card-loading>`
           : ''}
         ${this._renderMenuStatusContainer('top')}
         ${this._renderMenuStatusContainer('overlay')}
         <div ${ref(this._refMain)} class="${classMap(mainClasses)}">
-          <frigate-card-views
+          <advanced-camera-card-views
             ${ref(this._refViews)}
             .hass=${this._hass}
             .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
@@ -410,7 +406,7 @@ class FrigateCard extends LitElement {
               ? this._controller.getTriggersManager().getTriggeredCameraIDs()
               : undefined}
             .deviceRegistryManager=${this._controller.getDeviceRegistryManager()}
-          ></frigate-card-views>
+          ></advanced-camera-card-views>
           ${this._controller.getMessageManager().hasMessage()
             ? // Keep message rendering to last to show messages that may have been
               // generated during the render.
@@ -421,32 +417,36 @@ class FrigateCard extends LitElement {
         ${this._config?.elements
           ? // Elements need to render after the main views so it can render 'on
             // top'.
-            html` <frigate-card-elements
+            html` <advanced-camera-card-elements
               ${ref(this._refElements)}
               .hass=${this._hass}
               .elements=${this._config?.elements}
               .conditionsManagerEpoch=${this._controller
                 .getConditionsManager()
                 ?.getEpoch()}
-              @frigate-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
+              @advanced-camera-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
                 this._menuButtonController.addDynamicMenuButton(ev.detail);
                 this.requestUpdate();
               }}
-              @frigate-card:menu:remove=${(ev: CustomEvent<MenuItem>) => {
+              @advanced-camera-card:menu:remove=${(ev: CustomEvent<MenuItem>) => {
                 this._menuButtonController.removeDynamicMenuButton(ev.detail);
                 this.requestUpdate();
               }}
-              @frigate-card:status-bar:add=${(ev: CustomEvent<StatusBarItem>) => {
+              @advanced-camera-card:status-bar:add=${(
+                ev: CustomEvent<StatusBarItem>,
+              ) => {
                 this._controller
                   .getStatusBarItemManager()
                   .addDynamicStatusBarItem(ev.detail);
               }}
-              @frigate-card:status-bar:remove=${(ev: CustomEvent<StatusBarItem>) => {
+              @advanced-camera-card:status-bar:remove=${(
+                ev: CustomEvent<StatusBarItem>,
+              ) => {
                 this._controller
                   .getStatusBarItemManager()
                   .removeDynamicStatusBarItem(ev.detail);
               }}
-              @frigate-card:conditions:evaluate=${(
+              @advanced-camera-card:conditions:evaluate=${(
                 ev: ConditionsEvaluateRequestEvent,
               ) => {
                 ev.evaluation = this._controller
@@ -454,7 +454,7 @@ class FrigateCard extends LitElement {
                   ?.evaluateConditions(ev.conditions);
               }}
             >
-            </frigate-card-elements>`
+            </advanced-camera-card-elements>`
           : ``}
       </ha-card>`,
     );
@@ -477,8 +477,13 @@ class FrigateCard extends LitElement {
   }
 }
 
+// Keep the old name around for backwards compatibility.
+@customElement('frigate-card')
+class FrigateCard extends AdvancedCameraCard {}
+
 declare global {
   interface HTMLElementTagNameMap {
+    'advanced-camera-card': AdvancedCameraCard;
     'frigate-card': FrigateCard;
   }
 }

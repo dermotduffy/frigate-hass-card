@@ -15,26 +15,26 @@
 }
 
 :host([details]) {
-  border: 1px solid var(--frigate-card-thumbnail-border-color);
+  border: 1px solid var(--advanced-camera-card-thumbnail-border-color);
   border-radius: var(
-    --frigate-card-css-border-radius,
+    --advanced-camera-card-css-border-radius,
     var(--ha-card-border-radius, 4px)
   );
   padding: 2px;
 
   // When details are enabled, use a background color so that the details have
   // contrast with the background.
-  background-color: var(--frigate-card-thumbnail-background);
+  background-color: var(--advanced-camera-card-thumbnail-background);
 }
 
 :host(:hover) {
   transform: scale(1.04);
 }
 
-frigate-card-icon {
+advanced-camera-card-icon {
   position: absolute;
   border-radius: 50%;
-  color: var(--frigate-card-thumbnail-icon-color);
+  color: var(--advanced-camera-card-thumbnail-icon-color);
 
   cursor: pointer;
 
@@ -42,29 +42,29 @@ frigate-card-icon {
     opacity 0.2s ease-in-out,
     color 0.2s ease-in-out;
 }
-frigate-card-icon:hover {
+advanced-camera-card-icon:hover {
   opacity: 1;
 }
 
-frigate-card-icon.star {
+advanced-camera-card-icon.star {
   top: 3px;
   left: 3px;
 }
-frigate-card-icon.star.starred {
-  color: var(--frigate-card-thumbnail-icon-favorite-color);
+advanced-camera-card-icon.star.starred {
+  color: var(--advanced-camera-card-thumbnail-icon-favorite-color);
 }
 
-frigate-card-icon.timeline {
+advanced-camera-card-icon.timeline {
   top: 3px;
   right: 3px;
 }
 
-frigate-card-icon.download {
+advanced-camera-card-icon.download {
   right: 3px;
   bottom: 3px;
 }
 
-frigate-card-thumbnail-details-event,
-frigate-card-thumbnail-details-recording {
+advanced-camera-card-thumbnail-details-event,
+advanced-camera-card-thumbnail-details-recording {
   flex: 1;
 }

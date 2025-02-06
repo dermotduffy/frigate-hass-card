@@ -12,8 +12,8 @@ import { MediaGridController } from '../components-lib/media-grid-controller.js'
 import { ViewDisplayConfig } from '../config/types';
 import mediaGridStyle from '../scss/media-grid.scss';
 
-@customElement('frigate-card-media-grid')
-export class FrigateCardMediaGrid extends LitElement {
+@customElement('advanced-camera-card-media-grid')
+export class AdvancedCameraCardMediaGrid extends LitElement {
   @property({ attribute: false })
   public selected?: string;
 
@@ -68,6 +68,6 @@ export class FrigateCardMediaGrid extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-media-grid': FrigateCardMediaGrid;
+    'advanced-camera-card-media-grid': AdvancedCameraCardMediaGrid;
   }
 }

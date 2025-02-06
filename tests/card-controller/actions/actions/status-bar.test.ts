@@ -9,7 +9,7 @@ describe('should handle status bar action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'status_bar',
+        advanced_camera_card_action: 'status_bar',
         status_bar_action: 'reset',
       },
     );
@@ -22,7 +22,7 @@ describe('should handle status bar action', () => {
   it('add', async () => {
     const api = createCardAPI();
     const item = {
-      type: 'custom:frigate-card-status-bar-string',
+      type: 'custom:advanced-camera-card-status-bar-string',
       string: 'Item',
     };
 
@@ -30,7 +30,7 @@ describe('should handle status bar action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'status_bar',
+        advanced_camera_card_action: 'status_bar',
         status_bar_action: 'add',
         items: [item],
       },
@@ -44,7 +44,7 @@ describe('should handle status bar action', () => {
   it('remove', async () => {
     const api = createCardAPI();
     const item = {
-      type: 'custom:frigate-card-status-bar-string',
+      type: 'custom:advanced-camera-card-status-bar-string',
       string: 'Item',
     };
 
@@ -52,7 +52,7 @@ describe('should handle status bar action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'status_bar',
+        advanced_camera_card_action: 'status_bar',
         status_bar_action: 'remove',
         items: [item],
       },

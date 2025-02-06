@@ -1,7 +1,7 @@
 {
   "common": {
-    "frigate_card": "Cartão Frigate",
-    "frigate_card_description": "Um cartão da Lovelace para usar com Frigate",
+    "advanced_camera_card": "",
+    "advanced_camera_card_description": "",
     "live": "Ao Vivo",
     "no_media": "Nenhuma mídia para exibir",
     "recordings": "Gravações",
@@ -265,7 +265,7 @@
         "modes": {
           "camera": "Instantâneo da câmera do Home Assistant, da entidade de câmera",
           "entity": "",
-          "screensaver": "Logo Frigate embutido",
+          "screensaver": "",
           "url": "Imagem arbitrária especificada por URL"
         },
         "refresh_seconds": "Número de segundos após o qual atualizar (0 = nunca)",
@@ -394,10 +394,10 @@
         "download": "Baixe a mídia do evento",
         "enabled": "Botão ativado",
         "expand": "Expandir",
-        "frigate": "Frigate menu / Visualização padrão",
         "fullscreen": "Tela cheia",
         "icon": "Ícone",
         "image": "Imagem",
+        "iris": "",
         "live": "Ao vivo",
         "media_player": "Enviar para o reprodutor de mídia",
         "microphone": "",
@@ -646,7 +646,6 @@
     "no_camera_entity": "Não foi possível encontrar a entidade da câmera",
     "no_camera_entity_for_triggers": "Uma entidade de câmera é necessária para detectar automaticamente os gatilhos",
     "no_camera_id": "Não foi possível determinar o ID da câmera para a câmera a seguir, pode ser necessário definir o parâmetro 'id' manualmente",
-    "no_camera_name": "Não foi possível determinar o nome da câmera da Frigate, especifique 'camera_entity' ou 'camera_name' para a câmera a seguir",
     "no_dashboard_or_view": "",
     "no_live_camera": "O parâmetro camera_entity deve ser definido e válido para este provedor ativo",
     "no_supported_camera": "",

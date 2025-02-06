@@ -26,7 +26,7 @@ describe('LiveController', () => {
     const host = createLitElement();
     const parent = createParent({ children: [host] });
     const eventListener = vi.fn();
-    parent.addEventListener('frigate-card:media:loaded', eventListener);
+    parent.addEventListener('advanced-camera-card:media:loaded', eventListener);
 
     const controller = new LiveController(host);
     expect(host.addController).toBeCalled();
@@ -70,7 +70,7 @@ describe('LiveController', () => {
       const host = createLitElement();
       const parent = createParent({ children: [host] });
       const eventListener = vi.fn();
-      parent.addEventListener('frigate-card:media:loaded', eventListener);
+      parent.addEventListener('advanced-camera-card:media:loaded', eventListener);
 
       const controller = new LiveController(host);
       const mediaLoadedInfo = createMediaLoadedInfo();

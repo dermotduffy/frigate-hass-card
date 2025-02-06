@@ -29,7 +29,7 @@ describe('should handle ptz action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz',
+        advanced_camera_card_action: 'ptz',
         ptz_action: 'left',
         camera: 'camera.office',
       },
@@ -65,7 +65,7 @@ describe('should handle ptz action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz',
+          advanced_camera_card_action: 'ptz',
           ptz_action: 'left',
         },
       );
@@ -112,7 +112,7 @@ describe('should handle ptz action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz',
+          advanced_camera_card_action: 'ptz',
           ptz_action: 'left',
         },
       );
@@ -140,7 +140,7 @@ describe('should handle ptz action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz',
+          advanced_camera_card_action: 'ptz',
           ptz_action: 'left',
         },
       );
@@ -159,7 +159,7 @@ describe('should handle ptz action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz',
+        advanced_camera_card_action: 'ptz',
         ptz_action: 'left',
       },
     );
@@ -187,7 +187,7 @@ describe('should handle ptz action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz',
+          advanced_camera_card_action: 'ptz',
         },
       );
 
@@ -225,7 +225,7 @@ describe('should handle ptz action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz',
+          advanced_camera_card_action: 'ptz',
         },
       );
 
@@ -256,7 +256,7 @@ describe('should handle ptz action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz',
+        advanced_camera_card_action: 'ptz',
         ptz_action: 'preset',
         ptz_preset: 'window',
       },
@@ -295,7 +295,7 @@ describe('should handle ptz action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz',
+        advanced_camera_card_action: 'ptz',
         ptz_action: 'left',
         ptz_phase: 'start',
       },
@@ -343,7 +343,7 @@ describe('should handle ptz action', () => {
         {},
         {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz',
+          advanced_camera_card_action: 'ptz',
           ptz_action: 'left',
         },
       );
@@ -388,7 +388,7 @@ describe('should handle ptz action', () => {
       const context = {};
       const action = new PTZAction(context, {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz',
+        advanced_camera_card_action: 'ptz',
         ptz_action: 'left',
       });
 
@@ -432,7 +432,7 @@ describe('should handle ptz action', () => {
       const context = {};
       const startAction = new PTZAction(context, {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz',
+        advanced_camera_card_action: 'ptz',
         ptz_action: 'left',
         ptz_phase: 'start',
       });
@@ -455,7 +455,7 @@ describe('should handle ptz action', () => {
 
       const stopAction = new PTZAction(context, {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz',
+        advanced_camera_card_action: 'ptz',
         ptz_action: 'left',
         ptz_phase: 'stop',
       });
@@ -486,7 +486,7 @@ describe('should handle ptz action', () => {
       const context = {};
       const action = new PTZAction(context, {
         action: 'fire-dom-event',
-        frigate_card_action: 'ptz',
+        advanced_camera_card_action: 'ptz',
         ptz_action: 'left',
         ptz_phase: 'start',
       });

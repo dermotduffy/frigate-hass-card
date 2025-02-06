@@ -13,11 +13,7 @@ import throttle from 'lodash-es/throttle';
 import { CameraManager, ExtendedMediaQueryResult } from '../camera-manager/manager.js';
 import { EventQuery, MediaQuery, RecordingQuery } from '../camera-manager/types';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
-import {
-  CardWideConfig,
-  frigateCardConfigDefaults,
-  GalleryConfig,
-} from '../config/types';
+import { CardWideConfig, configDefaults, GalleryConfig } from '../config/types';
 import { localize } from '../localize/localize';
 import galleryCoreStyle from '../scss/gallery-core.scss';
 import galleryStyle from '../scss/gallery.scss';
@@ -45,8 +41,8 @@ const GALLERY_MEDIA_FILTER_MENU_ICONS = {
 
 const MIN_GALLERY_EXTENSION_SECONDS = 0.5;
 
-@customElement('frigate-card-gallery')
-export class FrigateCardGallery extends LitElement {
+@customElement('advanced-camera-card-gallery')
+export class AdvancedCameraCardGallery extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -78,7 +74,7 @@ export class FrigateCardGallery extends LitElement {
     }
 
     return html`
-      <frigate-card-surround-basic
+      <advanced-camera-card-surround-basic
         .drawerIcons=${{
           ...(this.galleryConfig &&
             this.galleryConfig.controls.filter.mode !== 'none' && {
@@ -87,24 +83,24 @@ export class FrigateCardGallery extends LitElement {
         }}
       >
         ${this.galleryConfig && this.galleryConfig.controls.filter.mode !== 'none'
-          ? html` <frigate-card-media-filter
+          ? html` <advanced-camera-card-media-filter
               .hass=${this.hass}
               .cameraManager=${this.cameraManager}
               .viewManagerEpoch=${this.viewManagerEpoch}
               .cardWideConfig=${this.cardWideConfig}
               slot=${this.galleryConfig.controls.filter.mode}
             >
-            </frigate-card-media-filter>`
+            </advanced-camera-card-media-filter>`
           : ''}
-        <frigate-card-gallery-core
+        <advanced-camera-card-gallery-core
           .hass=${this.hass}
           .viewManagerEpoch=${this.viewManagerEpoch}
           .galleryConfig=${this.galleryConfig}
           .cameraManager=${this.cameraManager}
           .cardWideConfig=${this.cardWideConfig}
         >
-        </frigate-card-gallery-core>
-      </frigate-card-surround-basic>
+        </advanced-camera-card-gallery-core>
+      </advanced-camera-card-surround-basic>
     `;
   }
 
@@ -113,8 +109,8 @@ export class FrigateCardGallery extends LitElement {
   }
 }
 
-@customElement('frigate-card-gallery-core')
-export class FrigateCardGalleryCore extends LitElement {
+@customElement('advanced-camera-card-gallery-core')
+export class AdvancedCameraCardGalleryCore extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -266,12 +262,12 @@ export class FrigateCardGalleryCore extends LitElement {
   protected _setColumnCount(): void {
     const thumbnailSize =
       this.galleryConfig?.controls.thumbnails.size ??
-      frigateCardConfigDefaults.media_gallery.controls.thumbnails.size;
+      configDefaults.media_gallery.controls.thumbnails.size;
     const columns = this.galleryConfig?.controls.thumbnails.show_details
       ? Math.max(1, Math.floor(this.clientWidth / THUMBNAIL_DETAILS_WIDTH_MIN))
       : Math.max(1, Math.ceil(this.clientWidth / thumbnailSize));
 
-    this.style.setProperty('--frigate-card-gallery-columns', String(columns));
+    this.style.setProperty('--advanced-camera-card-gallery-columns', String(columns));
   }
 
   /**
@@ -361,7 +357,7 @@ export class FrigateCardGalleryCore extends LitElement {
       this._setColumnCount();
       if (this.galleryConfig?.controls.thumbnails.size) {
         this.style.setProperty(
-          '--frigate-card-thumbnail-size',
+          '--advanced-camera-card-thumbnail-size',
           `${this.galleryConfig.controls.thumbnails.size}px`,
         );
       }
@@ -424,7 +420,7 @@ export class FrigateCardGalleryCore extends LitElement {
         : ''}
       ${this._media.map(
         (media, index) =>
-          html`<frigate-card-thumbnail
+          html`<advanced-camera-card-thumbnail
             ${media === selected ? ref(this._refSelected) : ''}
             class=${classMap({
               selected: media === selected,
@@ -456,7 +452,7 @@ export class FrigateCardGalleryCore extends LitElement {
               stopEventFromActivatingCardWideActions(ev);
             }}
           >
-          </frigate-card-thumbnail>`,
+          </advanced-camera-card-thumbnail>`,
       )}
       ${this._showLoaderBottom
         ? html`${renderProgressIndicator({
@@ -479,7 +475,7 @@ export class FrigateCardGalleryCore extends LitElement {
       // As a special case, if the view has changed and did not previously exist
       // (i.e. first setting of it), we intentionally scroll the gallery to the
       // selected element in that view (if any).
-      // See: https://github.com/dermotduffy/frigate-hass-card/issues/885
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/885
       if (
         // If this update cycle updated the view ...
         changedProps.has('viewManagerEpoch') &&
@@ -503,7 +499,7 @@ export class FrigateCardGalleryCore extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-gallery-core': FrigateCardGalleryCore;
-    'frigate-card-gallery': FrigateCardGallery;
+    'advanced-camera-card-gallery-core': AdvancedCameraCardGalleryCore;
+    'advanced-camera-card-gallery': AdvancedCameraCardGallery;
   }
 }

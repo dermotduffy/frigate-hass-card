@@ -1,6 +1,6 @@
 import merge from 'lodash-es/merge';
 import { ViewContext } from 'view';
-import { FrigateCardView, ViewDisplayMode } from '../config/types.js';
+import { AdvancedCameraCardView, ViewDisplayMode } from '../config/types.js';
 import { MediaQueries } from './media-queries';
 import { MediaQueriesResults } from './media-queries-results';
 
@@ -13,7 +13,7 @@ declare module 'view' {
 }
 
 interface ViewEvolveParameters {
-  view?: FrigateCardView;
+  view?: AdvancedCameraCardView;
   camera?: string;
   query?: MediaQueries | null;
   queryResults?: MediaQueriesResults | null;
@@ -22,7 +22,7 @@ interface ViewEvolveParameters {
 }
 
 export interface ViewParameters extends ViewEvolveParameters {
-  view: FrigateCardView;
+  view: AdvancedCameraCardView;
   camera: string;
 }
 
@@ -34,7 +34,7 @@ export const mergeViewContext = (
 };
 
 export class View {
-  public view: FrigateCardView;
+  public view: AdvancedCameraCardView;
   public camera: string;
   public query: MediaQueries | null;
   public queryResults: MediaQueriesResults | null;
@@ -117,7 +117,7 @@ export class View {
   /**
    * Determine if current view matches a named view.
    */
-  public is(view: FrigateCardView): boolean {
+  public is(view: AdvancedCameraCardView): boolean {
     return this.view == view;
   }
 
