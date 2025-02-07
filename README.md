@@ -12,6 +12,8 @@
 
 # Advanced Camera Card
 
+Formerly known as: `Frigate Card`
+
 A comprehensive camera card for Home Assistant.
 
 - Live viewing of multiple cameras.
@@ -25,7 +27,5 @@ A comprehensive camera card for Home Assistant.
 - Lovelace visual editing.
 - Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
 - Theme friendly.
-
-Formerly known as: Frigate Card
 
 See [full documentation](https://dermotduffy.github.io/advanced-camera-card).
