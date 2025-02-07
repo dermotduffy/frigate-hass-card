@@ -17,15 +17,18 @@ import { handleZoomSettingsObservedEvent } from '../components-lib/zoom/zoom-vie
 import { CameraConfig, ImageViewConfig } from '../config/types';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../const';
 import basicBlockStyle from '../scss/basic-block.scss';
-import { FrigateCardMediaPlayer, FullscreenElement } from '../types.js';
+import { AdvancedCameraCardMediaPlayer, FullscreenElement } from '../types.js';
 import { aspectRatioToString } from '../utils/basic';
 import { updateElementStyleFromMediaLayoutConfig } from '../utils/media-layout.js';
 import './image-base';
 import { resolveImageMode } from './image-base';
 import './zoomer.js';
 
-@customElement('frigate-card-image')
-export class FrigateCardImage extends LitElement implements FrigateCardMediaPlayer {
+@customElement('advanced-camera-card-image')
+export class AdvancedCameraCardImage
+  extends LitElement
+  implements AdvancedCameraCardMediaPlayer
+{
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -41,7 +44,7 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
   @property({ attribute: false })
   public imageConfig?: ImageViewConfig;
 
-  protected _refImage: Ref<Element & FrigateCardMediaPlayer> = createRef();
+  protected _refImage: Ref<Element & AdvancedCameraCardMediaPlayer> = createRef();
 
   public async play(): Promise<void> {
     await this._refImage.value?.play();
@@ -114,7 +117,7 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
     });
 
     return this.imageConfig?.zoomable
-      ? html` <frigate-card-zoomer
+      ? html` <advanced-camera-card-zoomer
           .defaultSettings=${guard(
             [this.imageConfig, this.cameraConfig?.dimensions?.layout],
             () =>
@@ -126,7 +129,7 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
                 : undefined,
           )}
           .settings=${view?.context?.zoom?.[zoomTarget]?.requested}
-          @frigate-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
+          @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
             handleZoomSettingsObservedEvent(
               ev,
               this.viewManagerEpoch?.manager,
@@ -134,7 +137,7 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
             )}
         >
           ${template}
-        </frigate-card-zoomer>`
+        </advanced-camera-card-zoomer>`
       : template;
   }
 
@@ -144,14 +147,14 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
     }
 
     return this._useZoomIfRequired(html`
-      <frigate-card-image-base
+      <advanced-camera-card-image-base
         ${ref(this._refImage)}
         .hass=${this.hass}
         .view=${this.viewManagerEpoch?.manager.getView()}
         .imageConfig=${this.imageConfig}
         .cameraConfig=${this.cameraConfig}
       >
-      </frigate-card-image-base>
+      </advanced-camera-card-image-base>
     `);
   }
 
@@ -162,6 +165,6 @@ export class FrigateCardImage extends LitElement implements FrigateCardMediaPlay
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-image': FrigateCardImage;
+    'advanced-camera-card-image': AdvancedCameraCardImage;
   }
 }

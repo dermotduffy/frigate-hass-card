@@ -15,7 +15,7 @@ import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
 import {
   CardWideConfig,
-  frigateCardConfigDefaults,
+  configDefaults,
   TransitionEffect,
   ViewerConfig,
 } from '../../config/types.js';
@@ -23,8 +23,8 @@ import { localize } from '../../localize/localize.js';
 import '../../patches/ha-hls-player.js';
 import viewerCarouselStyle from '../../scss/viewer-carousel.scss';
 import {
+  AdvancedCameraCardMediaPlayer,
   ExtendedHomeAssistant,
-  FrigateCardMediaPlayer,
   MediaLoadedInfo,
 } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
@@ -42,7 +42,7 @@ import { renderMessage } from '../message.js';
 import '../next-prev-control.js';
 import '../ptz.js';
 import './provider.js';
-import { FrigateCardViewerProvider } from './provider.js';
+import { AdvancedCameraCardViewerProvider } from './provider.js';
 
 interface MediaNeighbor {
   index: number;
@@ -54,10 +54,10 @@ interface MediaNeighbors {
   next?: MediaNeighbor;
 }
 
-const FRIGATE_CARD_VIEWER_PROVIDER = 'frigate-card-viewer-provider';
+const ADVANCED_CAMERA_CARD_VIEWER_PROVIDER = 'advanced-camera-card-viewer-provider';
 
-@customElement('frigate-card-viewer-carousel')
-export class FrigateCardViewerCarousel extends LitElement {
+@customElement('advanced-camera-card-viewer-carousel')
+export class AdvancedCameraCardViewerCarousel extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -92,7 +92,7 @@ export class FrigateCardViewerCarousel extends LitElement {
 
   protected _media: ViewMedia[] | null = null;
   protected _mediaActionsController = new MediaActionsController();
-  protected _player: FrigateCardMediaPlayer | null = null;
+  protected _player: AdvancedCameraCardMediaPlayer | null = null;
   protected _refCarousel: Ref<HTMLElement> = createRef();
 
   updated(changedProperties: PropertyValues): void {
@@ -134,7 +134,7 @@ export class FrigateCardViewerCarousel extends LitElement {
   protected _getTransitionEffect(): TransitionEffect {
     return (
       this.viewerConfig?.transition_effect ??
-      frigateCardConfigDefaults.media_viewer.transition_effect
+      configDefaults.media_viewer.transition_effect
     );
   }
 
@@ -227,8 +227,8 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     const viewerProvider = slide?.querySelector(
-      'frigate-card-viewer-provider',
-    ) as FrigateCardViewerProvider | null;
+      'advanced-camera-card-viewer-provider',
+    ) as AdvancedCameraCardViewerProvider | null;
     if (viewerProvider) {
       viewerProvider.load = true;
     }
@@ -259,7 +259,7 @@ export class FrigateCardViewerCarousel extends LitElement {
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('viewerConfig')) {
       this._mediaActionsController.setOptions({
-        playerSelector: FRIGATE_CARD_VIEWER_PROVIDER,
+        playerSelector: ADVANCED_CAMERA_CARD_VIEWER_PROVIDER,
         ...(this.viewerConfig?.auto_play && {
           autoPlayConditions: this.viewerConfig.auto_play,
         }),
@@ -330,7 +330,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         ? 'previous'
         : 'next';
 
-    return html` <frigate-card-next-previous-control
+    return html` <advanced-camera-card-next-previous-control
       slot=${side}
       .hass=${this.hass}
       .side=${side}
@@ -342,7 +342,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         scroll(scrollDirection);
         stopEventFromActivatingCardWideActions(ev);
       }}
-    ></frigate-card-next-previous-control>`;
+    ></advanced-camera-card-next-previous-control>`;
   }
 
   protected render(): TemplateResult | void {
@@ -373,40 +373,40 @@ export class FrigateCardViewerCarousel extends LitElement {
     const view = this.viewManagerEpoch?.manager.getView();
 
     return html`
-      <frigate-card-carousel
+      <advanced-camera-card-carousel
         ${ref(this._refCarousel)}
         .dragEnabled=${this.viewerConfig?.draggable ?? true}
         .plugins=${guard([this.viewerConfig, this._media], this._getPlugins.bind(this))}
         .selected=${this._selected}
         transitionEffect=${this._getTransitionEffect()}
-        @frigate-card:carousel:select=${(ev: CustomEvent<CarouselSelected>) => {
+        @advanced-camera-card:carousel:select=${(ev: CustomEvent<CarouselSelected>) => {
           this._setViewSelectedIndex(ev.detail.index);
         }}
-        @frigate-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
+        @advanced-camera-card:media:loaded=${(ev: CustomEvent<MediaLoadedInfo>) => {
           this._player = ev.detail.player ?? null;
           this._seekHandler();
         }}
-        @frigate-card:media:unloaded=${() => {
+        @advanced-camera-card:media:unloaded=${() => {
           this._player = null;
         }}
       >
         ${this.showControls ? this._renderNextPrevious('left', neighbors) : ''}
         ${guard([this._media, view], () => this._getSlides())}
         ${this.showControls ? this._renderNextPrevious('right', neighbors) : ''}
-      </frigate-card-carousel>
+      </advanced-camera-card-carousel>
       ${view
-        ? html` <frigate-card-ptz
+        ? html` <advanced-camera-card-ptz
             .config=${this.viewerConfig?.controls.ptz}
             .forceVisibility=${view?.context?.ptzControls?.enabled}
           >
-          </frigate-card-ptz>`
+          </advanced-camera-card-ptz>`
         : ''}
       <div class="seek-warning">
-        <frigate-card-icon
+        <advanced-camera-card-icon
           title="${localize('media_viewer.unseekable')}"
           .icon=${{ icon: 'mdi:clock-remove' }}
         >
-        </frigate-card-icon>
+        </advanced-camera-card-icon>
       </div>
     `;
   }
@@ -448,7 +448,7 @@ export class FrigateCardViewerCarousel extends LitElement {
     }
 
     return html` <div class="embla__slide">
-      <frigate-card-viewer-provider
+      <advanced-camera-card-viewer-provider
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .media=${media}
@@ -457,7 +457,7 @@ export class FrigateCardViewerCarousel extends LitElement {
         .cameraManager=${this.cameraManager}
         .load=${!this.viewerConfig.lazy_load}
         .cardWideConfig=${this.cardWideConfig}
-      ></frigate-card-viewer-provider>
+      ></advanced-camera-card-viewer-provider>
     </div>`;
   }
 
@@ -468,6 +468,6 @@ export class FrigateCardViewerCarousel extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-viewer-carousel': FrigateCardViewerCarousel;
+    'advanced-camera-card-viewer-carousel': AdvancedCameraCardViewerCarousel;
   }
 }

@@ -3,7 +3,7 @@ import { LooseOptionsType } from 'embla-carousel/components/Options';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
 import { MediaLoadedInfo } from '../../../../types';
 import {
-  FrigateCardMediaLoadedEventTarget,
+  AdvancedCameraCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
 } from '../../../media-info';
 
@@ -41,7 +41,7 @@ type AutoMediaLoadedInfoType = CreatePluginType<LoosePluginType, LooseOptionsTyp
 
 function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
   let emblaApi: EmblaCarouselType;
-  let slides: (HTMLElement & FrigateCardMediaLoadedEventTarget)[] = [];
+  let slides: (HTMLElement & AdvancedCameraCardMediaLoadedEventTarget)[] = [];
   const mediaLoadedInfo: MediaLoadedInfo[] = [];
 
   function init(emblaApiInstance: EmblaCarouselType): void {
@@ -49,26 +49,44 @@ function AutoMediaLoadedInfo(): AutoMediaLoadedInfoType {
     slides = emblaApi.slideNodes();
 
     for (const slide of slides) {
-      slide.addEventListener('frigate-card:media:loaded', mediaLoadedInfoHandler);
-      slide.addEventListener('frigate-card:media:unloaded', mediaUnloadedInfoHandler);
+      slide.addEventListener(
+        'advanced-camera-card:media:loaded',
+        mediaLoadedInfoHandler,
+      );
+      slide.addEventListener(
+        'advanced-camera-card:media:unloaded',
+        mediaUnloadedInfoHandler,
+      );
     }
 
     emblaApi.on('init', slideSelectHandler);
     emblaApi
       .containerNode()
-      .addEventListener('frigate-card:carousel:force-select', slideSelectHandler);
+      .addEventListener(
+        'advanced-camera-card:carousel:force-select',
+        slideSelectHandler,
+      );
   }
 
   function destroy(): void {
     for (const slide of slides) {
-      slide.removeEventListener('frigate-card:media:loaded', mediaLoadedInfoHandler);
-      slide.removeEventListener('frigate-card:media:unloaded', mediaUnloadedInfoHandler);
+      slide.removeEventListener(
+        'advanced-camera-card:media:loaded',
+        mediaLoadedInfoHandler,
+      );
+      slide.removeEventListener(
+        'advanced-camera-card:media:unloaded',
+        mediaUnloadedInfoHandler,
+      );
     }
 
     emblaApi.off('init', slideSelectHandler);
     emblaApi
       .containerNode()
-      .removeEventListener('frigate-card:carousel:force-select', slideSelectHandler);
+      .removeEventListener(
+        'advanced-camera-card:carousel:force-select',
+        slideSelectHandler,
+      );
   }
 
   function mediaLoadedInfoHandler(ev: CustomEvent<MediaLoadedInfo>): void {

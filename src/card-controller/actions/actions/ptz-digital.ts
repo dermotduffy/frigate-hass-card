@@ -10,12 +10,12 @@ import { PTZDigitialActionConfig, ZOOM_MAX, ZOOM_MIN } from '../../../config/typ
 import { getPTZTarget } from '../../../utils/ptz';
 import { Timer } from '../../../utils/timer';
 import { CardActionsAPI } from '../../types';
-import { FrigateCardAction } from './base';
 import { TargetedActionContext } from '../types';
 import {
   setInProgressForThisTarget,
   stopInProgressForThisTarget,
 } from '../utils/action-state';
+import { AdvancedCameraCardAction } from './base';
 
 const STEP_DELAY_SECONDS = 0.1;
 const STEP_ZOOM = 0.1;
@@ -27,7 +27,7 @@ declare module 'action' {
   }
 }
 
-export class PTZDigitalAction extends FrigateCardAction<PTZDigitialActionConfig> {
+export class PTZDigitalAction extends AdvancedCameraCardAction<PTZDigitialActionConfig> {
   protected _timer = new Timer();
 
   protected async _stepChange(api: CardActionsAPI, targetID: string): Promise<void> {

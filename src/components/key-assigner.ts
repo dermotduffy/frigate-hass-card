@@ -14,8 +14,8 @@ import keyAssignerStyle from '../scss/key-assigner.scss';
 import { localize } from '../localize/localize';
 import './icon';
 
-@customElement('frigate-card-key-assigner')
-export class FrigateCardKeyAssigner extends LitElement {
+@customElement('advanced-camera-card-key-assigner')
+export class AdvancedCameraCardKeyAssigner extends LitElement {
   @property({ attribute: false })
   public label?: string;
 
@@ -49,7 +49,7 @@ export class FrigateCardKeyAssigner extends LitElement {
           this._controller.toggleAssigning();
         }}
       >
-        <frigate-card-icon .icon=${{ icon: 'mdi:keyboard-settings' }}></frigate-card-icon>
+        <advanced-camera-card-icon .icon=${{ icon: 'mdi:keyboard-settings' }}></advanced-camera-card-icon>
         <span class="${classMap({
           dotdotdot: this._controller.isAssigning(),
         })}">
@@ -63,9 +63,9 @@ export class FrigateCardKeyAssigner extends LitElement {
                 this._controller.setValue(null);
               }}
             >
-              <frigate-card-icon
+              <advanced-camera-card-icon
                 .icon=${{ icon: 'mdi:keyboard-off' }}
-              ></frigate-card-icon>
+              ></advanced-camera-card-icon>
               <span> ${localize('key_assigner.unassign')} </span>
             </ha-button>`
           : ''
@@ -87,6 +87,6 @@ export class FrigateCardKeyAssigner extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-key-assigner': FrigateCardKeyAssigner;
+    'advanced-camera-card-key-assigner': AdvancedCameraCardKeyAssigner;
   }
 }

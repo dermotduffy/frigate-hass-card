@@ -8,7 +8,7 @@ it('should handle menu toggle action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'menu_toggle',
+      advanced_camera_card_action: 'menu_toggle',
     },
   );
 

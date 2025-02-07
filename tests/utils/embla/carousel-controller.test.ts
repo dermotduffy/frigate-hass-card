@@ -112,7 +112,10 @@ describe('CarouselController', () => {
     const parent = createParent({ children: children });
 
     const forceSelectListener = vi.fn();
-    parent.addEventListener('frigate-card:carousel:force-select', forceSelectListener);
+    parent.addEventListener(
+      'advanced-camera-card:carousel:force-select',
+      forceSelectListener,
+    );
 
     const carousel = new CarouselController(createRoot(), parent);
 
@@ -131,7 +134,10 @@ describe('CarouselController', () => {
     const parent = createParent({ children: children });
 
     const forceSelectListener = vi.fn();
-    parent.addEventListener('frigate-card:carousel:force-select', forceSelectListener);
+    parent.addEventListener(
+      'advanced-camera-card:carousel:force-select',
+      forceSelectListener,
+    );
 
     const carousel = new CarouselController(createRoot(), parent);
 
@@ -147,7 +153,7 @@ describe('CarouselController', () => {
     new CarouselController(createRoot(), parent);
 
     const selectHandler = vi.fn();
-    parent.addEventListener('frigate-card:carousel:select', selectHandler);
+    parent.addEventListener('advanced-camera-card:carousel:select', selectHandler);
 
     getEmblaApi()?.selectedScrollSnap.mockReturnValue(6);
     getEmblaApi()?.slideNodes.mockReturnValue(children);
@@ -169,7 +175,7 @@ describe('CarouselController', () => {
     new CarouselController(createRoot(), parent);
 
     const selectHandler = vi.fn();
-    parent.addEventListener('frigate-card:carousel:select', selectHandler);
+    parent.addEventListener('advanced-camera-card:carousel:select', selectHandler);
 
     getEmblaApi()?.selectedScrollSnap.mockReturnValue(1000);
     getEmblaApi()?.slideNodes.mockReturnValue(children);

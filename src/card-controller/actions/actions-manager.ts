@@ -67,9 +67,9 @@ export class ActionsManager {
     if (
       config &&
       interaction &&
-      // Don't call frigateCardHandleActionConfig() unless there is explicitly an
-      // action defined (as it uses a default that is unhelpful for views that
-      // have default tap/click actions).
+      // Don't execute unless there is explicitly an action defined (as it uses
+      // a default that is unhelpful for views that have default tap/click
+      // actions).
       actionConfig
     ) {
       this.executeActions(actionConfig, config);
@@ -91,8 +91,8 @@ export class ActionsManager {
   };
 
   /**
-   * This method handles actions requested by components of the Frigate card
-   * itself (e.g. menu, PTZ controller).
+   * This method handles actions requested by components of the Advanced Camera
+   * Card itself (e.g. menu, PTZ controller).
    */
   public handleActionExecutionRequestEvent = async (
     ev: CustomEvent<ActionExecutionRequest>,

@@ -9,8 +9,8 @@
 
   pointer-events: none;
 
-  background-color: var(--frigate-card-loading-background-color);
-  color: var(--frigate-card-loading-foreground-color);
+  background-color: var(--advanced-camera-card-loading-background-color);
+  color: var(--advanced-camera-card-loading-foreground-color);
 
   transition: opacity 1.5s ease-in;
   opacity: 1;
@@ -20,7 +20,7 @@
   opacity: 0;
 }
 
-frigate-card-icon {
+advanced-camera-card-icon {
   margin-bottom: 20px;
   height: 25%;
   width: auto;

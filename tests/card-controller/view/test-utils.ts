@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { CardController } from '../../../src/card-controller/controller';
-import { RawFrigateCardConfig } from '../../../src/config/types';
+import { RawAdvancedCameraCardConfig } from '../../../src/config/types';
 import {
   createCameraManager,
   createCapabilities,
@@ -9,7 +9,9 @@ import {
   createStore,
 } from '../../test-utils';
 
-export const createPopulatedAPI = (config?: RawFrigateCardConfig): CardController => {
+export const createPopulatedAPI = (
+  config?: RawAdvancedCameraCardConfig,
+): CardController => {
   const api = createCardAPI();
   vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
   vi.mocked(api.getCameraManager().getStore).mockReturnValue(

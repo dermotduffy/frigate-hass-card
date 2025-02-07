@@ -42,7 +42,7 @@ describe('QueryStringManager', () => {
       ['snapshots' as const],
       ['timeline' as const],
     ])('%s', async (viewName: string) => {
-      setQueryString(`?frigate-card-action.id.${viewName}=`);
+      setQueryString(`?advanced-camera-card-action.id.${viewName}=`);
       const api = createCardAPI();
 
       // View actions do not need the card to have been updated.
@@ -68,7 +68,7 @@ describe('QueryStringManager', () => {
       ['expand' as const],
       ['menu_toggle' as const],
     ])('%s', async (action: string) => {
-      setQueryString(`?frigate-card-action.id.${action}=`);
+      setQueryString(`?advanced-camera-card-action.id.${action}=`);
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
@@ -80,14 +80,14 @@ describe('QueryStringManager', () => {
         {
           action: 'fire-dom-event',
           card_id: 'id',
-          frigate_card_action: action,
+          advanced_camera_card_action: action,
         },
       ]);
     });
   });
 
   it('should execute view default action', async () => {
-    setQueryString('?frigate-card-action.id.default=');
+    setQueryString('?advanced-camera-card-action.id.default=');
     const api = createCardAPI();
     // View actions do not need the card to have been updated.
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
@@ -104,7 +104,7 @@ describe('QueryStringManager', () => {
   });
 
   it('should execute camera_select action', async () => {
-    setQueryString('?frigate-card-action.id.camera_select=camera.office');
+    setQueryString('?advanced-camera-card-action.id.camera_select=camera.office');
     const api = createCardAPI();
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
@@ -123,7 +123,9 @@ describe('QueryStringManager', () => {
   });
 
   it('should execute live_substream_select action', async () => {
-    setQueryString('?frigate-card-action.id.live_substream_select=camera.office_hd');
+    setQueryString(
+      '?advanced-camera-card-action.id.live_substream_select=camera.office_hd',
+    );
     const api = createCardAPI();
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
@@ -145,7 +147,7 @@ describe('QueryStringManager', () => {
     it.each([['camera_select' as const], ['live_substream_select' as const]])(
       '%s',
       async (action: string) => {
-        setQueryString(`?frigate-card-action.id.${action}=`);
+        setQueryString(`?advanced-camera-card-action.id.${action}=`);
         const api = createCardAPI();
         vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
         const manager = new QueryStringManager(api);
@@ -163,7 +165,7 @@ describe('QueryStringManager', () => {
   it('should handle unknown action', async () => {
     const consoleSpy = vi.spyOn(global.console, 'warn').mockReturnValue(undefined);
 
-    setQueryString('?frigate-card-action.id.not_an_action=value');
+    setQueryString('?advanced-camera-card-action.id.not_an_action=value');
     const api = createCardAPI();
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
@@ -190,7 +192,7 @@ describe('QueryStringManager', () => {
       ['snapshots' as const],
       ['timeline' as const],
     ])('%s', async (viewName: string) => {
-      setQueryString(`?frigate-card-action.id.${viewName}=`);
+      setQueryString(`?advanced-camera-card-action.id.${viewName}=`);
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
       const manager = new QueryStringManager(api);
@@ -210,10 +212,10 @@ describe('QueryStringManager', () => {
   describe('should handle conflicting but valid actions', () => {
     it('view and default with camera and substream specified', async () => {
       setQueryString(
-        '?frigate-card-action.id.clips=' +
-          '&frigate-card-action.id.live_substream_select=camera.kitchen_hd' +
-          '&frigate-card-action.id.default=' +
-          '&frigate-card-action.id.camera_select=camera.kitchen',
+        '?advanced-camera-card-action.id.clips=' +
+          '&advanced-camera-card-action.id.live_substream_select=camera.kitchen_hd' +
+          '&advanced-camera-card-action.id.default=' +
+          '&advanced-camera-card-action.id.camera_select=camera.kitchen',
       );
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
@@ -232,8 +234,8 @@ describe('QueryStringManager', () => {
 
     it('multiple cameras specified', async () => {
       setQueryString(
-        '?frigate-card-action.id.camera_select=camera.kitchen' +
-          '&frigate-card-action.id.camera_select=camera.office',
+        '?advanced-camera-card-action.id.camera_select=camera.kitchen' +
+          '&advanced-camera-card-action.id.camera_select=camera.office',
       );
       const api = createCardAPI();
       vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
@@ -250,7 +252,9 @@ describe('QueryStringManager', () => {
   });
 
   it('should only execute when needed', async () => {
-    setQueryString('?frigate-card-action.id.live_substream_select=camera.office_hd');
+    setQueryString(
+      '?advanced-camera-card-action.id.live_substream_select=camera.office_hd',
+    );
     const api = createCardAPI();
     vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(true);
     const manager = new QueryStringManager(api);
@@ -270,5 +274,24 @@ describe('QueryStringManager', () => {
     await manager.executeIfNecessary();
     expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
     expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledTimes(2);
+  });
+
+  it('should execute actions with old frigate-card-action key', async () => {
+    setQueryString(`?frigate-card-action.id.clips=`);
+    const api = createCardAPI();
+
+    // View actions do not need the card to have been updated.
+    vi.mocked(api.getCardElementManager().hasUpdated).mockReturnValue(false);
+    const manager = new QueryStringManager(api);
+
+    expect(manager.hasViewRelatedActionsToRun()).toBeTruthy();
+    await manager.executeIfNecessary();
+    expect(manager.hasViewRelatedActionsToRun()).toBeFalsy();
+
+    expect(api.getViewManager().setViewByParametersWithNewQuery).toBeCalledWith({
+      params: {
+        view: 'clips',
+      },
+    });
   });
 });

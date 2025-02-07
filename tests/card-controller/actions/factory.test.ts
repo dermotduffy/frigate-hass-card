@@ -30,7 +30,7 @@ import { SubstreamSelectAction } from '../../../src/card-controller/actions/acti
 import { UnmuteAction } from '../../../src/card-controller/actions/actions/unmute';
 import { ViewAction } from '../../../src/card-controller/actions/actions/view';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
-import { FrigateCardCustomAction } from '../../../src/config/types';
+import { AdvancedCameraCardCustomAction } from '../../../src/config/types';
 
 // @vitest-environment jsdom
 describe('ActionFactory', () => {
@@ -39,7 +39,11 @@ describe('ActionFactory', () => {
     expect(
       factory.createAction(
         {},
-        { action: 'fire-dom-event', frigate_card_action: 'clip', card_id: 'card_id' },
+        {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'clip',
+          card_id: 'card_id',
+        },
         {
           cardID: 'different_card_id',
         },
@@ -48,7 +52,7 @@ describe('ActionFactory', () => {
   });
 
   describe('generic', () => {
-    it('non frigate card action', () => {
+    it('non advanced camera card action', () => {
       const factory = new ActionFactory();
       expect(factory.createAction({}, { action: 'fire-dom-event' })).toBeInstanceOf(
         GenericAction,
@@ -65,81 +69,105 @@ describe('ActionFactory', () => {
 
   describe('actions', () => {
     it.each([
-      [{ frigate_card_action: 'camera_select' as const }, CameraSelectAction],
-      [{ frigate_card_action: 'camera_ui' as const }, CameraUIAction],
-      [{ frigate_card_action: 'clip' as const }, ViewAction],
-      [{ frigate_card_action: 'clips' as const }, ViewAction],
-      [{ frigate_card_action: 'default' as const }, DefaultAction],
-      [{ frigate_card_action: 'diagnostics' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'camera_select' as const }, CameraSelectAction],
+      [{ advanced_camera_card_action: 'camera_ui' as const }, CameraUIAction],
+      [{ advanced_camera_card_action: 'clip' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'clips' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'default' as const }, DefaultAction],
+      [{ advanced_camera_card_action: 'diagnostics' as const }, ViewAction],
       [
         {
-          frigate_card_action: 'display_mode_select' as const,
+          advanced_camera_card_action: 'display_mode_select' as const,
           display_mode: 'single' as const,
         },
         DisplayModeSelectAction,
       ],
-      [{ frigate_card_action: 'download' as const }, DownloadAction],
-      [{ frigate_card_action: 'expand' as const }, ExpandAction],
-      [{ frigate_card_action: 'fullscreen' as const }, FullscreenAction],
-      [{ frigate_card_action: 'image' as const }, ViewAction],
-      [{ frigate_card_action: 'live_substream_off' as const }, SubstreamOffAction],
-      [{ frigate_card_action: 'live_substream_on' as const }, SubstreamOnAction],
+      [{ advanced_camera_card_action: 'download' as const }, DownloadAction],
+      [{ advanced_camera_card_action: 'expand' as const }, ExpandAction],
+      [{ advanced_camera_card_action: 'fullscreen' as const }, FullscreenAction],
+      [{ advanced_camera_card_action: 'image' as const }, ViewAction],
+      [
+        { advanced_camera_card_action: 'live_substream_off' as const },
+        SubstreamOffAction,
+      ],
+      [{ advanced_camera_card_action: 'live_substream_on' as const }, SubstreamOnAction],
       [
         {
-          frigate_card_action: 'live_substream_select' as const,
+          advanced_camera_card_action: 'live_substream_select' as const,
           camera: 'camera.office',
         },
         SubstreamSelectAction,
       ],
-      [{ frigate_card_action: 'live' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'live' as const }, ViewAction],
       [
-        { frigate_card_action: 'log' as const, message: 'Hello, world!' as const },
+        {
+          advanced_camera_card_action: 'log' as const,
+          message: 'Hello, world!' as const,
+        },
         LogAction,
       ],
       [
         {
-          frigate_card_action: 'media_player' as const,
+          advanced_camera_card_action: 'media_player' as const,
           media_player: 'media_player.foo' as const,
           media_player_action: 'play' as const,
         },
         MediaPlayerAction,
       ],
-      [{ frigate_card_action: 'menu_toggle' as const }, MenuToggleAction],
-      [{ frigate_card_action: 'microphone_connect' as const }, MicrophoneConnectAction],
+      [{ advanced_camera_card_action: 'menu_toggle' as const }, MenuToggleAction],
       [
-        { frigate_card_action: 'microphone_disconnect' as const },
+        { advanced_camera_card_action: 'microphone_connect' as const },
+        MicrophoneConnectAction,
+      ],
+      [
+        { advanced_camera_card_action: 'microphone_disconnect' as const },
         MicrophoneDisconnectAction,
       ],
-      [{ frigate_card_action: 'microphone_mute' as const }, MicrophoneMuteAction],
-      [{ frigate_card_action: 'microphone_unmute' as const }, MicrophoneUnmuteAction],
-      [{ frigate_card_action: 'mute' as const }, MuteAction],
-      [{ frigate_card_action: 'pause' as const }, PauseAction],
-      [{ frigate_card_action: 'play' as const }, PlayAction],
-      [{ frigate_card_action: 'ptz_digital' as const }, PTZDigitalAction],
       [
-        { frigate_card_action: 'ptz_multi' as const, ptz_action: 'right' as const },
+        { advanced_camera_card_action: 'microphone_mute' as const },
+        MicrophoneMuteAction,
+      ],
+      [
+        { advanced_camera_card_action: 'microphone_unmute' as const },
+        MicrophoneUnmuteAction,
+      ],
+      [{ advanced_camera_card_action: 'mute' as const }, MuteAction],
+      [{ advanced_camera_card_action: 'pause' as const }, PauseAction],
+      [{ advanced_camera_card_action: 'play' as const }, PlayAction],
+      [{ advanced_camera_card_action: 'ptz_digital' as const }, PTZDigitalAction],
+      [
+        {
+          advanced_camera_card_action: 'ptz_multi' as const,
+          ptz_action: 'right' as const,
+        },
         PTZMultiAction,
       ],
-      [{ frigate_card_action: 'ptz' as const, ptz_action: 'right' as const }, PTZAction],
-      [{ frigate_card_action: 'recording' as const }, ViewAction],
-      [{ frigate_card_action: 'recordings' as const }, ViewAction],
-      [{ frigate_card_action: 'screenshot' as const }, ScreenshotAction],
       [
-        { frigate_card_action: 'ptz_controls' as const, enabled: true },
+        { advanced_camera_card_action: 'ptz' as const, ptz_action: 'right' as const },
+        PTZAction,
+      ],
+      [{ advanced_camera_card_action: 'recording' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'recordings' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'screenshot' as const }, ScreenshotAction],
+      [
+        { advanced_camera_card_action: 'ptz_controls' as const, enabled: true },
         PTZControlsAction,
       ],
-      [{ frigate_card_action: 'sleep' as const }, SleepAction],
-      [{ frigate_card_action: 'snapshot' as const }, ViewAction],
-      [{ frigate_card_action: 'snapshots' as const }, ViewAction],
-      [{ frigate_card_action: 'timeline' as const }, ViewAction],
-      [{ frigate_card_action: 'unmute' as const }, UnmuteAction],
+      [{ advanced_camera_card_action: 'sleep' as const }, SleepAction],
+      [{ advanced_camera_card_action: 'snapshot' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'snapshots' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'timeline' as const }, ViewAction],
+      [{ advanced_camera_card_action: 'unmute' as const }, UnmuteAction],
       [
-        { frigate_card_action: 'status_bar' as const, status_bar_action: 'reset' },
+        {
+          advanced_camera_card_action: 'status_bar' as const,
+          status_bar_action: 'reset',
+        },
         StatusBarAction,
       ],
     ])(
-      'frigate_card_action: $frigate_card_action',
-      (action: Partial<FrigateCardCustomAction>, classObject: object) => {
+      'advanced_camera_card_action: $advanced_camera_card_action',
+      (action: Partial<AdvancedCameraCardCustomAction>, classObject: object) => {
         const factory = new ActionFactory();
         expect(
           factory.createAction({}, { action: 'fire-dom-event', ...action }),

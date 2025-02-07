@@ -42,7 +42,7 @@ export class MicrophoneManager {
   public isSupported(): boolean {
     // Some browsers will have mediaDevices/getUserMedia as undefined if
     // accessed over http.
-    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1543
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/1543
     return !!navigator.mediaDevices?.getUserMedia;
   }
 

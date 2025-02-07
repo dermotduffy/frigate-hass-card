@@ -14,7 +14,7 @@ img {
 }
 
 img,
-frigate-card-icon {
+advanced-camera-card-icon {
   // Safari will occasionally not load thumbnails correctly with display block.
   display: inline-block;
 
@@ -23,11 +23,11 @@ frigate-card-icon {
   margin: 0;
 
   border-radius: var(
-    --frigate-card-css-border-radius,
+    --advanced-camera-card-css-border-radius,
     var(--ha-card-border-radius, 4px)
   );
 
-  width: var(--frigate-card-thumbnail-size);
+  width: var(--advanced-camera-card-thumbnail-size);
   max-height: 100%;
   aspect-ratio: 1 / 1;
 
@@ -37,7 +37,7 @@ frigate-card-icon {
   object-fit: cover;
 }
 
-frigate-card-icon {
+advanced-camera-card-icon {
   --mdc-icon-size: 50%;
   color: var(--primary-text-color);
   display: flex;

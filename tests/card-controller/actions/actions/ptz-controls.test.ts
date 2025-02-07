@@ -8,7 +8,7 @@ it('should handle ptz_controls action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'ptz_controls',
+      advanced_camera_card_action: 'ptz_controls',
       enabled: true,
     },
   );

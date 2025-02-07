@@ -137,7 +137,7 @@ export class ViewQueryExecutor {
         new MergeContextViewModifier({
           // Force the window to start at the most recent time, not
           // necessarily when the most recent event/recording was:
-          // https://github.com/dermotduffy/frigate-hass-card/issues/1301
+          // https://github.com/dermotduffy/advanced-camera-card/issues/1301
           timeline: {
             window: {
               start: sub(now, {

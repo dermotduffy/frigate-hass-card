@@ -15,7 +15,7 @@ it('should handle sleep action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'sleep',
+      advanced_camera_card_action: 'sleep',
       duration: {
         s: 5,
         ms: 200,

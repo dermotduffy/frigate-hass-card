@@ -9,23 +9,23 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
+import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import { ThumbnailsControlConfig } from '../config/types.js';
 import thumbnailCarouselStyle from '../scss/thumbnail-carousel.scss';
 import { ExtendedHomeAssistant } from '../types.js';
 import { stopEventFromActivatingCardWideActions } from '../utils/action.js';
-import { dispatchFrigateCardEvent } from '../utils/basic.js';
+import { dispatchAdvancedCameraCardEvent } from '../utils/basic.js';
 import { CarouselDirection } from '../utils/embla/carousel-controller.js';
 import { MediaQueriesResults } from '../view/media-queries-results';
 import './carousel.js';
 import './thumbnail.js';
-import { ViewManagerEpoch } from '../card-controller/view/types.js';
 
 export interface ThumbnailCarouselTap {
   queryResults: MediaQueriesResults;
 }
 
-@customElement('frigate-card-thumbnail-carousel')
-export class FrigateCardThumbnailCarousel extends LitElement {
+@customElement('advanced-camera-card-thumbnail-carousel')
+export class AdvancedCameraCardThumbnailCarousel extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -46,7 +46,10 @@ export class FrigateCardThumbnailCarousel extends LitElement {
   protected willUpdate(changedProps: PropertyValues): void {
     if (changedProps.has('config')) {
       if (this.config?.size) {
-        this.style.setProperty('--frigate-card-thumbnail-size', `${this.config.size}px`);
+        this.style.setProperty(
+          '--advanced-camera-card-thumbnail-size',
+          `${this.config.size}px`,
+        );
       }
       const direction = this._getDirection();
       if (direction) {
@@ -68,7 +71,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
 
     if (changedProps.has('viewManagerEpoch')) {
       this.style.setProperty(
-        '--frigate-card-carousel-thumbnail-opacity',
+        '--advanced-camera-card-carousel-thumbnail-opacity',
         !this.fadeThumbnails || this._getSelectedSlide() === null ? '1.0' : '0.4',
       );
     }
@@ -94,7 +97,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       };
 
       slides.push(
-        html` <frigate-card-thumbnail
+        html` <advanced-camera-card-thumbnail
           class="${classMap(classes)}"
           .cameraManager=${this.cameraManager}
           .hass=${this.hass}
@@ -108,7 +111,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
           @click=${(ev: Event) => {
             const view = this.viewManagerEpoch?.manager.getView();
             if (view && view.queryResults) {
-              dispatchFrigateCardEvent<ThumbnailCarouselTap>(
+              dispatchAdvancedCameraCardEvent<ThumbnailCarouselTap>(
                 this,
                 'thumbnail-carousel:tap',
                 {
@@ -119,7 +122,7 @@ export class FrigateCardThumbnailCarousel extends LitElement {
             stopEventFromActivatingCardWideActions(ev);
           }}
         >
-        </frigate-card-thumbnail>`,
+        </advanced-camera-card-thumbnail>`,
       );
     }
     return slides;
@@ -140,13 +143,13 @@ export class FrigateCardThumbnailCarousel extends LitElement {
       return;
     }
 
-    return html`<frigate-card-carousel
+    return html`<advanced-camera-card-carousel
       direction=${direction}
       .selected=${this._getSelectedSlide() ?? 0}
       .dragFree=${true}
     >
       ${this._thumbnailSlides}
-    </frigate-card-carousel>`;
+    </advanced-camera-card-carousel>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -156,6 +159,6 @@ export class FrigateCardThumbnailCarousel extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-thumbnail-carousel': FrigateCardThumbnailCarousel;
+    'advanced-camera-card-thumbnail-carousel': AdvancedCameraCardThumbnailCarousel;
   }
 }

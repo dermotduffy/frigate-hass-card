@@ -16,11 +16,11 @@ import { PTZActionPresence } from '../components-lib/ptz/types.js';
 import { Actions, PTZControlsConfig } from '../config/types.js';
 import { localize } from '../localize/localize.js';
 import ptzStyle from '../scss/ptz.scss';
-import { frigateCardHasAction } from '../utils/action.js';
+import { hasAction } from '../utils/action.js';
 import './icon.js';
 
-@customElement('frigate-card-ptz')
-export class FrigateCardPTZ extends LitElement {
+@customElement('advanced-camera-card-ptz')
+export class AdvancedCameraCardPTZ extends LitElement {
   @property({ attribute: false })
   public config?: PTZControlsConfig;
 
@@ -68,17 +68,17 @@ export class FrigateCardPTZ extends LitElement {
       };
 
       return actions
-        ? html`<frigate-card-icon
+        ? html`<advanced-camera-card-icon
             class=${classMap(classes)}
             .icon=${{ icon: icon }}
             .actionHandler=${actionHandler({
-              hasHold: frigateCardHasAction(actions?.hold_action),
-              hasDoubleClick: frigateCardHasAction(actions?.double_tap_action),
+              hasHold: hasAction(actions?.hold_action),
+              hasDoubleClick: hasAction(actions?.double_tap_action),
             })}
             .title=${localize(`elements.ptz.${name}`)}
             @action=${(ev: HASSDomEvent<{ action: string }>) =>
               this._controller.handleAction(ev, actions)}
-          ></frigate-card-icon>`
+          ></advanced-camera-card-icon>`
         : html``;
     };
 
@@ -113,6 +113,6 @@ export class FrigateCardPTZ extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-ptz': FrigateCardPTZ;
+    'advanced-camera-card-ptz': AdvancedCameraCardPTZ;
   }
 }

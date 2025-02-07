@@ -172,13 +172,13 @@ describe('PTZController', () => {
       expect(controller.getPTZActions()?.[actionName]).toEqual({
         start_tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_multi',
+          advanced_camera_card_action: 'ptz_multi',
           ptz_action: actionName,
           ptz_phase: 'start',
         },
         end_tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_multi',
+          advanced_camera_card_action: 'ptz_multi',
           ptz_action: actionName,
           ptz_phase: 'stop',
         },
@@ -211,7 +211,7 @@ describe('PTZController', () => {
       expect(controller.getPTZActions()['home']).toEqual({
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_multi',
+          advanced_camera_card_action: 'ptz_multi',
         },
       });
     });
@@ -229,7 +229,7 @@ describe('PTZController', () => {
 
       const element = document.createElement('div');
       const handler = vi.fn();
-      element.addEventListener('frigate-card:action:execution-request', handler);
+      element.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new PTZController(element);
       controller.setCamera();
@@ -251,7 +251,7 @@ describe('PTZController', () => {
     it('should not call action without actions config', () => {
       const element = document.createElement('div');
       const handler = vi.fn();
-      element.addEventListener('frigate-card:action:execution-request', handler);
+      element.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new PTZController(element);
       controller.setCamera();
@@ -265,7 +265,7 @@ describe('PTZController', () => {
     it('should not call action without hass', () => {
       const element = document.createElement('div');
       const handler = vi.fn();
-      element.addEventListener('frigate-card:action:execution-request', handler);
+      element.addEventListener('advanced-camera-card:action:execution-request', handler);
 
       const controller = new PTZController(element);
       controller.setCamera();

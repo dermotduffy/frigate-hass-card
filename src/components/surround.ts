@@ -17,12 +17,12 @@ import {
 } from '../config/types.js';
 import basicBlockStyle from '../scss/basic-block.scss';
 import { ExtendedHomeAssistant } from '../types.js';
-import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic.js';
+import { contentsChanged, dispatchAdvancedCameraCardEvent } from '../utils/basic.js';
 import './surround-basic.js';
 import { ThumbnailCarouselTap } from './thumbnail-carousel.js';
 
-@customElement('frigate-card-surround')
-export class FrigateCardSurround extends LitElement {
+@customElement('advanced-camera-card-surround')
+export class AdvancedCameraCardSurround extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -110,20 +110,22 @@ export class FrigateCardSurround extends LitElement {
       // request to view thumbnails and re-dispatches a request to open the drawer
       // (if the thumbnails are in a drawer). The new event needs to be dispatched
       // from the origin of the inbound event, so it can be handled by
-      // <frigate-card-surround> .
+      // <advanced-camera-card-surround> .
       if (this.thumbnailConfig && this._hasDrawer()) {
-        dispatchFrigateCardEvent(ev.composedPath()[0], 'drawer:' + action, {
+        dispatchAdvancedCameraCardEvent(ev.composedPath()[0], 'drawer:' + action, {
           drawer: this.thumbnailConfig.mode,
         });
       }
     };
 
-    return html` <frigate-card-surround-basic
-      @frigate-card:thumbnails:open=${(ev: CustomEvent) => changeDrawer(ev, 'open')}
-      @frigate-card:thumbnails:close=${(ev: CustomEvent) => changeDrawer(ev, 'close')}
+    return html` <advanced-camera-card-surround-basic
+      @advanced-camera-card:thumbnails:open=${(ev: CustomEvent) =>
+        changeDrawer(ev, 'open')}
+      @advanced-camera-card:thumbnails:close=${(ev: CustomEvent) =>
+        changeDrawer(ev, 'close')}
     >
       ${this.thumbnailConfig && this.thumbnailConfig.mode !== 'none'
-        ? html` <frigate-card-thumbnail-carousel
+        ? html` <advanced-camera-card-thumbnail-carousel
             slot=${this.thumbnailConfig.mode}
             .hass=${this.hass}
             .config=${this.thumbnailConfig}
@@ -131,7 +133,7 @@ export class FrigateCardSurround extends LitElement {
             .fadeThumbnails=${view.isViewerView()}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .selected=${view.queryResults?.getSelectedIndex() ?? undefined}
-            @frigate-card:thumbnail-carousel:tap=${(
+            @advanced-camera-card:thumbnail-carousel:tap=${(
               ev: CustomEvent<ThumbnailCarouselTap>,
             ) => {
               const media = ev.detail.queryResults.getSelectedResult();
@@ -150,10 +152,10 @@ export class FrigateCardSurround extends LitElement {
               }
             }}
           >
-          </frigate-card-thumbnail-carousel>`
+          </advanced-camera-card-thumbnail-carousel>`
         : ''}
       ${this.timelineConfig && this.timelineConfig.mode !== 'none'
-        ? html` <frigate-card-timeline-core
+        ? html` <advanced-camera-card-timeline-core
             slot=${this.timelineConfig.mode}
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
@@ -169,10 +171,10 @@ export class FrigateCardSurround extends LitElement {
             .cameraManager=${this.cameraManager}
             .cardWideConfig=${this.cardWideConfig}
           >
-          </frigate-card-timeline-core>`
+          </advanced-camera-card-timeline-core>`
         : ''}
       <slot></slot>
-    </frigate-card-surround-basic>`;
+    </advanced-camera-card-surround-basic>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -182,6 +184,6 @@ export class FrigateCardSurround extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-surround': FrigateCardSurround;
+    'advanced-camera-card-surround': AdvancedCameraCardSurround;
   }
 }

@@ -7,17 +7,12 @@ import {
   CONF_AUTOMATIONS,
   CONF_CAMERAS,
   CONF_CAMERAS_GLOBAL_DIMENSIONS_LAYOUT,
-  CONF_CAMERAS_GLOBAL_IMAGE,
-  CONF_CAMERAS_GLOBAL_JSMPEG,
   CONF_CAMERAS_GLOBAL_PTZ,
-  CONF_CAMERAS_GLOBAL_WEBRTC_CARD,
   CONF_DIMENSIONS_HEIGHT,
   CONF_ELEMENTS,
   CONF_LIVE_CONTROLS_THUMBNAILS_EVENTS_MEDIA_TYPE,
   CONF_LIVE_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
-  CONF_MEDIA_GALLERY,
   CONF_MEDIA_VIEWER_CONTROLS_TIMELINE_EVENTS_MEDIA_TYPE,
-  CONF_MENU_BUTTONS_CAMERA_UI,
   CONF_OVERRIDES,
   CONF_PROFILES,
   CONF_STATUS_BAR,
@@ -35,9 +30,9 @@ import {
 } from '../const';
 import { arrayify } from '../utils/basic';
 import {
-  FrigateCardCondition,
-  RawFrigateCardConfig,
-  RawFrigateCardConfigArray,
+  AdvancedCameraCardCondition,
+  RawAdvancedCameraCardConfig,
+  RawAdvancedCameraCardConfigArray,
 } from './types';
 
 // *************************************************************************
@@ -51,7 +46,7 @@ import {
  * @param value The value to set.
  */
 export const setConfigValue = (
-  obj: RawFrigateCardConfig,
+  obj: RawAdvancedCameraCardConfig,
   keys: string | (string | number)[],
   value: unknown,
 ): void => {
@@ -66,7 +61,7 @@ export const setConfigValue = (
  * @returns The property or undefined if not found.
  */
 export const getConfigValue = (
-  obj: RawFrigateCardConfig,
+  obj: RawAdvancedCameraCardConfig,
   keys: string | (string | number)[],
   def?: unknown,
 ): unknown => {
@@ -78,7 +73,10 @@ export const getConfigValue = (
  * @param obj The configuration.
  * @param key The key to the property to delete.
  */
-export const deleteConfigValue = (obj: RawFrigateCardConfig, path: string): void => {
+export const deleteConfigValue = (
+  obj: RawAdvancedCameraCardConfig,
+  path: string,
+): void => {
   unset(obj, path);
 };
 
@@ -110,7 +108,7 @@ export const getArrayConfigPath = (path: string, index: number): string => {
  * @param obj The configuration to upgrade.
  * @returns `true` if the configuration is modified.
  */
-export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
+export const upgradeConfig = function (obj: RawAdvancedCameraCardConfig): boolean {
   let upgraded = false;
   for (let i = 0; i < UPGRADES.length; i++) {
     upgraded = UPGRADES[i](obj) || upgraded;
@@ -123,7 +121,7 @@ export const upgradeConfig = function (obj: RawFrigateCardConfig): boolean {
  * @param obj The configuration. It is not modified.
  * @returns `true` if the configuration is upgradeable.
  */
-export const isConfigUpgradeable = function (obj: RawFrigateCardConfig): boolean {
+export const isConfigUpgradeable = function (obj: RawAdvancedCameraCardConfig): boolean {
   return upgradeConfig(copyConfig(obj));
 };
 
@@ -136,7 +134,7 @@ export const isConfigUpgradeable = function (obj: RawFrigateCardConfig): boolean
  * @returns `true` if the configuration was modified.
  */
 export const moveConfigValue = (
-  obj: RawFrigateCardConfig,
+  obj: RawAdvancedCameraCardConfig,
   oldPath: string,
   newPath: string,
   options?: {
@@ -183,8 +181,8 @@ export const upgradeMoveTo = function (
     transform?: (valueIn: unknown) => unknown;
     keepOriginal?: boolean;
   },
-): (obj: RawFrigateCardConfig) => boolean {
-  return function (obj: RawFrigateCardConfig): boolean {
+): (obj: RawAdvancedCameraCardConfig) => boolean {
+  return function (obj: RawAdvancedCameraCardConfig): boolean {
     return moveConfigValue(obj, oldPath, newPath, options);
   };
 };
@@ -204,14 +202,26 @@ export const upgradeMoveToWithOverrides = function (
     transform?: (valueIn: unknown) => unknown;
     keepOriginal?: boolean;
   },
-): (obj: RawFrigateCardConfig) => boolean {
-  return function (obj: RawFrigateCardConfig): boolean {
+): (obj: RawAdvancedCameraCardConfig) => boolean {
+  return function (obj: RawAdvancedCameraCardConfig): boolean {
     let modified = upgradeMoveTo(oldPath, newPath, options)(obj);
     modified =
       upgradeArrayOfObjects(
         CONF_OVERRIDES,
         upgradeMoveTo(oldPath, newPath, options),
-        (obj) => obj.overrides as RawFrigateCardConfig | undefined,
+        (obj) =>
+          obj.merge && typeof obj.merge === 'object'
+            ? (obj.merge as RawAdvancedCameraCardConfig | undefined)
+            : undefined,
+      )(obj) || modified;
+    modified =
+      upgradeArrayOfObjects(
+        CONF_OVERRIDES,
+        upgradeMoveTo(oldPath, newPath, options),
+        (obj) =>
+          obj.set && typeof obj.set === 'object'
+            ? (obj.set as RawAdvancedCameraCardConfig | undefined)
+            : undefined,
       )(obj) || modified;
     return modified;
   };
@@ -226,7 +236,7 @@ export const upgradeMoveToWithOverrides = function (
 export const upgradeWithOverrides = function (
   path: string,
   transform: (valueIn: unknown) => unknown,
-): (obj: RawFrigateCardConfig) => boolean {
+): (obj: RawAdvancedCameraCardConfig) => boolean {
   return upgradeMoveToWithOverrides(path, path, { transform: transform });
 };
 
@@ -237,7 +247,7 @@ export const upgradeWithOverrides = function (
  */
 export const deleteWithOverrides = function (
   path: string,
-): (obj: RawFrigateCardConfig) => boolean {
+): (obj: RawAdvancedCameraCardConfig) => boolean {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return upgradeMoveToWithOverrides(path, path, { transform: (_) => null });
 };
@@ -252,10 +262,12 @@ export const deleteWithOverrides = function (
  */
 export const upgradeArrayOfObjects = function (
   arrayPath: string,
-  upgrade: (obj: RawFrigateCardConfig) => boolean,
-  getObject?: (obj: RawFrigateCardConfig) => RawFrigateCardConfig | undefined,
-): (obj: RawFrigateCardConfig) => boolean {
-  return function (obj: RawFrigateCardConfig): boolean {
+  upgrade: (obj: RawAdvancedCameraCardConfig) => boolean,
+  getObject?: (
+    obj: RawAdvancedCameraCardConfig,
+  ) => RawAdvancedCameraCardConfig | undefined,
+): (obj: RawAdvancedCameraCardConfig) => boolean {
+  return function (obj: RawAdvancedCameraCardConfig): boolean {
     let modified = false;
     const array = getConfigValue(obj, arrayPath);
     if (Array.isArray(array)) {
@@ -277,10 +289,12 @@ export const upgradeArrayOfObjects = function (
  * @returns An upgrade function.
  */
 export const upgradeObjectRecursively = (
-  transform: (data: RawFrigateCardConfig) => boolean,
-  getObject?: (data: RawFrigateCardConfig) => RawFrigateCardConfig | undefined | null,
-): ((data: RawFrigateCardConfig) => boolean) => {
-  const recurse = (data: RawFrigateCardConfig): boolean => {
+  transform: (data: RawAdvancedCameraCardConfig) => boolean,
+  getObject?: (
+    data: RawAdvancedCameraCardConfig,
+  ) => RawAdvancedCameraCardConfig | undefined | null,
+): ((data: RawAdvancedCameraCardConfig) => boolean) => {
+  const recurse = (data: RawAdvancedCameraCardConfig): boolean => {
     let result = false;
     if (data && typeof data === 'object') {
       const object = getObject ? getObject(data) : data;
@@ -288,12 +302,12 @@ export const upgradeObjectRecursively = (
         result = transform(object) || result;
       }
       if (Array.isArray(data)) {
-        data.forEach((item: RawFrigateCardConfig) => {
+        data.forEach((item: RawAdvancedCameraCardConfig) => {
           result = recurse(item) || result;
         });
       } else {
         Object.keys(data).forEach((key) => {
-          result = recurse(data[key] as RawFrigateCardConfig) || result;
+          result = recurse(data[key] as RawAdvancedCameraCardConfig) || result;
         });
       }
     }
@@ -342,20 +356,6 @@ export const deleteTransform = function (_value: unknown): number | null | undef
 // *************************************************************************
 
 /**
- * Transform mediaLoaded -> media_loaded
- * @param data Input data.
- * @returns `true` if the configuration was modified.
- */
-const conditionMediaLoadedTransform = (data: unknown): boolean => {
-  if (typeof data === 'object' && data && data['mediaLoaded'] !== undefined) {
-    data['media_loaded'] = data['mediaLoaded'];
-    delete data['mediaLoaded'];
-    return true;
-  }
-  return false;
-};
-
-/**
  * Transform a single object with multiple conditions to multiple objects with
  * single conditions
  * @param data Input data.
@@ -372,7 +372,7 @@ const conditionToConditionsTransform = (data: unknown): boolean => {
   }
 
   const oldConditions = data['conditions'];
-  const newConditions: FrigateCardCondition[] = [];
+  const newConditions: AdvancedCameraCardCondition[] = [];
 
   if (oldConditions['view'] !== undefined) {
     newConditions.push({
@@ -465,7 +465,7 @@ const callServiceToPerformActionTransform = (data: unknown): boolean => {
 
 /**
  * Transform service_data -> data
- * See: https://github.com/dermotduffy/frigate-hass-card/issues/1103
+ * See: https://github.com/dermotduffy/advanced-camera-card/issues/1103
  * @param data Input data.
  * @returns `true` if the configuration was modified.
  */
@@ -480,24 +480,6 @@ const serviceDataToDataTransform = (data: unknown): boolean => {
   ) {
     data['data'] = data['service_data'];
     delete data['service_data'];
-    return true;
-  }
-  return false;
-};
-
-/**
- * Transform action frigate_ui -> camera_ui
- * @param data Input data.
- * @returns `true` if the configuration was modified.
- */
-const frigateUIActionTransform = (data: unknown): boolean => {
-  if (
-    typeof data === 'object' &&
-    data &&
-    data['action'] === 'custom:frigate-card-action' &&
-    data['frigate_card_action'] === 'frigate_ui'
-  ) {
-    data['frigate_card_action'] = 'camera_ui';
     return true;
   }
   return false;
@@ -520,7 +502,7 @@ const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
     }
 
     let foundPTZ = false;
-    const movePTZ = (element: RawFrigateCardConfig): void => {
+    const movePTZ = (element: RawAdvancedCameraCardConfig): void => {
       if (!foundPTZ) {
         if (!get(data, 'live.controls.ptz')) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -532,15 +514,15 @@ const upgradePTZElementsToLive = function (): (data: unknown) => boolean {
     };
 
     const processElements = (
-      elements: RawFrigateCardConfigArray,
-    ): RawFrigateCardConfigArray => {
-      const newElements: RawFrigateCardConfigArray = [];
+      elements: RawAdvancedCameraCardConfigArray,
+    ): RawAdvancedCameraCardConfigArray => {
+      const newElements: RawAdvancedCameraCardConfigArray = [];
       for (const element of elements) {
-        if (element['type'] === 'custom:frigate-card-ptz') {
+        if (element['type'] === 'custom:advanced-camera-card-ptz') {
           movePTZ(element);
         } else if (
           (element['type'] === 'conditional' ||
-            element['type'] === 'custom:frigate-card-conditional') &&
+            element['type'] === 'custom:advanced-camera-card-conditional') &&
           Array.isArray(element['elements'])
         ) {
           const newConditionalElements = processElements(element['elements']);
@@ -699,52 +681,122 @@ const titleControlTransform = (data: unknown): unknown => {
   return null;
 };
 
-const UPGRADES = [
-  // v4.0.0 -> v4.1.0
-  upgradeArrayOfObjects(
-    CONF_OVERRIDES,
-    conditionMediaLoadedTransform,
-    (data) => data.conditions as RawFrigateCardConfig | undefined,
-  ),
-  (data: unknown): boolean => {
-    return upgradeObjectRecursively(
-      conditionMediaLoadedTransform,
-      (data) => data.conditions as RawFrigateCardConfig | undefined,
-    )(typeof data === 'object' && data ? data[CONF_ELEMENTS] : {});
-  },
-  upgradeMoveToWithOverrides('event_gallery', CONF_MEDIA_GALLERY),
-  upgradeMoveToWithOverrides('menu.buttons.frigate_ui', CONF_MENU_BUTTONS_CAMERA_UI),
-  (data: unknown): boolean => {
-    return upgradeObjectRecursively(frigateUIActionTransform)(
-      typeof data === 'object' && data ? <RawFrigateCardConfig>data : {},
-    );
-  },
-  upgradeArrayOfObjects(
-    CONF_CAMERAS,
-    upgradeWithOverrides('live_provider', (val) =>
-      val === 'frigate-jsmpeg' ? 'jsmpeg' : val,
-    ),
-  ),
-  upgradeMoveToWithOverrides('live.jsmpeg', CONF_CAMERAS_GLOBAL_JSMPEG),
-  upgradeMoveToWithOverrides('live.image', CONF_CAMERAS_GLOBAL_IMAGE),
-  upgradeMoveToWithOverrides('live.webrtc_card', CONF_CAMERAS_GLOBAL_WEBRTC_CARD),
-  upgradeArrayOfObjects(
-    CONF_CAMERAS,
-    upgradeMoveToWithOverrides('frigate.zone', 'frigate.zones', {
-      transform: (zone) => arrayify(zone),
-    }),
-  ),
-  upgradeArrayOfObjects(
-    CONF_CAMERAS,
-    upgradeMoveToWithOverrides('frigate.label', 'frigate.labels', {
-      transform: (label) => arrayify(label),
-    }),
-  ),
+const frigateCardToAdvancedCameraCardTransform = (
+  data: RawAdvancedCameraCardConfig,
+): boolean => {
+  interface Substitution {
+    oldKey: string;
+    oldValue?: string;
+    newKey?: string;
+    newValue?: string;
+  }
 
+  const substitutions: Substitution[] = [
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card',
+      newValue: 'custom:advanced-camera-card',
+    },
+    {
+      oldKey: 'action',
+      oldValue: 'custom:frigate-card-action',
+      newValue: 'custom:advanced-camera-card-action',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-menu-icon',
+      newValue: 'custom:advanced-camera-card-menu-icon',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-menu-state-icon',
+      newValue: 'custom:advanced-camera-card-menu-state-icon',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-menu-submenu',
+      newValue: 'custom:advanced-camera-card-menu-submenu',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-menu-submenu-select',
+      newValue: 'custom:advanced-camera-card-menu-submenu-select',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-status-bar-icon',
+      newValue: 'custom:advanced-camera-card-status-bar-icon',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-status-bar-image',
+      newValue: 'custom:advanced-camera-card-status-bar-image',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-status-bar-string',
+      newValue: 'custom:advanced-camera-card-status-bar-string',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-conditional',
+      newValue: 'custom:advanced-camera-card-conditional',
+    },
+    {
+      oldKey: 'type',
+      oldValue: 'custom:frigate-card-conditional',
+      newValue: 'custom:advanced-camera-card-conditional',
+    },
+    {
+      oldKey: 'frigate_card_action',
+      newKey: 'advanced_camera_card_action',
+    },
+  ];
+
+  let modified = false;
+  for (const substitution of substitutions) {
+    if (
+      substitution.oldValue &&
+      substitution.newValue &&
+      data[substitution.oldKey] === substitution.oldValue
+    ) {
+      data[substitution.newKey ?? substitution.oldKey] = substitution.newValue;
+      modified = true;
+    }
+    if (substitution.oldKey in data && substitution.newKey) {
+      data[substitution.newKey] = data[substitution.oldKey];
+      delete data[substitution.oldKey];
+      modified = true;
+    }
+  }
+  return modified;
+};
+
+const frigateCardToAdvancedCameraCardStyleTransform = (data: unknown): unknown => {
+  if (typeof data !== 'object' || !data || Array.isArray(data)) {
+    return data;
+  }
+
+  const newStyleOverrides = { ...data };
+  const frigateCardStyleRegexp = new RegExp(/^--frigate-card-/);
+
+  for (const key of Object.keys(data)) {
+    if (key.match(frigateCardStyleRegexp)) {
+      const newKey = key.replace(frigateCardStyleRegexp, '--advanced-camera-card-');
+
+      newStyleOverrides[newKey] = data[key];
+      delete newStyleOverrides[key];
+    }
+  }
+
+  return newStyleOverrides;
+};
+
+const UPGRADES = [
   // v5.2.0 -> v6.0.0
   (data: unknown): boolean => {
     return upgradeObjectRecursively(serviceDataToDataTransform)(
-      typeof data === 'object' && data ? <RawFrigateCardConfig>data : {},
+      typeof data === 'object' && data ? <RawAdvancedCameraCardConfig>data : {},
     );
   },
   upgradePTZElementsToLive(),
@@ -877,7 +929,7 @@ const UPGRADES = [
   // different.
   (data: unknown): boolean => {
     return upgradeObjectRecursively(callServiceToPerformActionTransform)(
-      typeof data === 'object' && data ? (data as RawFrigateCardConfig) : {},
+      typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
     );
   },
   upgradeMoveToWithOverrides('dimensions.max_height', CONF_DIMENSIONS_HEIGHT),
@@ -887,4 +939,16 @@ const UPGRADES = [
   upgradeMoveToWithOverrides('view.dark_mode', CONF_VIEW_DIM, {
     transform: (val) => val === 'on',
   }),
+
+  // v7.0.0+
+  (data: unknown): boolean => {
+    return upgradeObjectRecursively(frigateCardToAdvancedCameraCardTransform)(
+      typeof data === 'object' && data ? (data as RawAdvancedCameraCardConfig) : {},
+    );
+  },
+  upgradeWithOverrides(
+    'view.theme.overrides',
+    frigateCardToAdvancedCameraCardStyleTransform,
+  ),
+  upgradeMoveToWithOverrides('menu.buttons.frigate', 'menu.buttons.iris'),
 ];

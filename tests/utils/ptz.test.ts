@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Capabilities } from '../../src/camera-manager/capabilities';
-import { FrigateCardView } from '../../src/config/types';
+import { AdvancedCameraCardView } from '../../src/config/types';
 import { IMAGE_VIEW_ZOOM_TARGET_SENTINEL } from '../../src/const';
 import {
   getPTZTarget,
@@ -124,7 +124,7 @@ describe('getPTZTarget', () => {
   describe('in non-media views', () => {
     it.each([['timeline' as const], ['diagnostics' as const]])(
       '%s',
-      (viewName: FrigateCardView) => {
+      (viewName: AdvancedCameraCardView) => {
         const view = createView({
           view: viewName,
         });

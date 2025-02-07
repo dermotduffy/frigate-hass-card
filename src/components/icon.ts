@@ -12,8 +12,8 @@ import { IconController } from '../components-lib/icon-controller';
 import iconStyle from '../scss/icon.scss';
 import { Icon } from '../types';
 
-@customElement('frigate-card-icon')
-export class FrigateCardIcon extends LitElement {
+@customElement('advanced-camera-card-icon')
+export class AdvancedCameraCardIcon extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -83,6 +83,6 @@ export class FrigateCardIcon extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-icon': FrigateCardIcon;
+    'advanced-camera-card-icon': AdvancedCameraCardIcon;
   }
 }

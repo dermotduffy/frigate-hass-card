@@ -1,7 +1,7 @@
 {
   "common": {
-    "frigate_card": "Frigate card",
-    "frigate_card_description": "A Lovelace card for use with Frigate",
+    "advanced_camera_card": "Advanced Camera Card",
+    "advanced_camera_card_description": "An Advanced Camera Card",
     "live": "Live",
     "no_media": "No media to display",
     "recordings": "Recordings",
@@ -177,7 +177,7 @@
       },
       "webrtc_card": {
         "editor_label": "WebRTC Card Options",
-        "entity": "WebRTC Card Camera Entity (Not a Frigate camera)",
+        "entity": "WebRTC Card Camera Entity",
         "url": "WebRTC Card Camera URL"
       }
     },
@@ -265,7 +265,7 @@
         "modes": {
           "camera": "Home Assistant camera snapshot of camera entity",
           "entity": "Entity with entity_picture attribute",
-          "screensaver": "Embedded Frigate logo",
+          "screensaver": "Embedded screensaver image",
           "url": "Arbitrary image specified by URL"
         },
         "refresh_seconds": "Number of seconds after which to refresh (0=never)",
@@ -394,10 +394,10 @@
         "download": "Download",
         "enabled": "Button enabled",
         "expand": "Expand",
-        "frigate": "Frigate menu / Default view",
         "fullscreen": "Fullscreen",
         "icon": "Icon",
         "image": "Image",
+        "iris": "Iris / Default View / Unhide menu",
         "live": "Live",
         "media_player": "Send to media player",
         "microphone": "Microphone",
@@ -626,7 +626,7 @@
     "diagnostics": "Card diagnostics. Please review for confidential information prior to sharing",
     "download_no_media": "No media to download",
     "download_sign_failed": "Could not sign media URL for download",
-    "duplicate_camera_id": "Duplicate Frigate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
+    "duplicate_camera_id": "Duplicate camera id for the following camera, use the 'id' parameter to uniquely identify cameras",
     "empty_response": "Received empty response from Home Assistant for request",
     "failed_response": "Failed to receive response from Home Assistant for request",
     "failed_retain": "Could not retain event",
@@ -646,7 +646,6 @@
     "no_camera_entity": "Could not find camera entity",
     "no_camera_entity_for_triggers": "A camera entity is required in order to autodetect triggers",
     "no_camera_id": "Could not determine camera id for the following camera, may need to set 'id' parameter manually",
-    "no_camera_name": "Could not determine a Frigate camera name for camera (or one of its dependents), please specify either 'camera_entity' or 'camera_name'",
     "no_dashboard_or_view": "Both 'dashboard_path' and 'view_path' parameters are required for the 'dashboard' cast method",
     "no_live_camera": "The camera_entity parameter must be set and valid for this live provider",
     "no_supported_camera": "The selected camera does not support this view",

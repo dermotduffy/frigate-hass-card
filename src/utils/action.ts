@@ -1,48 +1,51 @@
-import { ActionConfig, hasAction } from '@dermotduffy/custom-card-helpers';
+import {
+  ActionConfig,
+  hasAction as customCardHasAction,
+} from '@dermotduffy/custom-card-helpers';
 import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
 import { PTZAction } from '../config/ptz.js';
 import {
   ActionPhase,
   ActionType,
   Actions,
-  FrigateCardCustomAction,
-  FrigateCardGeneralAction,
-  FrigateCardUserSpecifiedView,
+  AdvancedCameraCardCustomAction,
+  AdvancedCameraCardGeneralAction,
+  AdvancedCameraCardUserSpecifiedView,
   LogActionConfig,
   LogActionLevel,
   PTZActionConfig,
   PTZDigitialActionConfig,
   PTZMultiActionConfig,
-  frigateCardCustomActionSchema,
+  advancedCameraCardCustomActionSchema,
 } from '../config/types.js';
 import { arrayify } from './basic.js';
 
 /**
- * Convert a generic Action to a FrigateCardCustomAction if it parses correctly.
+ * Convert a generic Action to a AdvancedCameraCardCustomAction if it parses correctly.
  * @param action The generic action configuration.
- * @returns A FrigateCardCustomAction or null if it cannot be converted.
+ * @returns A AdvancedCameraCardCustomAction or null if it cannot be converted.
  */
 export function convertActionToCardCustomAction(
   action: unknown,
-): FrigateCardCustomAction | null {
+): AdvancedCameraCardCustomAction | null {
   if (!action) {
     return null;
   }
   // Parse a custom event as other things could generate ll-custom events that
-  // are not related to Frigate Card.
-  const parseResult = frigateCardCustomActionSchema.safeParse(action);
+  // are not related to Advanced Camera Card.
+  const parseResult = advancedCameraCardCustomActionSchema.safeParse(action);
   return parseResult.success ? parseResult.data : null;
 }
 
 export function createGeneralAction(
-  action: FrigateCardGeneralAction | FrigateCardUserSpecifiedView,
+  action: AdvancedCameraCardGeneralAction | AdvancedCameraCardUserSpecifiedView,
   options?: {
     cardID?: string;
   },
-): FrigateCardCustomAction {
+): AdvancedCameraCardCustomAction {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: action,
+    advanced_camera_card_action: action,
     ...(options?.cardID && { card_id: options.cardID }),
   };
 }
@@ -53,10 +56,10 @@ export function createCameraAction(
   options?: {
     cardID?: string;
   },
-): FrigateCardCustomAction {
+): AdvancedCameraCardCustomAction {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: action,
+    advanced_camera_card_action: action,
     camera: camera,
     ...(options?.cardID && { card_id: options.cardID }),
   };
@@ -68,10 +71,10 @@ export function createMediaPlayerAction(
   options?: {
     cardID?: string;
   },
-): FrigateCardCustomAction {
+): AdvancedCameraCardCustomAction {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'media_player',
+    advanced_camera_card_action: 'media_player',
     media_player: mediaPlayer,
     media_player_action: mediaPlayerAction,
     ...(options?.cardID && { card_id: options.cardID }),
@@ -83,10 +86,10 @@ export function createDisplayModeAction(
   options?: {
     cardID?: string;
   },
-): FrigateCardCustomAction {
+): AdvancedCameraCardCustomAction {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'display_mode_select',
+    advanced_camera_card_action: 'display_mode_select',
     display_mode: displayMode,
     ...(options?.cardID && { card_id: options.cardID }),
   };
@@ -97,10 +100,10 @@ export function createPTZControlsAction(
   options?: {
     cardID?: string;
   },
-): FrigateCardCustomAction {
+): AdvancedCameraCardCustomAction {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'ptz_controls',
+    advanced_camera_card_action: 'ptz_controls',
     enabled: enabled,
     ...(options?.cardID && { card_id: options.cardID }),
   };
@@ -115,7 +118,7 @@ export function createPTZAction(options?: {
 }): PTZActionConfig {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'ptz',
+    advanced_camera_card_action: 'ptz',
     ...(options?.cardID && { card_id: options.cardID }),
     ...(options?.ptzAction && { ptz_action: options.ptzAction }),
     ...(options?.ptzPhase && { ptz_phase: options.ptzPhase }),
@@ -133,7 +136,7 @@ export function createPTZDigitalAction(options?: {
 }): PTZDigitialActionConfig {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'ptz_digital',
+    advanced_camera_card_action: 'ptz_digital',
     ...(options?.cardID && { card_id: options.cardID }),
     ...(options?.ptzAction && { ptz_action: options.ptzAction }),
     ...(options?.ptzPhase && { ptz_phase: options.ptzPhase }),
@@ -151,7 +154,7 @@ export function createPTZMultiAction(options?: {
 }): PTZMultiActionConfig {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'ptz_multi',
+    advanced_camera_card_action: 'ptz_multi',
     ...(options?.cardID && { card_id: options.cardID }),
     ...(options?.ptzAction && { ptz_action: options.ptzAction }),
     ...(options?.ptzPhase && { ptz_phase: options.ptzPhase }),
@@ -169,7 +172,7 @@ export function createLogAction(
 ): LogActionConfig {
   return {
     action: 'fire-dom-event',
-    frigate_card_action: 'log',
+    advanced_camera_card_action: 'log',
     message: message,
     level: options?.level ?? 'info',
     ...(options?.cardID && { card_id: options.cardID }),
@@ -209,10 +212,12 @@ export function getActionConfigGivenAction(
  * @param config The action config in question.
  * @returns `true` if there's a real action defined, `false` otherwise.
  */
-export const frigateCardHasAction = (config?: ActionType | ActionType[]): boolean => {
+export const hasAction = (config?: ActionType | ActionType[]): boolean => {
   // See note above on 'ActionConfig vs ActionType' for why this cast is
   // necessary and harmless.
-  return arrayify(config).some((item) => hasAction(item as ActionConfig | undefined));
+  return arrayify(config).some((item) =>
+    customCardHasAction(item as ActionConfig | undefined),
+  );
 };
 
 /**

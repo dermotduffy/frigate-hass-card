@@ -42,16 +42,16 @@ import { TriggersManager } from '../src/card-controller/triggers-manager';
 import { ViewManager } from '../src/card-controller/view/view-manager';
 import {
   ActionsConfig,
+  AdvancedCameraCardCondition,
+  AdvancedCameraCardConfig,
+  AdvancedCameraCardCustomAction,
   CameraConfig,
-  FrigateCardCondition,
-  FrigateCardConfig,
-  FrigateCardCustomAction,
   PerformanceConfig,
-  RawFrigateCardConfig,
+  RawAdvancedCameraCardConfig,
+  advancedCameraCardConditionSchema,
+  advancedCameraCardConfigSchema,
+  advancedCameraCardCustomActionSchema,
   cameraConfigSchema,
-  frigateCardConditionSchema,
-  frigateCardConfigSchema,
-  frigateCardCustomActionSchema,
   performanceConfigSchema,
 } from '../src/config/types';
 import { CapabilitiesRaw, ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
@@ -65,9 +65,9 @@ import { View, ViewParameters } from '../src/view/view';
 
 export const createAction = (
   action: Record<string, unknown>,
-): FrigateCardCustomAction | null => {
-  const result = frigateCardCustomActionSchema.safeParse({
-    action: 'custom:frigate-card-action',
+): AdvancedCameraCardCustomAction | null => {
+  const result = advancedCameraCardCustomActionSchema.safeParse({
+    action: 'custom:advanced-camera-card-action',
     ...action,
   });
   return result.success ? result.data : null;
@@ -78,23 +78,25 @@ export const createCameraConfig = (config?: unknown): CameraConfig => {
 };
 
 export const createCondition = (
-  condition?: Partial<FrigateCardCondition>,
-): FrigateCardCondition => {
-  return frigateCardConditionSchema.parse(condition ?? {});
+  condition?: Partial<AdvancedCameraCardCondition>,
+): AdvancedCameraCardCondition => {
+  return advancedCameraCardConditionSchema.parse(condition ?? {});
 };
 
 export const createRawConfig = (
-  config?: Partial<RawFrigateCardConfig>,
-): RawFrigateCardConfig => {
+  config?: Partial<RawAdvancedCameraCardConfig>,
+): RawAdvancedCameraCardConfig => {
   return {
-    type: 'frigate-hass-card',
+    type: 'advanced-camera-card',
     cameras: [{}],
     ...config,
   };
 };
 
-export const createConfig = (config?: RawFrigateCardConfig): FrigateCardConfig => {
-  return frigateCardConfigSchema.parse(createRawConfig(config));
+export const createConfig = (
+  config?: RawAdvancedCameraCardConfig,
+): AdvancedCameraCardConfig => {
+  return advancedCameraCardConfigSchema.parse(createRawConfig(config));
 };
 
 export const createCamera = (
@@ -296,7 +298,7 @@ export const createMediaLoadedInfo = (
 export const createMediaLoadedInfoEvent = (
   mediaLoadedInfo?: MediaLoadedInfo,
 ): CustomEvent<MediaLoadedInfo> => {
-  return new CustomEvent('frigate-card:media:loaded', {
+  return new CustomEvent('advanced-camera-card:media:loaded', {
     detail: mediaLoadedInfo ?? createMediaLoadedInfo(),
     composed: true,
     bubbles: true,

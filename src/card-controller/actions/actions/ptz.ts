@@ -6,7 +6,7 @@ import {
   setInProgressForThisTarget,
   stopInProgressForThisTarget,
 } from '../utils/action-state';
-import { FrigateCardAction } from './base';
+import { AdvancedCameraCardAction } from './base';
 
 interface PTZContext {
   [cameraID: string]: {
@@ -20,7 +20,7 @@ declare module 'action' {
   }
 }
 
-export class PTZAction extends FrigateCardAction<PTZActionConfig> {
+export class PTZAction extends AdvancedCameraCardAction<PTZActionConfig> {
   protected _timer = new Timer();
 
   public async stop(): Promise<void> {

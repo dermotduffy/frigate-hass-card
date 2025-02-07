@@ -1,8 +1,8 @@
 import { CameraSelectActionConfig } from '../../../config/types';
 import { CardActionsAPI } from '../../types';
-import { FrigateCardAction } from './base';
+import { AdvancedCameraCardAction } from './base';
 
-export class CameraSelectAction extends FrigateCardAction<CameraSelectActionConfig> {
+export class CameraSelectAction extends AdvancedCameraCardAction<CameraSelectActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     const selectCameraID =
       this._action.camera ??

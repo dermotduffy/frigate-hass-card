@@ -1,8 +1,8 @@
 import { GeneralActionConfig } from '../../../config/types';
 import { CardActionsAPI } from '../../types';
-import { FrigateCardAction } from './base';
+import { AdvancedCameraCardAction } from './base';
 
-export class ScreenshotAction extends FrigateCardAction<GeneralActionConfig> {
+export class ScreenshotAction extends AdvancedCameraCardAction<GeneralActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await api.getDownloadManager().downloadScreenshot();
   }

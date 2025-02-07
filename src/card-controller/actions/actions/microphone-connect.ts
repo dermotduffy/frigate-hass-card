@@ -1,8 +1,8 @@
 import { GeneralActionConfig } from '../../../config/types';
 import { CardActionsAPI } from '../../types';
-import { FrigateCardAction } from './base';
+import { AdvancedCameraCardAction } from './base';
 
-export class MicrophoneConnectAction extends FrigateCardAction<GeneralActionConfig> {
+export class MicrophoneConnectAction extends AdvancedCameraCardAction<GeneralActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     await api.getMicrophoneManager().connect();
   }

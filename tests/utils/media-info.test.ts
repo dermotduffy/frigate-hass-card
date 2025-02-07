@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { FrigateCardMediaPlayer, MediaLoadedCapabilities } from '../../src/types';
+import { AdvancedCameraCardMediaPlayer, MediaLoadedCapabilities } from '../../src/types';
 import {
   createMediaLoadedInfo,
   dispatchExistingMediaLoadedInfoAsEvent,
@@ -14,7 +14,7 @@ import {
 import { createMediaLoadedInfo as createTestMediaLoadedInfo } from '../test-utils.js';
 
 const options = {
-  player: mock<FrigateCardMediaPlayer>(),
+  player: mock<AdvancedCameraCardMediaPlayer>(),
   capabilities: mock<MediaLoadedCapabilities>(),
 };
 
@@ -86,14 +86,14 @@ describe('createMediaLoadedInfo', () => {
 // @vitest-environment jsdom
 describe('dispatchMediaLoadedEvent', () => {
   const options = {
-    player: mock<FrigateCardMediaPlayer>(),
+    player: mock<AdvancedCameraCardMediaPlayer>(),
     capabilities: mock<MediaLoadedCapabilities>(),
   };
 
   it('should dispatch', () => {
     const handler = vi.fn();
     const div = document.createElement('div');
-    div.addEventListener('frigate-card:media:loaded', handler);
+    div.addEventListener('advanced-camera-card:media:loaded', handler);
 
     // Need to write readonly properties.
     const img = document.createElement('img');
@@ -115,7 +115,7 @@ describe('dispatchMediaLoadedEvent', () => {
   it('should not dispatch', () => {
     const handler = vi.fn();
     const div = document.createElement('div');
-    div.addEventListener('frigate-card:media:loaded', handler);
+    div.addEventListener('advanced-camera-card:media:loaded', handler);
 
     dispatchMediaLoadedEvent(div, div, options);
     expect(handler).not.toBeCalled();
@@ -127,7 +127,7 @@ describe('dispatchExistingMediaLoadedInfoAsEvent', () => {
   it('should dispatch', () => {
     const handler = vi.fn();
     const div = document.createElement('div');
-    div.addEventListener('frigate-card:media:loaded', handler);
+    div.addEventListener('advanced-camera-card:media:loaded', handler);
     const info = createTestMediaLoadedInfo();
 
     dispatchExistingMediaLoadedInfoAsEvent(div, info);
@@ -144,7 +144,7 @@ describe('dispatchMediaUnloadedEvent', () => {
   it('should dispatch', () => {
     const handler = vi.fn();
     const div = document.createElement('div');
-    div.addEventListener('frigate-card:media:unloaded', handler);
+    div.addEventListener('advanced-camera-card:media:unloaded', handler);
 
     dispatchMediaUnloadedEvent(div);
     expect(handler).toBeCalled();
@@ -156,7 +156,7 @@ describe('dispatchMediaVolumeChangeEvent', () => {
   it('should dispatch', () => {
     const handler = vi.fn();
     const div = document.createElement('div');
-    div.addEventListener('frigate-card:media:volumechange', handler);
+    div.addEventListener('advanced-camera-card:media:volumechange', handler);
 
     dispatchMediaVolumeChangeEvent(div);
     expect(handler).toBeCalled();
@@ -168,7 +168,7 @@ describe('dispatchMediaPlayEvent', () => {
   it('should dispatch', () => {
     const handler = vi.fn();
     const div = document.createElement('div');
-    div.addEventListener('frigate-card:media:play', handler);
+    div.addEventListener('advanced-camera-card:media:play', handler);
 
     dispatchMediaPlayEvent(div);
     expect(handler).toBeCalled();
@@ -180,7 +180,7 @@ describe('dispatchMediaPauseEvent', () => {
   it('should dispatch', () => {
     const handler = vi.fn();
     const div = document.createElement('div');
-    div.addEventListener('frigate-card:media:pause', handler);
+    div.addEventListener('advanced-camera-card:media:pause', handler);
 
     dispatchMediaPauseEvent(div);
     expect(handler).toBeCalled();

@@ -1,14 +1,14 @@
 import { expect, it, vi } from 'vitest';
-import { dispatchFrigateCardErrorEvent } from '../../../src/components-lib/message/dispatch';
-import { FrigateCardError } from '../../../src/types';
+import { dispatchAdvancedCameraCardErrorEvent } from '../../../src/components-lib/message/dispatch';
+import { AdvancedCameraCardError } from '../../../src/types';
 
 // @vitest-environment jsdom
 it('should ignore non-error', () => {
   const element = document.createElement('div');
   const handler = vi.fn();
-  element.addEventListener('frigate-card:message', handler);
+  element.addEventListener('advanced-camera-card:message', handler);
 
-  dispatchFrigateCardErrorEvent(element, 'NOT_FRIGATE_EVENT');
+  dispatchAdvancedCameraCardErrorEvent(element, 'NOT_ADVANCED_CAMERA_CARD_EVENT');
 
   expect(handler).not.toBeCalled();
 });
@@ -16,9 +16,9 @@ it('should ignore non-error', () => {
 it('should dispatch error', () => {
   const element = document.createElement('div');
   const handler = vi.fn();
-  element.addEventListener('frigate-card:message', handler);
+  element.addEventListener('advanced-camera-card:message', handler);
 
-  dispatchFrigateCardErrorEvent(element, new Error('ERROR'));
+  dispatchAdvancedCameraCardErrorEvent(element, new Error('ERROR'));
 
   expect(handler).toBeCalledWith(
     expect.objectContaining({
@@ -32,9 +32,12 @@ it('should dispatch error', () => {
 it('should dispatch error with context', () => {
   const element = document.createElement('div');
   const handler = vi.fn();
-  element.addEventListener('frigate-card:message', handler);
+  element.addEventListener('advanced-camera-card:message', handler);
 
-  dispatchFrigateCardErrorEvent(element, new FrigateCardError('ERROR', 'CONTEXT'));
+  dispatchAdvancedCameraCardErrorEvent(
+    element,
+    new AdvancedCameraCardError('ERROR', 'CONTEXT'),
+  );
 
   expect(handler).toBeCalledWith(
     expect.objectContaining({

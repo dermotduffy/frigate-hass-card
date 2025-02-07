@@ -23,7 +23,7 @@ export class MediaLoadedInfoManager {
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
-      `Frigate Card media load: `,
+      `Advanced Camera Card media load: `,
       mediaLoadedInfo,
     );
 

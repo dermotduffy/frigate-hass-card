@@ -23,7 +23,7 @@ challenging.
 ## Example configuration
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     live_provider: go2rtc

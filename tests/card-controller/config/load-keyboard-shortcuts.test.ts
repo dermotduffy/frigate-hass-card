@@ -67,7 +67,7 @@ describe('setKeyboardShortcutsFromConfig', () => {
             actions: [
               {
                 action: 'fire-dom-event',
-                frigate_card_action: 'ptz_multi',
+                advanced_camera_card_action: 'ptz_multi',
                 ptz_action: ptzAction,
                 ptz_phase: 'start',
               },
@@ -89,7 +89,7 @@ describe('setKeyboardShortcutsFromConfig', () => {
             actions: [
               {
                 action: 'fire-dom-event',
-                frigate_card_action: 'ptz_multi',
+                advanced_camera_card_action: 'ptz_multi',
                 ptz_action: ptzAction,
                 ptz_phase: 'stop',
               },
@@ -119,7 +119,7 @@ describe('setKeyboardShortcutsFromConfig', () => {
               actions: [
                 {
                   action: 'fire-dom-event',
-                  frigate_card_action: 'ptz_multi',
+                  advanced_camera_card_action: 'ptz_multi',
                 },
               ],
               conditions: [

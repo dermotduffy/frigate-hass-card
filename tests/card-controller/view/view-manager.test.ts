@@ -1,11 +1,20 @@
 import { ViewContext } from 'view';
 import { describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { QueryType } from '../../../src/camera-manager/types';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
+import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';
+import {
+  QueryExecutorOptions,
+  ViewModifier,
+} from '../../../src/card-controller/view/types';
 import { ViewManager } from '../../../src/card-controller/view/view-manager';
-import { FrigateCardView } from '../../../src/config/types';
+import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
+import { AdvancedCameraCardView } from '../../../src/config/types';
 import { ViewMedia } from '../../../src/view/media';
+import { EventMediaQueries } from '../../../src/view/media-queries';
 import { MediaQueriesResults } from '../../../src/view/media-queries-results';
+import { View } from '../../../src/view/view';
 import {
   createCameraManager,
   createCapabilities,
@@ -13,15 +22,6 @@ import {
   createStore,
   createView,
 } from '../../test-utils';
-import { ViewQueryExecutor } from '../../../src/card-controller/view/view-query-executor';
-import { EventMediaQueries } from '../../../src/view/media-queries';
-import { QueryType } from '../../../src/camera-manager/types';
-import { SetQueryViewModifier } from '../../../src/card-controller/view/modifiers/set-query';
-import { View } from '../../../src/view/view';
-import {
-  QueryExecutorOptions,
-  ViewModifier,
-} from '../../../src/card-controller/view/types';
 
 describe('should act correctly when view is set', () => {
   it('basic view', () => {
@@ -279,7 +279,7 @@ describe('isViewSupportedByCamera', () => {
     ['recordings' as const, false],
     ['timeline' as const, false],
     ['media' as const, false],
-  ])('%s', (viewName: FrigateCardView, expected: boolean) => {
+  ])('%s', (viewName: AdvancedCameraCardView, expected: boolean) => {
     const api = createCardAPI();
     vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
     vi.mocked(api.getCameraManager().getStore).mockReturnValue(

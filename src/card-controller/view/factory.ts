@@ -1,7 +1,7 @@
 import {
-  FRIGATE_CARD_VIEW_DEFAULT,
-  FrigateCardConfig,
-  FrigateCardView,
+  VIEW_DEFAULT,
+  AdvancedCameraCardConfig,
+  AdvancedCameraCardView,
   ViewDisplayMode,
 } from '../../config/types';
 import { localize } from '../../localize/localize';
@@ -26,7 +26,7 @@ export class ViewFactory {
 
     // Neither options.baseView.camera nor options.baseView.view are respected
     // here, since this is the default view / camera.
-    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1564
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/1564
 
     let cameraID: string | null = null;
     const viewName = options?.params?.view ?? config.view.default;
@@ -101,11 +101,8 @@ export class ViewFactory {
     }
 
     if (!this.isViewSupportedByCamera(cameraID, viewName)) {
-      if (
-        options?.failSafe &&
-        this.isViewSupportedByCamera(cameraID, FRIGATE_CARD_VIEW_DEFAULT)
-      ) {
-        viewName = FRIGATE_CARD_VIEW_DEFAULT;
+      if (options?.failSafe && this.isViewSupportedByCamera(cameraID, VIEW_DEFAULT)) {
+        viewName = VIEW_DEFAULT;
       } else {
         const capabilities = this._api
           .getCameraManager()
@@ -124,7 +121,7 @@ export class ViewFactory {
     const configuredDisplayMode = this._getDefaultDisplayModeForView(viewName, config);
     const displayMode =
       // Prioritize the configured display mode (if present).
-      // See: https://github.com/dermotduffy/frigate-hass-card/issues/1812
+      // See: https://github.com/dermotduffy/advanced-camera-card/issues/1812
       (viewName !== options?.baseView?.view ? configuredDisplayMode : null) ??
       options?.params?.displayMode ??
       options?.baseView?.displayMode ??
@@ -147,13 +144,16 @@ export class ViewFactory {
     return view;
   }
 
-  public isViewSupportedByCamera(cameraID: string, view: FrigateCardView): boolean {
+  public isViewSupportedByCamera(
+    cameraID: string,
+    view: AdvancedCameraCardView,
+  ): boolean {
     return !!getCameraIDsForViewName(this._api.getCameraManager(), view, cameraID).size;
   }
 
   protected _getDefaultDisplayModeForView(
-    viewName: FrigateCardView,
-    config: FrigateCardConfig,
+    viewName: AdvancedCameraCardView,
+    config: AdvancedCameraCardConfig,
   ): ViewDisplayMode | null {
     let mode: ViewDisplayMode | null = null;
     switch (viewName) {

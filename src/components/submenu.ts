@@ -13,10 +13,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { actionHandler } from '../action-handler-directive.js';
 import { MenuSubmenu, MenuSubmenuItem, MenuSubmenuSelect } from '../config/types.js';
 import submenuStyle from '../scss/submenu.scss';
-import {
-  frigateCardHasAction,
-  stopEventFromActivatingCardWideActions,
-} from '../utils/action.js';
+import { hasAction, stopEventFromActivatingCardWideActions } from '../utils/action.js';
 import { getEntityTitle, isHassDifferent } from '../utils/ha';
 import { getEntityStateTranslation } from '../utils/ha/entity-state-translation.js';
 import { EntityRegistryManager } from '../utils/ha/registry/entity/index.js';
@@ -25,12 +22,12 @@ import { Icon } from '../types.js';
 
 interface ExtendedMenuSubmenu extends MenuSubmenu {
   // An internal version of a submenu that allows entity-based submenus (for
-  // FrigateCardSubmenuSelect).
+  // AdvancedCameraCardSubmenuSelect).
   icon: string | Icon;
 }
 
-@customElement('frigate-card-submenu')
-export class FrigateCardSubmenu extends LitElement {
+@customElement('advanced-camera-card-submenu')
+export class AdvancedCameraCardSubmenu extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -57,15 +54,15 @@ export class FrigateCardSubmenu extends LitElement {
           ev.detail.config = item;
         }}
         .actionHandler=${actionHandler({
-          hasHold: frigateCardHasAction(item.hold_action),
-          hasDoubleClick: frigateCardHasAction(item.double_tap_action),
+          hasHold: hasAction(item.hold_action),
+          hasDoubleClick: hasAction(item.double_tap_action),
         })}
       >
         <span style="${style}">${title ?? ''}</span>
         ${item.subtitle
           ? html`<span slot="secondary" style="${style}">${item.subtitle}</span>`
           : ''}
-        <frigate-card-icon
+        <advanced-camera-card-icon
           slot="graphic"
           .hass=${this.hass}
           .icon=${{
@@ -73,7 +70,7 @@ export class FrigateCardSubmenu extends LitElement {
             entity: item.entity,
           }}
           style="${style}"
-        ></frigate-card-icon>
+        ></advanced-camera-card-icon>
       </mwc-list-item>
     `;
   }
@@ -90,7 +87,7 @@ export class FrigateCardSubmenu extends LitElement {
         @closed=${
           // Prevent the submenu closing from closing anything upstream (e.g.
           // selecting a submenu in the editor dialog should not close the
-          // editor, see https://github.com/dermotduffy/frigate-hass-card/issues/377).
+          // editor, see https://github.com/dermotduffy/advanced-camera-card/issues/377).
           (ev) => ev.stopPropagation()
         }
         @click=${(ev) => stopEventFromActivatingCardWideActions(ev)}
@@ -105,11 +102,11 @@ export class FrigateCardSubmenu extends LitElement {
             // propagation is forbidden by the @click handler on
             // <ha-button-menu>.
             allowPropagation: true,
-            hasHold: frigateCardHasAction(this.submenu.hold_action),
-            hasDoubleClick: frigateCardHasAction(this.submenu.double_tap_action),
+            hasHold: hasAction(this.submenu.hold_action),
+            hasDoubleClick: hasAction(this.submenu.double_tap_action),
           })}
         >
-          <frigate-card-icon
+          <advanced-camera-card-icon
             ?allow-override-non-active-styles=${true}
             style="${style}"
             .hass=${this.hass}
@@ -118,7 +115,7 @@ export class FrigateCardSubmenu extends LitElement {
                   icon: this.submenu.icon,
                 }
               : this.submenu.icon}
-          ></frigate-card-icon>
+          ></advanced-camera-card-icon>
         </ha-icon-button>
         ${items.map(this._renderItem.bind(this))}
       </ha-button-menu>
@@ -130,8 +127,8 @@ export class FrigateCardSubmenu extends LitElement {
   }
 }
 
-@customElement('frigate-card-submenu-select')
-export class FrigateCardSubmenuSelect extends LitElement {
+@customElement('advanced-camera-card-submenu-select')
+export class AdvancedCameraCardSubmenuSelect extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
 
@@ -220,7 +217,7 @@ export class FrigateCardSubmenuSelect extends LitElement {
         fallback: 'mdi:format-list-bulleted',
       },
 
-      type: 'custom:frigate-card-menu-submenu',
+      type: 'custom:advanced-camera-card-menu-submenu',
       items: [],
     };
 
@@ -261,16 +258,16 @@ export class FrigateCardSubmenuSelect extends LitElement {
   }
 
   protected render(): TemplateResult {
-    return html` <frigate-card-submenu
+    return html` <advanced-camera-card-submenu
       .hass=${this.hass}
       .submenu=${this._generatedSubmenu}
-    ></frigate-card-submenu>`;
+    ></advanced-camera-card-submenu>`;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-submenu': FrigateCardSubmenu;
-    'frigate-card-submenu-select': FrigateCardSubmenuSelect;
+    'advanced-camera-card-submenu': AdvancedCameraCardSubmenu;
+    'advanced-camera-card-submenu-select': AdvancedCameraCardSubmenuSelect;
   }
 }

@@ -13,9 +13,9 @@ import { ConditionsManagerEpoch } from '../card-controller/conditions-manager.js
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import {
+  AdvancedCameraCardConfig,
   CardWideConfig,
-  FrigateCardConfig,
-  RawFrigateCardConfig,
+  RawAdvancedCameraCardConfig,
 } from '../config/types.js';
 import viewsStyle from '../scss/views.scss';
 import { ExtendedHomeAssistant } from '../types.js';
@@ -27,8 +27,8 @@ import './surround.js';
 // something goes wrong.
 import './diagnostics.js';
 
-@customElement('frigate-card-views')
-export class FrigateCardViews extends LitElement {
+@customElement('advanced-camera-card-views')
+export class AdvancedCameraCardViews extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -39,16 +39,16 @@ export class FrigateCardViews extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
-  public nonOverriddenConfig?: FrigateCardConfig;
+  public nonOverriddenConfig?: AdvancedCameraCardConfig;
 
   @property({ attribute: false })
-  public overriddenConfig?: FrigateCardConfig;
+  public overriddenConfig?: AdvancedCameraCardConfig;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
 
   @property({ attribute: false })
-  public rawConfig?: RawFrigateCardConfig;
+  public rawConfig?: RawAdvancedCameraCardConfig;
 
   @property({ attribute: false })
   public resolvedMediaCache?: ResolvedMediaCache;
@@ -101,11 +101,11 @@ export class FrigateCardViews extends LitElement {
     // > v5.0.0-beta1 .
     //
     // These updates are necessary in these cases:
-    // - conditionState: Required to let `frigate-card-live` calculate its own
+    // - conditionState: Required to let `advanced-camera-card-live` calculate its own
     //   overrides.
     // - hass: Required for anything that needs to sign URLs. Of note is
     //   anything that renders an image (e.g. a thumbnail -- almost everything,
-    //   or the main `frigate-card-image` view).
+    //   or the main `advanced-camera-card-image` view).
     //
     // It should instead be possible to pass conditionState to live only (every
     // update required), and pass hass only once / 5 minutes (see
@@ -165,7 +165,7 @@ export class FrigateCardViews extends LitElement {
       ? this.cameraManager?.getStore().getCameraConfig(view.camera) ?? null
       : null;
 
-    return html` <frigate-card-surround
+    return html` <advanced-camera-card-surround
       class="${classMap(overallClasses)}"
       .hass=${this.hass}
       .viewManagerEpoch=${this.viewManagerEpoch}
@@ -175,28 +175,28 @@ export class FrigateCardViews extends LitElement {
       .cardWideConfig=${this.cardWideConfig}
     >
       ${!this.hide && view?.is('image') && cameraConfig
-        ? html` <frigate-card-image
+        ? html` <advanced-camera-card-image
             .imageConfig=${this.overriddenConfig.image}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
             .cameraManager=${this.cameraManager}
           >
-          </frigate-card-image>`
+          </advanced-camera-card-image>`
         : ``}
       ${!this.hide && view?.isGalleryView()
-        ? html` <frigate-card-gallery
+        ? html` <advanced-camera-card-gallery
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .galleryConfig=${this.overriddenConfig.media_gallery}
             .cameraManager=${this.cameraManager}
             .cardWideConfig=${this.cardWideConfig}
           >
-          </frigate-card-gallery>`
+          </advanced-camera-card-gallery>`
         : ``}
       ${!this.hide && view?.isViewerView()
         ? html`
-            <frigate-card-viewer
+            <advanced-camera-card-viewer
               .hass=${this.hass}
               .viewManagerEpoch=${this.viewManagerEpoch}
               .viewerConfig=${this.overriddenConfig.media_viewer}
@@ -204,37 +204,37 @@ export class FrigateCardViews extends LitElement {
               .cameraManager=${this.cameraManager}
               .cardWideConfig=${this.cardWideConfig}
             >
-            </frigate-card-viewer>
+            </advanced-camera-card-viewer>
           `
         : ``}
       ${!this.hide && view?.is('timeline')
-        ? html` <frigate-card-timeline
+        ? html` <advanced-camera-card-timeline
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .timelineConfig=${this.overriddenConfig.timeline}
             .cameraManager=${this.cameraManager}
             .cardWideConfig=${this.cardWideConfig}
           >
-          </frigate-card-timeline>`
+          </advanced-camera-card-timeline>`
         : ``}
       ${!this.hide && view?.is('diagnostics')
-        ? html` <frigate-card-diagnostics
+        ? html` <advanced-camera-card-diagnostics
             .hass=${this.hass}
             .rawConfig=${this.rawConfig}
             .deviceRegistryManager=${this.deviceRegistryManager}
           >
-          </frigate-card-diagnostics>`
+          </advanced-camera-card-diagnostics>`
         : ``}
       ${
         // Note: Subtle difference in condition below vs the other views in order
         // to always render the live view for live.preload mode.
 
-        // Note: <frigate-card-live> uses nonOverriddenConfig rather than the
+        // Note: <advanced-camera-card-live> uses nonOverriddenConfig rather than the
         // overriden config as it does it's own overriding as part of the camera
         // carousel.
         this._shouldLivePreload() || (!this.hide && view?.is('live'))
           ? html`
-              <frigate-card-live
+              <advanced-camera-card-live
                 .hass=${this.hass}
                 .viewManagerEpoch=${this.viewManagerEpoch}
                 .nonOverriddenLiveConfig=${this.nonOverriddenConfig.live}
@@ -247,11 +247,11 @@ export class FrigateCardViews extends LitElement {
                 .triggeredCameraIDs=${this.triggeredCameraIDs}
                 class="${classMap(liveClasses)}"
               >
-              </frigate-card-live>
+              </advanced-camera-card-live>
             `
           : ``
       }
-    </frigate-card-surround>`;
+    </advanced-camera-card-surround>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -261,6 +261,6 @@ export class FrigateCardViews extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-views': FrigateCardViews;
+    'advanced-camera-card-views': AdvancedCameraCardViews;
   }
 }

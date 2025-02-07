@@ -1,7 +1,7 @@
 import { LovelaceCardEditor } from '@dermotduffy/custom-card-helpers';
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
-import { FrigateCardConfig } from '../config/types';
+import { AdvancedCameraCardConfig } from '../config/types';
 import {
   createDeviceRegistryCache,
   DeviceRegistryManager,
@@ -177,7 +177,7 @@ export class CardController
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     await import('../editor.js');
-    return document.createElement('frigate-card-editor');
+    return document.createElement('advanced-camera-card-editor');
   }
 
   public getConfigManager(): ConfigManager {
@@ -255,7 +255,7 @@ export class CardController
     return this._statusBarItemManager;
   }
 
-  public static getStubConfig(entities: string[]): FrigateCardConfig {
+  public static getStubConfig(entities: string[]): AdvancedCameraCardConfig {
     const cameraEntity = entities.find((element) => element.startsWith('camera.'));
     return {
       cameras: [
@@ -266,7 +266,7 @@ export class CardController
       // Need to use 'as unknown' to convince Typescript that this really isn't a
       // mistake, despite the miniscule size of the configuration vs the full type
       // description.
-    } as unknown as FrigateCardConfig;
+    } as unknown as AdvancedCameraCardConfig;
   }
 
   public getStyleManager(): StyleManager {

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StyleManager } from '../../src/card-controller/style-manager';
-import { FrigateCardView, ThemeName } from '../../src/config/types';
+import { AdvancedCameraCardView, ThemeName } from '../../src/config/types';
 import { createCardAPI, createConfig, createView } from '../test-utils';
 
 // @vitest-environment jsdom
@@ -57,15 +57,15 @@ describe('StyleManager', () => {
 
       manager.setExpandedMode();
 
-      expect(element.style.getPropertyValue('--frigate-card-expand-aspect-ratio')).toBe(
-        'unset',
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-aspect-ratio'),
+      ).toBe('unset');
+      expect(element.style.getPropertyValue('--advanced-camera-card-expand-width')).toBe(
+        'var(--advanced-camera-card-expand-max-width)',
       );
-      expect(element.style.getPropertyValue('--frigate-card-expand-width')).toBe(
-        'var(--frigate-card-expand-max-width)',
-      );
-      expect(element.style.getPropertyValue('--frigate-card-expand-height')).toBe(
-        'var(--frigate-card-expand-max-height)',
-      );
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-height'),
+      ).toBe('var(--advanced-camera-card-expand-max-height)');
     });
 
     it('with view but without media', () => {
@@ -79,13 +79,15 @@ describe('StyleManager', () => {
 
       manager.setExpandedMode();
 
-      expect(element.style.getPropertyValue('--frigate-card-expand-aspect-ratio')).toBe(
-        'unset',
-      );
-      expect(element.style.getPropertyValue('--frigate-card-expand-width')).toBe('none');
-      expect(element.style.getPropertyValue('--frigate-card-expand-height')).toBe(
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-aspect-ratio'),
+      ).toBe('unset');
+      expect(element.style.getPropertyValue('--advanced-camera-card-expand-width')).toBe(
         'none',
       );
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-height'),
+      ).toBe('none');
     });
 
     it('with view and media', () => {
@@ -102,13 +104,15 @@ describe('StyleManager', () => {
 
       manager.setExpandedMode();
 
-      expect(element.style.getPropertyValue('--frigate-card-expand-aspect-ratio')).toBe(
-        '800 / 600',
-      );
-      expect(element.style.getPropertyValue('--frigate-card-expand-width')).toBe('none');
-      expect(element.style.getPropertyValue('--frigate-card-expand-height')).toBe(
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-aspect-ratio'),
+      ).toBe('800 / 600');
+      expect(element.style.getPropertyValue('--advanced-camera-card-expand-width')).toBe(
         'none',
       );
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-height'),
+      ).toBe('none');
     });
 
     it('with view and grid display mode', () => {
@@ -125,15 +129,15 @@ describe('StyleManager', () => {
 
       manager.setExpandedMode();
 
-      expect(element.style.getPropertyValue('--frigate-card-expand-aspect-ratio')).toBe(
-        '800 / 600',
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-aspect-ratio'),
+      ).toBe('800 / 600');
+      expect(element.style.getPropertyValue('--advanced-camera-card-expand-width')).toBe(
+        'var(--advanced-camera-card-expand-max-width)',
       );
-      expect(element.style.getPropertyValue('--frigate-card-expand-width')).toBe(
-        'var(--frigate-card-expand-max-width)',
-      );
-      expect(element.style.getPropertyValue('--frigate-card-expand-height')).toBe(
-        'var(--frigate-card-expand-max-height)',
-      );
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-height'),
+      ).toBe('var(--advanced-camera-card-expand-max-height)');
     });
   });
 
@@ -146,8 +150,12 @@ describe('StyleManager', () => {
 
       manager.updateFromConfig();
 
-      expect(element.style.getPropertyValue('--frigate-card-max-height')).toBeFalsy();
-      expect(element.style.getPropertyValue('--frigate-card-expand-height')).toBeFalsy();
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-max-height'),
+      ).toBeFalsy();
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-expand-height'),
+      ).toBeFalsy();
     });
 
     it('with a config', () => {
@@ -165,7 +173,9 @@ describe('StyleManager', () => {
 
       manager.updateFromConfig();
 
-      expect(element.style.getPropertyValue('--frigate-card-height')).toBe('800px');
+      expect(element.style.getPropertyValue('--advanced-camera-card-height')).toBe(
+        '800px',
+      );
     });
   });
 
@@ -180,10 +190,10 @@ describe('StyleManager', () => {
       manager.updateFromConfig();
 
       expect(
-        element.style.getPropertyValue('--frigate-card-css-box-shadow'),
+        element.style.getPropertyValue('--advanced-camera-card-css-box-shadow'),
       ).toBeFalsy();
       expect(
-        element.style.getPropertyValue('--frigate-card-css-border-radius'),
+        element.style.getPropertyValue('--advanced-camera-card-css-border-radius'),
       ).toBeFalsy();
     });
 
@@ -205,11 +215,11 @@ describe('StyleManager', () => {
 
       manager.updateFromConfig();
 
-      expect(element.style.getPropertyValue('--frigate-card-css-box-shadow')).toEqual(
-        'none',
-      );
       expect(
-        element.style.getPropertyValue('--frigate-card-css-border-radius'),
+        element.style.getPropertyValue('--advanced-camera-card-css-box-shadow'),
+      ).toEqual('none');
+      expect(
+        element.style.getPropertyValue('--advanced-camera-card-css-border-radius'),
       ).toBeFalsy();
     });
   });
@@ -277,7 +287,7 @@ describe('StyleManager', () => {
         ['recording' as const],
         ['snapshot' as const],
         ['timeline' as const],
-      ])('%s', (viewName: FrigateCardView) => {
+      ])('%s', (viewName: AdvancedCameraCardView) => {
         const api = createCardAPI();
         const view = createView({ view: viewName });
         vi.mocked(api.getViewManager().getView).mockReturnValue(view);
@@ -297,7 +307,7 @@ describe('StyleManager', () => {
     describe('should be enforced when dynamic in certain views', () => {
       it.each([['clips' as const], ['recordings' as const], ['snapshots' as const]])(
         '%s',
-        (viewName: FrigateCardView) => {
+        (viewName: AdvancedCameraCardView) => {
           const api = createCardAPI();
           const view = createView({ view: viewName });
           vi.mocked(api.getViewManager().getView).mockReturnValue(view);
@@ -318,7 +328,7 @@ describe('StyleManager', () => {
     describe('should use media dimensions in dynamic', () => {
       it.each([['clips' as const], ['recordings' as const], ['snapshots' as const]])(
         '%s',
-        (viewName: FrigateCardView) => {
+        (viewName: AdvancedCameraCardView) => {
           const api = createCardAPI();
           const view = createView({ view: viewName });
           vi.mocked(api.getViewManager().getView).mockReturnValue(view);

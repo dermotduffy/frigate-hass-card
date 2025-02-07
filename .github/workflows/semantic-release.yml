@@ -50,7 +50,7 @@ jobs:
         with:
           type: zip
           path: dist
-          filename: frigate-hass-card.zip
+          filename: advanced-camera-card.zip
       - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

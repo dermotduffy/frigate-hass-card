@@ -14,7 +14,7 @@
   // keeping the background-color within the radius.
   border-radius: var(--ha-card-border-radius, 4px);
 
-  height: var(--frigate-card-height);
+  height: var(--advanced-camera-card-height);
   min-height: 100px;
 
   // Ensure all clicks at the top level work.
@@ -23,16 +23,16 @@
   // The standard HA header is 56 pixels tall, so that much off the top (header)
   // and bottom (to maintain center), before doing the calculation of
   // max-height. This matters on small mobile devices in landscape orientation.
-  --frigate-card-expand-max-height: calc((100vh - (2 * 56px)) * 0.85);
-  --frigate-card-expand-max-width: 85vw;
-  --frigate-card-expand-width: none;
-  --frigate-card-expand-height: none;
-  --frigate-card-expand-aspect-ratio: unset;
+  --advanced-camera-card-expand-max-height: calc((100vh - (2 * 56px)) * 0.85);
+  --advanced-camera-card-expand-max-width: 85vw;
+  --advanced-camera-card-expand-width: none;
+  --advanced-camera-card-expand-height: none;
+  --advanced-camera-card-expand-aspect-ratio: unset;
 
-  --frigate-card-height: auto;
+  --advanced-camera-card-height: auto;
 }
 
-frigate-card-loading {
+advanced-camera-card-loading {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -47,13 +47,13 @@ frigate-card-loading {
   // If the "Kiosk Mode" (https://github.com/maykar/kiosk-mode) plugin is
   // installed, the --kiosk-header-height variable will be authoritative
   // instead.
-  // See: https://github.com/dermotduffy/frigate-hass-card/issues/1762
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/1762
   height: calc(100vh - var(--kiosk-header-height, var(--header-height)));
 }
 :host([panel][casted]) {
   // Card always extends to the full height in panel mode when casting (there is
   // no header).
-  // See: https://github.com/dermotduffy/frigate-hass-card/issues/1746
+  // See: https://github.com/dermotduffy/advanced-camera-card/issues/1746
   height: 100%;
 }
 
@@ -143,11 +143,11 @@ ha-card {
 }
 
 :host(:fullscreen) div.main,
-:host(:fullscreen) frigate-card-menu {
+:host(:fullscreen) advanced-camera-card-menu {
   @include fullscreen-no-rounded-corners;
 }
 :host(:-webkit-full-screen) div.main,
-:host(:-webkit-full-screen) frigate-card-menu {
+:host(:-webkit-full-screen) advanced-camera-card-menu {
   @include fullscreen-no-rounded-corners;
 }
 
@@ -159,11 +159,11 @@ web-dialog {
   --dialog-padding: 0px;
   --dialog-container-padding: 0px;
 
-  --dialog-max-height: var(--frigate-card-expand-max-height);
-  --dialog-max-width: var(--frigate-card-expand-max-width);
+  --dialog-max-height: var(--advanced-camera-card-expand-max-height);
+  --dialog-max-width: var(--advanced-camera-card-expand-max-width);
 
-  --dialog-width: var(--frigate-card-expand-width);
-  --dialog-height: var(--frigate-card-expand-height);
+  --dialog-width: var(--advanced-camera-card-expand-width);
+  --dialog-height: var(--advanced-camera-card-expand-height);
 
   // Allow submenus to flow outside the edge of the dialog.
   --dialog-overflow-x: visible;
@@ -174,7 +174,7 @@ web-dialog {
 }
 
 web-dialog::part(dialog) {
-  aspect-ratio: var(--frigate-card-expand-aspect-ratio);
+  aspect-ratio: var(--advanced-camera-card-expand-aspect-ratio);
 
   // Fixes to render the dialog correctly in Safari.
   border-radius: 0px;
@@ -203,16 +203,18 @@ web-dialog::part(dialog) {
  * Menu hover styles
  *******************/
 
-frigate-card-menu {
+advanced-camera-card-menu {
   z-index: 2;
 }
 
-frigate-card-menu[data-style*='hover'] {
+advanced-camera-card-menu[data-style*='hover'] {
   transition: opacity 0.5s ease;
   opacity: 0;
 }
-frigate-card-menu[data-style*='hover']:hover,
-ha-card:hover > frigate-card-overlay > frigate-card-menu[data-style='hover-card'] {
+advanced-camera-card-menu[data-style*='hover']:hover,
+ha-card:hover
+  > advanced-camera-card-overlay
+  > advanced-camera-card-menu[data-style='hover-card'] {
   opacity: 1;
 }
 
@@ -220,15 +222,17 @@ ha-card:hover > frigate-card-overlay > frigate-card-menu[data-style='hover-card'
  * Status bar hover styles
  *************************/
 
-frigate-card-status-bar {
+advanced-camera-card-status-bar {
   z-index: 1;
 }
 
-frigate-card-status-bar[data-style*='hover'] {
+advanced-camera-card-status-bar[data-style*='hover'] {
   transition: opacity 0.5s ease;
   opacity: 0;
 }
-frigate-card-status-bar[data-style*='hover']:hover,
-ha-card:hover > frigate-card-overlay > frigate-card-status-bar[data-style='hover-card'] {
+advanced-camera-card-status-bar[data-style*='hover']:hover,
+ha-card:hover
+  > advanced-camera-card-overlay
+  > advanced-camera-card-status-bar[data-style='hover-card'] {
   opacity: 1;
 }

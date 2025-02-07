@@ -1,5 +1,5 @@
 import isEqual from 'lodash-es/isEqual';
-import { FrigateCardConfig } from '../config/types';
+import { AdvancedCameraCardConfig } from '../config/types';
 import { createGeneralAction } from '../utils/action';
 import { isActionAllowedBasedOnInteractionState } from '../utils/interaction-mode';
 import { Timer } from '../utils/timer';
@@ -17,7 +17,7 @@ export class DefaultManager {
   }
 
   public async initializeIfNecessary(
-    previousConfig: FrigateCardConfig | null,
+    previousConfig: AdvancedCameraCardConfig | null,
   ): Promise<void> {
     if (
       !isEqual(

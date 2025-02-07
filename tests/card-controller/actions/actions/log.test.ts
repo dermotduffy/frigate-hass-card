@@ -12,7 +12,7 @@ it('should handle log action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'log',
+      advanced_camera_card_action: 'log',
       message: 'Hello, world!',
       level: 'warn',
     },

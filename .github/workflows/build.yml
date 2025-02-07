@@ -49,7 +49,7 @@ jobs:
       - name: Upload javascript
         uses: actions/upload-artifact@v4
         with:
-          name: frigate-hass-card
+          name: advanced-camera-card
           path: dist/*.js
 
       # When this issue is fixed, it would be useful to upload visualizations:
@@ -57,5 +57,5 @@ jobs:
       # - name: Upload visualizations
       #   uses: actions/upload-artifact@v4
       #   with:
-      #     name: frigate-hass-card
+      #     name: advanced-camera-card
       #     path: visualizations/*.html

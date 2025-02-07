@@ -2,7 +2,7 @@ import { HomeAssistant } from '@dermotduffy/custom-card-helpers';
 import { MessageBase } from 'home-assistant-js-websocket';
 import { ZodSchema } from 'zod';
 import { localize } from '../../localize/localize';
-import { FrigateCardError } from '../../types';
+import { AdvancedCameraCardError } from '../../types';
 import { getParseErrorKeys } from '../zod';
 
 /**
@@ -24,7 +24,7 @@ export async function homeAssistantWSRequest<T>(
     response = await hass.callWS<T>(request);
   } catch (e) {
     if (!(e instanceof Error)) {
-      throw new FrigateCardError(localize('error.failed_response'), {
+      throw new AdvancedCameraCardError(localize('error.failed_response'), {
         request: request,
         response: e,
       });
@@ -33,17 +33,17 @@ export async function homeAssistantWSRequest<T>(
   }
 
   if (!response) {
-    throw new FrigateCardError(localize('error.empty_response'), {
+    throw new AdvancedCameraCardError(localize('error.empty_response'), {
       request: request,
     });
   }
-  // Some endpoints on the integration pass through JSON directly from Frigate
-  // These end up wrapped in a string and must be unwrapped first
+  // Some endpoints in Home Assistant pass JSON directly though, these end up
+  // wrapped in a string and must be unwrapped first.
   const parseResult = passthrough
     ? schema.safeParse(JSON.parse(response))
     : schema.safeParse(response);
   if (!parseResult.success) {
-    throw new FrigateCardError(localize('error.invalid_response'), {
+    throw new AdvancedCameraCardError(localize('error.invalid_response'), {
       request: request,
       response: response,
       invalid_keys: getParseErrorKeys<T>(parseResult.error),

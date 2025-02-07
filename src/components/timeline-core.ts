@@ -34,17 +34,17 @@ import { convertRangeToCacheFriendlyTimes } from '../camera-manager/utils/range-
 import { MergeContextViewModifier } from '../card-controller/view/modifiers/merge-context';
 import { ViewManagerEpoch } from '../card-controller/view/types';
 import {
-  FrigateCardTimelineItem,
+  AdvancedCameraCardTimelineItem,
   TimelineDataSource,
 } from '../components-lib/timeline-source';
 import {
+  AdvancedCameraCardView,
   CameraConfig,
   CardWideConfig,
-  FrigateCardView,
   ThumbnailsControlBaseConfig,
   TimelineCoreConfig,
   TimelinePanMode,
-  frigateCardConfigDefaults,
+  configDefaults,
 } from '../config/types';
 import { localize } from '../localize/localize';
 import timelineCoreStyle from '../scss/timeline-core.scss';
@@ -52,7 +52,7 @@ import { ExtendedHomeAssistant } from '../types';
 import { stopEventFromActivatingCardWideActions } from '../utils/action';
 import {
   contentsChanged,
-  dispatchFrigateCardEvent,
+  dispatchAdvancedCameraCardEvent,
   formatDateAndTime,
   isHoverableDevice,
   isTruthy,
@@ -73,11 +73,11 @@ import {
 import { MediaQueriesResults } from '../view/media-queries-results';
 import { mergeViewContext } from '../view/view';
 import './date-picker.js';
-import { DatePickerEvent, FrigateCardDatePicker } from './date-picker.js';
+import { AdvancedCameraCardDatePicker, DatePickerEvent } from './date-picker.js';
 import './icon';
 import './thumbnail.js';
 
-interface FrigateCardGroupData {
+interface AdvancedCameraCardGroupData {
   id: string;
   content: string;
 }
@@ -123,8 +123,8 @@ const TIMELINE_TARGET_BAR_ID = 'target_bar';
  * A simgple thumbnail wrapper class for use in the timeline where Lit data
  * bindings are not available.
  */
-@customElement('frigate-card-timeline-thumbnail')
-export class FrigateCardTimelineThumbnail extends LitElement {
+@customElement('advanced-camera-card-timeline-thumbnail')
+export class AdvancedCameraCardTimelineThumbnail extends LitElement {
   @property({ attribute: true })
   public item?: IdType;
 
@@ -153,11 +153,14 @@ export class FrigateCardTimelineThumbnail extends LitElement {
       item: this.item,
     };
     this.dispatchEvent(
-      new ThumbnailDataRequestEvent(`frigate-card:timeline:thumbnail-data-request`, {
-        composed: true,
-        bubbles: true,
-        detail: dataRequest,
-      }),
+      new ThumbnailDataRequestEvent(
+        `advanced-camera-card:timeline:thumbnail-data-request`,
+        {
+          composed: true,
+          bubbles: true,
+          detail: dataRequest,
+        },
+      ),
     );
 
     if (
@@ -170,19 +173,19 @@ export class FrigateCardTimelineThumbnail extends LitElement {
       return html``;
     }
 
-    return html` <frigate-card-thumbnail
+    return html` <advanced-camera-card-thumbnail
       .hass=${dataRequest.hass}
       .cameraManager=${dataRequest.cameraManager}
       .media=${dataRequest.media}
       .viewManagerEpoch=${dataRequest.viewManagerEpoch}
       ?details=${this.details}
     >
-    </frigate-card-thumbnail>`;
+    </advanced-camera-card-thumbnail>`;
   }
 }
 
-@customElement('frigate-card-timeline-core')
-export class FrigateCardTimelineCore extends LitElement {
+@customElement('advanced-camera-card-timeline-core')
+export class AdvancedCameraCardTimelineCore extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -219,7 +222,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
   protected _targetBarVisible = false;
 
-  protected _refDatePicker: Ref<FrigateCardDatePicker> = createRef();
+  protected _refDatePicker: Ref<AdvancedCameraCardDatePicker> = createRef();
   protected _refTimeline: Ref<HTMLElement> = createRef();
   protected _timeline?: ExtendedTimeline;
 
@@ -256,11 +259,11 @@ export class FrigateCardTimelineCore extends LitElement {
     // Note that changes to attributes here must be mirrored in the xss
     // whitelist in `_getOptions()` .
     return `
-      <frigate-card-timeline-thumbnail
+      <advanced-camera-card-timeline-thumbnail
         item='${item.id}'
         ${this.thumbnailConfig?.show_details ? 'details' : ''}
       >
-      </frigate-card-timeline-thumbnail>`;
+      </advanced-camera-card-timeline-thumbnail>`;
   }
 
   protected _handleThumbnailDataRequest(request: ThumbnailDataRequestEvent): void {
@@ -302,7 +305,7 @@ export class FrigateCardTimelineCore extends LitElement {
             : 'mdi:camera-lock';
 
     return html` <div
-      @frigate-card:timeline:thumbnail-data-request=${this._handleThumbnailDataRequest.bind(
+      @advanced-camera-card:timeline:thumbnail-data-request=${this._handleThumbnailDataRequest.bind(
         this,
       )}
       class="timeline"
@@ -310,7 +313,7 @@ export class FrigateCardTimelineCore extends LitElement {
     >
       <div class="timeline-tools">
         ${this._shouldSupportSeeking()
-          ? html` <frigate-card-icon
+          ? html` <advanced-camera-card-icon
               .icon=${{ icon: panIcon }}
               @click=${() => {
                 this._panMode =
@@ -325,17 +328,19 @@ export class FrigateCardTimelineCore extends LitElement {
               aria-label="${panTitle}"
               title="${panTitle}"
             >
-            </frigate-card-icon>`
+            </advanced-camera-card-icon>`
           : ''}
-        <frigate-card-date-picker
+        <advanced-camera-card-date-picker
           ${ref(this._refDatePicker)}
-          @frigate-card:date-picker:change=${(ev: CustomEvent<DatePickerEvent>) => {
+          @advanced-camera-card:date-picker:change=${(
+            ev: CustomEvent<DatePickerEvent>,
+          ) => {
             if (ev.detail.date) {
               this._timeline?.moveTo(ev.detail.date);
             }
           }}
         >
-        </frigate-card-date-picker>
+        </advanced-camera-card-date-picker>
       </div>
     </div>`;
   }
@@ -498,7 +503,7 @@ export class FrigateCardTimelineCore extends LitElement {
       newResults = results;
     }
 
-    const desiredView: FrigateCardView = this.mini
+    const desiredView: AdvancedCameraCardView = this.mini
       ? targetTime >= new Date()
         ? 'live'
         : 'media'
@@ -629,7 +634,7 @@ export class FrigateCardTimelineCore extends LitElement {
       }
     }
 
-    dispatchFrigateCardEvent(this, `thumbnails:${drawerAction}`);
+    dispatchAdvancedCameraCardEvent(this, `thumbnails:${drawerAction}`);
 
     this._ignoreClick = false;
   }
@@ -726,7 +731,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * @returns The dataset.
    */
   protected _getGroups(): DataGroupCollectionType {
-    const groups: FrigateCardGroupData[] = [];
+    const groups: AdvancedCameraCardGroupData[] = [];
     (this.cameraIDs ?? []).forEach((cameraID: string) => {
       if (!this.hass || !this.cameraManager) {
         return;
@@ -789,10 +794,7 @@ export class FrigateCardTimelineCore extends LitElement {
    * Get the configured window length in seconds.
    */
   protected _getConfiguredWindowSeconds(): number {
-    return (
-      this.timelineConfig?.window_seconds ??
-      frigateCardConfigDefaults.timeline.window_seconds
-    );
+    return this.timelineConfig?.window_seconds ?? configDefaults.timeline.window_seconds;
   }
 
   /**
@@ -862,8 +864,8 @@ export class FrigateCardTimelineCore extends LitElement {
 
             clusterCriteria: (first: TimelineItem, second: TimelineItem): boolean => {
               const selectedIDs = this._getAllSelectedMediaIDsFromView();
-              const firstMedia = (<FrigateCardTimelineItem>first).media;
-              const secondMedia = (<FrigateCardTimelineItem>second).media;
+              const firstMedia = (<AdvancedCameraCardTimelineItem>first).media;
+              const secondMedia = (<AdvancedCameraCardTimelineItem>second).media;
 
               // Never include the currently selected item in a cluster, and
               // never group different object types together (e.g. person and
@@ -909,7 +911,7 @@ export class FrigateCardTimelineCore extends LitElement {
         disabled: false,
         filterOptions: {
           whiteList: {
-            'frigate-card-timeline-thumbnail': ['details', 'item'],
+            'advanced-camera-card-timeline-thumbnail': ['details', 'item'],
             div: ['title'],
             span: ['style'],
           },
@@ -1117,11 +1119,11 @@ export class FrigateCardTimelineCore extends LitElement {
     if (changedProps.has('thumbnailConfig')) {
       if (this.thumbnailConfig) {
         this.style.setProperty(
-          '--frigate-card-thumbnail-size',
+          '--advanced-camera-card-thumbnail-size',
           `${this.thumbnailConfig.size}px`,
         );
       } else {
-        this.style.removeProperty('--frigate-card-thumbnail-size');
+        this.style.removeProperty('--advanced-camera-card-thumbnail-size');
       }
     }
 
@@ -1248,7 +1250,7 @@ export class FrigateCardTimelineCore extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-timeline-thumbnail': FrigateCardTimelineThumbnail;
-    'frigate-card-timeline-core': FrigateCardTimelineCore;
+    'advanced-camera-card-timeline-thumbnail': AdvancedCameraCardTimelineThumbnail;
+    'advanced-camera-card-timeline-core': AdvancedCameraCardTimelineCore;
   }
 }

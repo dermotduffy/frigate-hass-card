@@ -4,12 +4,12 @@ import Masonry from 'masonry-layout';
 import { ViewDisplayConfig } from '../config/types';
 import { MediaLoadedInfo } from '../types';
 import {
-  dispatchFrigateCardEvent,
+  dispatchAdvancedCameraCardEvent,
   getChildrenFromElement,
   setOrRemoveAttribute,
 } from '../utils/basic';
 import {
-  FrigateCardMediaLoadedEventTarget,
+  AdvancedCameraCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
   dispatchMediaUnloadedEvent,
 } from '../utils/media-info';
@@ -24,7 +24,7 @@ const MEDIA_GRID_DEFAULT_SELECTED_WIDTH_FACTOR = 2.0;
 const MEDIA_GRID_HORIZONTAL_GUTTER_WIDTH = 1;
 
 type GridID = string;
-type MediaGridChild = HTMLElement & FrigateCardMediaLoadedEventTarget;
+type MediaGridChild = HTMLElement & AdvancedCameraCardMediaLoadedEventTarget;
 type MediaGridContents = Map<GridID, MediaGridChild>;
 
 export interface MediaGridSelected {
@@ -137,7 +137,7 @@ export class MediaGridController {
     }
 
     this._selected = id;
-    dispatchFrigateCardEvent(this._host, 'media-grid:selected', { selected: id });
+    dispatchAdvancedCameraCardEvent(this._host, 'media-grid:selected', { selected: id });
 
     const mediaLoadedInfo = this._mediaLoadedInfoMap.get(id);
     if (mediaLoadedInfo) {
@@ -155,7 +155,7 @@ export class MediaGridController {
   public unselectAll() {
     if (this._selected !== null) {
       dispatchMediaUnloadedEvent(this._host);
-      dispatchFrigateCardEvent(this._host, 'media-grid:unselected');
+      dispatchAdvancedCameraCardEvent(this._host, 'media-grid:unselected');
     }
     this._selected = null;
     this._updateSelectedStylesOnElements();
@@ -251,7 +251,7 @@ export class MediaGridController {
     });
 
     child.addEventListener(
-      'frigate-card:media:loaded',
+      'advanced-camera-card:media:loaded',
       this._handleMediaLoadedInfoEvent,
     );
   }
@@ -262,7 +262,7 @@ export class MediaGridController {
     });
 
     child.removeEventListener(
-      'frigate-card:media:loaded',
+      'advanced-camera-card:media:loaded',
       this._handleMediaLoadedInfoEvent,
     );
   }
@@ -345,12 +345,12 @@ export class MediaGridController {
 
   protected _setColumnSizeStyles(): void {
     this._host.style.setProperty(
-      '--frigate-card-grid-column-size',
+      '--advanced-camera-card-grid-column-size',
       `${this._getColumnSize()}px`,
     );
 
     this._host.style.setProperty(
-      '--frigate-card-grid-selected-width-factor',
+      '--advanced-camera-card-grid-selected-width-factor',
       `${
         this._displayConfig?.grid_selected_width_factor ??
         MEDIA_GRID_DEFAULT_SELECTED_WIDTH_FACTOR

@@ -6,7 +6,7 @@
   width: fit-content;
   height: fit-content;
 
-  --frigate-card-ptz-icon-size: 24px;
+  --advanced-camera-card-ptz-icon-size: 24px;
 }
 
 :host([data-position$='-left']) {
@@ -47,10 +47,10 @@
 }
 
 :host([data-orientation='vertical']) .ptz div {
-  width: calc(var(--frigate-card-ptz-icon-size) * 3);
+  width: calc(var(--advanced-camera-card-ptz-icon-size) * 3);
 }
 :host([data-orientation='horizontal']) .ptz div {
-  height: calc(var(--frigate-card-ptz-icon-size) * 3);
+  height: calc(var(--advanced-camera-card-ptz-icon-size) * 3);
 }
 
 .ptz-move,
@@ -61,19 +61,19 @@
 }
 
 .ptz-move {
-  height: calc(var(--frigate-card-ptz-icon-size) * 3);
-  width: calc(var(--frigate-card-ptz-icon-size) * 3);
+  height: calc(var(--advanced-camera-card-ptz-icon-size) * 3);
+  width: calc(var(--advanced-camera-card-ptz-icon-size) * 3);
 
   border-radius: 50%;
 }
 
 :host([data-orientation='horizontal']) .ptz .ptz-zoom,
 :host([data-orientation='horizontal']) .ptz .ptz-home {
-  width: calc(var(--frigate-card-ptz-icon-size) * 1.5);
+  width: calc(var(--advanced-camera-card-ptz-icon-size) * 1.5);
 }
 :host([data-orientation='vertical']) .ptz .ptz-zoom,
 :host([data-orientation='vertical']) .ptz .ptz-home {
-  height: calc(var(--frigate-card-ptz-icon-size) * 1.5);
+  height: calc(var(--advanced-camera-card-ptz-icon-size) * 1.5);
 }
 
 .ptz-zoom,
@@ -84,11 +84,11 @@
 /***********
  * PTZ Icons
  ***********/
-frigate-card-icon {
+advanced-camera-card-icon {
   position: absolute;
-  --mdc-icon-size: var(--frigate-card-ptz-icon-size);
+  --mdc-icon-size: var(--advanced-camera-card-ptz-icon-size);
 }
-frigate-card-icon:not(.disabled) {
+advanced-camera-card-icon:not(.disabled) {
   cursor: pointer;
 }
 .disabled {

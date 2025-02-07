@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ViewFactory } from '../../../src/card-controller/view/factory';
 import { ViewModifier } from '../../../src/card-controller/view/types';
-import { FrigateCardView, ViewDisplayMode } from '../../../src/config/types';
+import { AdvancedCameraCardView, ViewDisplayMode } from '../../../src/config/types';
 import { View } from '../../../src/view/view';
 import {
   createCameraManager,
@@ -374,7 +374,7 @@ describe('getViewByParameters', () => {
           ['recording' as const],
           ['snapshot' as const],
           ['live' as const],
-        ])('%s', (viewName: FrigateCardView) => {
+        ])('%s', (viewName: AdvancedCameraCardView) => {
           const api = createPopulatedAPI({
             media_viewer: {
               display: displayConfig,

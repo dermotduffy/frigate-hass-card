@@ -228,7 +228,7 @@ export class CameraManager {
     }
 
     // Engines are created sequentially, to avoid duplicate creation of the same
-    // engine. See: https://github.com/dermotduffy/frigate-hass-card/issues/941
+    // engine. See: https://github.com/dermotduffy/advanced-camera-card/issues/941
     const engineByConfig = await this._getEnginesForCameras(camerasConfig);
 
     // Configuration is initialized in parallel.
@@ -272,7 +272,7 @@ export class CameraManager {
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
-      'Frigate Card CameraManager initialized (Cameras: ',
+      'Advanced Camera Card CameraManager initialized (Cameras: ',
       this._store.getCameras(),
       `, Duration: ${
         (new Date().getTime() - initializationStartTime.getTime()) / 1000
@@ -546,7 +546,7 @@ export class CameraManager {
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
-      'Frigate Card CameraManager favorite request (',
+      'Advanced Camera Card CameraManager favorite request (',
       `Duration: ${(new Date().getTime() - queryStartTime.getTime()) / 1000}s,`,
       'Media:',
       media.getID(),
@@ -679,7 +679,7 @@ export class CameraManager {
 
     log(
       this._api.getConfigManager().getCardWideConfig(),
-      'Frigate Card CameraManager request [Input queries:',
+      'Advanced Camera Card CameraManager request [Input queries:',
       _queries.length,
       ', Cached output queries:',
       cachedOutputQueries,

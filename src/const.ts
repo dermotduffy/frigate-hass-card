@@ -1,5 +1,6 @@
-export const REPO_URL = 'https://github.com/dermotduffy/frigate-hass-card' as const;
-export const TROUBLESHOOTING_URL = `https://card.camera/#/troubleshooting` as const;
+export const REPO_URL = 'https://github.com/dermotduffy/advanced-camera-card' as const;
+const DOCS_URL = 'https://card.camera' as const;
+export const TROUBLESHOOTING_URL = `${DOCS_URL}/#/troubleshooting` as const;
 export const STREAM_TROUBLESHOOTING_URL =
   `${TROUBLESHOOTING_URL}?id=stream-does-not-load` as const;
 
@@ -105,12 +106,8 @@ export const CONF_CAMERAS_ARRAY_TRIGGERS_EVENTS =
   `${CONF_CAMERAS}.#.triggers.events` as const;
 
 const CONF_CAMERAS_GLOBAL = 'cameras_global' as const;
-export const CONF_CAMERAS_GLOBAL_IMAGE = `${CONF_CAMERAS_GLOBAL}.image` as const;
 export const CONF_CAMERAS_GLOBAL_LIVE_PROVIDER =
   `${CONF_CAMERAS_GLOBAL}.live_provider` as const;
-export const CONF_CAMERAS_GLOBAL_JSMPEG = `${CONF_CAMERAS_GLOBAL}.jsmpeg` as const;
-export const CONF_CAMERAS_GLOBAL_WEBRTC_CARD =
-  `${CONF_CAMERAS_GLOBAL}.webrtc_card` as const;
 export const CONF_CAMERAS_GLOBAL_TRIGGERS_OCCUPANCY =
   `${CONF_CAMERAS_GLOBAL}.triggers.occupancy` as const;
 export const CONF_CAMERAS_GLOBAL_IMAGE_REFRESH_SECONDS =
@@ -170,7 +167,7 @@ export const CONF_VIEW_TRIGGERS_ACTIONS_UNTRIGGER =
 export const CONF_VIEW_TRIGGERS_ACTIONS_INTERACTION_MODE =
   `${CONF_VIEW_TRIGGERS_ACTIONS}.interaction_mode` as const;
 
-export const CONF_MEDIA_GALLERY = 'media_gallery' as const;
+const CONF_MEDIA_GALLERY = 'media_gallery' as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_FILTER_MODE =
   `${CONF_MEDIA_GALLERY}.controls.filter.mode` as const;
 export const CONF_MEDIA_GALLERY_CONTROLS_THUMBNAILS_SHOW_DETAILS =
@@ -350,9 +347,8 @@ export const CONF_MENU_STYLE = `${CONF_MENU}.style` as const;
 export const CONF_MENU_BUTTON_SIZE = `${CONF_MENU}.button_size` as const;
 export const CONF_MENU_BUTTONS = `${CONF_MENU}.buttons` as const;
 
-export const CONF_MENU_BUTTONS_FRIGATE = `${CONF_MENU_BUTTONS}.frigate` as const;
-export const CONF_MENU_BUTTONS_CAMERA_UI = `${CONF_MENU_BUTTONS}.camera_ui` as const;
 export const CONF_MENU_BUTTONS_FULLSCREEN = `${CONF_MENU_BUTTONS}.fullscreen` as const;
+export const CONF_MENU_BUTTONS_IRIS = `${CONF_MENU_BUTTONS}.iris` as const;
 export const CONF_MENU_BUTTONS_PLAY = `${CONF_MENU_BUTTONS}.play` as const;
 export const CONF_MENU_BUTTONS_MUTE = `${CONF_MENU_BUTTONS}.mute` as const;
 export const CONF_MENU_BUTTONS_MEDIA_PLAYER =
@@ -396,7 +392,5 @@ export const MEDIA_PLAYER_SUPPORT_BROWSE_MEDIA = 131072;
 // improved rendering performance.
 export const MEDIA_CHUNK_SIZE_DEFAULT = 50;
 export const MEDIA_CHUNK_SIZE_MAX = 1000;
-
-export const FRIGATE_BUTTON_MENU_ICON = 'frigate';
 
 export const IMAGE_VIEW_ZOOM_TARGET_SENTINEL = '__IMAGE_VIEW_ZOOM__';

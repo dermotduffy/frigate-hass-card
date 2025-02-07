@@ -2,11 +2,11 @@ import { PTZMultiActionConfig } from '../../../config/types';
 import { createPTZAction, createPTZDigitalAction } from '../../../utils/action';
 import { PTZType, getPTZTarget, hasCameraTruePTZ } from '../../../utils/ptz';
 import { CardActionsAPI } from '../../types';
-import { FrigateCardAction } from './base';
+import { AdvancedCameraCardAction } from './base';
 import { PTZAction } from './ptz';
 import { PTZDigitalAction } from './ptz-digital';
 
-export class PTZMultiAction extends FrigateCardAction<PTZMultiActionConfig> {
+export class PTZMultiAction extends AdvancedCameraCardAction<PTZMultiActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     const view = api.getViewManager().getView();
     let targetID: string | null = null;

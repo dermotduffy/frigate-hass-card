@@ -1,10 +1,10 @@
 import { LitElement, ReactiveController } from 'lit';
 import { MediaLoadedInfo } from '../../types.js';
 import {
-  FrigateCardMediaLoadedEventTarget,
+  AdvancedCameraCardMediaLoadedEventTarget,
   dispatchExistingMediaLoadedInfoAsEvent,
 } from '../../utils/media-info.js';
-import { FrigateCardMessageEventTarget } from '../message/dispatch.js';
+import { AdvancedCameraCardMessageEventTarget } from '../message/dispatch.js';
 
 interface LiveViewContext {
   // A cameraID override (used for dependencies/substreams to force a different
@@ -24,8 +24,8 @@ interface LastMediaLoadedInfo {
 }
 
 type LiveControllerHost = LitElement &
-  FrigateCardMediaLoadedEventTarget &
-  FrigateCardMessageEventTarget;
+  AdvancedCameraCardMediaLoadedEventTarget &
+  AdvancedCameraCardMessageEventTarget;
 
 export class LiveController implements ReactiveController {
   protected _host: LiveControllerHost;
@@ -56,13 +56,19 @@ export class LiveController implements ReactiveController {
   public hostConnected(): void {
     this._intersectionObserver.observe(this._host);
 
-    this._host.addEventListener('frigate-card:media:loaded', this._handleMediaLoaded);
+    this._host.addEventListener(
+      'advanced-camera-card:media:loaded',
+      this._handleMediaLoaded,
+    );
   }
 
   public hostDisconnected(): void {
     this._intersectionObserver.disconnect();
 
-    this._host.removeEventListener('frigate-card:media:loaded', this._handleMediaLoaded);
+    this._host.removeEventListener(
+      'advanced-camera-card:media:loaded',
+      this._handleMediaLoaded,
+    );
   }
 
   public isInBackground(): boolean {

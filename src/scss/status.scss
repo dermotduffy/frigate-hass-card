@@ -1,7 +1,7 @@
 @use './button.scss';
 
 :host {
-  --mdc-icon-size: calc(var(--frigate-card-status-bar-height) / 2);
+  --mdc-icon-size: calc(var(--advanced-camera-card-status-bar-height) / 2);
 
   display: block;
   width: 100%;
@@ -41,7 +41,7 @@
   overflow: hidden;
 
   width: 100%;
-  height: var(--frigate-card-status-bar-height);
+  height: var(--advanced-camera-card-status-bar-height);
 }
 
 .item {
@@ -67,7 +67,7 @@
 }
 
 img.item,
-frigate-card-icon.item {
+advanced-camera-card-icon.item {
   display: block;
 
   // To ensure images render somewhat reasonably looking their height is kept to

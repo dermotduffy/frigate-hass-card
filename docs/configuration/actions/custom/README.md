@@ -1,33 +1,33 @@
-# `custom:frigate-card-action`
+# `custom:advanced-camera-card-action`
 
-Execute a Frigate Card action.
+Execute an Advanced Camera Card action.
 
 ```yaml
-action: custom:frigate-card-action
+action: custom:advanced-camera-card-action
 # [...]
 ```
 
-| Parameter             | Description                                 |
-| --------------------- | ------------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`.       |
-| `frigate_card_action` | A supported Frigate Card action. See below. |
+| Parameter                     | Description                                         |
+| ----------------------------- | --------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.       |
+| `advanced_camera_card_action` | A supported Advanced Camera Card action. See below. |
 
 ## `camera_select`
 
 Select a given camera.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: camera_select
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: camera_select
 # [...]
 ```
 
-| Parameter             | Description                                                                                         |
-| --------------------- | --------------------------------------------------------------------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`.                                                               |
-| `frigate_card_action` | Must be `camera_select`.                                                                            |
-| `camera`              | The [camera ID](../../cameras/README.md?id=cameras) of the camera to select.                        |
-| `triggered`           | If `true` instead of `camera` being specified then a triggered camera (if any) is selected instead. |
+| Parameter                     | Description                                                                                         |
+| ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                       |
+| `advanced_camera_card_action` | Must be `camera_select`.                                                                            |
+| `camera`                      | The [camera ID](../../cameras/README.md?id=cameras) of the camera to select.                        |
+| `triggered`                   | If `true` instead of `camera` being specified then a triggered camera (if any) is selected instead. |
 
 This action will respect the value of the `view.camera_select` to choose the appropriate view on the new camera. See [`view` configuration](../../view.md).
 
@@ -36,8 +36,8 @@ This action will respect the value of the `view.camera_select` to choose the app
 Download the displayed media.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: camera_ui
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: camera_ui
 ```
 
 Open the UI for the selected camera engine (e.g. the Frigate UI).
@@ -47,8 +47,8 @@ Open the UI for the selected camera engine (e.g. the Frigate UI).
 Change to the `clip` view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: clip
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: clip
 ```
 
 ## `clips`
@@ -56,8 +56,8 @@ frigate_card_action: clip
 Change to the `clips` view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: clips
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: clips
 ```
 
 ## `default`
@@ -65,8 +65,8 @@ frigate_card_action: clips
 Change to the default view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: default
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: default
 ```
 
 ## `diagnostics`
@@ -74,8 +74,8 @@ frigate_card_action: default
 Show the card diagnostics.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: diagnostics
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: diagnostics
 ```
 
 ## `display_mode_select`
@@ -83,24 +83,24 @@ frigate_card_action: diagnostics
 Select a display mode (e.g. view a `single` camera or a `grid` of cameras).
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: display_mode_select
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: display_mode_select
 # [...]
 ```
 
-| Parameter             | Description                                                                                    |
-| --------------------- | ---------------------------------------------------------------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`.                                                          |
-| `frigate_card_action` | Must be `display_mode_select`.                                                                 |
-| `display_mode`        | `single` to show a single camera at a time in a carousel, or `grid` to show a grid of cameras. |
+| Parameter                     | Description                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                  |
+| `advanced_camera_card_action` | Must be `display_mode_select`.                                                                 |
+| `display_mode`                | `single` to show a single camera at a time in a carousel, or `grid` to show a grid of cameras. |
 
 ## `download`
 
 Download the displayed media.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: download
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: download
 ```
 
 ## `expand`
@@ -108,8 +108,8 @@ frigate_card_action: download
 Expand the card into a dialog/popup.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: expand
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: expand
 ```
 
 ## `fullscreen`
@@ -117,8 +117,8 @@ frigate_card_action: expand
 Toggle fullscreen.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: fullscreen
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: fullscreen
 ```
 
 ## `image`
@@ -126,8 +126,8 @@ frigate_card_action: fullscreen
 Change to the `image` view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: image
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: image
 ```
 
 ## `live`
@@ -135,8 +135,8 @@ frigate_card_action: image
 Change to the `live` view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: live
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: live
 ```
 
 ## `live_substream_off`
@@ -144,86 +144,86 @@ frigate_card_action: live
 Turn off the substream (if on).
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: live_substream_on
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: live_substream_on
 ```
 
-| Parameter             | Description                           |
-| --------------------- | ------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `live_substream_on`.          |
+| Parameter                     | Description                                   |
+| ----------------------------- | --------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`. |
+| `advanced_camera_card_action` | Must be `live_substream_on`.                  |
 
 ## `live_substream_on`
 
 Turn on the first available substream. Use [Camera dependency configuration](../../cameras/README.md?id=dependencies) to configure substreams.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: live_substream_on
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: live_substream_on
 ```
 
-| Parameter             | Description                           |
-| --------------------- | ------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `live_substream_on`.          |
+| Parameter                     | Description                                   |
+| ----------------------------- | --------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`. |
+| `advanced_camera_card_action` | Must be `live_substream_on`.                  |
 
 ## `live_substream_select`
 
 Select a substream. Use [Camera dependency configuration](../../cameras/README.md?id=dependencies) to configure substreams.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: live_substream_select
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: live_substream_select
 # [...]
 ```
 
-| Parameter             | Description                                                                     |
-| --------------------- | ------------------------------------------------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`.                                           |
-| `frigate_card_action` | Must be `live_substream_select`.                                                |
-| `camera`              | The [camera ID](../../cameras/README.md?id=cameras) of the substream to select. |
+| Parameter                     | Description                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                   |
+| `advanced_camera_card_action` | Must be `live_substream_select`.                                                |
+| `camera`                      | The [camera ID](../../cameras/README.md?id=cameras) of the substream to select. |
 
 ## `log`
 
 Log a message to the Javascript console.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: log
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: log
 # [...]
 ```
 
-| Parameter             | Default | Description                                                                    |
-| --------------------- | ------- | ------------------------------------------------------------------------------ |
-| `action`              |         | Must be `custom:frigate-card-action`.                                          |
-| `frigate_card_action` |         | Must be `log`.                                                                 |
-| `message`             |         | The message to log.                                                            |
-| `level`               | `info`  | The console logging level to use. One of `['debug', 'info', 'warn', 'error']`. |
+| Parameter                     | Default | Description                                                                    |
+| ----------------------------- | ------- | ------------------------------------------------------------------------------ |
+| `action`                      |         | Must be `custom:advanced-camera-card-action`.                                  |
+| `advanced_camera_card_action` |         | Must be `log`.                                                                 |
+| `message`                     |         | The message to log.                                                            |
+| `level`                       | `info`  | The console logging level to use. One of `['debug', 'info', 'warn', 'error']`. |
 
 ## `media_player`
 
 Perform a media player action.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: media_player
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: media_player
 # [...]
 ```
 
-| Parameter             | Description                                                       |
-| --------------------- | ----------------------------------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`.                             |
-| `frigate_card_action` | Must be `media_player`.                                           |
-| `media_player`        | The entity ID of the media_player on which to perform the action. |
-| `media_player_action` | Either `play` or `stop` to play or stop the media in question.    |
+| Parameter                     | Description                                                       |
+| ----------------------------- | ----------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                     |
+| `advanced_camera_card_action` | Must be `media_player`.                                           |
+| `media_player`                | The entity ID of the media_player on which to perform the action. |
+| `media_player_action`         | Either `play` or `stop` to play or stop the media in question.    |
 
 ## `menu_toggle`
 
 Show/hide the menu (for the `hidden` mode style).
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: menu_toggle
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: menu_toggle
 ```
 
 ## `microphone_connect`
@@ -231,8 +231,8 @@ frigate_card_action: menu_toggle
 Connect the microphone for [2-way audio](../../../usage/2-way-audio.md).
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: microphone_connect
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: microphone_connect
 ```
 
 ## `microphone_disconnect`
@@ -240,8 +240,8 @@ frigate_card_action: microphone_connect
 Disconnect the microphone during [2-way audio](../../../usage/2-way-audio.md).
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: microphone_disconnect
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: microphone_disconnect
 ```
 
 ## `microphone_mute`
@@ -249,8 +249,8 @@ frigate_card_action: microphone_disconnect
 Mute the microphone during [2-way audio](../../../usage/2-way-audio.md).
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: microphone_mute
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: microphone_mute
 ```
 
 ## `microphone_unmute`
@@ -258,8 +258,8 @@ frigate_card_action: microphone_mute
 Unmute the microphone during [2-way audio](../../../usage/2-way-audio.md).
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: microphone_unmute
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: microphone_unmute
 ```
 
 ## `mute`
@@ -267,8 +267,8 @@ frigate_card_action: microphone_unmute
 Mute the selected media.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: mute
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: mute
 ```
 
 ## `pause`
@@ -276,8 +276,8 @@ frigate_card_action: mute
 Pause the selected media.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: pause
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: pause
 ```
 
 ## `play`
@@ -285,8 +285,8 @@ frigate_card_action: pause
 Play the selected media.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: play
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: play
 ```
 
 ## `ptz`
@@ -294,19 +294,19 @@ frigate_card_action: play
 Execute a real PTZ action, whether configured manually (see [Camera PTZ configuration](../../cameras/README.md?id=ptz)) or auto-detected.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: ptz
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: ptz
 # [...]
 ```
 
-| Parameter             |                           | Description                                                                                   |
-| --------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| `action`              |                           | Must be `custom:frigate-card-action`.                                                         |
-| `frigate_card_action` |                           | Must be `ptz`.                                                                                |
-| `camera`              | Currently selected camera | An optional camera ID to execute the action on.                                               |
-| `ptz_action`          |                           | Optional action that is of `left`, `right`, `up`, `down`, `zoom_in`, `zoom_out` or `preset`.  |
-| `ptz_phase`           |                           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
-| `ptz_preset`          |                           | Optional preset to execute when the `ptz_action` is `preset`.                                 |
+| Parameter                     |                           | Description                                                                                   |
+| ----------------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| `action`                      |                           | Must be `custom:advanced-camera-card-action`.                                                 |
+| `advanced_camera_card_action` |                           | Must be `ptz`.                                                                                |
+| `camera`                      | Currently selected camera | An optional camera ID to execute the action on.                                               |
+| `ptz_action`                  |                           | Optional action that is of `left`, `right`, `up`, `down`, `zoom_in`, `zoom_out` or `preset`.  |
+| `ptz_phase`                   |                           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
+| `ptz_preset`                  |                           | Optional preset to execute when the `ptz_action` is `preset`.                                 |
 
 ?> If no `ptz_action` is specified, the camera returns to its "home" position. For a real PTZ camera, the "home" position is the first available preset. If there are no presets, there is no home position.
 
@@ -315,35 +315,35 @@ frigate_card_action: ptz
 Show or hide the PTZ controls.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: ptz_controls
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: ptz_controls
 # [...]
 ```
 
-| Parameter             | Description                                              |
-| --------------------- | -------------------------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`.                    |
-| `frigate_card_action` | Must be `ptz_controls`.                                  |
-| `show`                | If `true` shows the PTZ controls, if `false` hides them. |
+| Parameter                     | Description                                              |
+| ----------------------------- | -------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.            |
+| `advanced_camera_card_action` | Must be `ptz_controls`.                                  |
+| `show`                        | If `true` shows the PTZ controls, if `false` hides them. |
 
 ## `ptz_digital`
 
 Execute a digital PTZ action.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: ptz_digital
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: ptz_digital
 # [...]
 ```
 
-| Parameter             | Default                                                                                       | Description                                                                                                                                                |
-| --------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `action`              |                                                                                               | Must be `custom:frigate-card-action`.                                                                                                                      |
-| `frigate_card_action` |                                                                                               | Must be `ptz_digital`.                                                                                                                                     |
-| `target_id`           | The currently selected camera or media                                                        | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
-| `ptz_action`          | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
-| `ptz_phase`           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
-| `absolute`            | Optional parameter to specify exact absolute pan and zoom settings. See below.                |
+| Parameter                     | Default                                                                                       | Description                                                                                                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`                      |                                                                                               | Must be `custom:advanced-camera-card-action`.                                                                                                              |
+| `advanced_camera_card_action` |                                                                                               | Must be `ptz_digital`.                                                                                                                                     |
+| `target_id`                   | The currently selected camera or media                                                        | The target (camera or media) to execute a digital PTZ action on. Can be a camera ID, or another media ID (e.g. for Frigate, can specify a media/event ID). |
+| `ptz_action`                  | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
+| `ptz_phase`                   | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
+| `absolute`                    | Optional parameter to specify exact absolute pan and zoom settings. See below.                |
 
 ?> If no `ptz_action` is specified and no `absolute` value is specified, the camera returns to its "home" position. See [Camera layout configuration](../../cameras/README.md?id=layout-configuration) to configure the default "home" position for digital PTZ.
 
@@ -369,18 +369,18 @@ action), otherwise a digital PTZ action will be run (equivalent to using the
 ?> If the camera supports _any_ real PTZ action, _all_ actions will attempt to make real PTZ calls.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: ptz_multi
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: ptz_multi
 # [...]
 ```
 
-| Parameter             | Description                                                                                   |
-| --------------------- | --------------------------------------------------------------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`.                                                         |
-| `frigate_card_action` | Must be `ptz_multi`.                                                                          |
-| `ptz_action`          | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
-| `ptz_phase`           | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
-| `ptz_preset`          | Optional preset to execute when the `ptz_action` is `preset`.                                 |
+| Parameter                     | Description                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`.                                                 |
+| `advanced_camera_card_action` | Must be `ptz_multi`.                                                                          |
+| `ptz_action`                  | Optional action that is one of `left`, `right`, `up`, `down`, `zoom_in` or `zoom_out`.        |
+| `ptz_phase`                   | Optional parameter that is one of `start` or `stop` to start or stop the movement separately. |
+| `ptz_preset`                  | Optional preset to execute when the `ptz_action` is `preset`.                                 |
 
 ?> If no `ptz_action` is specified, the camera returns to its "home" position.
 
@@ -389,8 +389,8 @@ frigate_card_action: ptz_multi
 Change to the `recording` view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: recording
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: recording
 ```
 
 ## `recordings`
@@ -398,8 +398,8 @@ frigate_card_action: recording
 Change to the `recordings` view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: recordings
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: recordings
 ```
 
 ## `screenshot`
@@ -407,8 +407,8 @@ frigate_card_action: recordings
 Take a screenshot of the selected media (e.g. a still from a video).
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: screenshot
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: screenshot
 ```
 
 ## `sleep`
@@ -416,15 +416,15 @@ frigate_card_action: screenshot
 Take no action for a given duration. Useful to pause between multiple other actions.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: sleep
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: sleep
 ```
 
-| Parameter             | Description                           |
-| --------------------- | ------------------------------------- |
-| `action`              | Must be `custom:frigate-card-action`. |
-| `frigate_card_action` | Must be `sleep`.                      |
-| `duration`            | A duration object. See below.         |
+| Parameter                     | Description                                   |
+| ----------------------------- | --------------------------------------------- |
+| `action`                      | Must be `custom:advanced-camera-card-action`. |
+| `advanced_camera_card_action` | Must be `sleep`.                              |
+| `duration`                    | A duration object. See below.                 |
 
 ### `duration`
 
@@ -444,8 +444,8 @@ The `duration` block configures how long the `sleep` should last.
 Change to the `snapshot` view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: snapshot
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: snapshot
 ```
 
 ## `status_bar`
@@ -453,8 +453,8 @@ frigate_card_action: snapshot
 Add or remove items from the status bar.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: status_bar
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: status_bar
 # [...]
 ```
 
@@ -465,15 +465,15 @@ frigate_card_action: status_bar
 
 ### `items`
 
-The items parameter is a list of items to `add` or `remove`. See [`custom:frigate-card-status-bar-icon`](../../elements/custom/README.md?id=status-bar-icon), [`custom:frigate-card-status-bar-image`](../../elements/custom/README.md?id=status-bar-image), [`custom:frigate-card-status-bar-string`](../../elements/custom/README.md?id=status-bar-string) for the allowable items and their parameters. See the [fully expanded reference](./README.md?fully-expanded-reference) below for a complete example.
+The items parameter is a list of items to `add` or `remove`. See [`custom:advanced-camera-card-status-bar-icon`](../../elements/custom/README.md?id=status-bar-icon), [`custom:advanced-camera-card-status-bar-image`](../../elements/custom/README.md?id=status-bar-image), [`custom:advanced-camera-card-status-bar-string`](../../elements/custom/README.md?id=status-bar-string) for the allowable items and their parameters. See the [fully expanded reference](./README.md?fully-expanded-reference) below for a complete example.
 
 ## `timeline`
 
 Change to the `timeline` view.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: timeline
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: timeline
 ```
 
 ## `unmute`
@@ -481,8 +481,8 @@ frigate_card_action: timeline
 Unmute the selected media.
 
 ```yaml
-action: custom:frigate-card-action
-frigate_card_action: unmute
+action: custom:advanced-camera-card-action
+advanced_camera_card_action: unmute
 ```
 
 ## Fully expanded reference
@@ -491,308 +491,308 @@ frigate_card_action: unmute
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-a-circle
     title: Select Front Door
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: camera_select
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: camera_select
       camera: camera.front_door
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-b-circle
     title: Open Camera UI
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: camera_ui
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: camera_ui
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-d-circle
     title: Show most recent clip
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: clip
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: clip
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-e-circle
     title: Show clips
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: clips
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: clips
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-f-circle
     title: Show default view
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: default
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: default
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-g-circle
     title: Show diagnostics
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: diagnostics
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: diagnostics
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-h-circle
     title: Show  grid
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: display_mode_select
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: display_mode_select
       display_mode: grid
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-i-circle
     title: Download media
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: download
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: download
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-j-circle
     title: Expand
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: expand
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: expand
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-k-circle
     title: Fullscreen
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: fullscreen
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: fullscreen
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-l-circle
     title: Show image view
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: image
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: image
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-m-circle
     title: Show live view
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: live
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: live
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-n-circle
     title: Turn off substream
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: live_substream_off
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: live_substream_off
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-o-circle
     title: Turn on substream
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: live_substream_on
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: live_substream_on
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-n-circle
     title: Select HD substream
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: live_substream_select
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: live_substream_select
       camera: camera.front_door_hd
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
       icon: mdi:alpha-o-circle
       title: Log to console
       tap_action:
-        action: custom:frigate-card-action
-        frigate_card_action: log
+        action: custom:advanced-camera-card-action
+        advanced_camera_card_action: log
         message: "Hello, world!"
         level: debug
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-m-circle
     title: Media player play
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: media_player
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: media_player
       media_player: media_player.nesthub50be
       media_player_action: play
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-n-circle
     title: Media player stop
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: media_player
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: media_player
       media_player: media_player.nesthub
       media_player_action: stop
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-o-circle
     title: Toggle hidden menu
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: menu_toggle
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: menu_toggle
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-p-circle
     title: Microphone mute
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: microphone_mute
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: microphone_mute
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-q-circle
     title: Microphone unmute
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: microphone_unmute
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: microphone_unmute
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-r-circle
     title: Mute
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: mute
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: mute
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-s-circle
     title: Pause
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: pause
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: pause
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-t-circle
     title: Play
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: play
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: play
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-u-circle
     title: Real PTZ Preset
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: ptz
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: ptz
       ptz_action: preset
       ptz_preset: doorway
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-v-circle
     title: Show PTZ Controls
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: ptz_controls
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: ptz_controls
       enabled: true
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-w-circle
     title: Go to precise digital location
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: ptz_digital
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: ptz_digital
       absolute:
         zoom: 5
         pan:
           x: 58
           y: 14
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-x-circle
     title: Smart select between real and digital PTZ
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: ptz_multi
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: ptz_multi
       ptz_action: left
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-y-circle
     title: Show most recent recording
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: recording
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: recording
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-a-circle-outline
     title: Show recordings
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: recordings
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: recordings
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-b-circle-outline
     title: Screenshot
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: screenshot
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: screenshot
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-c-circle-outline
     title: Sleep
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: sleep
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: sleep
       duration:
         h: 1
         m: 20
         s: 56
         ms: 422
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-d-circle-outline
     title: Show most recent snapshot
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: snapshot
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: snapshot
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-e-circle-outline
     title: Show snapshots
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: snapshots
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: snapshots
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-f-circle-outline
     title: Show timeline
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: timeline
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: timeline
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-g-circle-outline
     title: Unmute
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: unmute
-  - type: custom:frigate-card-menu-icon
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: unmute
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-h-circle-outline
     title: Add status bar contents
     tap_action:
-      - action: custom:frigate-card-action
-        frigate_card_action: status_bar
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: status_bar
         status_bar_action: add
         items:
-          - type: custom:frigate-card-status-bar-string
+          - type: custom:advanced-camera-card-status-bar-string
             enabled: true
             exclusive: false
             expand: false
             string: 'Intruder alert!'
             priority: 50
             sufficient: false
-          - type: custom:frigate-card-status-bar-icon
+          - type: custom:advanced-camera-card-status-bar-icon
             enabled: true
             exclusive: false
             expand: false
             icon: 'mdi:cow'
             priority: 50
             sufficient: false
-          - type: custom:frigate-card-status-bar-image
+          - type: custom:advanced-camera-card-status-bar-image
             enabled: true
             exclusive: false
             expand: false
             image: https://my.site.com/status.png
             priority: 50
             sufficient: false
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-i-circle-outline
     title: Remove status bar contents
     tap_action:
-      - action: custom:frigate-card-action
-        frigate_card_action: status_bar
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: status_bar
         status_bar_action: remove
         items:
-          - type: custom:frigate-card-status-bar-string
+          - type: custom:advanced-camera-card-status-bar-string
             enabled: true
             exclusive: false
             expand: false
             string: 'Intruder alert!'
             priority: 50
             sufficient: false
-          - type: custom:frigate-card-status-bar-icon
+          - type: custom:advanced-camera-card-status-bar-icon
             enabled: true
             exclusive: false
             expand: false
             icon: 'mdi:cow'
             priority: 50
             sufficient: false
-          - type: custom:frigate-card-status-bar-image
+          - type: custom:advanced-camera-card-status-bar-image
             enabled: true
             exclusive: false
             expand: false
             image: https://my.site.com/status.png
             priority: 50
             sufficient: false
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:alpha-i-circle-outline
     title: Reset status bar contents
     tap_action:
-      - action: custom:frigate-card-action
-        frigate_card_action: status_bar
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: status_bar
         status_bar_action: reset
 ```

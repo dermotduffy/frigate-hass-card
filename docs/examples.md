@@ -9,14 +9,14 @@ into fullscreen mode, **except** when the view is `live` in which case the
 office lights are toggled.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 view:
   actions:
     double_tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: fullscreen
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: fullscreen
 live:
   actions:
     entity: light.office_main_lights
@@ -27,7 +27,7 @@ live:
 ## Aspect ratios
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 dimensions:
@@ -44,7 +44,7 @@ card is put in fullscreen mode, and turn off the substream when exiting
 fullscreen mode.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     live_provider: image
@@ -63,11 +63,11 @@ automations:
       - condition: fullscreen
         fullscreen: true
     actions:
-      - action: custom:frigate-card-action
-        frigate_card_action: live_substream_on
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live_substream_on
     actions_not:
-      - action: custom:frigate-card-action
-        frigate_card_action: live_substream_off
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live_substream_off
 ```
 
 ### Responding to key input
@@ -85,14 +85,14 @@ automations:
         key: z
         alt: true
     actions:
-      - action: custom:frigate-card-action
-        frigate_card_action: live
-      - action: custom:frigate-card-action
-        frigate_card_action: sleep
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: sleep
         duration:
           s: 5
-      - action: custom:frigate-card-action
-        frigate_card_action: clips
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: clips
 ```
 
 #### Change to `live` while key _held_ down
@@ -106,11 +106,11 @@ automations:
         key: z
         alt: true
     actions:
-      - action: custom:frigate-card-action
-        frigate_card_action: live
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live
     actions_not:
-      - action: custom:frigate-card-action
-        frigate_card_action: clips
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: clips
 ```
 
 ## Cameras
@@ -120,7 +120,7 @@ automations:
 In this example, there is no Home Assistant entity linked to the camera, just a `frigate` camera name:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - frigate:
       camera_name: office
@@ -132,7 +132,7 @@ cameras:
 In this example, there is no Home Assistant entity linked to the camera, just a `go2rtc` stream.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - live_provider: go2rtc
     go2rtc:
@@ -158,12 +158,12 @@ Elements state
 label](https://www.home-assistant.io/lovelace/picture-elements/#state-label).
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 card_mod:
   style:
-    frigate-card-elements $:
+    advanced-camera-card-elements $:
       hui-state-label-element $: |
         div {
           padding: 0px !important;
@@ -173,12 +173,12 @@ card_mod:
 
 ## Cast a `dashboard`
 
-This example will configure a Frigate card that can cast a dashboard view to a media player, which has a second Frigate card in panel mode with a low-latency live provider.
+This example will configure an Advanced Camera Card that can cast a dashboard view to a media player, which has a second Advanced Camera Card in panel mode with a low-latency live provider.
 
 ### Source card
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     live_provider: image
@@ -194,7 +194,7 @@ cameras:
 ?> This dashboard is configured at the path `/cast/` (path referred to in `dashboard_path` above).
 
 ```yaml
-title: Frigate Card Casting
+title: Advanced Camera Card Casting
 views:
   - title: Casting
     # This path is referred to in `view_path` above.
@@ -202,7 +202,7 @@ views:
     # Ensure the video is "maximized" / dashboard in "panel" mode.
     type: panel
     cards:
-      - type: custom:frigate-card
+      - type: custom:advanced-camera-card
         cameras:
           - camera_entity: camera.office
             live_provider: go2rtc
@@ -212,15 +212,15 @@ views:
 
 You can restrict elements to only show for certain
 [views](configuration/view.md?id=supported-views) using a
-`custom:frigate-card-conditional` element. This example shows a car icon that
+`custom:advanced-camera-card-conditional` element. This example shows a car icon that
 calls a service but only in the `live` view.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-conditional
+  - type: custom:advanced-camera-card-conditional
     conditions:
       - condition: view
         views:
@@ -248,7 +248,7 @@ You can have icons conditionally added to the menu based on entity state.
 ### Show a menu icon based on state
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
@@ -258,7 +258,7 @@ elements:
         entity: light.office_main_lights
         state: on
     elements:
-      - type: custom:frigate-card-menu-state-icon
+      - type: custom:advanced-camera-card-menu-state-icon
         entity: light.office
         tap_action:
           action: toggle
@@ -269,13 +269,13 @@ elements:
 This example adds a menu button to optionally activate a siren when the camera is triggered.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-conditional
+  - type: custom:advanced-camera-card-conditional
     elements:
-      - type: custom:frigate-card-menu-icon
+      - type: custom:advanced-camera-card-menu-icon
         icon: mdi:alarm-bell
         title: Activate alarm
         style:
@@ -308,7 +308,7 @@ events with the `birdseye` camera (since it will not have events of its own).
 This example shows events for two other cameras when `birdseye` is selected.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
   - camera_entity: camera.kitchen
@@ -326,7 +326,7 @@ This example shows events for _all_ other cameras when `birdseye` is selected.
 This is just a shortcut for naming all other cameras.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.kitchen
   - camera_entity: camera.sitting_room
@@ -342,7 +342,7 @@ This example will automatically use a HD live substream when
 the mouse cursor interacts with the card.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     live_provider: image
@@ -356,11 +356,11 @@ cameras:
         - substream
 automations:
   - actions:
-      - action: custom:frigate-card-action
-        frigate_card_action: live_substream_on
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live_substream_on
     actions_not:
-      - action: custom:frigate-card-action
-        frigate_card_action: live_substream_off
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live_substream_off
     conditions:
       - condition: interaction
         interaction: true
@@ -373,7 +373,7 @@ These examples change how the media fits and is positioned within the card dimen
 ### Stretch a camera into a 4:4 square
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.landing
     dimensions:
@@ -387,7 +387,7 @@ cameras:
 Take the left-hand side (position with x == `0`) and use that as the basis of a `9:16` (i.e. portrait) live view.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     dimensions:
@@ -404,7 +404,7 @@ This example moves the fullscreen button into its own group aligned to the
 `left`, enables the `image` button and orders it furthest to the `right`.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 menu:
@@ -423,15 +423,15 @@ You can add custom icons to the menu with arbitrary actions. This example adds
 an icon that navigates the browser to the releases page for this card:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:book
     tap_action:
       action: url
-      url_path: https://github.com/dermotduffy/frigate-hass-card/releases
+      url_path: https://github.com/dermotduffy/advanced-camera-card/releases
 ```
 
 ## Menu state icons
@@ -442,11 +442,11 @@ of the `light.office_main_lights` entity, that toggles the light on double
 click.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-menu-state-icon
+  - type: custom:advanced-camera-card-menu-state-icon
     entity: light.office_main_lights
     tap_action:
       action: toggle
@@ -454,21 +454,21 @@ elements:
 
 ## Multiple actions
 
-This example shows how to configure multiple actions for a single Frigate card user interaction, in this case both selecting a different camera and changing the view on `tap`. Note that multiple actions are not supported on stock Picture Elements, see [actions](configuration/actions/README.md) for more information.
+This example shows how to configure multiple actions for a single Advanced Camera Card user interaction, in this case both selecting a different camera and changing the view on `tap`. Note that multiple actions are not supported on stock Picture Elements, see [actions](configuration/actions/README.md) for more information.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     icon: mdi:chair-rolling
     tap_action:
-      - action: custom:frigate-card-action
-        frigate_card_action: camera_select
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: camera_select
         camera: camera.office
-      - action: custom:frigate-card-action
-        frigate_card_action: live
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live
 ```
 
 ## Multiple providers
@@ -478,7 +478,7 @@ to provide a separate unambiguous way of referring to that camera, since the
 `camera_entity` is shared between the two cameras).
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     live_provider: jsmpeg
@@ -496,7 +496,7 @@ You can override card configuration when certain [conditions](configuration/cond
 ### Change menu position based on HA state
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 overrides:
@@ -519,7 +519,7 @@ ask the card to trigger a card update based on that entity -- which causes it to
 use the new overriden default immediately.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 view:
@@ -543,7 +543,7 @@ This example will always render 5 columns in fullscreen mode in both the live
 and media viewer views, and will not enlarge the selected item. The [normal auto-layout behavior](configuration/grid-layout-algorithm.md) will be used outside of fullscreen mode.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 overrides:
@@ -569,7 +569,7 @@ This example changes the menu style to `overlay` in expanded mode in order to
 take advantage of the extra horizontal space of the dialog/popup.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 menu:
@@ -589,14 +589,14 @@ This example disables the menu unless the card is in fullscreen mode, and uses a
 card-wide action to enable fullscreen mode on `double_tap`.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 view:
   actions:
     double_tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: fullscreen
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: fullscreen
 overrides:
   - conditions:
       - condition: fullscreen
@@ -611,7 +611,7 @@ overrides:
 This example removes a camera from the card when an entity is disabled (e.g. a switch controlling power to the camera).
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
   - camera_entity: camera.kitchen
@@ -629,7 +629,7 @@ overrides:
 This example disables the PTZ controls when the card is viewed on the Companion app:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 overrides:
@@ -644,10 +644,11 @@ overrides:
 
 The card supports using PTZ controls to conveniently control pan, tilt and zoom
 for cameras. If you're using a Frigate camera, and Frigate itself shows PTZ
-controls, this should work straight out of the box without any extra configuration:
+controls, this should work straight out of the box without any extra
+configuration:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 ```
@@ -657,7 +658,7 @@ controls on your camera but Home Assistant does, you can still manually
 configure actions for the card to perform for each PTZ control:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     ptz:
@@ -677,7 +678,7 @@ These examples show altering the card configuration based on device or viewport 
 ### Change menu position when orientation changes
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
   - camera_entity: camera.kitchen
@@ -695,7 +696,7 @@ overrides:
 ### Hide menu & controls when viewport width &lt;= 300 (e.g. PIP mode)
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
   - camera_entity: camera.kitchen
@@ -720,7 +721,7 @@ You can add a state badge to the card showing arbitrary entity states. This
 example adds a state badge showing the temperature and hides the label text:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
@@ -740,7 +741,7 @@ elements:
 This example fetches a static image every 10 seconds (in this case the latest image saved on the Frigate server for a given camera).
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 view:
@@ -757,7 +758,7 @@ image:
 This example disables the status bar.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 status_bar:
@@ -771,7 +772,7 @@ This example shows an icon and a message on the status bar when a camera is trig
 ![Dynamic Status Messages](images/dynamic-status.gif 'Dynamic Status Messages :size=400')
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 automations:
@@ -780,21 +781,21 @@ automations:
         triggered:
           - camera.office
     actions:
-      - action: custom:frigate-card-action
-        frigate_card_action: status_bar
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: status_bar
         status_bar_action: add
         items:
-          - type: custom:frigate-card-status-bar-icon
+          - type: custom:advanced-camera-card-status-bar-icon
             icon: mdi:alarm-light
             exclusive: true
-          - type: custom:frigate-card-status-bar-string
+          - type: custom:advanced-camera-card-status-bar-string
             string: Intruder detected!
             expand: true
             exclusive: true
             sufficient: true
     actions_not:
-      - action: custom:frigate-card-action
-        frigate_card_action: status_bar
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: status_bar
         status_bar_action: reset
 ```
 
@@ -805,11 +806,11 @@ You can add submenus to the menu -- buttons that when pressed reveal a dropdown 
 ### Basic submenu
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-menu-submenu
+  - type: custom:advanced-camera-card-menu-submenu
     icon: mdi:menu
     items:
       - title: Lights
@@ -825,8 +826,8 @@ elements:
       - title: Fullscreen
         icon: mdi:fullscreen
         tap_action:
-          action: custom:frigate-card-action
-          frigate_card_action: fullscreen
+          action: custom:advanced-camera-card-action
+          advanced_camera_card_action: fullscreen
 ```
 
 ### Conditional submenu
@@ -834,17 +835,17 @@ elements:
 This example shows submenus conditional on the camera selected.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-conditional
+  - type: custom:advanced-camera-card-conditional
     conditions:
       - condition: camera
         cameras:
           - camera.office
     elements:
-      - type: custom:frigate-card-menu-submenu
+      - type: custom:advanced-camera-card-menu-submenu
         icon: mdi:door
         items:
           - title: Office Lights
@@ -852,13 +853,13 @@ elements:
             entity: light.office_main_lights
             tap_action:
               action: toggle
-  - type: custom:frigate-card-conditional
+  - type: custom:advanced-camera-card-conditional
     conditions:
       - condition: camera
         cameras:
           - camera.kitchen
     elements:
-      - type: custom:frigate-card-menu-submenu
+      - type: custom:advanced-camera-card-menu-submenu
         icon: mdi:sofa
         items:
           - title: Kitchen Lights
@@ -890,22 +891,22 @@ input_select:
 The following will convert this entity into a submenu:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-menu-submenu-select
+  - type: custom:advanced-camera-card-menu-submenu-select
     entity: input_select.office_scene
 ```
 
 To override 1 or more individual options (e.g. to set custom icons and titles)
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
-  - type: custom:frigate-card-menu-submenu-select
+  - type: custom:advanced-camera-card-menu-submenu-select
     icon: mdi:lamps
     entity: input_select.office_scene
     options:
@@ -925,7 +926,7 @@ camera through the use of [camera dependencies](configuration/cameras/README.md?
 This example shows two substreams for a single live camera, and uses the 'HD' icon.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     live_provider: image
@@ -948,11 +949,11 @@ menu:
 
 ## Trigger actions
 
-You can control the card itself with the `custom:frigate-card-action` action.
+You can control the card itself with the `custom:advanced-camera-card-action` action.
 This example shows an icon that toggles the card fullscreen mode.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 elements:
@@ -962,8 +963,8 @@ elements:
       left: 40px
       top: 40px
     tap_action:
-      action: custom:frigate-card-action
-      frigate_card_action: fullscreen
+      action: custom:advanced-camera-card-action
+      advanced_camera_card_action: fullscreen
 ```
 
 ## Trigger fullscreen
@@ -999,7 +1000,7 @@ action:
       size: wide
       timeout: 15000
       content:
-        type: custom:frigate-card
+        type: custom:advanced-camera-card
         aspect_ratio: 55%
         cameras:
           - camera_entity: camera.frontdoor
@@ -1023,7 +1024,7 @@ trigger conditions per camera. It will change back to the `default` view when
 untriggered.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   # This is a Frigate camera which will automatically
   # be triggered when events occur.
@@ -1051,7 +1052,7 @@ view:
 Disable the stock video controls and add menu button equivalents.
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 live:
@@ -1076,27 +1077,27 @@ The card can respond to actions in the query string. See [URL Actions](usage/url
 
 ### Choosing `clips` view on a named card
 
-This example assumes that one card (of potentially multiple Frigate Cards on the dashboard) is configured with a `card_id` parameter:
+This example assumes that one card (of potentially multiple Advanced Camera Cards on the dashboard) is configured with a `card_id` parameter:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 card_id: main
 ```
 
 ```text
-https://ha.mydomain.org/lovelace-test/0?frigate-card-action.main.clips
+https://ha.mydomain.org/lovelace-test/0?advanced_camera_card_action-action.main.clips
 ```
 
 ### Choosing the camera from a separate picture elements card
 
 In this example, the card will select a given camera when the user navigates from a _separate_ Picture Elements card:
 
-Frigate Card configuration:
+Advanced Camera Card configuration:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
   - camera_entity: camera.kitchen
@@ -1115,7 +1116,7 @@ elements:
       left: 30%
     tap_action:
       action: navigate
-      navigation_path: /lovelace-test/0?frigate-card-action.camera_select=camera.office
+      navigation_path: /lovelace-test/0?advanced_camera_card_action-action.camera_select=camera.office
   - type: icon
     icon: mdi:cctv
     style:
@@ -1123,7 +1124,7 @@ elements:
       left: 42%
     tap_action:
       action: navigate
-      navigation_path: /lovelace-test/0?frigate-card-action.camera_select=camera.kitchen
+      navigation_path: /lovelace-test/0?advanced_camera_card_action-action.camera_select=camera.kitchen
 ```
 
 ![Taking card actions via the URL](images/navigate-picture-elements.gif 'Taking card actions via the URL :size=400')
@@ -1131,13 +1132,13 @@ elements:
 ### Selecting a camera in expanded mode via query string
 
 ```text
-https://ha.mydomain.org/lovelace-test/0?frigate-card-action.camera_select=kitchen&frigate-card-action.expand
+https://ha.mydomain.org/lovelace-test/0?advanced_camera_card_action-action.camera_select=kitchen&advanced_camera_card_action-action.expand
 ```
 
 ## WebRTC Card configuration
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     live_provider: webrtc-card
@@ -1152,7 +1153,7 @@ cameras:
 This example changes the default [zoom/pan settings for a camera](./configuration/cameras/README.md?id=layout-configuration) to always zoom in on a given area:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     dimensions:
@@ -1168,7 +1169,7 @@ cameras:
 This example prevents zooming on the media viewer but keeps it on in other views (e.g. `live` view):
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     dimensions:
@@ -1186,7 +1187,7 @@ media_viewer:
 This example uses different settings for the media viewer and `live` view, by overriding the camera configuration:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
     dimensions:
@@ -1210,7 +1211,7 @@ overrides:
 This example automatically zooms in and out based on the state of an entity:
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.living_room
     live_provider: go2rtc
@@ -1222,8 +1223,8 @@ automations:
         entity: binary_sensor.door_contact
         state: 'on'
     actions:
-      - action: custom:frigate-card-action
-        frigate_card_action: ptz_digital
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: ptz_digital
         target_id: camera.living_room
         absolute:
           zoom: 4
@@ -1231,8 +1232,8 @@ automations:
             x: 38
             y: 20
     actions_not:
-      - action: custom:frigate-card-action
-        frigate_card_action: ptz_digital
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: ptz_digital
         target_id: camera.living_room
 ```
 

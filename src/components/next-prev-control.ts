@@ -8,14 +8,17 @@ import { Icon } from '../types.js';
 import { renderTask } from '../utils/task.js';
 import { createFetchThumbnailTask } from '../utils/thumbnail.js';
 
-@customElement('frigate-card-next-previous-control')
-export class FrigateCardNextPreviousControl extends LitElement {
+@customElement('advanced-camera-card-next-previous-control')
+export class AdvancedCameraCardNextPreviousControl extends LitElement {
   @property({ attribute: false })
   public side?: 'left' | 'right';
 
   set controlConfig(controlConfig: NextPreviousControlConfig | undefined) {
     if (controlConfig?.size) {
-      this.style.setProperty('--frigate-card-next-prev-size', `${controlConfig.size}px`);
+      this.style.setProperty(
+        '--advanced-camera-card-next-prev-size',
+        `${controlConfig.size}px`,
+      );
     }
     this._controlConfig = controlConfig;
   }
@@ -74,7 +77,10 @@ export class FrigateCardNextPreviousControl extends LitElement {
             : { icon: 'mdi:chevron-right' };
 
       return html` <ha-icon-button class="${classMap(classes)}" .label=${this.label}>
-        <frigate-card-icon .hass=${this.hass} .icon=${icon}></frigate-card-icon>
+        <advanced-camera-card-icon
+          .hass=${this.hass}
+          .icon=${icon}
+        ></advanced-camera-card-icon>
       </ha-icon-button>`;
     }
 
@@ -106,6 +112,6 @@ export class FrigateCardNextPreviousControl extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-next-previous-control': FrigateCardNextPreviousControl;
+    'advanced-camera-card-next-previous-control': AdvancedCameraCardNextPreviousControl;
   }
 }

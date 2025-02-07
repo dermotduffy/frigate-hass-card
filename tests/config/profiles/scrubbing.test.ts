@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
-import { SCRUBBING_PROFILE } from '../../../src/config/profiles/scrubbing';
 import { setProfiles } from '../../../src/config/profiles';
-import { frigateCardConfigSchema } from '../../../src/config/types';
+import { SCRUBBING_PROFILE } from '../../../src/config/profiles/scrubbing';
+import { advancedCameraCardConfigSchema } from '../../../src/config/types';
 import { createRawConfig } from '../../test-utils';
 
 it('should contain expected defaults', () => {
@@ -17,11 +17,11 @@ it('should contain expected defaults', () => {
 
 it('should be parseable after application', () => {
   const rawInputConfig = createRawConfig();
-  const parsedConfig = frigateCardConfigSchema.parse(rawInputConfig);
+  const parsedConfig = advancedCameraCardConfigSchema.parse(rawInputConfig);
 
   setProfiles(rawInputConfig, parsedConfig, ['low-performance']);
 
   // Reparse the config to ensure the profile did not introduce errors.
-  const parseResult = frigateCardConfigSchema.safeParse(parsedConfig);
+  const parseResult = advancedCameraCardConfigSchema.safeParse(parsedConfig);
   expect(parseResult.success, parseResult.error?.toString()).toBeTruthy();
 });

@@ -21,7 +21,7 @@ describe('should handle view action', () => {
       {},
       {
         action: 'fire-dom-event',
-        frigate_card_action: viewName,
+        advanced_camera_card_action: viewName,
       },
     );
 

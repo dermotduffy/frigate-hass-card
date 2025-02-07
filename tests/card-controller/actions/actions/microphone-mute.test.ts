@@ -8,7 +8,7 @@ it('should handle microphone_mute action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'microphone_mute',
+      advanced_camera_card_action: 'microphone_mute',
     },
   );
 

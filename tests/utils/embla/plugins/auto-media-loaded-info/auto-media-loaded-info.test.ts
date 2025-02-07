@@ -50,7 +50,7 @@ describe('AutoMediaLoadedInfo', () => {
       plugin.init(emblaApi, createTestEmblaOptionHandler());
 
       const mediaLoadedHandler = vi.fn();
-      parent.addEventListener('frigate-card:media:' + type, mediaLoadedHandler);
+      parent.addEventListener('advanced-camera-card:media:' + type, mediaLoadedHandler);
       if (type === 'loaded') {
         dispatchExistingMediaLoadedInfoAsEvent(children[5], createMediaLoadedInfo());
       } else if (type === 'unloaded') {
@@ -76,19 +76,19 @@ describe('AutoMediaLoadedInfo', () => {
     plugin.init(emblaApi, createTestEmblaOptionHandler());
 
     const mediaLoadedHandler = vi.fn();
-    parent.addEventListener('frigate-card:media:loaded', mediaLoadedHandler);
+    parent.addEventListener('advanced-camera-card:media:loaded', mediaLoadedHandler);
     dispatchExistingMediaLoadedInfoAsEvent(children[5], createMediaLoadedInfo());
 
     vi.mocked(emblaApi.selectedScrollSnap).mockReturnValue(4);
     emblaApi
       .containerNode()
-      .dispatchEvent(new Event('frigate-card:carousel:force-select'));
+      .dispatchEvent(new Event('advanced-camera-card:carousel:force-select'));
     expect(mediaLoadedHandler).not.toBeCalled();
 
     vi.mocked(emblaApi.selectedScrollSnap).mockReturnValue(5);
     emblaApi
       .containerNode()
-      .dispatchEvent(new Event('frigate-card:carousel:force-select'));
+      .dispatchEvent(new Event('advanced-camera-card:carousel:force-select'));
     expect(mediaLoadedHandler).toBeCalled();
   });
 });

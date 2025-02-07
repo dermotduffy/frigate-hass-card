@@ -1,9 +1,9 @@
 import Panzoom, { PanzoomEventDetail, PanzoomObject } from '@dermotduffy/panzoom';
-import throttle from 'lodash-es/throttle';
 import round from 'lodash-es/round';
+import throttle from 'lodash-es/throttle';
 import {
   arefloatsApproximatelyEqual,
-  dispatchFrigateCardEvent,
+  dispatchAdvancedCameraCardEvent,
   isHoverableDevice,
 } from '../../utils/basic';
 import {
@@ -76,7 +76,7 @@ export class ZoomController {
       // Even though the click is stopped,the card still needs to gain focus so
       // that keyboard shortcuts will work immediately after the card is clicked
       // upon.
-      dispatchFrigateCardEvent(this._element, 'focus');
+      dispatchAdvancedCameraCardEvent(this._element, 'focus');
     }
     this._allowClick = true;
   };
@@ -133,7 +133,7 @@ export class ZoomController {
 
       // Disable automatic touchAction setting from Panzoom() as otherwise it
       // effectively disables dashboard scrolling. See:
-      // https://github.com/dermotduffy/frigate-hass-card/issues/1181
+      // https://github.com/dermotduffy/advanced-camera-card/issues/1181
       touchAction: '',
 
       // Set the initial pan/zoom values to avoid an initial unzoomed view.
@@ -211,11 +211,11 @@ export class ZoomController {
     if (unzoomed && this._zoomed) {
       this._zoomed = false;
       this._setTouchAction(true);
-      dispatchFrigateCardEvent(this._element, 'zoom:unzoomed');
+      dispatchAdvancedCameraCardEvent(this._element, 'zoom:unzoomed');
     } else if (!unzoomed && !this._zoomed) {
       this._zoomed = true;
       this._setTouchAction(false);
-      dispatchFrigateCardEvent(this._element, 'zoom:zoomed');
+      dispatchAdvancedCameraCardEvent(this._element, 'zoom:zoomed');
     }
 
     const converted = this._convertXYPanToPercent(pz.x, pz.y, pz.scale);
@@ -229,7 +229,7 @@ export class ZoomController {
       unzoomed: unzoomed,
     };
 
-    dispatchFrigateCardEvent(this._element, 'zoom:change', observed);
+    dispatchAdvancedCameraCardEvent(this._element, 'zoom:change', observed);
   }
 
   protected _isZoomEqual(a: PartialZoomSettings, b: PartialZoomSettings): boolean {
@@ -319,7 +319,7 @@ export class ZoomController {
   }
 
   /**
-   * Convert from Frigate card pan % values to Panzoom X/Y transformation
+   * Convert from Advanced Camera Card pan % values to Panzoom X/Y transformation
    * coordinates.
    * @param x The x translation value.
    * @param y The y translation value.
@@ -439,7 +439,7 @@ export class ZoomController {
     return (
       !this._isUnzoomed(this._panzoom?.getScale()) ||
       // TouchEvent does not exist on Firefox on non-touch events. See:
-      // https://github.com/dermotduffy/frigate-hass-card/issues/1174
+      // https://github.com/dermotduffy/advanced-camera-card/issues/1174
       (window.TouchEvent && ev instanceof TouchEvent && ev.touches.length > 1) ||
       (ev instanceof WheelEvent && ev.ctrlKey)
     );

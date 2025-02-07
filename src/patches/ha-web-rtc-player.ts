@@ -16,7 +16,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { dispatchLiveErrorEvent } from '../components-lib/live/utils/dispatch-live-error.js';
 import { renderMessage } from '../components/message.js';
 import liveHAComponentsStyle from '../scss/live-ha-components.scss';
-import { FrigateCardMediaPlayer, FullscreenElement } from '../types.js';
+import { AdvancedCameraCardMediaPlayer, FullscreenElement } from '../types.js';
 import { mayHaveAudio } from '../utils/audio.js';
 import {
   dispatchMediaLoadedEvent,
@@ -32,11 +32,11 @@ import {
 import { screenshotMedia } from '../utils/screenshot.js';
 
 customElements.whenDefined('ha-web-rtc-player').then(() => {
-  @customElement('frigate-card-ha-web-rtc-player')
+  @customElement('advanced-camera-card-ha-web-rtc-player')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  class FrigateCardHaWebRtcPlayer
+  class AdvancedCameraCardHaWebRtcPlayer
     extends customElements.get('ha-web-rtc-player')
-    implements FrigateCardMediaPlayer
+    implements AdvancedCameraCardMediaPlayer
   {
     // Due to an obscure behavior when this card is casted, this element needs
     // to use query rather than the ref directive to find the player.
@@ -166,6 +166,6 @@ customElements.whenDefined('ha-web-rtc-player').then(() => {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-ha-web-rtc-player': FrigateCardHaWebRtcPlayer;
+    'advanced-camera-card-ha-web-rtc-player': AdvancedCameraCardHaWebRtcPlayer;
   }
 }

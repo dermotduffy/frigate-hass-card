@@ -4,10 +4,12 @@ import loadingStyle from '../scss/loading.scss';
 import { getReleaseVersion } from '../utils/diagnostics';
 import './icon';
 
-@customElement('frigate-card-loading')
-export class FrigateCardLoading extends LitElement {
+@customElement('advanced-camera-card-loading')
+export class AdvancedCameraCardLoading extends LitElement {
   protected render(): TemplateResult {
-    return html`<frigate-card-icon .icon=${{ icon: 'iris' }}></frigate-card-icon
+    return html`<advanced-camera-card-icon
+        .icon=${{ icon: 'iris' }}
+      ></advanced-camera-card-icon
       ><span>${getReleaseVersion()}</span>`;
   }
 
@@ -18,6 +20,6 @@ export class FrigateCardLoading extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-loading': FrigateCardLoading;
+    'advanced-camera-card-loading': AdvancedCameraCardLoading;
   }
 }

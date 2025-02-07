@@ -9,7 +9,7 @@ it('should handle live_substream_off action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'live_substream_off',
+      advanced_camera_card_action: 'live_substream_off',
     },
   );
 

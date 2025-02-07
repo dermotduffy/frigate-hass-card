@@ -1,4 +1,4 @@
-import { FrigateCardError, Message, MessageType } from '../types';
+import { AdvancedCameraCardError, Message, MessageType } from '../types';
 import { errorToConsole } from '../utils/basic';
 import { CardMessageAPI } from './types';
 
@@ -60,7 +60,7 @@ export class MessageManager {
     this.setMessageIfHigherPriority({
       message: prefix ? `${prefix}: ${error.message}` : String(error.message),
       type: 'error',
-      ...(error instanceof FrigateCardError && { context: error.context }),
+      ...(error instanceof AdvancedCameraCardError && { context: error.context }),
     });
   }
 

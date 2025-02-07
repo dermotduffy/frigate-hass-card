@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { FrigateCardError } from '../../src/types';
+import { AdvancedCameraCardError } from '../../src/types';
 import {
   allPromises,
   arefloatsApproximatelyEqual,
@@ -9,7 +9,7 @@ import {
   contentsChanged,
   dayToDate,
   desparsifyArrays,
-  dispatchFrigateCardEvent,
+  dispatchAdvancedCameraCardEvent,
   errorToConsole,
   formatDate,
   formatDateAndTime,
@@ -32,13 +32,13 @@ import {
 import { createSlot, createSlotHost } from '../test-utils';
 
 // @vitest-environment jsdom
-describe('dispatchFrigateCardEvent', () => {
+describe('dispatchAdvancedCameraCardEvent', () => {
   it('should dispatch event without data', () => {
     const element = document.createElement('div');
     const handler = vi.fn();
-    element.addEventListener('frigate-card:foo', handler);
+    element.addEventListener('advanced-camera-card:foo', handler);
 
-    dispatchFrigateCardEvent(element, 'foo');
+    dispatchAdvancedCameraCardEvent(element, 'foo');
     expect(handler).toBeCalled();
   });
 
@@ -49,8 +49,8 @@ describe('dispatchFrigateCardEvent', () => {
       expect(ev.detail).toBe(data);
     });
 
-    element.addEventListener('frigate-card:foo', handler);
-    dispatchFrigateCardEvent(element, 'foo', data);
+    element.addEventListener('advanced-camera-card:foo', handler);
+    dispatchAdvancedCameraCardEvent(element, 'foo', data);
     expect(handler).toBeCalled();
   });
 });
@@ -112,9 +112,9 @@ describe('errorToConsole', () => {
     errorToConsole(error);
     expect(spy).toHaveBeenCalledWith('ERROR');
   });
-  it('should log with context given frigate card error', () => {
+  it('should log with context given advanced camera card error', () => {
     const data = { foo: 2 };
-    const error = new FrigateCardError('ERROR', { foo: 2 });
+    const error = new AdvancedCameraCardError('ERROR', { foo: 2 });
     errorToConsole(error);
     expect(spy).toHaveBeenCalledWith(error, data);
   });

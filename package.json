@@ -1,8 +1,11 @@
 {
-  "name": "frigate-hass-card",
+  "name": "advanced-camera-card",
   "version": "0.0.0-dev",
-  "description": "Frigate Lovelace Card for Home Assistant",
+  "description": "Advanced Camera Card for Home Assistant",
   "keywords": [
+    "advanced",
+    "camera",
+    "card",
     "frigate",
     "home-assistant",
     "homeassistant",
@@ -10,8 +13,8 @@
     "lovelace"
   ],
   "type": "module",
-  "module": "frigate-hass-card.js",
-  "repository": "github:dermotduffy/frigate-hass-card",
+  "module": "advanced-camera-card.js",
+  "repository": "github:dermotduffy/advanced-camera-card",
   "author": "Dermot Duffy <dermot.duffy@gmail.com>",
   "license": "MIT",
   "dependencies": {
@@ -149,7 +152,7 @@
         {
           "assets": [
             {
-              "path": "frigate-hass-card.zip",
+              "path": "advanced-camera-card.zip",
               "label": "Zip distribution"
             },
             {
@@ -163,7 +166,7 @@
           "assignees": [
             "dermotduffy"
           ],
-          "successComment": ":tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nSee: [GitHub release](https://github.com/dermotduffy/frigate-hass-card/releases/tag/${nextRelease.gitTag})",
+          "successComment": ":tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nSee: [GitHub release](https://github.com/dermotduffy/advanced-camera-card/releases/tag/${nextRelease.gitTag})",
           "releaseNameTemplate": "v${nextRelease.version}"
         }
       ]

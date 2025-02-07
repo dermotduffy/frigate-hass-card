@@ -1,8 +1,10 @@
-![logo](images/icons/frigate.svg)
+![logo](images/icons/iris.svg ':size=48px')
 
-# Frigate Card <small>6.0.0</small>
+# Advanced Camera Card
 
-> A comprehensive camera card for Home Assistant.
+> A comprehensive camera card for Home Assistant
 
-[GitHub](https://github.com/dermotduffy/frigate-hass-card/)
+<small>FKA: Frigate Card</small>
+
+[GitHub](https://github.com/dermotduffy/advanced-camera-card/)
 [Documentation](README.md)

@@ -24,7 +24,7 @@ const TIMELINE_FRESHNESS_TOLERANCE_SECONDS = 30;
 // instead of clean recording blocks.
 const TIMELINE_RECORDING_SEGMENT_CONSECUTIVE_TOLERANCE_SECONDS = 60;
 
-export interface FrigateCardTimelineItem extends TimelineItem {
+export interface AdvancedCameraCardTimelineItem extends TimelineItem {
   // Use numbers to avoid significant volumes of Date object construction (for
   // high-quantity recording segments).
   start: number;
@@ -38,7 +38,7 @@ export interface FrigateCardTimelineItem extends TimelineItem {
 
 export class TimelineDataSource {
   protected _cameraManager: CameraManager;
-  protected _dataset: DataSet<FrigateCardTimelineItem> = new DataSet();
+  protected _dataset: DataSet<AdvancedCameraCardTimelineItem> = new DataSet();
 
   // The ranges in which recordings have been calculated and added for.
   // Calculating recordings is a very expensive process since it is based on
@@ -66,7 +66,7 @@ export class TimelineDataSource {
     this._showRecordings = showRecordings;
   }
 
-  get dataset(): DataSet<FrigateCardTimelineItem> {
+  get dataset(): DataSet<AdvancedCameraCardTimelineItem> {
     return this._dataset;
   }
 
@@ -135,7 +135,7 @@ export class TimelineDataSource {
     }
 
     const mediaArray = await this._cameraManager.executeMediaQueries(eventQueries);
-    const data: FrigateCardTimelineItem[] = [];
+    const data: AdvancedCameraCardTimelineItem[] = [];
     for (const media of mediaArray ?? []) {
       const startTime = media.getStartTime();
       const id = media.getID();
@@ -160,15 +160,15 @@ export class TimelineDataSource {
   }
 
   protected async _refreshRecordings(window: TimelineWindow): Promise<void> {
-    type FrigateCardTimelineItemWithEnd = ModifyInterface<
-      FrigateCardTimelineItem,
+    type AdvancedCameraCardTimelineItemWithEnd = ModifyInterface<
+      AdvancedCameraCardTimelineItem,
       { end: number }
     >;
 
     const convertSegmentToRecording = (
       cameraID: string,
       segment: RecordingSegment,
-    ): FrigateCardTimelineItemWithEnd => {
+    ): AdvancedCameraCardTimelineItemWithEnd => {
       return {
         id: `recording-${cameraID}-${segment.id}`,
         group: cameraID,
@@ -181,11 +181,11 @@ export class TimelineDataSource {
 
     const getExistingRecordingsForCameraID = (
       cameraID: string,
-    ): FrigateCardTimelineItemWithEnd[] => {
+    ): AdvancedCameraCardTimelineItemWithEnd[] => {
       return this._dataset.get({
         filter: (item) =>
           item.type == 'background' && item.group === cameraID && item.end !== undefined,
-      }) as FrigateCardTimelineItemWithEnd[];
+      }) as AdvancedCameraCardTimelineItemWithEnd[];
     };
 
     const deleteRecordingsForCameraID = (cameraID: string): void => {
@@ -196,7 +196,9 @@ export class TimelineDataSource {
       );
     };
 
-    const addRecordings = (recordings: FrigateCardTimelineItemWithEnd[]): void => {
+    const addRecordings = (
+      recordings: AdvancedCameraCardTimelineItemWithEnd[],
+    ): void => {
       this._dataset.add(recordings);
     };
 
@@ -247,7 +249,7 @@ export class TimelineDataSource {
       const compressedRecordings = compressRanges(
         mergedRecordings,
         TIMELINE_RECORDING_SEGMENT_CONSECUTIVE_TOLERANCE_SECONDS,
-      ) as FrigateCardTimelineItemWithEnd[];
+      ) as AdvancedCameraCardTimelineItemWithEnd[];
 
       deleteRecordingsForCameraID(cameraID);
       addRecordings(compressedRecordings);

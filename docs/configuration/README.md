@@ -5,7 +5,7 @@ The card supports a myriad of configuration options for simple or complex setups
 ### Minimal configuration
 
 ```yaml
-type: custom:frigate-card
+type: custom:advanced-camera-card
 cameras:
   - camera_entity: camera.office
 ```

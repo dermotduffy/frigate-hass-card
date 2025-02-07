@@ -331,7 +331,7 @@ describe('CameraManager', async () => {
       expect(await manager.initializeCamerasFromConfig()).toBeFalsy();
       expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(
         new Error(
-          'Duplicate Frigate camera id for the following camera, ' +
+          'Duplicate camera id for the following camera, ' +
             "use the 'id' parameter to uniquely identify cameras",
         ),
         'Camera initialization failed',
@@ -997,7 +997,9 @@ describe('CameraManager', async () => {
 
       const result: CameraManagerCameraMetadata = {
         title: 'My Camera',
-        icon: 'mdi:camera',
+        icon: {
+          icon: 'mdi:camera',
+        },
       };
       vi.mocked(engine.getCameraMetadata).mockReturnValue(result);
 

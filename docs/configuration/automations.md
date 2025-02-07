@@ -30,9 +30,9 @@ automations:
       - condition: fullscreen
         fullscreen: true
     actions:
-      - action: custom:frigate-card-action
-        frigate_card_action: live_substream_on
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live_substream_on
     actions_not:
-      - action: custom:frigate-card-action
-        frigate_card_action: live_substream_off
+      - action: custom:advanced-camera-card-action
+        advanced_camera_card_action: live_substream_off
 ```

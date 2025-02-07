@@ -1,16 +1,16 @@
-import { dispatchFrigateCardEvent } from '../../../utils/basic';
+import { dispatchAdvancedCameraCardEvent } from '../../../utils/basic';
 import { ActionExecutionRequest } from '../types';
 
 export const dispatchActionExecutionRequest = (
   element: HTMLElement,
   request: ActionExecutionRequest,
 ) => {
-  dispatchFrigateCardEvent(element, 'action:execution-request', request);
+  dispatchAdvancedCameraCardEvent(element, 'action:execution-request', request);
 };
 
 export interface ActionExecutionRequestEventTarget extends EventTarget {
   addEventListener(
-    event: 'frigate-card:action:execution-request',
+    event: 'advanced-camera-card:action:execution-request',
     listener: (
       this: ActionExecutionRequestEventTarget,
       ev: CustomEvent<ActionExecutionRequest>,
@@ -23,7 +23,7 @@ export interface ActionExecutionRequestEventTarget extends EventTarget {
     options?: AddEventListenerOptions | boolean,
   ): void;
   removeEventListener(
-    event: 'frigate-card:action:execution-request',
+    event: 'advanced-camera-card:action:execution-request',
     listener: (
       this: ActionExecutionRequestEventTarget,
       ev: CustomEvent<ActionExecutionRequest>,

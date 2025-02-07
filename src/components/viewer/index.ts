@@ -21,8 +21,8 @@ declare module 'view' {
   }
 }
 
-@customElement('frigate-card-viewer')
-export class FrigateCardViewer extends LitElement {
+@customElement('advanced-camera-card-viewer')
+export class AdvancedCameraCardViewer extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -68,7 +68,7 @@ export class FrigateCardViewer extends LitElement {
       });
     }
 
-    return html` <frigate-card-viewer-grid
+    return html` <advanced-camera-card-viewer-grid
       .hass=${this.hass}
       .viewManagerEpoch=${this.viewManagerEpoch}
       .viewerConfig=${this.viewerConfig}
@@ -76,7 +76,7 @@ export class FrigateCardViewer extends LitElement {
       .cameraManager=${this.cameraManager}
       .cardWideConfig=${this.cardWideConfig}
     >
-    </frigate-card-viewer-grid>`;
+    </advanced-camera-card-viewer-grid>`;
   }
 
   static get styles(): CSSResultGroup {
@@ -86,6 +86,6 @@ export class FrigateCardViewer extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-viewer': FrigateCardViewer;
+    'advanced-camera-card-viewer': AdvancedCameraCardViewer;
   }
 }

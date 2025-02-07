@@ -4,7 +4,7 @@ import {
   MediaActionsController,
   MediaActionsControllerOptions,
 } from '../../src/components-lib/media-actions-controller';
-import { FrigateCardMediaPlayer } from '../../src/types';
+import { AdvancedCameraCardMediaPlayer } from '../../src/types';
 import {
   IntersectionObserverMock,
   MutationObserverMock,
@@ -18,11 +18,11 @@ import { callVisibilityHandler, createTestSlideNodes } from '../utils/embla/test
 const getPlayer = (
   element: HTMLElement,
   selector: string,
-): (HTMLElement & FrigateCardMediaPlayer) | null => {
+): (HTMLElement & AdvancedCameraCardMediaPlayer) | null => {
   return element.querySelector(selector);
 };
 
-const createPlayer = (): HTMLElement & FrigateCardMediaPlayer => {
+const createPlayer = (): HTMLElement & AdvancedCameraCardMediaPlayer => {
   const player = document.createElement('video');
 
   player['play'] = vi.fn();
@@ -35,7 +35,7 @@ const createPlayer = (): HTMLElement & FrigateCardMediaPlayer => {
   player['setControls'] = vi.fn();
   player['isPaused'] = vi.fn();
 
-  return player as unknown as HTMLElement & FrigateCardMediaPlayer;
+  return player as unknown as HTMLElement & AdvancedCameraCardMediaPlayer;
 };
 
 const createPlayerSlideNodes = (n = 10): HTMLElement[] => {
@@ -231,7 +231,7 @@ describe('MediaActionsController', () => {
     controller.unsetTarget();
 
     getPlayer(children[0], 'video')?.dispatchEvent(
-      new Event('frigate-card:media:loaded'),
+      new Event('advanced-camera-card:media:loaded'),
     );
     await flushPromises();
 
@@ -255,7 +255,7 @@ describe('MediaActionsController', () => {
       expect(getPlayer(children[0], 'video')?.play).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
-        new Event('frigate-card:media:loaded'),
+        new Event('advanced-camera-card:media:loaded'),
       );
 
       await flushPromises();
@@ -277,7 +277,7 @@ describe('MediaActionsController', () => {
       expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
-        new Event('frigate-card:media:loaded'),
+        new Event('advanced-camera-card:media:loaded'),
       );
 
       await flushPromises();
@@ -299,7 +299,7 @@ describe('MediaActionsController', () => {
       await controller.setTarget(0, true);
 
       getPlayer(children[9], 'video')?.dispatchEvent(
-        new Event('frigate-card:media:loaded'),
+        new Event('advanced-camera-card:media:loaded'),
       );
 
       await flushPromises();
@@ -325,7 +325,7 @@ describe('MediaActionsController', () => {
       expect(getPlayer(children[0], 'video')?.unmute).toBeCalledTimes(1);
 
       getPlayer(children[0], 'video')?.dispatchEvent(
-        new Event('frigate-card:media:loaded'),
+        new Event('advanced-camera-card:media:loaded'),
       );
 
       await flushPromises();

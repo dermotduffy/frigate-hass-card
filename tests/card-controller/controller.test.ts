@@ -27,7 +27,7 @@ import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-
 import { StyleManager } from '../../src/card-controller/style-manager';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
-import { FrigateCardEditor } from '../../src/editor';
+import { AdvancedCameraCardEditor } from '../../src/editor';
 import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
 import { EntityRegistryManager } from '../../src/utils/ha/registry/entity';
 import { ResolvedMediaCache } from '../../src/utils/ha/resolved-media';
@@ -142,7 +142,9 @@ describe('CardController', () => {
     });
 
     it('getConfigElement', async () => {
-      expect((await CardController.getConfigElement()) instanceof FrigateCardEditor);
+      expect(
+        (await CardController.getConfigElement()) instanceof AdvancedCameraCardEditor,
+      );
     });
 
     it('getConfigManager', () => {

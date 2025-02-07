@@ -1,5 +1,5 @@
 import { ActionContext } from 'action';
-import { FrigateCardCustomAction } from '../../../config/types';
+import { AdvancedCameraCardCustomAction } from '../../../config/types';
 import { CardActionsAPI } from '../../types';
 import { Action, AuxillaryActionConfig } from '../types';
 
@@ -24,6 +24,6 @@ export class BaseAction<T> implements Action {
   }
 }
 
-export class FrigateCardAction<
-  T extends FrigateCardCustomAction,
+export class AdvancedCameraCardAction<
+  T extends AdvancedCameraCardCustomAction,
 > extends BaseAction<T> {}

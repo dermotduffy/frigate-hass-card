@@ -8,7 +8,7 @@ it('should handle microphone_disconnect action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'microphone_disconnect',
+      advanced_camera_card_action: 'microphone_disconnect',
     },
   );
 

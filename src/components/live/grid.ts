@@ -19,8 +19,8 @@ import { ExtendedHomeAssistant } from '../../types.js';
 import { contentsChanged } from '../../utils/basic.js';
 import './carousel.js';
 
-@customElement('frigate-card-live-grid')
-export class FrigateCardLiveGrid extends LitElement {
+@customElement('advanced-camera-card-live-grid')
+export class AdvancedCameraCardLiveGrid extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -56,7 +56,7 @@ export class FrigateCardLiveGrid extends LitElement {
     const triggeredCameraID = cameraID ?? view?.camera;
 
     return html`
-      <frigate-card-live-carousel
+      <advanced-camera-card-live-carousel
         grid-id=${ifDefined(cameraID)}
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
@@ -71,7 +71,7 @@ export class FrigateCardLiveGrid extends LitElement {
         ?triggered=${triggeredCameraID &&
         !!this.triggeredCameraIDs?.has(triggeredCameraID)}
       >
-      </frigate-card-live-carousel>
+      </advanced-camera-card-live-carousel>
     `;
   }
 
@@ -110,14 +110,15 @@ export class FrigateCardLiveGrid extends LitElement {
     }
 
     return html`
-      <frigate-card-media-grid
+      <advanced-camera-card-media-grid
         .selected=${this.viewManagerEpoch?.manager.getView()?.camera}
         .displayConfig=${this.overriddenLiveConfig?.display}
-        @frigate-card:media-grid:selected=${(ev: CustomEvent<MediaGridSelected>) =>
-          this._gridSelectCamera(ev.detail.selected)}
+        @advanced-camera-card:media-grid:selected=${(
+          ev: CustomEvent<MediaGridSelected>,
+        ) => this._gridSelectCamera(ev.detail.selected)}
       >
         ${[...cameraIDs].map((cameraID) => this._renderCarousel(cameraID))}
-      </frigate-card-media-grid>
+      </advanced-camera-card-media-grid>
     `;
   }
 
@@ -128,6 +129,6 @@ export class FrigateCardLiveGrid extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-grid': FrigateCardLiveGrid;
+    'advanced-camera-card-live-grid': AdvancedCameraCardLiveGrid;
   }
 }

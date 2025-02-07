@@ -18,13 +18,13 @@ import {
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
-import { dispatchFrigateCardErrorEvent } from '../../components-lib/message/dispatch.js';
+import { dispatchAdvancedCameraCardErrorEvent } from '../../components-lib/message/dispatch.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import {
   CameraConfig,
   CardWideConfig,
-  frigateCardConfigDefaults,
+  configDefaults,
   LiveConfig,
   liveConfigAbsoluteRootSchema,
   Overrides,
@@ -45,11 +45,11 @@ import '../carousel';
 import { EmblaCarouselPlugins } from '../carousel.js';
 import '../next-prev-control.js';
 import '../ptz.js';
-import { FrigateCardPTZ } from '../ptz.js';
+import { AdvancedCameraCardPTZ } from '../ptz.js';
 import './provider.js';
-import { FrigateCardLiveProvider } from './provider.js';
+import { AdvancedCameraCardLiveProvider } from './provider.js';
 
-const FRIGATE_CARD_LIVE_PROVIDER = 'frigate-card-live-provider';
+const ADVANCED_CAMERA_CARD_LIVE_PROVIDER = 'advanced-camera-card-live-provider';
 
 interface CameraNeighbor {
   id: string;
@@ -61,8 +61,8 @@ interface CameraNeighbors {
   next?: CameraNeighbor;
 }
 
-@customElement('frigate-card-live-carousel')
-export class FrigateCardLiveCarousel extends LitElement {
+@customElement('advanced-camera-card-live-carousel')
+export class AdvancedCameraCardLiveCarousel extends LitElement {
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -95,7 +95,7 @@ export class FrigateCardLiveCarousel extends LitElement {
 
   // Index between camera name and slide number.
   protected _cameraToSlide: Record<string, number> = {};
-  protected _refPTZControl: Ref<FrigateCardPTZ> = createRef();
+  protected _refPTZControl: Ref<AdvancedCameraCardPTZ> = createRef();
   protected _refCarousel: Ref<HTMLElement> = createRef();
 
   protected _mediaActionsController = new MediaActionsController();
@@ -118,7 +118,7 @@ export class FrigateCardLiveCarousel extends LitElement {
   protected _getTransitionEffect(): TransitionEffect {
     return (
       this.overriddenLiveConfig?.transition_effect ??
-      frigateCardConfigDefaults.live.transition_effect
+      configDefaults.live.transition_effect
     );
   }
 
@@ -143,7 +143,7 @@ export class FrigateCardLiveCarousel extends LitElement {
       changedProps.has('overriddenLiveConfig')
     ) {
       this._mediaActionsController.setOptions({
-        playerSelector: FRIGATE_CARD_LIVE_PROVIDER,
+        playerSelector: ADVANCED_CAMERA_CARD_LIVE_PROVIDER,
         ...(this.overriddenLiveConfig?.auto_play && {
           autoPlayConditions: this.overriddenLiveConfig.auto_play,
         }),
@@ -254,8 +254,8 @@ export class FrigateCardLiveCarousel extends LitElement {
     }
 
     const liveProvider = slide?.querySelector(
-      FRIGATE_CARD_LIVE_PROVIDER,
-    ) as FrigateCardLiveProvider | null;
+      ADVANCED_CAMERA_CARD_LIVE_PROVIDER,
+    ) as AdvancedCameraCardLiveProvider | null;
     if (liveProvider) {
       liveProvider.load = action === 'load';
     }
@@ -280,7 +280,7 @@ export class FrigateCardLiveCarousel extends LitElement {
     try {
       // The condition controller object contains the currently live camera, which
       // (in the carousel for example) is not necessarily the live camera *this*
-      // <frigate-card-live-provider> is rendering right now, so we provide a
+      // <advanced-camera-card-live-provider> is rendering right now, so we provide a
       // stateOverride to evaluate the condition in that context.
       liveConfig = getOverriddenConfig(
         this.conditionsManagerEpoch.manager,
@@ -292,7 +292,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         },
       ).live;
     } catch (ev) {
-      return dispatchFrigateCardErrorEvent(this, ev);
+      return dispatchAdvancedCameraCardErrorEvent(this, ev);
     }
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
@@ -300,7 +300,7 @@ export class FrigateCardLiveCarousel extends LitElement {
 
     return html`
       <div class="embla__slide">
-        <frigate-card-live-provider
+        <advanced-camera-card-live-provider
           ?load=${!liveConfig.lazy_load}
           .microphoneState=${view?.camera === cameraID
             ? this.microphoneState
@@ -315,14 +315,14 @@ export class FrigateCardLiveCarousel extends LitElement {
           .hass=${this.hass}
           .cardWideConfig=${this.cardWideConfig}
           .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
-          @frigate-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
+          @advanced-camera-card:zoom:change=${(ev: CustomEvent<ZoomSettingsObserved>) =>
             handleZoomSettingsObservedEvent(
               ev,
               this.viewManagerEpoch?.manager,
               cameraID,
             )}
         >
-        </frigate-card-live-provider>
+        </advanced-camera-card-live-provider>
       </div>
     `;
   }
@@ -381,7 +381,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         ? neighbors?.previous
         : neighbors?.next;
 
-    return html`<frigate-card-next-previous-control
+    return html`<advanced-camera-card-next-previous-control
       slot=${side}
       .hass=${this.hass}
       .side=${side}
@@ -394,7 +394,7 @@ export class FrigateCardLiveCarousel extends LitElement {
         stopEventFromActivatingCardWideActions(ev);
       }}
     >
-    </frigate-card-next-previous-control>`;
+    </advanced-camera-card-next-previous-control>`;
   }
 
   protected render(): TemplateResult | void {
@@ -424,7 +424,7 @@ export class FrigateCardLiveCarousel extends LitElement {
     //   options/plugins actually change.
 
     return html`
-      <frigate-card-carousel
+      <advanced-camera-card-carousel
         ${ref(this._refCarousel)}
         .loop=${hasMultipleCameras}
         .dragEnabled=${hasMultipleCameras && this.overriddenLiveConfig?.draggable}
@@ -434,11 +434,11 @@ export class FrigateCardLiveCarousel extends LitElement {
         )}
         .selected=${this._getSelectedCameraIndex()}
         transitionEffect=${this._getTransitionEffect()}
-        @frigate-card:carousel:select=${this._setViewHandler.bind(this)}
-        @frigate-card:media:loaded=${() => {
+        @advanced-camera-card:carousel:select=${this._setViewHandler.bind(this)}
+        @advanced-camera-card:media:loaded=${() => {
           this._mediaHasLoaded = true;
         }}
-        @frigate-card:media:unloaded=${() => {
+        @advanced-camera-card:media:unloaded=${() => {
           this._mediaHasLoaded = false;
         }}
       >
@@ -447,14 +447,14 @@ export class FrigateCardLiveCarousel extends LitElement {
         ${slides}
         <!-- -->
         ${this._renderNextPrevious('right', neighbors)}
-      </frigate-card-carousel>
-      <frigate-card-ptz
+      </advanced-camera-card-carousel>
+      <advanced-camera-card-ptz
         .config=${this.overriddenLiveConfig.controls.ptz}
         .cameraManager=${this.cameraManager}
         .cameraID=${getStreamCameraID(view, this.viewFilterCameraID)}
         .forceVisibility=${forcePTZVisibility}
       >
-      </frigate-card-ptz>
+      </advanced-camera-card-ptz>
     `;
   }
 
@@ -486,7 +486,7 @@ export class FrigateCardLiveCarousel extends LitElement {
 
     // If the view has changed, or if the media actions controller has just been
     // initialized, then call the necessary media action.
-    // See: https://github.com/dermotduffy/frigate-hass-card/issues/1626
+    // See: https://github.com/dermotduffy/advanced-camera-card/issues/1626
     if (initialized || changedProperties.has('viewManagerEpoch')) {
       this._setMediaTarget();
     }
@@ -499,6 +499,6 @@ export class FrigateCardLiveCarousel extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live-carousel': FrigateCardLiveCarousel;
+    'advanced-camera-card-live-carousel': AdvancedCameraCardLiveCarousel;
   }
 }

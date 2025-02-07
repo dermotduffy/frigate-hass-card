@@ -2,19 +2,19 @@
 
 ## `conditional`
 
-Restrict a set of elements to only render when the card is matches a set of [conditions](../../conditions.md). This is analogous to the stock [`conditional`](../stock/README.md?id=conditional) element except supporting a rich set of Frigate Card [conditions](../../conditions.md).
+Restrict a set of elements to only render when the card is matches a set of [conditions](../../conditions.md). This is analogous to the stock [`conditional`](../stock/README.md?id=conditional) element except supporting a rich set of Advanced Camera Card [conditions](../../conditions.md).
 
 ```yaml
 elements:
-  - type: custom:frigate-card-conditional
+  - type: custom:advanced-camera-card-conditional
     # [...]
 ```
 
-Parameters for the `custom:frigate-card-conditional` element:
+Parameters for the `custom:advanced-camera-card-conditional` element:
 
 | Parameter    | Description                                                                                                      |
 | ------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `type`       | Must be `custom:frigate-card-conditional`.                                                                       |
+| `type`       | Must be `custom:advanced-camera-card-conditional`.                                                               |
 | `conditions` | A list of [conditions](../../conditions.md) that must evaluate to true in order for the elements to be rendered. |
 | `elements`   | The elements to render. Can be any supported element.                                                            |
 
@@ -22,11 +22,11 @@ See the [conditional elements example](../../../examples.md?id=conditional-eleme
 
 ## `menu-icon`
 
-Add an arbitrary icon to the Frigate Card menu.
+Add an arbitrary icon to the Advanced Camera Card menu.
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     # [...]
 ```
 
@@ -34,7 +34,7 @@ Configuration is similar to a stock [Picture Elements Icon](https://www.home-ass
 
 | Parameter                                                                | Default    | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                                                                   |            | Must be `custom:frigate-card-menu-icon`.                                                                                                                                                                                                                                                                                     |
+| `type`                                                                   |            | Must be `custom:advanced-camera-card-menu-icon`.                                                                                                                                                                                                                                                                             |
 | `alignment`                                                              | `matching` | Whether this menu item should have an alignment that is `matching` the menu alignment or `opposing` the menu alignment. Can be used to create two separate groups of buttons on the menu. The `priority` option orders buttons within a given `alignment`.                                                                   |
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
@@ -51,13 +51,13 @@ Add a configurable submenu dropdown.
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-submenu
+  - type: custom:advanced-camera-card-menu-submenu
     # [...]
 ```
 
 | Parameter                                                                | Default    | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                                                                   |            | Must be `custom:frigate-card-menu-submenu`.                                                                                                                                                                                                                                                                                  |
+| `type`                                                                   |            | Must be `custom:advanced-camera-card-menu-submenu`.                                                                                                                                                                                                                                                                          |
 | `alignment`                                                              | `matching` | Whether this menu item should have an alignment that is `matching` the menu alignment or `opposing` the menu alignment. Can be used to create two separate groups of buttons on the menu. The `priority` option orders buttons within a given `alignment`.                                                                   |
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
@@ -88,13 +88,13 @@ Add a submenu based on a `select` or `input_select`. This element allows you to 
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-submenu-select
+  - type: custom:advanced-camera-card-menu-submenu-select
     # [...]
 ```
 
 | Parameter                                                                | Default    | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                                                                   |            | Must be `custom:frigate-card-menu-submenu-select`.                                                                                                                                                                                                                                                                           |
+| `type`                                                                   |            | Must be `custom:advanced-camera-card-menu-submenu-select`.                                                                                                                                                                                                                                                                   |
 | `alignment`                                                              | `matching` | Whether this menu item should have an alignment that is `matching` the menu alignment or `opposing` the menu alignment. Can be used to create two separate groups of buttons on the menu. The `priority` option orders buttons within a given `alignment`.                                                                   |
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
@@ -110,11 +110,11 @@ See the `select` [submenu example](../../../examples.md?id=select-submenu).
 
 ## `menu-state-icon`
 
-Add a state icon to the Frigate Card menu that represents the state of a Home Assistant entity.
+Add a state icon to the Advanced Camera Card menu that represents the state of a Home Assistant entity.
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-state-icon
+  - type: custom:advanced-camera-card-menu-state-icon
     # [...]
 ```
 
@@ -122,7 +122,7 @@ Configuration is similar to a stock [Picture Elements State Icon](https://www.ho
 
 | Parameter                                                                | Default    | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                                                                   |            | Must be `custom:frigate-card-menu-state-icon`.                                                                                                                                                                                                                                                                               |
+| `type`                                                                   |            | Must be `custom:advanced-camera-card-menu-state-icon`.                                                                                                                                                                                                                                                                       |
 | `alignment`                                                              | `matching` | Whether this menu item should have an alignment that is `matching` the menu alignment or `opposing` the menu alignment. Can be used to create two separate groups of buttons on the menu. The `priority` option orders buttons within a given `alignment`.                                                                   |
 | `enabled`                                                                | `true`     | Whether or not to show this menu item.                                                                                                                                                                                                                                                                                       |
 | `entity`                                                                 |            | An optional Home Assistant entity for use with actions.                                                                                                                                                                                                                                                                      |
@@ -140,13 +140,13 @@ Add an arbitrary icon to the status bar.
 
 ```yaml
 elements:
-  - type: custom:frigate-card-status-bar-icon
+  - type: custom:advanced-camera-card-status-bar-icon
     # [...]
 ```
 
 | Parameter    | Default | Description                                                                                                                                                                                                              |
 | ------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `type`       |         | Must be `custom:frigate-card-status-bar-icon`.                                                                                                                                                                           |
+| `type`       |         | Must be `custom:advanced-camera-card-status-bar-icon`.                                                                                                                                                                   |
 | `actions`    |         | Actions to performs when the status bar item is interacted with. See [actions](../../actions/README.md).                                                                                                                 |
 | `enabled`    | `true`  | `true` to enable this status bar item, `false` to disable.                                                                                                                                                               |
 | `exclusive`  | `false` | Whether or not this item should evict non-exclusive items from the status bar.                                                                                                                                           |
@@ -161,13 +161,13 @@ Add an arbitrary image to the status bar.
 
 ```yaml
 elements:
-  - type: custom:frigate-card-status-bar-image
+  - type: custom:advanced-camera-card-status-bar-image
     # [...]
 ```
 
 | Parameter    | Default | Description                                                                                                                                                                                                              |
 | ------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `type`       |         | Must be `custom:frigate-card-status-bar-image`.                                                                                                                                                                          |
+| `type`       |         | Must be `custom:advanced-camera-card-status-bar-image`.                                                                                                                                                                  |
 | `actions`    |         | Actions to performs when the status bar item is interacted with. See [actions](../../actions/README.md).                                                                                                                 |
 | `enabled`    | `true`  | `true` to enable this status bar item, `false` to disable.                                                                                                                                                               |
 | `exclusive`  | `false` | Whether or not this item should evict non-exclusive items from the status bar.                                                                                                                                           |
@@ -182,13 +182,13 @@ Add an arbitrary string to the status bar.
 
 ```yaml
 elements:
-  - type: custom:frigate-card-status-bar-string
+  - type: custom:advanced-camera-card-status-bar-string
     # [...]
 ```
 
 | Parameter    | Default | Description                                                                                                                                                                                                              |
 | ------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `type`       |         | Must be `custom:frigate-card-status-bar-string`.                                                                                                                                                                         |
+| `type`       |         | Must be `custom:advanced-camera-card-status-bar-string`.                                                                                                                                                                 |
 | `actions`    |         | Actions to performs when the status bar item is interacted with. See [actions](../../actions/README.md).                                                                                                                 |
 | `enabled`    | `true`  | `true` to enable this status bar item, `false` to disable.                                                                                                                                                               |
 | `exclusive`  | `false` | Whether or not this item should evict non-exclusive items from the status bar.                                                                                                                                           |
@@ -205,7 +205,7 @@ elements:
 
 ```yaml
 elements:
-  - type: custom:frigate-card-menu-icon
+  - type: custom:advanced-camera-card-menu-icon
     alignment: matching
     enabled: true
     entity: light.office_main_lights
@@ -215,7 +215,7 @@ elements:
     style:
       color: white
     title: Vroom
-  - type: custom:frigate-card-menu-state-icon
+  - type: custom:advanced-camera-card-menu-state-icon
     alignment: matching
     enabled: true
     entity: light.office_main_lights
@@ -226,7 +226,7 @@ elements:
     style:
       color: white
     title: Office lights
-  - type: custom:frigate-card-menu-submenu
+  - type: custom:advanced-camera-card-menu-submenu
     alignment: matching
     enabled: true
     entity: light.office_main_lights
@@ -256,7 +256,7 @@ elements:
     style:
       color: white
     title: Office lights
-  - type: custom:frigate-card-menu-submenu-select
+  - type: custom:advanced-camera-card-menu-submenu-select
     alignment: matching
     enabled: true
     entity: input_select.kitchen_scene
@@ -280,7 +280,7 @@ elements:
       color: white
     title: 'Kitchen Scene'
     # Show a pig icon if a variety of conditions are met.
-  - type: custom:frigate-card-conditional
+  - type: custom:advanced-camera-card-conditional
     elements:
       - type: icon
         icon: mdi:pig
@@ -321,21 +321,21 @@ elements:
       - condition: user
         users:
           - 581fca7fdc014b8b894519cc531f9a04
-  - type: custom:frigate-card-status-bar-string
+  - type: custom:advanced-camera-card-status-bar-string
     enabled: true
     exclusive: false
     expand: false
     string: 'Intruder alert!'
     priority: 50
     sufficient: false
-  - type: custom:frigate-card-status-bar-icon
+  - type: custom:advanced-camera-card-status-bar-icon
     enabled: true
     exclusive: false
     expand: false
     icon: 'mdi:cow'
     priority: 50
     sufficient: false
-  - type: custom:frigate-card-status-bar-image
+  - type: custom:advanced-camera-card-status-bar-image
     enabled: true
     exclusive: false
     expand: false

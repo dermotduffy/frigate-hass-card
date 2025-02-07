@@ -6,17 +6,24 @@ import {
   FrigateRecordingViewMedia,
 } from '../../../src/camera-manager/frigate/media';
 import { FrigateEvent, eventSchema } from '../../../src/camera-manager/frigate/types.js';
+import { StateWatcher } from '../../../src/card-controller/hass/state-watcher';
 import { PTZAction } from '../../../src/config/ptz';
 import {
+  AdvancedCameraCardView,
   CameraConfig,
-  FrigateCardView,
-  RawFrigateCardConfig,
+  RawAdvancedCameraCardConfig,
 } from '../../../src/config/types';
+import {
+  EntityRegistryManager,
+  createEntityRegistryCache,
+} from '../../../src/utils/ha/registry/entity';
 import { ViewMedia } from '../../../src/view/media';
 import { TestViewMedia, createCameraConfig, createHASS } from '../../test-utils';
 
 const createEngine = (): FrigateCameraManagerEngine => {
   return new FrigateCameraManagerEngine(
+    new EntityRegistryManager(createEntityRegistryCache()),
+    new StateWatcher(),
     new RecordingSegmentsCache(),
     new RequestCache(),
   );
@@ -75,7 +82,9 @@ const createSnapshotMedia = (): FrigateEventViewMedia => {
   );
 };
 
-const createFrigateCameraConfig = (config?: RawFrigateCardConfig): CameraConfig => {
+const createFrigateCameraConfig = (
+  config?: RawAdvancedCameraCardConfig,
+): CameraConfig => {
   return createCameraConfig({
     frigate: {
       camera_name: 'camera-1',
@@ -345,7 +354,7 @@ describe('getCameraEndpoints', () => {
         ['clips' as const],
         ['snapshot' as const],
         ['snapshots' as const],
-      ])('%s', (viewName: FrigateCardView) => {
+      ])('%s', (viewName: AdvancedCameraCardView) => {
         const endpoints = createEngine().getCameraEndpoints(
           createCameraConfig({
             frigate: {
@@ -369,7 +378,7 @@ describe('getCameraEndpoints', () => {
 
       it.each([['recording' as const], ['recordings' as const]])(
         '%s',
-        (viewName: FrigateCardView) => {
+        (viewName: AdvancedCameraCardView) => {
           const endpoints = createEngine().getCameraEndpoints(
             createCameraConfig({
               frigate: {

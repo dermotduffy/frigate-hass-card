@@ -1,14 +1,14 @@
 @mixin media-layout {
-  object-fit: var(--frigate-card-media-layout-fit, contain);
-  object-position: var(--frigate-card-media-layout-position-x, 50%)
-    var(--frigate-card-media-layout-position-y, 50%);
+  object-fit: var(--advanced-camera-card-media-layout-fit, contain);
+  object-position: var(--advanced-camera-card-media-layout-position-x, 50%)
+    var(--advanced-camera-card-media-layout-position-y, 50%);
 
   // This is supported on limited browsers:
   // See: https://caniuse.com/?search=object-view-box
   object-view-box: inset(
-    var(--frigate-card-media-layout-view-box-top, 0%)
-      var(--frigate-card-media-layout-view-box-right, 0%)
-      var(--frigate-card-media-layout-view-box-bottom, 0%)
-      var(--frigate-card-media-layout-view-box-left, 0%)
+    var(--advanced-camera-card-media-layout-view-box-top, 0%)
+      var(--advanced-camera-card-media-layout-view-box-right, 0%)
+      var(--advanced-camera-card-media-layout-view-box-bottom, 0%)
+      var(--advanced-camera-card-media-layout-view-box-left, 0%)
   );
 }

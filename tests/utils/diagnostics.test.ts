@@ -4,8 +4,8 @@ import { mock } from 'vitest-mock-extended';
 import { getLanguage } from '../../src/localize/localize';
 import { getDiagnostics, getReleaseVersion } from '../../src/utils/diagnostics.js';
 import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
-import { createHASS, createRegistryDevice } from '../test-utils';
 import { homeAssistantWSRequest } from '../../src/utils/ha/ws-request';
+import { createHASS, createRegistryDevice } from '../test-utils';
 
 vi.mock('../../package.json', () => ({
   default: {
@@ -21,7 +21,7 @@ vi.mock('../../src/utils/ha/ws-request.js');
 
 describe('getReleaseVersion', () => {
   it('should get release version', () => {
-    expect(getReleaseVersion()).toBe('__FRIGATE_CARD_RELEASE_VERSION__');
+    expect(getReleaseVersion()).toBe('__ADVANCED_CAMERA_CARD_RELEASE_VERSION__');
   });
 });
 
@@ -38,7 +38,7 @@ describe('getDiagnostics', () => {
     vi.setSystemTime(now);
 
     vi.mocked(getLanguage).mockReturnValue('en');
-    vi.stubGlobal('navigator', { userAgent: 'FrigateCardTest/1.0' });
+    vi.stubGlobal('navigator', { userAgent: 'AdvancedCameraCardTest/1.0' });
   });
 
   afterEach(() => {
@@ -76,8 +76,8 @@ describe('getDiagnostics', () => {
         cameras: [{ camera_entity: 'camera.office' }],
       }),
     ).toEqual({
-      browser: 'FrigateCardTest/1.0',
-      card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
+      browser: 'AdvancedCameraCardTest/1.0',
+      card_version: '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__',
       config: {
         cameras: [{ camera_entity: 'camera.office' }],
       },
@@ -130,8 +130,8 @@ describe('getDiagnostics', () => {
 
   it('should fetch diagnostics without hass or config', async () => {
     expect(await getDiagnostics()).toEqual({
-      browser: 'FrigateCardTest/1.0',
-      card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
+      browser: 'AdvancedCameraCardTest/1.0',
+      card_version: '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__',
       git: {
         build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',
@@ -156,8 +156,8 @@ describe('getDiagnostics', () => {
     deviceRegistryManager.getMatchingDevices.mockResolvedValue([]);
 
     expect(await getDiagnostics(hass, deviceRegistryManager)).toEqual({
-      browser: 'FrigateCardTest/1.0',
-      card_version: '__FRIGATE_CARD_RELEASE_VERSION__',
+      browser: 'AdvancedCameraCardTest/1.0',
+      card_version: '__ADVANCED_CAMERA_CARD_RELEASE_VERSION__',
       git: {
         build_date: 'Tue, 19 Sep 2023 04:59:27 GMT',
         commit_date: 'Wed, 6 Sep 2023 21:27:28 -0700',

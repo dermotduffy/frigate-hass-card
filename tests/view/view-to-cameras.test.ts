@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { FrigateCardView } from '../../src/config/types';
+import { AdvancedCameraCardView } from '../../src/config/types';
 import { CapabilityKey } from '../../src/types';
 import { getCameraIDsForViewName } from '../../src/view/view-to-cameras';
 import {
@@ -13,7 +13,7 @@ describe('getCameraIDsForViewName', () => {
   describe('views that are always supported', () => {
     it.each([['image' as const], ['diagnostics' as const]])(
       '%s',
-      (viewName: FrigateCardView) => {
+      (viewName: AdvancedCameraCardView) => {
         const cameraManager = createCameraManager();
         vi.mocked(cameraManager.getStore).mockReturnValue(
           createStore([
@@ -53,7 +53,7 @@ describe('getCameraIDsForViewName', () => {
       ['timeline' as const, 'clips' as const],
       ['timeline' as const, 'snapshots' as const],
       ['timeline' as const, 'recordings' as const],
-    ])('%s', (viewName: FrigateCardView, capabilityKey: CapabilityKey) => {
+    ])('%s', (viewName: AdvancedCameraCardView, capabilityKey: CapabilityKey) => {
       const cameraManager = createCameraManager();
       vi.mocked(cameraManager.getStore).mockReturnValue(
         createStore([

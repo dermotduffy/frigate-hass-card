@@ -17,7 +17,7 @@ describe('setAutomationsFromConfig', () => {
         actions: [
           {
             action: 'fire-dom-event' as const,
-            frigate_card_action: 'clips',
+            advanced_camera_card_action: 'clips',
           },
         ],
         conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],

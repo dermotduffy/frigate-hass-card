@@ -1,9 +1,9 @@
 import { MediaPlayerActionConfig } from '../../../config/types';
 import { getStreamCameraID } from '../../../utils/substream';
 import { CardActionsAPI } from '../../types';
-import { FrigateCardAction } from './base';
+import { AdvancedCameraCardAction } from './base';
 
-export class MediaPlayerAction extends FrigateCardAction<MediaPlayerActionConfig> {
+export class MediaPlayerAction extends AdvancedCameraCardAction<MediaPlayerActionConfig> {
   public async execute(api: CardActionsAPI): Promise<void> {
     const mediaPlayer = this._action.media_player;
     const mediaPlayerController = api.getMediaPlayerManager();

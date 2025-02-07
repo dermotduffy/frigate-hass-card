@@ -1,6 +1,6 @@
 import { ViewContext } from 'view';
-import { FrigateCardView } from '../../config/types.js';
-import { FrigateCardError } from '../../types.js';
+import { AdvancedCameraCardView } from '../../config/types.js';
+import { AdvancedCameraCardError } from '../../types.js';
 import { MediaQueriesResults } from '../../view/media-queries-results.js';
 import { MediaQueries } from '../../view/media-queries.js';
 import { ViewMedia } from '../../view/media.js';
@@ -72,9 +72,9 @@ export interface ViewManagerInterface {
 
   setViewWithMergedContext(context: ViewContext | null): void;
 
-  isViewSupportedByCamera(cameraID: string, view: FrigateCardView): boolean;
+  isViewSupportedByCamera(cameraID: string, view: AdvancedCameraCardView): boolean;
   hasMajorMediaChange(oldView?: View | null, newView?: View | null): boolean;
 }
 
-export class ViewNoCameraError extends FrigateCardError {}
-export class ViewIncompatible extends FrigateCardError {}
+export class ViewNoCameraError extends AdvancedCameraCardError {}
+export class ViewIncompatible extends AdvancedCameraCardError {}

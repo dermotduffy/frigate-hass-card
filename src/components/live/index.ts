@@ -11,8 +11,8 @@ import { ExtendedHomeAssistant } from '../../types.js';
 import { contentsChanged } from '../../utils/basic.js';
 import './grid.js';
 
-@customElement('frigate-card-live')
-export class FrigateCardLive extends LitElement {
+@customElement('advanced-camera-card-live')
+export class AdvancedCameraCardLive extends LitElement {
   @property({ attribute: false })
   public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
@@ -57,7 +57,7 @@ export class FrigateCardLive extends LitElement {
     // - Various events are captured to prevent them propagating upwards if the
     //   card is in the background.
     return html`
-      <frigate-card-live-grid
+      <advanced-camera-card-live-grid
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .nonOverriddenLiveConfig=${this.nonOverriddenLiveConfig}
@@ -70,7 +70,7 @@ export class FrigateCardLive extends LitElement {
         .microphoneState=${this.microphoneState}
         .triggeredCameraIDs=${this.triggeredCameraIDs}
       >
-      </frigate-card-live-grid>
+      </advanced-camera-card-live-grid>
     `;
   }
 
@@ -81,6 +81,6 @@ export class FrigateCardLive extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-live': FrigateCardLive;
+    'advanced-camera-card-live': AdvancedCameraCardLive;
   }
 }

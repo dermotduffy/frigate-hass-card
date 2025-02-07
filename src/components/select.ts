@@ -9,7 +9,7 @@ import {
 import { property } from 'lit/decorators.js';
 import { createRef, ref, Ref } from 'lit/directives/ref.js';
 import selectStyle from '../scss/select.scss';
-import { contentsChanged, dispatchFrigateCardEvent } from '../utils/basic';
+import { contentsChanged, dispatchAdvancedCameraCardEvent } from '../utils/basic';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import { grSelectElements } from '../scoped-elements/gr-select';
 import isEqual from 'lodash-es/isEqual';
@@ -26,7 +26,7 @@ type SelectElement = HTMLElement & {
   value: SelectValues;
 };
 
-export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
+export class AdvancedCameraCardSelect extends ScopedRegistryHost(LitElement) {
   @property({ attribute: false, hasChanged: contentsChanged })
   public options?: SelectOption[];
 
@@ -73,7 +73,7 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
       // (even when the user has not interacted with the control). Do not
       // dispatch events for this.
       if (!initialValueSet) {
-        dispatchFrigateCardEvent(this, 'select:change', value);
+        dispatchAdvancedCameraCardEvent(this, 'select:change', value);
       }
     }
   }
@@ -111,6 +111,6 @@ export class FrigateCardSelect extends ScopedRegistryHost(LitElement) {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'frigate-card-select': FrigateCardSelect;
+    'advanced-camera-card-select': AdvancedCameraCardSelect;
   }
 }

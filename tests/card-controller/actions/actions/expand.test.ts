@@ -8,7 +8,7 @@ it('should handle expand action', async () => {
     {},
     {
       action: 'fire-dom-event',
-      frigate_card_action: 'expand',
+      advanced_camera_card_action: 'expand',
     },
   );
 

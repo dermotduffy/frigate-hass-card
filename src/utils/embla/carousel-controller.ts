@@ -3,7 +3,7 @@ import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import { CreatePluginType, LoosePluginType } from 'embla-carousel/components/Plugins';
 import isEqual from 'lodash-es/isEqual';
 import { TransitionEffect } from '../../config/types';
-import { dispatchFrigateCardEvent, getChildrenFromElement } from '../basic.js';
+import { dispatchAdvancedCameraCardEvent, getChildrenFromElement } from '../basic.js';
 import { TextDirection } from '../text-direction';
 
 export interface CarouselSelected {
@@ -99,10 +99,14 @@ export class CarouselController {
     // this is used.
     const newSlide = this.getSlide(index);
     if (newSlide) {
-      dispatchFrigateCardEvent<CarouselSelected>(this._parent, 'carousel:force-select', {
-        index: index,
-        element: newSlide,
-      });
+      dispatchAdvancedCameraCardEvent<CarouselSelected>(
+        this._parent,
+        'carousel:force-select',
+        {
+          index: index,
+          element: newSlide,
+        },
+      );
     }
   }
 
@@ -168,7 +172,7 @@ export class CarouselController {
     const selectSlide = (): void => {
       const carouselSelected = getCarouselSelectedObject();
       if (carouselSelected) {
-        dispatchFrigateCardEvent<CarouselSelected>(
+        dispatchAdvancedCameraCardEvent<CarouselSelected>(
           this._parent,
           'carousel:select',
           carouselSelected,

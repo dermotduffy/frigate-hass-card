@@ -9,7 +9,7 @@
 
 img,
 video,
-frigate-card-ha-hls-player {
+advanced-camera-card-ha-hls-player {
   display: block;
   width: 100%;
   height: 100%;
@@ -17,7 +17,7 @@ frigate-card-ha-hls-player {
   @include media-layout.media-layout();
 }
 
-frigate-card-progress-indicator {
+advanced-camera-card-progress-indicator {
   padding: 30px;
   box-sizing: border-box;
 }

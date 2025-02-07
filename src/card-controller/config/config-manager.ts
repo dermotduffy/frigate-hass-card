@@ -1,13 +1,13 @@
 import isEqual from 'lodash-es/isEqual';
 import { isConfigUpgradeable } from '../../config/management.js';
+import { setProfiles } from '../../config/profiles/index.js';
 import {
+  AdvancedCameraCardConfig,
+  advancedCameraCardConfigSchema,
   CardWideConfig,
-  FrigateCardConfig,
-  frigateCardConfigSchema,
-  RawFrigateCardConfig,
+  RawAdvancedCameraCardConfig,
 } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
-import { setProfiles } from '../../config/profiles/index.js';
 import { getParseErrorPaths } from '../../utils/zod.js';
 import { getOverriddenConfig } from '../conditions-manager.js';
 import { InitializationAspect } from '../initialization-manager.js';
@@ -22,9 +22,9 @@ export class ConfigManager {
   // get the correct configuration (which will return overrides as appropriate).
   // This variable must be called `_config` or `config` to be compatible with
   // card-mod.
-  protected _config: FrigateCardConfig | null = null;
-  protected _overriddenConfig: FrigateCardConfig | null = null;
-  protected _rawConfig: RawFrigateCardConfig | null = null;
+  protected _config: AdvancedCameraCardConfig | null = null;
+  protected _overriddenConfig: AdvancedCameraCardConfig | null = null;
+  protected _rawConfig: RawAdvancedCameraCardConfig | null = null;
   protected _cardWideConfig: CardWideConfig | null = null;
 
   constructor(api: CardConfigAPI) {
@@ -35,7 +35,7 @@ export class ConfigManager {
     return !!this.getConfig();
   }
 
-  public getConfig(): FrigateCardConfig | null {
+  public getConfig(): AdvancedCameraCardConfig | null {
     return this._overriddenConfig ?? this._config;
   }
 
@@ -43,20 +43,20 @@ export class ConfigManager {
     return this._cardWideConfig;
   }
 
-  public getNonOverriddenConfig(): FrigateCardConfig | null {
+  public getNonOverriddenConfig(): AdvancedCameraCardConfig | null {
     return this._config;
   }
 
-  public getRawConfig(): RawFrigateCardConfig | null {
+  public getRawConfig(): RawAdvancedCameraCardConfig | null {
     return this._rawConfig;
   }
 
-  public setConfig(inputConfig?: RawFrigateCardConfig): void {
+  public setConfig(inputConfig?: RawAdvancedCameraCardConfig): void {
     if (!inputConfig) {
       throw new Error(localize('error.invalid_configuration'));
     }
 
-    const parseResult = frigateCardConfigSchema.safeParse(inputConfig);
+    const parseResult = advancedCameraCardConfigSchema.safeParse(inputConfig);
     if (!parseResult.success) {
       const configUpgradeable = isConfigUpgradeable(inputConfig);
       const hint = getParseErrorPaths(parseResult.error);
@@ -113,11 +113,11 @@ export class ConfigManager {
       return;
     }
 
-    let overriddenConfig: FrigateCardConfig | null = null;
+    let overriddenConfig: AdvancedCameraCardConfig | null = null;
     try {
       overriddenConfig = getOverriddenConfig(conditionsManager, this._config, {
         configOverrides: this._config.overrides,
-        schema: frigateCardConfigSchema,
+        schema: advancedCameraCardConfigSchema,
       });
     } catch (ev) {
       this._api.getMessageManager().setErrorIfHigherPriority(ev);
@@ -162,7 +162,7 @@ export class ConfigManager {
    * card hard requires, use InitializationManager instead.
    */
   protected async _initializeBackground(
-    previousConfig: FrigateCardConfig | null,
+    previousConfig: AdvancedCameraCardConfig | null,
   ): Promise<void> {
     await this._api.getDefaultManager().initializeIfNecessary(previousConfig);
     await this._api.getMediaPlayerManager().initializeIfNecessary(previousConfig);

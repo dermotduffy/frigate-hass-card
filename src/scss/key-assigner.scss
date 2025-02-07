@@ -12,11 +12,11 @@
 }
 
 :host([assigning]) ha-button.assign span,
-:host([assigning]) ha-button.assign frigate-card-icon {
+:host([assigning]) ha-button.assign advanced-camera-card-icon {
   color: var(--warning-color);
 }
 
-frigate-card-icon {
+advanced-camera-card-icon {
   padding: 10px;
 }
 

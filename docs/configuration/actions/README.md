@@ -10,15 +10,15 @@ variety of circumstances (e.g. tapping on a menu icon, double tapping on an
 [element](../elements/README.md) or holding the mouse/tap down on a particular
 [view](../view.md?id=supported-views)).
 
-### Differences in actions between Frigate Card and Home Assistant
+### Differences in actions between Advanced Camera Card and Home Assistant
 
-Both the Home Assistant frontend and the Frigate card cooperate to provide
-action functionality. In general, the Frigate Card functionality is a superset
+Both the Home Assistant frontend and the Advanced Camera Card cooperate to provide
+action functionality. In general, the Advanced Camera Card functionality is a superset
 of that offered by stock Home Assistant.
 
 Stock action functionality is used for Stock [Home Assistant picture
 elements](https://www.home-assistant.io/lovelace/picture-elements/). Extended
-Frigate card behavior covers all other interactions on the Frigate card (e.g.
+Advanced Camera Card behavior covers all other interactions on the Advanced Camera Card (e.g.
 menu icon elements, submenus and actions on the card or views).
 
 #### Custom action types: `start_tap` and `end_tap`
@@ -32,7 +32,7 @@ actually occurring.
 
 #### Multiple actions
 
-Extended Frigate card behavior supports a list of actions instead of a single
+Extended Advanced Camera Card behavior supports a list of actions instead of a single
 action, all of which will be handled. See [an example of multiple
 actions](../../examples.md?id=multiple-actions).
 

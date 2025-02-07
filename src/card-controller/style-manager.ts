@@ -1,7 +1,7 @@
 import { StyleInfo } from 'lit/directives/style-map';
 import {
-  FrigateCardConfig,
-  frigateCardConfigDefaults,
+  AdvancedCameraCardConfig,
+  configDefaults,
   ThemeConfig,
   ThemeName,
 } from '../config/types';
@@ -25,7 +25,7 @@ export class StyleManager {
     // as dimension configuration does not apply in fullscreen or expanded mode.
     const lastKnown = this._api.getMediaLoadedInfoManager().getLastKnown();
     card.style.setProperty(
-      '--frigate-card-expand-aspect-ratio',
+      '--advanced-camera-card-expand-aspect-ratio',
       view?.isAnyMediaView() && lastKnown
         ? `${lastKnown.width} / ${lastKnown.height}`
         : 'unset',
@@ -35,16 +35,16 @@ export class StyleManager {
     // space.
     const isGrid = view?.isGrid();
     card.style.setProperty(
-      '--frigate-card-expand-width',
+      '--advanced-camera-card-expand-width',
       !isGrid && view?.isAnyMediaView()
         ? 'none'
-        : 'var(--frigate-card-expand-max-width)',
+        : 'var(--advanced-camera-card-expand-max-width)',
     );
     card.style.setProperty(
-      '--frigate-card-expand-height',
+      '--advanced-camera-card-expand-height',
       !isGrid && view?.isAnyMediaView()
         ? 'none'
-        : 'var(--frigate-card-expand-max-height)',
+        : 'var(--advanced-camera-card-expand-max-height)',
     );
   }
 
@@ -76,7 +76,7 @@ export class StyleManager {
   protected _getThemeNames(themeConfig: ThemeConfig): ThemeName[] | null {
     return themeConfig.themes.length
       ? themeConfig.themes
-      : frigateCardConfigDefaults.view.theme.themes;
+      : configDefaults.view.theme.themes;
   }
 
   protected _setDimmable(): void {
@@ -92,7 +92,7 @@ export class StyleManager {
     const config = this._api.getConfigManager().getConfig();
     if (config) {
       const card = this._api.getCardElementManager().getElement();
-      card.style.setProperty('--frigate-card-height', config.dimensions.height);
+      card.style.setProperty('--advanced-camera-card-height', config.dimensions.height);
     }
   }
 
@@ -106,7 +106,7 @@ export class StyleManager {
 
     const styles = performance?.style ?? {};
     for (const configKey of Object.keys(styles)) {
-      const CSSKey = `--frigate-card-css-${configKey.replaceAll('_', '-')}`;
+      const CSSKey = `--advanced-camera-card-css-${configKey.replaceAll('_', '-')}`;
       if (styles[configKey] === false) {
         element.style.setProperty(CSSKey, STYLE_DISABLE_MAP[configKey]);
       } else {
@@ -116,7 +116,7 @@ export class StyleManager {
   }
 
   protected _isAspectRatioEnforced(
-    config: FrigateCardConfig,
+    config: AdvancedCameraCardConfig,
     view?: View | null,
   ): boolean {
     const aspectRatioMode = config.dimensions.aspect_ratio_mode;

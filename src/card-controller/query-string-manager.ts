@@ -1,4 +1,4 @@
-import { FrigateCardCustomAction, ViewActionConfig } from '../config/types';
+import { AdvancedCameraCardCustomAction, ViewActionConfig } from '../config/types';
 import { createCameraAction, createGeneralAction } from '../utils/action.js';
 import { ViewParameters } from '../view/view';
 import { CardQueryStringAPI } from './types';
@@ -9,7 +9,7 @@ interface QueryStringViewIntent {
     default?: boolean;
     substream?: string;
   };
-  other?: FrigateCardCustomAction[];
+  other?: AdvancedCameraCardCustomAction[];
 }
 
 export class QueryStringManager {
@@ -72,14 +72,14 @@ export class QueryStringManager {
     const result: QueryStringViewIntent = {};
     for (const action of this._getActions()) {
       if (this._isViewAction(action)) {
-        (result.view ??= {}).view = action.frigate_card_action;
+        (result.view ??= {}).view = action.advanced_camera_card_action;
         (result.view ??= {}).default = undefined;
-      } else if (action.frigate_card_action === 'default') {
+      } else if (action.advanced_camera_card_action === 'default') {
         (result.view ??= {}).default = true;
         (result.view ??= {}).view = undefined;
-      } else if (action.frigate_card_action === 'camera_select') {
+      } else if (action.advanced_camera_card_action === 'camera_select') {
         (result.view ??= {}).camera = action.camera;
-      } else if (action.frigate_card_action === 'live_substream_select') {
+      } else if (action.advanced_camera_card_action === 'live_substream_select') {
         (result.view ??= {}).substream = action.camera;
       } else {
         (result.other ??= []).push(action);
@@ -88,11 +88,11 @@ export class QueryStringManager {
     return result;
   }
 
-  protected _getActions(): FrigateCardCustomAction[] {
+  protected _getActions(): AdvancedCameraCardCustomAction[] {
     const params = new URLSearchParams(window.location.search);
-    const actions: FrigateCardCustomAction[] = [];
+    const actions: AdvancedCameraCardCustomAction[] = [];
     const actionRE = new RegExp(
-      /^frigate-card-action([.:](?<cardID>\w+))?[.:](?<action>\w+)/,
+      /^(advanced-camera-card|frigate-card)-action([.:](?<cardID>\w+))?[.:](?<action>\w+)/,
     );
     for (const [key, value] of params.entries()) {
       const match = key.match(actionRE);
@@ -102,7 +102,7 @@ export class QueryStringManager {
       const cardID: string | undefined = match.groups['cardID'];
       const action = match.groups['action'];
 
-      let customAction: FrigateCardCustomAction | null = null;
+      let customAction: AdvancedCameraCardCustomAction | null = null;
       switch (action) {
         case 'camera_select':
         case 'live_substream_select':
@@ -133,7 +133,7 @@ export class QueryStringManager {
           break;
         default:
           console.warn(
-            `Frigate card received unknown card action in query string: ${action}`,
+            `Advanced Camera Card received unknown card action in query string: ${action}`,
           );
       }
       if (customAction) {
@@ -144,9 +144,9 @@ export class QueryStringManager {
   }
 
   protected _isViewAction = (
-    action: FrigateCardCustomAction,
+    action: AdvancedCameraCardCustomAction,
   ): action is ViewActionConfig => {
-    switch (action.frigate_card_action) {
+    switch (action.advanced_camera_card_action) {
       case 'clip':
       case 'clips':
       case 'diagnostics':

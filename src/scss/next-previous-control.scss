@@ -1,11 +1,13 @@
 @use './button.scss';
 
 :host {
-  --frigate-card-next-prev-size: 48px;
-  --frigate-card-next-prev-size-hover: calc(var(--frigate-card-next-prev-size) * 2);
-  --frigate-card-left-position: 45px;
-  --frigate-card-right-position: 45px;
-  --mdc-icon-button-size: var(--frigate-card-next-prev-size);
+  --advanced-camera-card-next-prev-size: 48px;
+  --advanced-camera-card-next-prev-size-hover: calc(
+    var(--advanced-camera-card-next-prev-size) * 2
+  );
+  --advanced-camera-card-left-position: 45px;
+  --advanced-camera-card-right-position: 45px;
+  --mdc-icon-button-size: var(--advanced-camera-card-next-prev-size);
   --mdc-icon-size: calc(var(--mdc-icon-button-size) / 2);
 }
 
@@ -15,41 +17,49 @@
   overflow: hidden;
 }
 .controls.left {
-  left: var(--frigate-card-left-position);
+  left: var(--advanced-camera-card-left-position);
 }
 .controls.right {
-  right: var(--frigate-card-right-position);
+  right: var(--advanced-camera-card-right-position);
 }
 
 .controls.icons {
-  top: calc(50% - (var(--frigate-card-next-prev-size) / 2));
+  top: calc(50% - (var(--advanced-camera-card-next-prev-size) / 2));
 }
 
 .controls.thumbnails {
   border-radius: 50%;
-  height: var(--frigate-card-next-prev-size);
-  top: calc(50% - (var(--frigate-card-next-prev-size) / 2));
-  box-shadow: var(--frigate-card-css-box-shadow, 0px 0px 20px 5px black);
+  height: var(--advanced-camera-card-next-prev-size);
+  top: calc(50% - (var(--advanced-camera-card-next-prev-size) / 2));
+  box-shadow: var(--advanced-camera-card-css-box-shadow, 0px 0px 20px 5px black);
   transition: all 0.2s ease-out;
   opacity: 0.8;
   aspect-ratio: 1 / 1;
 }
 .controls.thumbnails:hover {
   opacity: 1 !important;
-  height: var(--frigate-card-next-prev-size-hover);
-  top: calc(50% - (var(--frigate-card-next-prev-size-hover) / 2));
+  height: var(--advanced-camera-card-next-prev-size-hover);
+  top: calc(50% - (var(--advanced-camera-card-next-prev-size-hover) / 2));
 }
 
 .controls.left.thumbnails:hover {
   left: calc(
-    var(--frigate-card-left-position) -
-      (var(--frigate-card-next-prev-size-hover) - var(--frigate-card-next-prev-size)) / 2
+    var(--advanced-camera-card-left-position) -
+      (
+        var(--advanced-camera-card-next-prev-size-hover) - var(
+            --advanced-camera-card-next-prev-size
+          )
+      ) / 2
   );
 }
 
 .controls.right.thumbnails:hover {
   right: calc(
-    var(--frigate-card-right-position) -
-      (var(--frigate-card-next-prev-size-hover) - var(--frigate-card-next-prev-size)) / 2
+    var(--advanced-camera-card-right-position) -
+      (
+        var(--advanced-camera-card-next-prev-size-hover) - var(
+            --advanced-camera-card-next-prev-size
+          )
+      ) / 2
   );
 }

@@ -14,12 +14,12 @@ import {
   MenuButtonControllerOptions,
 } from '../../src/components-lib/menu-button-controller';
 import {
-  FrigateCardConfig,
-  FrigateCardView,
+  AdvancedCameraCardConfig,
+  AdvancedCameraCardView,
   MenuItem,
   ViewDisplayMode,
 } from '../../src/config/types';
-import { FrigateCardMediaPlayer } from '../../src/types';
+import { AdvancedCameraCardMediaPlayer } from '../../src/types';
 import { createGeneralAction } from '../../src/utils/action';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
@@ -45,7 +45,7 @@ const calculateButtons = (
   controller: MenuButtonController,
   options?: MenuButtonControllerOptions & {
     hass?: HomeAssistant;
-    config?: FrigateCardConfig;
+    config?: AdvancedCameraCardConfig;
     cameraManager?: CameraManager;
     view?: View | null;
     viewManager?: ViewManager;
@@ -72,7 +72,7 @@ const calculateButtons = (
 describe('MenuButtonController', () => {
   let controller: MenuButtonController;
   const dynamicButton: MenuItem = {
-    type: 'custom:frigate-card-menu-icon',
+    type: 'custom:advanced-camera-card-menu-icon',
     icon: 'mdi:alpha-a-circle',
     title: 'Dynamic button',
   };
@@ -82,17 +82,17 @@ describe('MenuButtonController', () => {
     controller = new MenuButtonController();
   });
 
-  describe('should have default menu button', () => {
+  describe('should have iris menu button', () => {
     it('with hidden menu style', () => {
       const buttons = calculateButtons(controller);
 
       expect(buttons).toContainEqual({
-        icon: 'frigate',
+        icon: 'iris',
         enabled: true,
         permanent: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
-        title: 'Frigate menu / Default view',
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Iris / Default View / Unhide menu',
         tap_action: createGeneralAction('menu_toggle'),
         hold_action: createGeneralAction('diagnostics'),
       });
@@ -104,12 +104,12 @@ describe('MenuButtonController', () => {
       });
 
       expect(buttons).toContainEqual({
-        icon: 'frigate',
+        icon: 'iris',
         enabled: true,
         permanent: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
-        title: 'Frigate menu / Default view',
+        type: 'custom:advanced-camera-card-menu-icon',
+        title: 'Iris / Default View / Unhide menu',
         tap_action: createGeneralAction('default'),
         hold_action: createGeneralAction('diagnostics'),
       });
@@ -138,7 +138,7 @@ describe('MenuButtonController', () => {
         icon: 'mdi:video-switch',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-submenu',
+        type: 'custom:advanced-camera-card-menu-submenu',
         title: 'Cameras',
         items: [
           {
@@ -150,7 +150,7 @@ describe('MenuButtonController', () => {
             selected: true,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'camera_select',
+              advanced_camera_card_action: 'camera_select',
               camera: 'camera-1',
             },
           },
@@ -163,7 +163,7 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'camera_select',
+              advanced_camera_card_action: 'camera_select',
               camera: 'camera-2',
             },
           },
@@ -252,10 +252,10 @@ describe('MenuButtonController', () => {
         title: 'Substream(s)',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'live_substream_on',
+          advanced_camera_card_action: 'live_substream_on',
         },
       });
     });
@@ -289,14 +289,14 @@ describe('MenuButtonController', () => {
 
       expect(buttons).toContainEqual({
         icon: 'mdi:video-input-component',
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
         title: 'Substream(s)',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'live_substream_off',
+          advanced_camera_card_action: 'live_substream_off',
         },
       });
     });
@@ -354,7 +354,7 @@ describe('MenuButtonController', () => {
         style: {},
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-submenu',
+        type: 'custom:advanced-camera-card-menu-submenu',
         items: [
           {
             enabled: true,
@@ -365,7 +365,7 @@ describe('MenuButtonController', () => {
             selected: true,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'live_substream_select',
+              advanced_camera_card_action: 'live_substream_select',
               camera: 'camera-1',
             },
           },
@@ -378,7 +378,7 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'live_substream_select',
+              advanced_camera_card_action: 'live_substream_select',
               camera: 'camera-2',
             },
           },
@@ -391,7 +391,7 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'live_substream_select',
+              advanced_camera_card_action: 'live_substream_select',
               camera: 'camera-3',
             },
           },
@@ -443,10 +443,10 @@ describe('MenuButtonController', () => {
       expect(buttons).toContainEqual({
         icon: 'mdi:video-input-component',
         title: 'Substream(s)',
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-submenu',
+        type: 'custom:advanced-camera-card-menu-submenu',
         items: [
           {
             enabled: true,
@@ -457,7 +457,7 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'live_substream_select',
+              advanced_camera_card_action: 'live_substream_select',
               camera: 'camera-1',
             },
           },
@@ -472,7 +472,7 @@ describe('MenuButtonController', () => {
             selected: true,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'live_substream_select',
+              advanced_camera_card_action: 'live_substream_select',
               camera: 'camera-2',
             },
           },
@@ -485,7 +485,7 @@ describe('MenuButtonController', () => {
             selected: false,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'live_substream_select',
+              advanced_camera_card_action: 'live_substream_select',
               camera: 'camera-3',
             },
           },
@@ -507,10 +507,10 @@ describe('MenuButtonController', () => {
         icon: 'mdi:cctv',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Live view',
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'live' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
       });
     });
 
@@ -526,10 +526,10 @@ describe('MenuButtonController', () => {
         icon: 'mdi:cctv',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Live view',
         style: {},
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'live' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'live' },
       });
     });
 
@@ -561,11 +561,11 @@ describe('MenuButtonController', () => {
         icon: 'mdi:filmstrip',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Clips gallery',
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'clips' },
-        hold_action: { action: 'fire-dom-event', frigate_card_action: 'clip' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
+        hold_action: { action: 'fire-dom-event', advanced_camera_card_action: 'clip' },
       });
     });
 
@@ -580,11 +580,11 @@ describe('MenuButtonController', () => {
         icon: 'mdi:filmstrip',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Clips gallery',
         style: {},
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'clips' },
-        hold_action: { action: 'fire-dom-event', frigate_card_action: 'clip' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
+        hold_action: { action: 'fire-dom-event', advanced_camera_card_action: 'clip' },
       });
     });
 
@@ -614,11 +614,17 @@ describe('MenuButtonController', () => {
         icon: 'mdi:camera',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Snapshots gallery',
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'snapshots' },
-        hold_action: { action: 'fire-dom-event', frigate_card_action: 'snapshot' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'snapshots',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'snapshot',
+        },
       });
     });
 
@@ -633,11 +639,17 @@ describe('MenuButtonController', () => {
         icon: 'mdi:camera',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Snapshots gallery',
         style: {},
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'snapshots' },
-        hold_action: { action: 'fire-dom-event', frigate_card_action: 'snapshot' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'snapshots',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'snapshot',
+        },
       });
     });
 
@@ -669,11 +681,17 @@ describe('MenuButtonController', () => {
         icon: 'mdi:album',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Recordings gallery',
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'recordings' },
-        hold_action: { action: 'fire-dom-event', frigate_card_action: 'recording' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'recordings',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'recording',
+        },
       });
     });
 
@@ -688,11 +706,17 @@ describe('MenuButtonController', () => {
         icon: 'mdi:album',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Recordings gallery',
         style: {},
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'recordings' },
-        hold_action: { action: 'fire-dom-event', frigate_card_action: 'recording' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'recordings',
+        },
+        hold_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'recording',
+        },
       });
     });
 
@@ -725,10 +749,10 @@ describe('MenuButtonController', () => {
         icon: 'mdi:image',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Static image',
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'image' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'image' },
       });
     });
 
@@ -745,10 +769,10 @@ describe('MenuButtonController', () => {
         icon: 'mdi:image',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Static image',
         style: {},
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'image' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'image' },
       });
     });
 
@@ -780,10 +804,13 @@ describe('MenuButtonController', () => {
         icon: 'mdi:chart-gantt',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Timeline view',
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'timeline' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'timeline',
+        },
       });
     });
 
@@ -799,10 +826,13 @@ describe('MenuButtonController', () => {
         icon: 'mdi:chart-gantt',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Timeline view',
         style: {},
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'timeline' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'timeline',
+        },
       });
     });
 
@@ -844,9 +874,12 @@ describe('MenuButtonController', () => {
         icon: 'mdi:download',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Download',
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'download' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'download',
+        },
       });
     });
 
@@ -909,9 +942,9 @@ describe('MenuButtonController', () => {
       icon: 'mdi:web',
       enabled: true,
       priority: 50,
-      type: 'custom:frigate-card-menu-icon',
+      type: 'custom:advanced-camera-card-menu-icon',
       title: 'Camera user interface',
-      tap_action: { action: 'fire-dom-event', frigate_card_action: 'camera_ui' },
+      tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'camera_ui' },
     });
   });
 
@@ -935,19 +968,19 @@ describe('MenuButtonController', () => {
         icon: 'mdi:microphone',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Microphone',
         style: {
           animation: 'pulse 3s infinite',
-          color: 'var(--frigate-card-menu-button-critical-color)',
+          color: 'var(--advanced-camera-card-menu-button-critical-color)',
         },
         start_tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'microphone_unmute',
+          advanced_camera_card_action: 'microphone_unmute',
         },
         end_tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'microphone_mute',
+          advanced_camera_card_action: 'microphone_mute',
         },
       });
     });
@@ -989,7 +1022,7 @@ describe('MenuButtonController', () => {
         icon: 'mdi:microphone-message-off',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Microphone',
         style: {},
       });
@@ -1014,16 +1047,16 @@ describe('MenuButtonController', () => {
         icon: 'mdi:microphone-off',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Microphone',
         style: {},
         start_tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'microphone_unmute',
+          advanced_camera_card_action: 'microphone_unmute',
         },
         end_tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'microphone_mute',
+          advanced_camera_card_action: 'microphone_mute',
         },
       });
     });
@@ -1047,7 +1080,7 @@ describe('MenuButtonController', () => {
         icon: 'mdi:microphone-message-off',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Microphone',
         style: {},
       });
@@ -1075,12 +1108,12 @@ describe('MenuButtonController', () => {
         icon: 'mdi:microphone-off',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Microphone',
         style: {},
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'microphone_unmute',
+          advanced_camera_card_action: 'microphone_unmute',
         },
       });
     });
@@ -1107,15 +1140,15 @@ describe('MenuButtonController', () => {
         icon: 'mdi:microphone',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Microphone',
         style: {
           animation: 'pulse 3s infinite',
-          color: 'var(--frigate-card-menu-button-critical-color)',
+          color: 'var(--advanced-camera-card-menu-button-critical-color)',
         },
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'microphone_mute',
+          advanced_camera_card_action: 'microphone_mute',
         },
       });
     });
@@ -1140,9 +1173,12 @@ describe('MenuButtonController', () => {
         icon: 'mdi:fullscreen',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Fullscreen',
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'fullscreen',
+        },
         style: {},
       });
     });
@@ -1159,10 +1195,13 @@ describe('MenuButtonController', () => {
         icon: 'mdi:fullscreen-exit',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Fullscreen',
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'fullscreen',
+        },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
       });
     });
 
@@ -1188,9 +1227,9 @@ describe('MenuButtonController', () => {
         icon: 'mdi:arrow-expand-all',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Expand',
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'expand' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'expand' },
         style: {},
       });
     });
@@ -1202,10 +1241,10 @@ describe('MenuButtonController', () => {
         icon: 'mdi:arrow-collapse-all',
         enabled: false,
         priority: 50,
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
         title: 'Expand',
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'expand' },
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'expand' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
       });
     });
   });
@@ -1240,7 +1279,7 @@ describe('MenuButtonController', () => {
         icon: 'mdi:cast',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-submenu',
+        type: 'custom:advanced-camera-card-menu-submenu',
         title: 'Send to media player',
         items: [
           {
@@ -1252,13 +1291,13 @@ describe('MenuButtonController', () => {
             disabled: false,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'media_player',
+              advanced_camera_card_action: 'media_player',
               media_player: 'media_player.tv',
               media_player_action: 'play',
             },
             hold_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'media_player',
+              advanced_camera_card_action: 'media_player',
               media_player: 'media_player.tv',
               media_player_action: 'stop',
             },
@@ -1293,7 +1332,7 @@ describe('MenuButtonController', () => {
         icon: 'mdi:cast',
         enabled: true,
         priority: 50,
-        type: 'custom:frigate-card-menu-submenu',
+        type: 'custom:advanced-camera-card-menu-submenu',
         title: 'Send to media player',
         items: [
           {
@@ -1310,7 +1349,7 @@ describe('MenuButtonController', () => {
   });
 
   it('should have pause button', () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
@@ -1324,14 +1363,14 @@ describe('MenuButtonController', () => {
       icon: 'mdi:pause',
       enabled: false,
       priority: 50,
-      type: 'custom:frigate-card-menu-icon',
+      type: 'custom:advanced-camera-card-menu-icon',
       title: 'Play / Pause',
-      tap_action: { action: 'fire-dom-event', frigate_card_action: 'pause' },
+      tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'pause' },
     });
   });
 
   it('should have play button', () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.isPaused.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
@@ -1346,14 +1385,14 @@ describe('MenuButtonController', () => {
       icon: 'mdi:play',
       enabled: false,
       priority: 50,
-      type: 'custom:frigate-card-menu-icon',
+      type: 'custom:advanced-camera-card-menu-icon',
       title: 'Play / Pause',
-      tap_action: { action: 'fire-dom-event', frigate_card_action: 'play' },
+      tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'play' },
     });
   });
 
   it('should have mute button', () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
         capabilities: {
@@ -1367,14 +1406,14 @@ describe('MenuButtonController', () => {
       icon: 'mdi:volume-high',
       enabled: false,
       priority: 50,
-      type: 'custom:frigate-card-menu-icon',
+      type: 'custom:advanced-camera-card-menu-icon',
       title: 'Mute / Unmute',
-      tap_action: { action: 'fire-dom-event', frigate_card_action: 'mute' },
+      tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'mute' },
     });
   });
 
   it('should have unmute button', () => {
-    const player = mock<FrigateCardMediaPlayer>();
+    const player = mock<AdvancedCameraCardMediaPlayer>();
     player.isMuted.mockReturnValue(true);
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
@@ -1389,16 +1428,16 @@ describe('MenuButtonController', () => {
       icon: 'mdi:volume-off',
       enabled: false,
       priority: 50,
-      type: 'custom:frigate-card-menu-icon',
+      type: 'custom:advanced-camera-card-menu-icon',
       title: 'Mute / Unmute',
-      tap_action: { action: 'fire-dom-event', frigate_card_action: 'unmute' },
+      tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'unmute' },
     });
   });
 
   it('should have screenshot button', () => {
     const buttons = calculateButtons(controller, {
       currentMediaLoadedInfo: createMediaLoadedInfo({
-        player: mock<FrigateCardMediaPlayer>(),
+        player: mock<AdvancedCameraCardMediaPlayer>(),
       }),
     });
 
@@ -1406,9 +1445,12 @@ describe('MenuButtonController', () => {
       icon: 'mdi:monitor-screenshot',
       enabled: false,
       priority: 50,
-      type: 'custom:frigate-card-menu-icon',
+      type: 'custom:advanced-camera-card-menu-icon',
       title: 'Screenshot',
-      tap_action: { action: 'fire-dom-event', frigate_card_action: 'screenshot' },
+      tap_action: {
+        action: 'fire-dom-event',
+        advanced_camera_card_action: 'screenshot',
+      },
     });
   });
 
@@ -1435,18 +1477,18 @@ describe('MenuButtonController', () => {
           icon: displayMode === 'single' ? 'mdi:grid' : 'mdi:grid-off',
           enabled: true,
           priority: 50,
-          type: 'custom:frigate-card-menu-icon',
+          type: 'custom:advanced-camera-card-menu-icon',
           title:
             displayMode === 'grid'
               ? 'Show single media viewer'
               : 'Show media viewer for each camera in a grid',
           style:
             displayMode === 'grid'
-              ? { color: 'var(--frigate-card-menu-button-active-color)' }
+              ? { color: 'var(--advanced-camera-card-menu-button-active-color)' }
               : {},
           tap_action: {
             action: 'fire-dom-event',
-            frigate_card_action: 'display_mode_select',
+            advanced_camera_card_action: 'display_mode_select',
             display_mode: displayMode === 'single' ? 'grid' : 'single',
           },
         });
@@ -1517,15 +1559,15 @@ describe('MenuButtonController', () => {
         icon: 'mdi:pan',
         priority: 50,
         style: {
-          color: 'var(--frigate-card-menu-button-active-color)',
+          color: 'var(--advanced-camera-card-menu-button-active-color)',
         },
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_controls',
+          advanced_camera_card_action: 'ptz_controls',
           enabled: false,
         },
         title: 'Show PTZ controls',
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
       });
     });
 
@@ -1553,11 +1595,11 @@ describe('MenuButtonController', () => {
         style: {},
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_controls',
+          advanced_camera_card_action: 'ptz_controls',
           enabled: true,
         },
         title: 'Show PTZ controls',
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
       });
     });
 
@@ -1583,15 +1625,15 @@ describe('MenuButtonController', () => {
         icon: 'mdi:pan',
         priority: 50,
         style: {
-          color: 'var(--frigate-card-menu-button-active-color)',
+          color: 'var(--advanced-camera-card-menu-button-active-color)',
         },
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_controls',
+          advanced_camera_card_action: 'ptz_controls',
           enabled: false,
         },
         title: 'Show PTZ controls',
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
       });
     });
 
@@ -1624,15 +1666,15 @@ describe('MenuButtonController', () => {
         icon: 'mdi:pan',
         priority: 50,
         style: {
-          color: 'var(--frigate-card-menu-button-active-color)',
+          color: 'var(--advanced-camera-card-menu-button-active-color)',
         },
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'ptz_controls',
+          advanced_camera_card_action: 'ptz_controls',
           enabled: false,
         },
         title: 'Show PTZ controls',
-        type: 'custom:frigate-card-menu-icon',
+        type: 'custom:advanced-camera-card-menu-icon',
       });
     });
   });
@@ -1648,7 +1690,7 @@ describe('MenuButtonController', () => {
     ])(
       '%s view with isDefault %s',
       (
-        viewName: FrigateCardView,
+        viewName: AdvancedCameraCardView,
         isDefault: boolean | undefined,
         expectedResult: boolean,
       ) => {
@@ -1695,11 +1737,11 @@ describe('MenuButtonController', () => {
             priority: 50,
             tap_action: {
               action: 'fire-dom-event',
-              frigate_card_action: 'ptz_multi',
+              advanced_camera_card_action: 'ptz_multi',
               target_id: targetID,
             },
             title: 'PTZ Home',
-            type: 'custom:frigate-card-menu-icon',
+            type: 'custom:advanced-camera-card-menu-icon',
           });
         } else {
           expect(buttons).not.toContainEqual(
@@ -1747,7 +1789,7 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with non-Frigate fire-dom-event action', () => {
+    it('with non-advanced-camera-card fire-dom-event action', () => {
       const button: MenuItem = {
         ...dynamicButton,
         tap_action: { action: 'fire-dom-event' },
@@ -1761,37 +1803,40 @@ describe('MenuButtonController', () => {
       });
     });
 
-    it('with Frigate view action', () => {
+    it('with advanced camera card view action', () => {
       const button: MenuItem = {
         ...dynamicButton,
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'clips' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
       };
       const view = createView({ view: 'clips' });
       controller.addDynamicMenuButton(button);
 
       expect(calculateButtons(controller, { view: view })).toContainEqual({
         ...button,
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
       });
     });
 
-    it('with Frigate default action', () => {
+    it('with advanced camera card default action', () => {
       const button: MenuItem = {
         ...dynamicButton,
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'default' },
+        tap_action: { action: 'fire-dom-event', advanced_camera_card_action: 'default' },
       };
       controller.addDynamicMenuButton(button);
 
       expect(calculateButtons(controller)).toContainEqual({
         ...button,
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
       });
     });
 
     it('with fullscreen action', () => {
       const button: MenuItem = {
         ...dynamicButton,
-        tap_action: { action: 'fire-dom-event', frigate_card_action: 'fullscreen' },
+        tap_action: {
+          action: 'fire-dom-event',
+          advanced_camera_card_action: 'fullscreen',
+        },
       };
       controller.addDynamicMenuButton(button);
       const fullscreenManager = mock<FullscreenManager>();
@@ -1800,7 +1845,7 @@ describe('MenuButtonController', () => {
 
       expect(calculateButtons(controller, { fullscreenManager })).toContainEqual({
         ...button,
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
       });
     });
 
@@ -1809,7 +1854,7 @@ describe('MenuButtonController', () => {
         ...dynamicButton,
         tap_action: {
           action: 'fire-dom-event',
-          frigate_card_action: 'camera_select',
+          advanced_camera_card_action: 'camera_select',
           camera: 'foo',
         },
       };
@@ -1818,7 +1863,7 @@ describe('MenuButtonController', () => {
 
       expect(calculateButtons(controller, { view: view })).toContainEqual({
         ...button,
-        style: { color: 'var(--frigate-card-menu-button-active-color)' },
+        style: { color: 'var(--advanced-camera-card-menu-button-active-color)' },
       });
     });
 
@@ -1827,7 +1872,7 @@ describe('MenuButtonController', () => {
         ...dynamicButton,
         tap_action: [
           { action: 'fire-dom-event' },
-          { action: 'fire-dom-event', frigate_card_action: 'clips' },
+          { action: 'fire-dom-event', advanced_camera_card_action: 'clips' },
         ],
       };
       const view = createView({ camera: 'clips' });

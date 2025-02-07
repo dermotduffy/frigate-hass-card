@@ -181,7 +181,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     // First fetch all the Reolink cameras that show up under the media root,
     // that match the expected camera. Some Reolink cameras will not show up
     // here causing errors.
-    // https://github.com/dermotduffy/frigate-hass-card/issues/1723
+    // https://github.com/dermotduffy/advanced-camera-card/issues/1723
     const camerasWithMedia = await this._browseMediaManager.walkBrowseMedias(
       hass,
       [
