@@ -1087,7 +1087,7 @@ card_id: main
 ```
 
 ```text
-https://ha.mydomain.org/lovelace-test/0?advanced_camera_card_action-action.main.clips
+https://ha.mydomain.org/lovelace-test/0?advanced-camera-card-action.main.clips
 ```
 
 ### Choosing the camera from a separate picture elements card
@@ -1116,7 +1116,7 @@ elements:
       left: 30%
     tap_action:
       action: navigate
-      navigation_path: /lovelace-test/0?advanced_camera_card_action-action.camera_select=camera.office
+      navigation_path: /lovelace-test/0?advanced-camera-card-action.camera_select=camera.office
   - type: icon
     icon: mdi:cctv
     style:
@@ -1124,7 +1124,7 @@ elements:
       left: 42%
     tap_action:
       action: navigate
-      navigation_path: /lovelace-test/0?advanced_camera_card_action-action.camera_select=camera.kitchen
+      navigation_path: /lovelace-test/0?advanced-camera-card-action.camera_select=camera.kitchen
 ```
 
 ![Taking card actions via the URL](images/navigate-picture-elements.gif 'Taking card actions via the URL :size=400')
@@ -1132,7 +1132,7 @@ elements:
 ### Selecting a camera in expanded mode via query string
 
 ```text
-https://ha.mydomain.org/lovelace-test/0?advanced_camera_card_action-action.camera_select=kitchen&advanced_camera_card_action-action.expand
+https://ha.mydomain.org/lovelace-test/0?advanced-camera-card-action.camera_select=kitchen&advanced_camera_card_action-action.expand
 ```
 
 ## WebRTC Card configuration
