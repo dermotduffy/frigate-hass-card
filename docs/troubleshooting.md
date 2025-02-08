@@ -248,6 +248,27 @@ status_bar:
   style: none
 ```
 
+### Unknown Frigate instance `frigate`
+
+e.g. `API error whilst subscribing to events for unknown Frigate instance frigate`
+
+If you are using a custom `client_id` setting in your `frigate.yml` file (the
+configuration file for the Frigate backend itself), you must tell the card about
+it via the `client_id` parameter like this:
+
+```yaml
+cameras:
+ - camera_entity: camera.my_frigate_camera
+   frigate:
+     client_id: my-frigate
+```
+
+See [Frigate engine configuration](configuration/cameras/engine.md?id=frigate)
+for more details.
+
+If you're not using a custom `client_id`, your Frigate integration is likely not
+installed correct.
+
 ### `webrtc_card` unloads in the background
 
 [AlexxIT's WebRTC Card](https://github.com/AlexxIT/WebRTC) which is embedded by
