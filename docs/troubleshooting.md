@@ -254,13 +254,13 @@ e.g. `API error whilst subscribing to events for unknown Frigate instance frigat
 
 If you are using a custom `client_id` setting in your `frigate.yml` file (the
 configuration file for the Frigate backend itself), you must tell the card about
-it via the `client_id` parameter like this:
+it via the `client_id` parameter:
 
 ```yaml
 cameras:
- - camera_entity: camera.my_frigate_camera
-   frigate:
-     client_id: my-frigate
+  - camera_entity: camera.my_frigate_camera
+    frigate:
+      client_id: my-frigate
 ```
 
 See [Frigate engine configuration](configuration/cameras/engine.md?id=frigate)
