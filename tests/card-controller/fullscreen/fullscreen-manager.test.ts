@@ -17,7 +17,9 @@ describe('FullscreenManager', () => {
     const manager = new FullscreenManager(api, mock<FullscreenProvider>());
 
     manager.initialize();
-    expect(api.getConditionsManager().setState).toBeCalledWith({ fullscreen: false });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      fullscreen: false,
+    });
   });
 
   it('should correctly determine whether in fullscreen', () => {
@@ -133,7 +135,7 @@ describe('FullscreenManager', () => {
 
       handler();
 
-      expect(api.getConditionsManager().setState).toBeCalledWith({
+      expect(api.getConditionStateManager().setState).toBeCalledWith({
         fullscreen: fullscreen,
       });
     });

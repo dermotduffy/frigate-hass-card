@@ -1,14 +1,15 @@
 import { Automation, AutomationActions } from '../config/types.js';
 import { localize } from '../localize/localize.js';
-import { CardAutomationsAPI, TaggedAutomations } from './types.js';
+import { ConditionsManager } from './conditions/conditions-manager.js';
+import { ConditionsEvaluationResult } from './conditions/types.js';
+import { CardAutomationsAPI, TaggedAutomation } from './types.js';
 
 const MAX_NESTED_AUTOMATION_EXECUTIONS = 10;
 
 export class AutomationsManager {
   protected _api: CardAutomationsAPI;
 
-  protected _automations: TaggedAutomations = [];
-  protected _priorEvaluations: Map<Automation, boolean> = new Map();
+  protected _automations = new Map<TaggedAutomation, ConditionsManager>();
 
   // A counter to avoid infinite loops, increases every time actions are run,
   // decreases every time actions are complete.
@@ -19,14 +20,28 @@ export class AutomationsManager {
   }
 
   public deleteAutomations(tag?: unknown) {
-    this._automations = this._automations.filter((automation) => automation.tag !== tag);
+    for (const [automation, conditionManager] of this._automations) {
+      if (automation.tag === tag) {
+        this._automations.delete(automation);
+        conditionManager.destroy();
+      }
+    }
   }
 
-  public addAutomations(automations: TaggedAutomations): void {
-    this._automations.push(...automations);
+  public addAutomations(automations: TaggedAutomation[]): void {
+    for (const automation of automations) {
+      const conditionManager = new ConditionsManager(
+        automation.conditions,
+        this._api.getConditionStateManager(),
+      );
+      conditionManager.addListener((result: ConditionsEvaluationResult) =>
+        this._execute(automation, result),
+      );
+      this._automations.set(automation, conditionManager);
+    }
   }
 
-  public execute(): void {
+  protected _execute(automation: Automation, result: ConditionsEvaluationResult): void {
     if (
       !this._api.getHASSManager().hasHASS() ||
       // Never execute automations if the card hasn't finished initializing, as
@@ -40,20 +55,10 @@ export class AutomationsManager {
       return;
     }
 
-    const actionsToRun: AutomationActions = [];
-    for (const automation of this._automations) {
-      const shouldExecute = this._api
-        .getConditionsManager()
-        .evaluateConditions(automation.conditions);
-      const actions = shouldExecute ? automation.actions : automation.actions_not;
-      const priorEvaluation = this._priorEvaluations.get(automation);
-      this._priorEvaluations.set(automation, shouldExecute);
-      if (shouldExecute !== priorEvaluation && actions) {
-        actionsToRun.push(...actions);
-      }
-    }
+    const shouldExecute = result.result;
+    const actions = shouldExecute ? automation.actions : automation.actions_not;
 
-    if (!actionsToRun.length) {
+    if (!actions?.length) {
       return;
     }
 
@@ -70,6 +75,6 @@ export class AutomationsManager {
       await this._api.getActionsManager().executeActions(actions);
       --this._nestedAutomationExecutions;
     };
-    runActions(actionsToRun);
+    runActions(actions);
   }
 }

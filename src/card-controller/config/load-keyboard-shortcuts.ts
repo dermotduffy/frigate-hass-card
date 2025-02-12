@@ -3,8 +3,8 @@ import {
   PTZKeyboardShortcutName,
 } from '../../config/keyboard-shortcuts';
 import { PTZAction } from '../../config/ptz';
-import { CardConfigLoaderAPI, TaggedAutomations } from '../types';
 import { createPTZMultiAction } from '../../utils/action';
+import { CardConfigLoaderAPI, TaggedAutomation } from '../types';
 
 export const setKeyboardShortcutsFromConfig = (
   api: CardConfigLoaderAPI,
@@ -47,12 +47,12 @@ const ptzKeyboardShortcutToPTZAction = (
 const convertKeyboardShortcutsToAutomations = (
   tag: unknown,
   shortcuts: KeyboardShortcuts,
-): TaggedAutomations => {
+): TaggedAutomation[] => {
   if (!shortcuts.enabled) {
     return [];
   }
 
-  const automations: TaggedAutomations = [];
+  const automations: TaggedAutomation[] = [];
 
   for (const name of [
     'ptz_down',

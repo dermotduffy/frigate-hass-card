@@ -146,7 +146,7 @@ export class MicrophoneManager {
       muted: this.isMuted(),
       forbidden: this.isForbidden(),
     };
-    this._api.getConditionsManager().setState({
+    this._api.getConditionStateManager().setState({
       microphone: this._state,
     });
     this._api.getCardElementManager().update();

@@ -6,7 +6,7 @@ import type { ActionsManager } from './actions/actions-manager';
 import type { AutomationsManager } from './automations-manager';
 import type { CameraURLManager } from './camera-url-manager';
 import type { CardElementManager } from './card-element-manager';
-import type { ConditionsManager } from './conditions-manager';
+import type { ConditionStateManager } from './conditions/state-manager';
 import type { ConfigManager } from './config/config-manager';
 import type { DefaultManager } from './default-manager';
 import type { DownloadManager } from './download-manager';
@@ -38,7 +38,7 @@ export interface CardActionsAPI {
   getCameraManager(): CameraManager;
   getCameraURLManager(): CameraURLManager;
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDownloadManager(): DownloadManager;
   getExpandManager(): ExpandManager;
@@ -57,7 +57,7 @@ export type CardActionsManagerAPI = CardActionsAPI;
 export interface CardAutomationsAPI {
   getActionsManager(): ActionsManager;
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getHASSManager(): HASSManager;
   getInitializationManager(): InitializationManager;
   getMessageManager(): MessageManager;
@@ -87,7 +87,7 @@ export interface CardConfigAPI {
   getAutomationsManager(): AutomationsManager;
   getCameraManager(): CameraManager;
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
   getInitializationManager(): InitializationManager;
@@ -125,7 +125,7 @@ export interface CardDownloadAPI {
 export interface CardElementAPI {
   getActionsManager(): ActionsManager;
   getCameraManager(): CameraManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
   getExpandManager(): ExpandManager;
@@ -142,13 +142,13 @@ export interface CardElementAPI {
 
 export interface CardExpandAPI {
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getFullscreenManager(): FullscreenManager;
 }
 
 export interface CardFullscreenAPI {
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getExpandManager(): ExpandManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
@@ -157,7 +157,7 @@ export interface CardFullscreenAPI {
 export interface CardHASSAPI {
   getCameraManager(): CameraManager;
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
   getInteractionManager(): InteractionManager;
@@ -189,7 +189,7 @@ export interface CardInitializerAPI {
 
 export interface CardInteractionAPI {
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getStyleManager(): StyleManager;
   getTriggersManager(): TriggersManager;
@@ -198,13 +198,13 @@ export interface CardInteractionAPI {
 
 export interface CardKeyboardStateAPI {
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
 }
 
 export interface CardMediaLoadedAPI {
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getFullscreenManager(): FullscreenManager;
   getStyleManager(): StyleManager;
@@ -221,13 +221,13 @@ export interface CardMediaPlayerAPI {
 
 export interface CardMessageAPI {
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
 }
 
 export interface CardMicrophoneAPI {
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
 }
 
@@ -254,7 +254,7 @@ export interface CardStyleAPI {
 
 export interface CardTriggersAPI {
   getCameraManager(): CameraManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getCardElementManager(): CardElementManager;
   getConfigManager(): ConfigManager;
   getInteractionManager(): InteractionManager;
@@ -264,7 +264,7 @@ export interface CardTriggersAPI {
 export interface CardViewAPI {
   getCameraManager(): CameraManager;
   getCardElementManager(): CardElementManager;
-  getConditionsManager(): ConditionsManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getHASSManager(): HASSManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
@@ -295,7 +295,6 @@ export interface MicrophoneState {
   forbidden: boolean;
 }
 
-interface TaggedAutomation extends Automation {
+export interface TaggedAutomation extends Automation {
   tag?: unknown;
 }
-export type TaggedAutomations = TaggedAutomation[];

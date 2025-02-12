@@ -8,7 +8,7 @@ describe('MediaLoadedInfoManager', () => {
     const manager = new MediaLoadedInfoManager(api);
 
     manager.initialize();
-    expect(api.getConditionsManager().setState).toBeCalledWith({
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
       mediaLoadedInfo: null,
     });
   });
@@ -22,7 +22,7 @@ describe('MediaLoadedInfoManager', () => {
 
     expect(manager.has()).toBeTruthy();
     expect(manager.get()).toBe(mediaInfo);
-    expect(api.getConditionsManager().setState).toBeCalledWith(
+    expect(api.getConditionStateManager().setState).toBeCalledWith(
       expect.objectContaining({ mediaLoadedInfo: mediaInfo }),
     );
     expect(api.getStyleManager().setExpandedMode).toBeCalled();
@@ -38,7 +38,7 @@ describe('MediaLoadedInfoManager', () => {
 
     expect(manager.has()).toBeFalsy();
     expect(manager.get()).toBeNull();
-    expect(api.getConditionsManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toBeCalled();
   });
 
   it('should get last known', () => {
@@ -54,7 +54,7 @@ describe('MediaLoadedInfoManager', () => {
 
     expect(manager.has()).toBeFalsy();
     expect(manager.getLastKnown()).toBe(mediaLoadedInfo);
-    expect(api.getConditionsManager().setState).toBeCalledWith(
+    expect(api.getConditionStateManager().setState).toBeCalledWith(
       expect.objectContaining({ mediaLoadedInfo }),
     );
   });

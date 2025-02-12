@@ -20,7 +20,7 @@ import {
   MenuToggleCallback,
   ScrollCallback,
 } from './card-element-manager';
-import { ConditionsManager, ConditionsManagerListener } from './conditions-manager';
+import { ConditionStateManager } from './conditions/state-manager';
 import { ConfigManager } from './config/config-manager';
 import { DefaultManager } from './default-manager';
 import { DownloadManager } from './download-manager';
@@ -92,6 +92,8 @@ export class CardController
     CardViewAPI,
     ReactiveController
 {
+  protected _conditionStateManager = new ConditionStateManager();
+
   // These properties may be used in the construction of 'managers' (and should
   // be created first).
   protected _deviceRegistryManager = new DeviceRegistryManager(
@@ -107,7 +109,6 @@ export class CardController
   protected _cameraManager = new CameraManager(this);
   protected _cameraURLManager = new CameraURLManager(this);
   protected _cardElementManager: CardElementManager;
-  protected _conditionsManager: ConditionsManager;
   protected _configManager = new ConfigManager(this);
   protected _defaultManager = new DefaultManager(this);
   protected _downloadManager = new DownloadManager(this);
@@ -131,11 +132,9 @@ export class CardController
     host: CardHTMLElement,
     scrollCallback: ScrollCallback,
     menuToggleCallback: MenuToggleCallback,
-    conditionListener: ConditionsManagerListener,
   ) {
     host.addController(this);
 
-    this._conditionsManager = new ConditionsManager(this, conditionListener);
     this._cardElementManager = new CardElementManager(
       this,
       host,
@@ -171,8 +170,8 @@ export class CardController
     return this._cardElementManager;
   }
 
-  public getConditionsManager(): ConditionsManager {
-    return this._conditionsManager;
+  public getConditionStateManager(): ConditionStateManager {
+    return this._conditionStateManager;
   }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {

@@ -50,7 +50,7 @@ const createTriggerAPI = (options?: {
       },
     }),
   );
-  vi.mocked(api.getConditionsManager().getState).mockReturnValue({});
+  vi.mocked(api.getConditionStateManager().getState).mockReturnValue({});
   vi.mocked(api.getCameraManager).mockReturnValue(createCameraManager());
   vi.mocked(api.getCameraManager().getStore).mockReturnValue(
     createStore([
@@ -319,10 +319,10 @@ describe('TriggersManager', () => {
 
     manager.handleCameraEvent({ cameraID: 'camera_1', type: 'new' });
 
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith({
       triggered: new Set(['camera_1']),
     });
-    vi.mocked(api.getConditionsManager().getState).mockReturnValue({
+    vi.mocked(api.getConditionStateManager().getState).mockReturnValue({
       triggered: new Set(['camera_1']),
     });
 
@@ -331,7 +331,7 @@ describe('TriggersManager', () => {
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
 
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith({
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith({
       triggered: undefined,
     });
   });

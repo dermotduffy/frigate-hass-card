@@ -33,7 +33,7 @@ export class InteractionManager {
       val,
       'interaction',
     );
-    this._api.getConditionsManager().setState({ interaction: val });
+    this._api.getConditionStateManager().setState({ interaction: val });
   }
 
   protected _reportInteraction(): void {

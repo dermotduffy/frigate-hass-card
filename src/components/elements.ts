@@ -8,10 +8,8 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import {
-  ConditionsManagerEpoch,
-  evaluateConditionViaEvent,
-} from '../card-controller/conditions-manager.js';
+import { ConditionsManager } from '../card-controller/conditions/conditions-manager.js';
+import { getConditionStateManagerViaEvent } from '../card-controller/conditions/state-manager-via-event.js';
 import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
 import {
   AdvancedCameraCardConditional,
@@ -75,13 +73,6 @@ interface HuiConditionalElement extends HTMLElement {
 export class AdvancedCameraCardElementsCore extends LitElement {
   @property({ attribute: false })
   public elements?: PictureElements;
-
-  /**
-   * Need to ensure card re-renders when conditions change, hence having it as a
-   * property even though it is not currently directly used by this class.
-   */
-  @property({ attribute: false })
-  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   protected _root: HuiConditionalElement | null = null;
 
@@ -161,9 +152,6 @@ export class AdvancedCameraCardElementsCore extends LitElement {
 export class AdvancedCameraCardElements extends LitElement {
   @property({ attribute: false })
   public hass?: HomeAssistant;
-
-  @property({ attribute: false })
-  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   @property({ attribute: false })
   public elements: PictureElements;
@@ -248,7 +236,6 @@ export class AdvancedCameraCardElements extends LitElement {
   protected render(): TemplateResult {
     return html`<advanced-camera-card-elements-core
       .hass=${this.hass}
-      .conditionsManagerEpoch=${this.conditionsManagerEpoch}
       .elements=${this.elements}
     >
     </advanced-camera-card-elements-core>`;
@@ -267,6 +254,7 @@ export class AdvancedCameraCardElements extends LitElement {
 @customElement('advanced-camera-card-conditional')
 export class AdvancedCameraCardElementsConditional extends LitElement {
   protected _config?: AdvancedCameraCardConditional;
+  protected _conditionManager: ConditionsManager | null = null;
 
   // A note on hass as an update mechanism:
   //
@@ -283,6 +271,7 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
    */
   public setConfig(config: AdvancedCameraCardConditional): void {
     this._config = config;
+    this._createConditionManager();
   }
 
   /**
@@ -303,13 +292,32 @@ export class AdvancedCameraCardElementsConditional extends LitElement {
     // this is a transparent 'conditional' element (just like the stock HA
     // 'conditional' element), it should not have positioning.
     this.className = '';
+
+    this._createConditionManager();
+  }
+
+  disconnectedCallback(): void {
+    this._conditionManager?.destroy();
+  }
+
+  protected _createConditionManager(): void {
+    const conditionStateManager = getConditionStateManagerViaEvent(this);
+    if (!this._config || !conditionStateManager) {
+      return;
+    }
+    this._conditionManager?.destroy();
+    this._conditionManager = new ConditionsManager(
+      this._config.conditions,
+      conditionStateManager,
+    );
+    this._conditionManager.addListener(() => this.requestUpdate());
   }
 
   /**
    * Render the card.
    */
   protected render(): TemplateResult | void {
-    if (evaluateConditionViaEvent(this, this._config?.conditions)) {
+    if (this._conditionManager?.getEvaluation()?.result) {
       return html` <advanced-camera-card-elements-core
         .hass=${this.hass}
         .elements=${this._config?.elements}

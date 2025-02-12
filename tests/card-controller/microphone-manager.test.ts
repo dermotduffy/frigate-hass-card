@@ -302,7 +302,7 @@ describe('MicrophoneManager', () => {
     const manager = new MicrophoneManager(api);
 
     manager.initialize();
-    expect(api.getConditionsManager().setState).toBeCalledWith({
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
       microphone: { connected: false, muted: true, forbidden: false, stream: undefined },
     });
   });
@@ -313,7 +313,7 @@ describe('MicrophoneManager', () => {
     const stream = createMockStream();
     vi.mocked(navigatorMock.mediaDevices.getUserMedia).mockResolvedValue(stream);
 
-    expect(api.getConditionsManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toBeCalled();
 
     await manager.connect();
 
@@ -325,7 +325,7 @@ describe('MicrophoneManager', () => {
     };
 
     expect(manager.getState()).toEqual(expectedState);
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
         microphone: expectedState,
       }),
@@ -340,7 +340,7 @@ describe('MicrophoneManager', () => {
       muted: false,
     };
     expect(manager.getState()).toEqual(expectedState);
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
         microphone: expectedState,
       }),
@@ -355,7 +355,7 @@ describe('MicrophoneManager', () => {
       muted: true,
     };
     expect(manager.getState()).toEqual(expectedState);
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
         microphone: expectedState,
       }),
@@ -370,7 +370,7 @@ describe('MicrophoneManager', () => {
       muted: true,
     };
     expect(manager.getState()).toEqual(expectedState);
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
         microphone: expectedState,
       }),

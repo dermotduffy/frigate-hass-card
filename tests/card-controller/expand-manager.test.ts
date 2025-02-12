@@ -14,7 +14,7 @@ describe('ExpandManager', () => {
     const manager = new ExpandManager(api);
 
     manager.initialize();
-    expect(api.getConditionsManager().setState).toBeCalledWith({ expand: false });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({ expand: false });
   });
 
   it('should set expanded', () => {
@@ -26,7 +26,7 @@ describe('ExpandManager', () => {
 
     expect(manager.isExpanded()).toBeTruthy();
     expect(api.getFullscreenManager().setFullscreen).toBeCalledWith(false);
-    expect(api.getConditionsManager().setState).toBeCalledWith({ expand: true });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({ expand: true });
     expect(api.getCardElementManager().update).toBeCalled();
   });
 

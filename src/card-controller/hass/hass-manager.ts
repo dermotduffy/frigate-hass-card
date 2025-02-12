@@ -46,12 +46,10 @@ export class HASSManager {
     const oldHass = this._hass;
     this._hass = hass;
 
-    if (this._api.getConditionsManager().hasHAStateConditions()) {
-      this._api.getConditionsManager().setState({
-        state: this._hass.states,
-        user: this._hass.user,
-      });
-    }
+    this._api.getConditionStateManager().setState({
+      state: this._hass.states,
+      user: this._hass.user,
+    });
 
     // Theme may depend on HASS.
     this._api.getStyleManager().applyTheme();

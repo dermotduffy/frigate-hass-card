@@ -9,14 +9,12 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { CameraManager } from '../../camera-manager/manager.js';
-import { ConditionsManagerEpoch } from '../../card-controller/conditions-manager.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaGridSelected } from '../../components-lib/media-grid-controller.js';
-import { CardWideConfig, LiveConfig, Overrides } from '../../config/types.js';
+import { CardWideConfig, LiveConfig } from '../../config/types.js';
 import liveGridStyle from '../../scss/live-grid.scss';
 import { ExtendedHomeAssistant } from '../../types.js';
-import { contentsChanged } from '../../utils/basic.js';
 import './carousel.js';
 
 @customElement('advanced-camera-card-live-grid')
@@ -28,16 +26,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
-  public nonOverriddenLiveConfig?: LiveConfig;
-
-  @property({ attribute: false })
-  public overriddenLiveConfig?: LiveConfig;
-
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public overrides?: Overrides;
-
-  @property({ attribute: false })
-  public conditionsManagerEpoch?: ConditionsManagerEpoch;
+  public liveConfig?: LiveConfig;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -61,10 +50,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
         .viewFilterCameraID=${cameraID}
-        .nonOverriddenLiveConfig=${this.nonOverriddenLiveConfig}
-        .overriddenLiveConfig=${this.overriddenLiveConfig}
-        .conditionsManagerEpoch=${this.conditionsManagerEpoch}
-        .overrides=${this.overrides}
+        .liveConfig=${this.liveConfig}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}
@@ -101,9 +87,6 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
   }
 
   protected render(): TemplateResult | void {
-    if (!this.conditionsManagerEpoch || !this.nonOverriddenLiveConfig) {
-      return;
-    }
     const cameraIDs = this.cameraManager?.getStore().getCameraIDsWithCapability('live');
     if (!cameraIDs?.size || !this._needsGrid()) {
       return this._renderCarousel();
@@ -112,7 +95,7 @@ export class AdvancedCameraCardLiveGrid extends LitElement {
     return html`
       <advanced-camera-card-media-grid
         .selected=${this.viewManagerEpoch?.manager.getView()?.camera}
-        .displayConfig=${this.overriddenLiveConfig?.display}
+        .displayConfig=${this.liveConfig?.display}
         @advanced-camera-card:media-grid:selected=${(
           ev: CustomEvent<MediaGridSelected>,
         ) => this._gridSelectCamera(ev.detail.selected)}

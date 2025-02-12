@@ -54,6 +54,6 @@ export class KeyboardStateManager {
   };
 
   protected _processStateChange(): void {
-    this._api.getConditionsManager().setState({ keys: this._state });
+    this._api.getConditionStateManager().setState({ keys: this._state });
   }
 }

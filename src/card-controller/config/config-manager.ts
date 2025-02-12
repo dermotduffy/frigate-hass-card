@@ -9,9 +9,10 @@ import {
 } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
 import { getParseErrorPaths } from '../../utils/zod.js';
-import { getOverriddenConfig } from '../conditions-manager.js';
+import { ConditionsManager } from '../conditions/conditions-manager.js';
 import { InitializationAspect } from '../initialization-manager.js';
 import { CardConfigAPI } from '../types.js';
+import { getOverriddenConfig } from './get-overridden-config.js';
 import { setAutomationsFromConfig } from './load-automations.js';
 import { setKeyboardShortcutsFromConfig } from './load-keyboard-shortcuts.js';
 
@@ -26,6 +27,7 @@ export class ConfigManager {
   protected _overriddenConfig: AdvancedCameraCardConfig | null = null;
   protected _rawConfig: RawAdvancedCameraCardConfig | null = null;
   protected _cardWideConfig: CardWideConfig | null = null;
+  protected _overridesConditionsManager: ConditionsManager | null = null;
 
   constructor(api: CardConfigAPI) {
     this._api = api;
@@ -85,8 +87,16 @@ export class ConfigManager {
       debug: config.debug,
     };
 
-    this._api.getConditionsManager().setConditionsFromConfig();
-    this._api.getConditionsManager().setState({
+    this._overridesConditionsManager?.destroy();
+    this._overridesConditionsManager = this._config.overrides?.length
+      ? new ConditionsManager(
+          this._config.overrides.map((override) => override.conditions).flat(),
+          this._api.getConditionStateManager(),
+        )
+      : null;
+    this._overridesConditionsManager?.addListener(() => this._processOverrideConfig());
+
+    this._api.getConditionStateManager().setState({
       view: undefined,
       displayMode: undefined,
       camera: undefined,
@@ -102,31 +112,22 @@ export class ConfigManager {
     setKeyboardShortcutsFromConfig(this._api, this);
     setAutomationsFromConfig(this._api);
 
-    this.computeOverrideConfig();
+    this._processOverrideConfig();
 
     this._api.getCardElementManager().update();
   }
 
-  public computeOverrideConfig(): void {
-    const conditionsManager = this._api.getConditionsManager();
+  protected _processOverrideConfig(): void {
+    /* istanbul ignore if: No (current) way to reach this code -- @preserve */
     if (!this._config) {
       return;
     }
 
-    let overriddenConfig: AdvancedCameraCardConfig | null = null;
-    try {
-      overriddenConfig = getOverriddenConfig(conditionsManager, this._config, {
-        configOverrides: this._config.overrides,
-        schema: advancedCameraCardConfigSchema,
-      });
-    } catch (ev) {
-      this._api.getMessageManager().setErrorIfHigherPriority(ev);
-      return;
-    }
+    const overriddenConfig = this._getOverriddenConfig();
 
     // Save on Lit re-rendering costs by only updating the configuration if it
     // actually changes.
-    if (isEqual(overriddenConfig, this._overriddenConfig)) {
+    if (!overriddenConfig || isEqual(overriddenConfig, this._overriddenConfig)) {
       return;
     }
 
@@ -154,14 +155,30 @@ export class ConfigManager {
         .uninitialize(InitializationAspect.MICROPHONE_CONNECT);
     }
 
-    /* async */ this._initializeBackground(previousConfig);
+    /* async */ this._initializeBackgroundAndUpdate(previousConfig);
+  }
+
+  protected _getOverriddenConfig(): AdvancedCameraCardConfig | null {
+    if (!this._overridesConditionsManager || !this._config) {
+      return this._config;
+    }
+
+    try {
+      return getOverriddenConfig(this._overridesConditionsManager, this._config, {
+        configOverrides: this._config.overrides,
+        schema: advancedCameraCardConfigSchema,
+      });
+    } catch (ev) {
+      this._api.getMessageManager().setErrorIfHigherPriority(ev);
+      return null;
+    }
   }
 
   /**
    * Initialize config dependent items in the background. For items that the
    * card hard requires, use InitializationManager instead.
    */
-  protected async _initializeBackground(
+  protected async _initializeBackgroundAndUpdate(
     previousConfig: AdvancedCameraCardConfig | null,
   ): Promise<void> {
     await this._api.getDefaultManager().initializeIfNecessary(previousConfig);

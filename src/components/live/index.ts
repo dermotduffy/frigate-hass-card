@@ -1,21 +1,16 @@
 import { CSSResultGroup, html, LitElement, TemplateResult, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { CameraManager } from '../../camera-manager/manager.js';
-import { ConditionsManagerEpoch } from '../../card-controller/conditions-manager.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { LiveController } from '../../components-lib/live/live-controller.js';
-import { CardWideConfig, LiveConfig, Overrides } from '../../config/types.js';
+import { CardWideConfig, LiveConfig } from '../../config/types.js';
 import basicBlockStyle from '../../scss/basic-block.scss';
 import { ExtendedHomeAssistant } from '../../types.js';
-import { contentsChanged } from '../../utils/basic.js';
 import './grid.js';
 
 @customElement('advanced-camera-card-live')
 export class AdvancedCameraCardLive extends LitElement {
-  @property({ attribute: false })
-  public conditionsManagerEpoch?: ConditionsManagerEpoch;
-
   @property({ attribute: false })
   public hass?: ExtendedHomeAssistant;
 
@@ -23,13 +18,7 @@ export class AdvancedCameraCardLive extends LitElement {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
-  public nonOverriddenLiveConfig?: LiveConfig;
-
-  @property({ attribute: false })
-  public overriddenLiveConfig?: LiveConfig;
-
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public overrides?: Overrides;
+  public liveConfig?: LiveConfig;
 
   @property({ attribute: false })
   public cameraManager?: CameraManager;
@@ -46,7 +35,7 @@ export class AdvancedCameraCardLive extends LitElement {
   protected _controller = new LiveController(this);
 
   protected render(): TemplateResult | void {
-    if (!this.hass || !this.nonOverriddenLiveConfig || !this.cameraManager) {
+    if (!this.hass || !this.cameraManager) {
       return;
     }
 
@@ -60,11 +49,8 @@ export class AdvancedCameraCardLive extends LitElement {
       <advanced-camera-card-live-grid
         .hass=${this.hass}
         .viewManagerEpoch=${this.viewManagerEpoch}
-        .nonOverriddenLiveConfig=${this.nonOverriddenLiveConfig}
-        .overriddenLiveConfig=${this.overriddenLiveConfig}
+        .liveConfig=${this.liveConfig}
         .inBackground=${this._controller.isInBackground()}
-        .conditionsManagerEpoch=${this.conditionsManagerEpoch}
-        .overrides=${this.overrides}
         .cardWideConfig=${this.cardWideConfig}
         .cameraManager=${this.cameraManager}
         .microphoneState=${this.microphoneState}

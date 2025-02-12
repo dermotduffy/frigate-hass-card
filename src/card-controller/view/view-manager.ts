@@ -301,7 +301,7 @@ export class ViewManager implements ViewManagerInterface {
     this._api.getMessageManager().reset();
     this._api.getStyleManager().setExpandedMode();
 
-    this._api.getConditionsManager()?.setState({
+    this._api.getConditionStateManager()?.setState({
       view: view?.view,
       camera: view?.camera,
       displayMode: view?.displayMode ?? undefined,

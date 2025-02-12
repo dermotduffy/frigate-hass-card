@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
+import { ConditionStateManager } from '../../../../src/card-controller/conditions/state-manager';
 import { CardController } from '../../../../src/card-controller/controller';
 import { WebkitFullScreenProvider } from '../../../../src/card-controller/fullscreen/webkit';
 import {
@@ -37,7 +38,7 @@ describe('WebkitFullScreenProvider', () => {
 
     provider.connect();
 
-    expect(api.getConditionsManager().addListener).toBeCalledWith(expect.anything());
+    expect(api.getConditionStateManager().addListener).toBeCalledWith(expect.anything());
   });
 
   it('should disconnect', () => {
@@ -46,7 +47,9 @@ describe('WebkitFullScreenProvider', () => {
 
     provider.disconnect();
 
-    expect(api.getConditionsManager().removeListener).toBeCalledWith(expect.anything());
+    expect(api.getConditionStateManager().removeListener).toBeCalledWith(
+      expect.anything(),
+    );
   });
 
   describe('should return if in fullscreen', () => {
@@ -152,20 +155,19 @@ describe('WebkitFullScreenProvider', () => {
         (event: string) => {
           const handler = vi.fn();
           const api = createCardAPI();
+          const stateManager = new ConditionStateManager();
+          vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
           const provider = new WebkitFullScreenProvider(api, handler);
 
           provider.connect();
-
-          const conditionChangeHandler = vi.mocked(
-            api.getConditionsManager().addListener,
-          ).mock.calls[0][0];
 
           const element_1 = createWebkitVideoElement();
           const player_1 = mock<AdvancedCameraCardMediaPlayer>();
           player_1.getFullscreenElement.mockReturnValue(element_1);
           const mediaLoadedInfo_1 = createMediaLoadedInfo({ player: player_1 });
 
-          conditionChangeHandler({ mediaLoadedInfo: mediaLoadedInfo_1 });
+          stateManager.setState({ mediaLoadedInfo: mediaLoadedInfo_1 });
 
           element_1.dispatchEvent(new Event(event));
 
@@ -176,10 +178,7 @@ describe('WebkitFullScreenProvider', () => {
           player_2.getFullscreenElement.mockReturnValue(element_2);
           const mediaLoadedInfo_2 = createMediaLoadedInfo({ player: player_2 });
 
-          conditionChangeHandler(
-            { mediaLoadedInfo: mediaLoadedInfo_2 },
-            { mediaLoadedInfo: mediaLoadedInfo_1 },
-          );
+          stateManager.setState({ mediaLoadedInfo: mediaLoadedInfo_2 });
 
           element_2.dispatchEvent(new Event(event));
 
@@ -190,11 +189,10 @@ describe('WebkitFullScreenProvider', () => {
 
           expect(handler).toBeCalledTimes(2);
 
-          // Test the media loaded info not changing.
-          conditionChangeHandler(
-            { mediaLoadedInfo: mediaLoadedInfo_2 },
-            { mediaLoadedInfo: mediaLoadedInfo_2 },
-          );
+          // Test the media loaded info changing, but the player not changing.
+          stateManager.setState({
+            mediaLoadedInfo: { ...mediaLoadedInfo_2, width: 101 },
+          });
 
           // Events on the new element should still be handled.
           element_2.dispatchEvent(new Event(event));
@@ -210,12 +208,12 @@ describe('WebkitFullScreenProvider', () => {
 
     const handler = vi.fn();
     const api = createCardAPI();
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
     const provider = new WebkitFullScreenProvider(api, handler);
 
     provider.connect();
-
-    const conditionChangeHandler = vi.mocked(api.getConditionsManager().addListener).mock
-      .calls[0][0];
 
     const element = createWebkitVideoElement();
     element.play = vi.fn();
@@ -226,7 +224,7 @@ describe('WebkitFullScreenProvider', () => {
     player.getFullscreenElement.mockReturnValue(element);
     const mediaLoadedInfo = createMediaLoadedInfo({ player });
 
-    conditionChangeHandler({ mediaLoadedInfo });
+    stateManager.setState({ mediaLoadedInfo });
 
     element.dispatchEvent(new Event('webkitendfullscreen'));
 
