@@ -1,8 +1,6 @@
 import { merge } from 'lodash-es';
 import { ZodType as ZodSchema } from 'zod';
-import {
-  ConditionsManagerReadonlyInterface,
-} from '../../conditions/types';
+import { ConditionsManagerReadonlyInterface } from '../../conditions/types';
 import {
   copyConfig,
   deleteConfigValue,
