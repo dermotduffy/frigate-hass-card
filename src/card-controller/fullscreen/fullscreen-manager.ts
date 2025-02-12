@@ -60,7 +60,7 @@ export class FullscreenManager {
   };
 
   protected _setConditionState(): void {
-    this._api.getConditionsManager()?.setState({
+    this._api.getConditionStateManager()?.setState({
       fullscreen: this.isInFullscreen(),
     });
   }

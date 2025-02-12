@@ -1,6 +1,6 @@
+import { ConditionStateChange } from '../../../conditions/types';
 import { WebkitHTMLVideoElement } from '../../../types';
 import { Timer } from '../../../utils/timer';
-import { ConditionState } from '../../conditions-manager';
 import { FullscreenProviderBase } from '../provider';
 import { FullscreenProvider } from '../types';
 
@@ -18,26 +18,23 @@ export class WebkitFullScreenProvider
   protected _playTimer = new Timer();
 
   public connect(): void {
-    this._api.getConditionsManager().addListener(this._conditionChangeHandler);
+    this._api.getConditionStateManager().addListener(this._stateChangeHandler);
   }
 
   public disconnect(): void {
-    this._api.getConditionsManager().removeListener(this._conditionChangeHandler);
+    this._api.getConditionStateManager().removeListener(this._stateChangeHandler);
   }
 
-  protected _conditionChangeHandler = (
-    newState: ConditionState,
-    oldState?: ConditionState,
-  ): void => {
+  protected _stateChangeHandler = (change: ConditionStateChange): void => {
     if (
-      newState.mediaLoadedInfo?.player?.getFullscreenElement() !==
-      oldState?.mediaLoadedInfo?.player?.getFullscreenElement()
+      change.old.mediaLoadedInfo?.player?.getFullscreenElement() !==
+      change.new.mediaLoadedInfo?.player?.getFullscreenElement()
     ) {
-      const oldElement = oldState?.mediaLoadedInfo?.player?.getFullscreenElement();
+      const oldElement = change.old.mediaLoadedInfo?.player?.getFullscreenElement();
       oldElement?.removeEventListener('webkitbeginfullscreen', this._handler);
       oldElement?.removeEventListener('webkitendfullscreen', this._endHandler);
 
-      const newElement = newState.mediaLoadedInfo?.player?.getFullscreenElement();
+      const newElement = change.new.mediaLoadedInfo?.player?.getFullscreenElement();
       newElement?.addEventListener('webkitbeginfullscreen', this._handler);
       newElement?.addEventListener('webkitendfullscreen', this._endHandler);
     }

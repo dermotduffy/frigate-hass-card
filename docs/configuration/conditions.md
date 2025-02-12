@@ -16,7 +16,8 @@ certain configurations (in `overrides`) or to display "picture elements" (in
 
 ## `camera`
 
-Matches based on the selected camera.
+Matches based on the selected camera. Does not match other cameras (whether
+visible or not).
 
 ```yaml
 conditions:
@@ -24,10 +25,10 @@ conditions:
     # [...]
 ```
 
-| Parameter   | Description                                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------------------------------ |
-| `condition` | Must be `camera`.                                                                                            |
-| `cameras`   | A list of camera IDs in which this condition is satisfied. See the camera [id](cameras/README.md) parameter. |
+| Parameter   | Description                                                                                                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `camera`.                                                                                                                                                                     |
+| `cameras`   | An optional list of camera IDs in which this condition is satisfied. If not specified, any camera change will satisy the condition. See the camera [id](cameras/README.md) parameter. |
 
 ## `expand`
 
@@ -167,6 +168,18 @@ conditions:
     # [...]
 ```
 
+| Parameter   | Description                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| `condition` | Must be `state`.                                                                                       |
+| `entity`    | The entity to check the state of.                                                                      |
+| `state`     | A single entity state, or list of entity states, against which the entity state is compared.           |
+| `state_not` | A single entity state, or list of entity states, against which the entity state is inversely compared. |
+
+!> If multiple state conditions are used together with neither `state` nor
+`state_not` specified, this effectively means the state for multiple entities
+needs to _change_ simultaneously. This is unlikely to happen in reality, and
+almost certainly not useful / reliable as a condition.
+
 See [Home Assistant conditions documentation](https://www.home-assistant.io/dashboards/conditional/#state).
 
 ## `triggered`
@@ -226,10 +239,10 @@ conditions:
     # [...]
 ```
 
-| Parameter   | Description                                                                                       |
-| ----------- | ------------------------------------------------------------------------------------------------- |
-| `condition` | Must be `view`.                                                                                   |
-| `views`     | A list of [views](view.md?id=supported-views) in which this condition is satified (e.g. `clips`). |
+| Parameter   | Description                                                                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `condition` | Must be `view`.                                                                                                                                                          |
+| `views`     | An optional list of [views](view.md?id=supported-views) in which this condition is satified (e.g. `clips`). If not specified, any view change will satisy the condition. |
 
 ?> Internally, views associated with the media viewer (e.g. `clip`, `snapshot`,
 `recording`) are translated to a special view called `media` after the relevant

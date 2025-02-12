@@ -23,7 +23,9 @@ describe('InteractionManager', () => {
     const manager = new InteractionManager(api);
 
     manager.initialize();
-    expect(api.getConditionsManager().setState).toBeCalledWith({ interaction: false });
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
+      interaction: false,
+    });
     expect(element.getAttribute('interaction')).toBeNull();
   });
 
@@ -62,11 +64,11 @@ describe('InteractionManager', () => {
     vi.useFakeTimers();
     vi.setSystemTime(start);
 
-    expect(api.getConditionsManager().setState).not.toBeCalled();
+    expect(api.getConditionStateManager().setState).not.toBeCalled();
 
     manager.reportInteraction();
 
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
         interaction: true,
       }),
@@ -77,7 +79,7 @@ describe('InteractionManager', () => {
     vi.setSystemTime(add(start, { seconds: 10 }));
     vi.runOnlyPendingTimers();
 
-    expect(api.getConditionsManager().setState).toHaveBeenLastCalledWith(
+    expect(api.getConditionStateManager().setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
         interaction: false,
       }),

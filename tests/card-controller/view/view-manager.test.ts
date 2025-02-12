@@ -45,7 +45,7 @@ describe('should act correctly when view is set', () => {
     expect(api.getCardElementManager().scrollReset).toBeCalled();
     expect(api.getMessageManager().reset).toBeCalled();
     expect(api.getStyleManager().setExpandedMode).toBeCalled();
-    expect(api.getConditionsManager()?.setState).toBeCalledWith({
+    expect(api.getConditionStateManager()?.setState).toBeCalledWith({
       view: 'live',
       camera: 'camera',
       displayMode: 'grid',

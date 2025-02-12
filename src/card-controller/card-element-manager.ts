@@ -127,7 +127,7 @@ export class CardElementManager {
       this._api.getQueryStringManager().requestExecution,
     );
 
-    this._api.getConditionsManager()?.setState({
+    this._api.getConditionStateManager()?.setState({
       userAgent: navigator.userAgent,
     });
 

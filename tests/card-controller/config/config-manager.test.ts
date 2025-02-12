@@ -1,12 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-import { getOverriddenConfig } from '../../../src/card-controller/conditions-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
+import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { advancedCameraCardConfigSchema } from '../../../src/config/types';
-import { createCardAPI, createConfig, flushPromises } from '../../test-utils';
-
-vi.mock('../../../src/card-controller/conditions-manager.js');
+import { createCardAPI, flushPromises } from '../../test-utils';
 
 describe('ConfigManager', () => {
   beforeEach(() => {
@@ -84,8 +82,7 @@ describe('ConfigManager', () => {
     expect(manager.getConfig()?.menu.alignment).toBe('left');
 
     // Verify appropriate API calls are made.
-    expect(api.getConditionsManager().setConditionsFromConfig).toBeCalled();
-    expect(api.getConditionsManager().setState).toBeCalledWith({
+    expect(api.getConditionStateManager().setState).toBeCalledWith({
       view: undefined,
       displayMode: undefined,
       camera: undefined,
@@ -165,179 +162,222 @@ describe('ConfigManager', () => {
     });
   });
 
-  it('should ignore overrides without a config', () => {
-    const api = createCardAPI();
-    const manager = new ConfigManager(api);
-
-    manager.computeOverrideConfig();
-
-    expect(manager.getConfig()).toBeNull();
-    expect(api.getStyleManager().updateFromConfig).not.toBeCalled();
-  });
-
   it('should ignore overrides with same config', () => {
     const api = createCardAPI();
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
     const manager = new ConfigManager(api);
+    const cameras = [{ camera_entity: 'camera.office' }];
     const config = {
       type: 'custom:advanced-camera-card',
-      cameras: [{ camera_entity: 'camera.office' }],
+      cameras: cameras,
+      overrides: [
+        {
+          conditions: [{ condition: 'fullscreen', fullscreen: true }],
+          set: {
+            // Override with the same.
+            cameras: cameras,
+          },
+        },
+      ],
     };
-    vi.mocked(getOverriddenConfig).mockReturnValue(config);
 
     manager.setConfig(config);
-    expect(api.getStyleManager().updateFromConfig).toBeCalled();
 
-    vi.mocked(api.getStyleManager().updateFromConfig).mockClear();
-    manager.computeOverrideConfig();
+    expect(api.getStyleManager().updateFromConfig).toBeCalledTimes(1);
 
-    expect(api.getStyleManager().updateFromConfig).not.toBeCalled();
+    stateManager.setState({ fullscreen: true });
+
+    expect(api.getStyleManager().updateFromConfig).toBeCalledTimes(1);
   });
 
   it('should override', () => {
     const api = createCardAPI();
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
     const manager = new ConfigManager(api);
-    const config_1 = {
+    const config = {
       type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
+      menu: {
+        style: 'hidden',
+      },
+      overrides: [
+        {
+          conditions: [{ condition: 'fullscreen', fullscreen: true }],
+          set: { 'menu.style': 'none' },
+        },
+      ],
     };
-    manager.setConfig(config_1);
-    vi.mocked(api.getStyleManager().updateFromConfig).mockClear();
 
-    const config_2 = {
-      type: 'custom:advanced-camera-card',
-      cameras: [{ camera_entity: 'camera.kitchen' }],
-    };
-    vi.mocked(getOverriddenConfig).mockReturnValue(config_2);
-    manager.computeOverrideConfig();
+    manager.setConfig(config);
+    expect(manager.getConfig()?.menu?.style).toBe('hidden');
 
-    expect(api.getStyleManager().updateFromConfig).toBeCalled();
-    expect(api.getCardElementManager().update).toBeCalled();
+    stateManager.setState({ fullscreen: true });
+    expect(manager.getConfig()?.menu?.style).toBe('none');
     expect(manager.getConfig()).not.toEqual(manager.getNonOverriddenConfig());
   });
 
   it('should set error on invalid override', () => {
     const api = createCardAPI();
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
     const manager = new ConfigManager(api);
-    manager.setConfig({
+    const config = {
       type: 'custom:advanced-camera-card',
       cameras: [{ camera_entity: 'camera.office' }],
-    });
+      overrides: [
+        {
+          conditions: [{ condition: 'fullscreen', fullscreen: true }],
+          delete: ['cameras'],
+        },
+      ],
+    };
 
-    const error = new Error('Invalid override configuration');
-    vi.mocked(getOverriddenConfig).mockImplementation(() => {
-      throw error;
-    });
+    manager.setConfig(config);
+    expect(manager.getConfig()).not.toBeNull();
 
-    manager.computeOverrideConfig();
-
-    expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(error);
+    stateManager.setState({ fullscreen: true });
+    expect(manager.getConfig()).not.toBeNull();
+    expect(api.getMessageManager().setErrorIfHigherPriority).toBeCalledWith(
+      expect.objectContaining({ message: 'Invalid override configuration' }),
+    );
   });
 
   describe('should uninitialize on override', () => {
     it('cameras', () => {
       const api = createCardAPI();
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
       const manager = new ConfigManager(api);
-      const config_1 = {
+      const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
+        overrides: [
+          {
+            conditions: [{ condition: 'fullscreen', fullscreen: true }],
+            set: {
+              cameras: [{ camera_entity: 'camera.kitchen' }],
+            },
+          },
+        ],
       };
-      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
 
-      manager.setConfig(config_1);
-      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
-        InitializationAspect.VIEW,
+      manager.setConfig(config);
+
+      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalledWith(
+        InitializationAspect.CAMERAS,
       );
 
-      const config_2 = {
-        type: 'custom:advanced-camera-card',
-        cameras: [{ camera_entity: 'camera.kitchen' }],
-      };
-      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
-      manager.computeOverrideConfig();
+      stateManager.setState({ fullscreen: true });
 
-      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
         InitializationAspect.CAMERAS,
       );
     });
 
     it('cameras_global', () => {
       const api = createCardAPI();
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
       const manager = new ConfigManager(api);
-      const config_1 = {
+      const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
+        overrides: [
+          {
+            conditions: [{ condition: 'fullscreen', fullscreen: true }],
+            set: {
+              cameras_global: { live_provider: 'jsmpeg' },
+            },
+          },
+        ],
       };
-      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
 
-      manager.setConfig(config_1);
-      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
-        InitializationAspect.VIEW,
+      manager.setConfig(config);
+
+      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalledWith(
+        InitializationAspect.CAMERAS,
       );
 
-      const config_2 = {
-        ...config_1,
-        cameras_global: {
-          live_provider: 'jsmpeg',
-        },
-      };
-      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
-      manager.computeOverrideConfig();
+      stateManager.setState({ fullscreen: true });
 
-      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
         InitializationAspect.CAMERAS,
       );
     });
 
     it('live.microphone.always_connected', () => {
       const api = createCardAPI();
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
       const manager = new ConfigManager(api);
-      const config_1 = {
+      const config = {
         type: 'custom:advanced-camera-card',
         cameras: [{ camera_entity: 'camera.office' }],
-        live: {
-          microphone: {
-            always_connected: false,
+        overrides: [
+          {
+            conditions: [{ condition: 'fullscreen', fullscreen: true }],
+            set: {
+              'live.microphone.always_connected': true,
+            },
           },
-        },
+        ],
       };
-      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_1));
 
-      manager.setConfig(config_1);
-      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
-        InitializationAspect.VIEW,
+      manager.setConfig(config);
+
+      expect(api.getInitializationManager().uninitialize).not.toHaveBeenCalledWith(
+        InitializationAspect.MICROPHONE_CONNECT,
       );
 
-      const config_2 = {
-        ...config_1,
-        live: {
-          microphone: {
-            always_connected: true,
-          },
-        },
-      };
-      vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config_2));
-      manager.computeOverrideConfig();
+      stateManager.setState({ fullscreen: true });
 
-      expect(api.getInitializationManager().uninitialize).toHaveBeenLastCalledWith(
+      expect(api.getInitializationManager().uninitialize).toHaveBeenCalledWith(
         InitializationAspect.MICROPHONE_CONNECT,
       );
     });
   });
 
-  it('should initialize background items', async () => {
-    const api = createCardAPI();
-    const manager = new ConfigManager(api);
-    const config = {
-      type: 'custom:advanced-camera-card',
-      cameras: [{ camera_entity: 'camera.office' }],
-    };
-    vi.mocked(getOverriddenConfig).mockReturnValue(createConfig(config));
+  describe('should initialize on override', () => {
+    it('should initialize background items', async () => {
+      const api = createCardAPI();
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
-    manager.setConfig(config);
+      const manager = new ConfigManager(api);
+      const config = {
+        type: 'custom:advanced-camera-card',
+        cameras: [{ camera_entity: 'camera.office' }],
+        overrides: [
+          {
+            conditions: [{ condition: 'fullscreen', fullscreen: true }],
+            set: {
+              cameras: [{ camera_entity: 'camera.kitchen' }],
+            },
+          },
+        ],
+      };
 
-    await flushPromises();
+      manager.setConfig(config);
 
-    expect(api.getDefaultManager().initializeIfNecessary).toBeCalledWith(null);
-    expect(api.getMediaPlayerManager().initializeIfNecessary).toBeCalledWith(null);
+      await flushPromises();
+
+      expect(api.getDefaultManager().initializeIfNecessary).toBeCalledTimes(1);
+      expect(api.getMediaPlayerManager().initializeIfNecessary).toBeCalledTimes(1);
+
+      stateManager.setState({ fullscreen: true });
+
+      await flushPromises();
+
+      expect(api.getDefaultManager().initializeIfNecessary).toBeCalledTimes(2);
+      expect(api.getMediaPlayerManager().initializeIfNecessary).toBeCalledTimes(2);
+    });
   });
 });

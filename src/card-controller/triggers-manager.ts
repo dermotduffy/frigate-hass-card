@@ -1,4 +1,3 @@
-import isEqual from 'lodash-es/isEqual';
 import orderBy from 'lodash-es/orderBy';
 import throttle from 'lodash-es/throttle';
 import { CameraEvent } from '../camera-manager/types';
@@ -132,13 +131,9 @@ export class TriggersManager {
     const triggeredCameraIDs = new Set(this._triggeredCameras.keys());
     const triggeredState = triggeredCameraIDs.size ? triggeredCameraIDs : undefined;
 
-    if (
-      !isEqual(triggeredState, this._api.getConditionsManager().getState().triggered)
-    ) {
-      this._api.getConditionsManager().setState({
-        triggered: triggeredState,
-      });
-    }
+    this._api.getConditionStateManager().setState({
+      triggered: triggeredState,
+    });
   }
 
   protected async _untriggerAction(cameraID: string): Promise<void> {

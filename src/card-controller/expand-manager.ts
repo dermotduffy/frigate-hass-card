@@ -32,7 +32,7 @@ export class ExpandManager {
   }
 
   protected _setConditionState(): void {
-    this._api.getConditionsManager()?.setState({
+    this._api.getConditionStateManager()?.setState({
       expand: this._expanded,
     });
   }

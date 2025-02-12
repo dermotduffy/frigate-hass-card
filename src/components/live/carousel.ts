@@ -11,14 +11,9 @@ import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { CameraManager } from '../../camera-manager/manager.js';
 import { CameraManagerCameraMetadata } from '../../camera-manager/types.js';
-import {
-  ConditionsManagerEpoch,
-  getOverriddenConfig,
-} from '../../card-controller/conditions-manager.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { ViewManagerEpoch } from '../../card-controller/view/types.js';
 import { MediaActionsController } from '../../components-lib/media-actions-controller.js';
-import { dispatchAdvancedCameraCardErrorEvent } from '../../components-lib/message/dispatch.js';
 import { ZoomSettingsObserved } from '../../components-lib/zoom/types.js';
 import { handleZoomSettingsObservedEvent } from '../../components-lib/zoom/zoom-view-context.js';
 import {
@@ -26,14 +21,11 @@ import {
   CardWideConfig,
   configDefaults,
   LiveConfig,
-  liveConfigAbsoluteRootSchema,
-  Overrides,
   TransitionEffect,
 } from '../../config/types.js';
 import liveCarouselStyle from '../../scss/live-carousel.scss';
 import { ExtendedHomeAssistant } from '../../types.js';
 import { stopEventFromActivatingCardWideActions } from '../../utils/action.js';
-import { contentsChanged } from '../../utils/basic.js';
 import { CarouselSelected } from '../../utils/embla/carousel-controller.js';
 import { AutoLazyLoad } from '../../utils/embla/plugins/auto-lazy-load/auto-lazy-load.js';
 import AutoMediaLoadedInfo from '../../utils/embla/plugins/auto-media-loaded-info/auto-media-loaded-info.js';
@@ -70,16 +62,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   public viewManagerEpoch?: ViewManagerEpoch;
 
   @property({ attribute: false })
-  public nonOverriddenLiveConfig?: LiveConfig;
-
-  @property({ attribute: false })
-  public overriddenLiveConfig?: LiveConfig;
-
-  @property({ attribute: false, hasChanged: contentsChanged })
-  public overrides?: Overrides;
-
-  @property({ attribute: false })
-  public conditionsManagerEpoch?: ConditionsManagerEpoch;
+  public liveConfig?: LiveConfig;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -116,10 +99,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   protected _getTransitionEffect(): TransitionEffect {
-    return (
-      this.overriddenLiveConfig?.transition_effect ??
-      configDefaults.live.transition_effect
-    );
+    return this.liveConfig?.transition_effect ?? configDefaults.live.transition_effect;
   }
 
   protected _getSelectedCameraIndex(): number {
@@ -138,29 +118,25 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
-    if (
-      changedProps.has('microphoneState') ||
-      changedProps.has('overriddenLiveConfig')
-    ) {
+    if (changedProps.has('microphoneState') || changedProps.has('liveConfig')) {
       this._mediaActionsController.setOptions({
         playerSelector: ADVANCED_CAMERA_CARD_LIVE_PROVIDER,
-        ...(this.overriddenLiveConfig?.auto_play && {
-          autoPlayConditions: this.overriddenLiveConfig.auto_play,
+        ...(this.liveConfig?.auto_play && {
+          autoPlayConditions: this.liveConfig.auto_play,
         }),
-        ...(this.overriddenLiveConfig?.auto_pause && {
-          autoPauseConditions: this.overriddenLiveConfig.auto_pause,
+        ...(this.liveConfig?.auto_pause && {
+          autoPauseConditions: this.liveConfig.auto_pause,
         }),
-        ...(this.overriddenLiveConfig?.auto_mute && {
-          autoMuteConditions: this.overriddenLiveConfig.auto_mute,
+        ...(this.liveConfig?.auto_mute && {
+          autoMuteConditions: this.liveConfig.auto_mute,
         }),
-        ...(this.overriddenLiveConfig?.auto_unmute && {
-          autoUnmuteConditions: this.overriddenLiveConfig.auto_unmute,
+        ...(this.liveConfig?.auto_unmute && {
+          autoUnmuteConditions: this.liveConfig.auto_unmute,
         }),
-        ...((this.overriddenLiveConfig?.auto_unmute ||
-          this.overriddenLiveConfig?.auto_mute) && {
+        ...((this.liveConfig?.auto_unmute || this.liveConfig?.auto_mute) && {
           microphoneState: this.microphoneState,
           microphoneMuteSeconds:
-            this.overriddenLiveConfig.microphone.mute_after_microphone_mute_seconds,
+            this.liveConfig.microphone.mute_after_microphone_mute_seconds,
         }),
       });
     }
@@ -169,11 +145,11 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
   protected _getPlugins(): EmblaCarouselPlugins {
     return [
       AutoLazyLoad({
-        ...(this.overriddenLiveConfig?.lazy_load && {
+        ...(this.liveConfig?.lazy_load && {
           lazyLoadCallback: (index, slide) =>
             this._lazyloadOrUnloadSlide('load', index, slide),
         }),
-        lazyUnloadConditions: this.overriddenLiveConfig?.lazy_unload,
+        lazyUnloadConditions: this.liveConfig?.lazy_unload,
         lazyUnloadCallback: (index, slide) =>
           this._lazyloadOrUnloadSlide('unload', index, slide),
       }),
@@ -191,7 +167,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
    */
   protected _getLazyLoadCount(): number | null {
     // Defaults to fully-lazy loading.
-    return this.overriddenLiveConfig?.lazy_load === false ? null : 0;
+    return this.liveConfig?.lazy_load === false ? null : 0;
   }
 
   protected _getSlides(): [TemplateResult[], Record<string, number>] {
@@ -265,34 +241,8 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     cameraID: string,
     cameraConfig: CameraConfig,
   ): TemplateResult | void {
-    if (
-      !this.overriddenLiveConfig ||
-      !this.nonOverriddenLiveConfig ||
-      !this.hass ||
-      !this.cameraManager ||
-      !this.conditionsManagerEpoch
-    ) {
+    if (!this.liveConfig || !this.hass || !this.cameraManager) {
       return;
-    }
-
-    let liveConfig: LiveConfig | null = null;
-
-    try {
-      // The condition controller object contains the currently live camera, which
-      // (in the carousel for example) is not necessarily the live camera *this*
-      // <advanced-camera-card-live-provider> is rendering right now, so we provide a
-      // stateOverride to evaluate the condition in that context.
-      liveConfig = getOverriddenConfig(
-        this.conditionsManagerEpoch.manager,
-        { live: this.nonOverriddenLiveConfig },
-        {
-          configOverrides: this.overrides,
-          stateOverrides: { camera: cameraID },
-          schema: liveConfigAbsoluteRootSchema,
-        },
-      ).live;
-    } catch (ev) {
-      return dispatchAdvancedCameraCardErrorEvent(this, ev);
     }
 
     const cameraMetadata = this.cameraManager.getCameraMetadata(cameraID);
@@ -301,7 +251,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
     return html`
       <div class="embla__slide">
         <advanced-camera-card-live-provider
-          ?load=${!liveConfig.lazy_load}
+          ?load=${!this.liveConfig.lazy_load}
           .microphoneState=${view?.camera === cameraID
             ? this.microphoneState
             : undefined}
@@ -311,7 +261,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
             () => this.cameraManager?.getCameraEndpoints(cameraID) ?? undefined,
           )}
           .label=${cameraMetadata?.title ?? ''}
-          .liveConfig=${liveConfig}
+          .liveConfig=${this.liveConfig}
           .hass=${this.hass}
           .cardWideConfig=${this.cardWideConfig}
           .zoomSettings=${view?.context?.zoom?.[cameraID]?.requested}
@@ -385,7 +335,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       slot=${side}
       .hass=${this.hass}
       .side=${side}
-      .controlConfig=${this.overriddenLiveConfig?.controls.next_previous}
+      .controlConfig=${this.liveConfig?.controls.next_previous}
       .label=${neighbor?.metadata?.title ?? ''}
       .icon=${neighbor?.metadata?.icon}
       ?disabled=${!neighbor}
@@ -399,7 +349,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
 
   protected render(): TemplateResult | void {
     const view = this.viewManagerEpoch?.manager.getView();
-    if (!this.overriddenLiveConfig || !this.hass || !view || !this.cameraManager) {
+    if (!this.liveConfig || !this.hass || !view || !this.cameraManager) {
       return;
     }
 
@@ -427,9 +377,9 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
       <advanced-camera-card-carousel
         ${ref(this._refCarousel)}
         .loop=${hasMultipleCameras}
-        .dragEnabled=${hasMultipleCameras && this.overriddenLiveConfig?.draggable}
+        .dragEnabled=${hasMultipleCameras && this.liveConfig?.draggable}
         .plugins=${guard(
-          [this.cameraManager, this.overriddenLiveConfig],
+          [this.cameraManager, this.liveConfig],
           this._getPlugins.bind(this),
         )}
         .selected=${this._getSelectedCameraIndex()}
@@ -449,7 +399,7 @@ export class AdvancedCameraCardLiveCarousel extends LitElement {
         ${this._renderNextPrevious('right', neighbors)}
       </advanced-camera-card-carousel>
       <advanced-camera-card-ptz
-        .config=${this.overriddenLiveConfig.controls.ptz}
+        .config=${this.liveConfig.controls.ptz}
         .cameraManager=${this.cameraManager}
         .cameraID=${getStreamCameraID(view, this.viewFilterCameraID)}
         .forceVisibility=${forcePTZVisibility}

@@ -25,8 +25,8 @@ import { STREAM_TROUBLESHOOTING_URL } from '../../const.js';
 import { localize } from '../../localize/localize.js';
 import liveProviderStyle from '../../scss/live-provider.scss';
 import {
-  ExtendedHomeAssistant,
   AdvancedCameraCardMediaPlayer,
+  ExtendedHomeAssistant,
   FullscreenElement,
 } from '../../types.js';
 import { aspectRatioToString } from '../../utils/basic.js';
@@ -210,6 +210,7 @@ export class AdvancedCameraCardLiveProvider
         dispatchMediaUnloadedEvent(this);
       }
     }
+
     if (changedProps.has('liveConfig')) {
       if (this.liveConfig?.show_image_during_load) {
         this._importPromises.push(import('./providers/image.js'));

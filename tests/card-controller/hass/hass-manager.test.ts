@@ -47,35 +47,22 @@ describe('HASSManager', () => {
     expect(api.getStyleManager().applyTheme).toBeCalled();
   });
 
-  describe('should set condition manager state', () => {
-    it('positively', () => {
-      const api = createCardAPI();
-      const manager = new HASSManager(api);
-      vi.mocked(api.getConditionsManager().hasHAStateConditions).mockReturnValue(true);
+  it('should set condition manager state', () => {
+    const api = createCardAPI();
+    const manager = new HASSManager(api);
 
-      const states = { 'switch.foo': createStateEntity() };
-      const user = createUser({ id: 'user_1' });
-      const hass = createHASS(states, user);
+    const states = { 'switch.foo': createStateEntity() };
+    const user = createUser({ id: 'user_1' });
+    const hass = createHASS(states, user);
 
-      manager.setHASS(hass);
+    manager.setHASS(hass);
 
-      expect(api.getConditionsManager().setState).toBeCalledWith(
-        expect.objectContaining({
-          state: states,
-          user: user,
-        }),
-      );
-    });
-
-    it('negatively', () => {
-      const api = createCardAPI();
-      const manager = new HASSManager(api);
-      vi.mocked(api.getConditionsManager().hasHAStateConditions).mockReturnValue(false);
-
-      manager.setHASS(createHASS());
-
-      expect(api.getConditionsManager().setState).not.toBeCalled();
-    });
+    expect(api.getConditionStateManager().setState).toBeCalledWith(
+      expect.objectContaining({
+        state: states,
+        user: user,
+      }),
+    );
   });
 
   describe('should handle connection state change when', () => {

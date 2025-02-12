@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
-import { createCardAPI } from '../test-utils.js';
-import { ActionType } from '../../src/config/types.js';
 import { AuxillaryActionConfig } from '../../src/card-controller/actions/types.js';
+import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
+import { ConditionStateManager } from '../../src/conditions/state-manager.js';
+import { ActionType } from '../../src/config/types.js';
+import { createCardAPI } from '../test-utils.js';
 
 describe('AutomationsManager', () => {
   const actions = [
@@ -25,39 +26,55 @@ describe('AutomationsManager', () => {
     vi.clearAllMocks();
   });
 
-  it('should do nothing without hass', () => {
-    const api = createCardAPI();
+  describe('should not execute actions', () => {
+    it('should do nothing without hass', () => {
+      const api = createCardAPI();
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
-    const automationsManager = new AutomationsManager(api);
-    automationsManager.execute();
+      const automationsManager = new AutomationsManager(api);
+      automationsManager.addAutomations([automation]);
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-  });
+      stateManager.setState({ fullscreen: true });
 
-  it('should do nothing without being initialized', () => {
-    const api = createCardAPI();
-    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      false,
-    );
+      expect(api.getActionsManager().executeActions).not.toBeCalled();
+    });
 
-    const automationsManager = new AutomationsManager(api);
-    automationsManager.execute();
+    it('should do nothing without being initialized', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+      vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+        false,
+      );
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
-  });
+      const automationsManager = new AutomationsManager(api);
+      automationsManager.addAutomations([automation]);
 
-  it('should do nothing without automations', () => {
-    const api = createCardAPI();
-    vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
-    vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
-      true,
-    );
+      stateManager.setState({ fullscreen: true });
 
-    const automationsManager = new AutomationsManager(api);
-    automationsManager.execute();
+      expect(api.getActionsManager().executeActions).not.toBeCalled();
+    });
 
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    it('should do nothing with an error message present', () => {
+      const api = createCardAPI();
+      vi.mocked(api.getHASSManager().hasHASS).mockReturnValue(true);
+      vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+        true,
+      );
+      vi.mocked(api.getMessageManager().hasErrorMessage).mockReturnValue(true);
+
+      const stateManager = new ConditionStateManager();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
+
+      const automationsManager = new AutomationsManager(api);
+      automationsManager.addAutomations([automation]);
+
+      stateManager.setState({ fullscreen: true });
+
+      expect(api.getActionsManager().executeActions).not.toBeCalled();
+    });
   });
 
   it('should execute actions', () => {
@@ -66,31 +83,25 @@ describe('AutomationsManager', () => {
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
       true,
     );
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
     const automationsManager = new AutomationsManager(api);
     automationsManager.addAutomations([automation]);
 
-    automationsManager.execute();
-    expect(api.getActionsManager().executeActions).not.toBeCalled();
+    stateManager.setState({ fullscreen: true });
 
-    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(true);
-
-    automationsManager.execute();
     expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
     // Automation will not re-fire when condition continues to evaluate the
     // same.
-    automationsManager.execute();
+    stateManager.setState({ fullscreen: true });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
-    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(false);
-
-    automationsManager.execute();
+    stateManager.setState({ fullscreen: false });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
-    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(true);
-
-    automationsManager.execute();
+    stateManager.setState({ fullscreen: true });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
   });
 
@@ -100,14 +111,16 @@ describe('AutomationsManager', () => {
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
       true,
     );
-
-    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(false);
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
     const automationsManager = new AutomationsManager(api);
     automationsManager.addAutomations([not_automation]);
 
-    automationsManager.execute();
+    stateManager.setState({ fullscreen: true });
+    expect(api.getActionsManager().executeActions).not.toBeCalled();
 
+    stateManager.setState({ fullscreen: false });
     expect(api.getActionsManager().executeActions).toBeCalled();
   });
 
@@ -117,12 +130,23 @@ describe('AutomationsManager', () => {
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
       true,
     );
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
     const automationsManager = new AutomationsManager(api);
-    automationsManager.addAutomations([automation, not_automation]);
+    automationsManager.addAutomations([
+      {
+        conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+        actions: actions,
+      },
+      {
+        conditions: [{ condition: 'fullscreen' as const, fullscreen: false }],
+        actions_not: actions,
+      },
+    ]);
 
     // Create a setup where one automation action causes another...
-    let evaluation = true;
+    let fullscreen = true;
 
     vi.mocked(api.getActionsManager().executeActions).mockImplementation(
       async (
@@ -131,17 +155,12 @@ describe('AutomationsManager', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _config?: AuxillaryActionConfig,
       ): Promise<void> => {
-        evaluation = !evaluation;
-        vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(
-          evaluation,
-        );
-        automationsManager.execute();
+        fullscreen = !fullscreen;
+        stateManager.setState({ fullscreen: fullscreen });
       },
     );
 
-    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(evaluation);
-
-    automationsManager.execute();
+    stateManager.setState({ fullscreen: fullscreen });
 
     expect(api.getMessageManager().setMessageIfHigherPriority).toBeCalledWith(
       expect.objectContaining({
@@ -160,18 +179,40 @@ describe('AutomationsManager', () => {
     vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
       true,
     );
+    const stateManager = new ConditionStateManager();
+    vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
     const automationsManager = new AutomationsManager(api);
-    automationsManager.addAutomations([automation]);
+    automationsManager.addAutomations([
+      {
+        conditions: [{ condition: 'expand' as const, expand: true }],
+        actions: actions,
+      },
+      {
+        conditions: [{ condition: 'fullscreen' as const, fullscreen: true }],
+        actions: actions,
+        tag: 'fullscreen',
+      },
+    ]);
 
-    vi.mocked(api.getConditionsManager().evaluateConditions).mockReturnValue(true);
-
-    automationsManager.execute();
+    stateManager.setState({ fullscreen: true });
     expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
 
+    // Delete the fullscreen automation.
+    automationsManager.deleteAutomations('fullscreen');
+
+    stateManager.setState({ fullscreen: false });
+    stateManager.setState({ fullscreen: true });
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+
+    stateManager.setState({ expand: true });
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
+
+    // Delete all automations.
     automationsManager.deleteAutomations();
 
-    automationsManager.execute();
-    expect(api.getActionsManager().executeActions).toBeCalledTimes(1);
+    stateManager.setState({ fullscreen: false });
+    stateManager.setState({ fullscreen: true });
+    expect(api.getActionsManager().executeActions).toBeCalledTimes(2);
   });
 });

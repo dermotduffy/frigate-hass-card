@@ -9,7 +9,6 @@ import {
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { CameraManager } from '../camera-manager/manager.js';
-import { ConditionsManagerEpoch } from '../card-controller/conditions-manager.js';
 import { MicrophoneState } from '../card-controller/types.js';
 import { ViewManagerEpoch } from '../card-controller/view/types.js';
 import {
@@ -39,10 +38,7 @@ export class AdvancedCameraCardViews extends LitElement {
   public cameraManager?: CameraManager;
 
   @property({ attribute: false })
-  public nonOverriddenConfig?: AdvancedCameraCardConfig;
-
-  @property({ attribute: false })
-  public overriddenConfig?: AdvancedCameraCardConfig;
+  public config?: AdvancedCameraCardConfig;
 
   @property({ attribute: false })
   public cardWideConfig?: CardWideConfig;
@@ -52,9 +48,6 @@ export class AdvancedCameraCardViews extends LitElement {
 
   @property({ attribute: false })
   public resolvedMediaCache?: ResolvedMediaCache;
-
-  @property({ attribute: false })
-  public conditionsManagerEpoch?: ConditionsManagerEpoch;
 
   @property({ attribute: false })
   public hide?: boolean;
@@ -94,31 +87,12 @@ export class AdvancedCameraCardViews extends LitElement {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected shouldUpdate(_: PropertyValues): boolean {
-    // Future: Updates to `hass` and `conditionState` here will be frequent.
-    // Throttling here may be necessary if users report performance degradation
-    // > v5.0.0-beta1 .
-    //
-    // These updates are necessary in these cases:
-    // - conditionState: Required to let `advanced-camera-card-live` calculate its own
-    //   overrides.
-    // - hass: Required for anything that needs to sign URLs. Of note is
-    //   anything that renders an image (e.g. a thumbnail -- almost everything,
-    //   or the main `advanced-camera-card-image` view).
-    //
-    // It should instead be possible to pass conditionState to live only (every
-    // update required), and pass hass only once / 5 minutes (see
-    // HASS_REJECTION_CUTOFF_MS).
-    return true;
-  }
-
   protected _shouldLivePreload(): boolean {
     const view = this.viewManagerEpoch?.manager.getView();
     return (
       // Special case: Never preload for diagnostics -- we want that to be as
       // minimal as possible.
-      !!this.overriddenConfig?.live.preload && !view?.is('diagnostics')
+      !!this.config?.live.preload && !view?.is('diagnostics')
     );
   }
 
@@ -127,12 +101,7 @@ export class AdvancedCameraCardViews extends LitElement {
     // overall views pane to render in ~almost all cases (e.g. for a camera
     // initialization error to display, `view` and `cameraConfig` may both be
     // undefined, but we still want to render).
-    if (
-      !this.hass ||
-      !this.overriddenConfig ||
-      !this.nonOverriddenConfig ||
-      !this.cardWideConfig
-    ) {
+    if (!this.hass || !this.config || !this.cardWideConfig) {
       return html``;
     }
 
@@ -148,17 +117,17 @@ export class AdvancedCameraCardViews extends LitElement {
     };
 
     const thumbnailConfig = view?.is('live')
-      ? this.overriddenConfig.live.controls.thumbnails
+      ? this.config.live.controls.thumbnails
       : view?.isViewerView()
-        ? this.overriddenConfig.media_viewer.controls.thumbnails
+        ? this.config.media_viewer.controls.thumbnails
         : view?.is('timeline')
-          ? this.overriddenConfig.timeline.controls.thumbnails
+          ? this.config.timeline.controls.thumbnails
           : undefined;
 
     const miniTimelineConfig = view?.is('live')
-      ? this.overriddenConfig.live.controls.timeline
+      ? this.config.live.controls.timeline
       : view?.isViewerView()
-        ? this.overriddenConfig.media_viewer.controls.timeline
+        ? this.config.media_viewer.controls.timeline
         : undefined;
 
     const cameraConfig = view
@@ -176,7 +145,7 @@ export class AdvancedCameraCardViews extends LitElement {
     >
       ${!this.hide && view?.is('image') && cameraConfig
         ? html` <advanced-camera-card-image
-            .imageConfig=${this.overriddenConfig.image}
+            .imageConfig=${this.config.image}
             .viewManagerEpoch=${this.viewManagerEpoch}
             .hass=${this.hass}
             .cameraConfig=${cameraConfig}
@@ -188,7 +157,7 @@ export class AdvancedCameraCardViews extends LitElement {
         ? html` <advanced-camera-card-gallery
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
-            .galleryConfig=${this.overriddenConfig.media_gallery}
+            .galleryConfig=${this.config.media_gallery}
             .cameraManager=${this.cameraManager}
             .cardWideConfig=${this.cardWideConfig}
           >
@@ -199,7 +168,7 @@ export class AdvancedCameraCardViews extends LitElement {
             <advanced-camera-card-viewer
               .hass=${this.hass}
               .viewManagerEpoch=${this.viewManagerEpoch}
-              .viewerConfig=${this.overriddenConfig.media_viewer}
+              .viewerConfig=${this.config.media_viewer}
               .resolvedMediaCache=${this.resolvedMediaCache}
               .cameraManager=${this.cameraManager}
               .cardWideConfig=${this.cardWideConfig}
@@ -211,7 +180,7 @@ export class AdvancedCameraCardViews extends LitElement {
         ? html` <advanced-camera-card-timeline
             .hass=${this.hass}
             .viewManagerEpoch=${this.viewManagerEpoch}
-            .timelineConfig=${this.overriddenConfig.timeline}
+            .timelineConfig=${this.config.timeline}
             .cameraManager=${this.cameraManager}
             .cardWideConfig=${this.cardWideConfig}
           >
@@ -226,21 +195,14 @@ export class AdvancedCameraCardViews extends LitElement {
           </advanced-camera-card-diagnostics>`
         : ``}
       ${
-        // Note: Subtle difference in condition below vs the other views in order
-        // to always render the live view for live.preload mode.
-
-        // Note: <advanced-camera-card-live> uses nonOverriddenConfig rather than the
-        // overriden config as it does it's own overriding as part of the camera
-        // carousel.
+        // Note: Subtle difference in condition below vs the other views in
+        // order to always render the live view for live.preload mode.
         this._shouldLivePreload() || (!this.hide && view?.is('live'))
           ? html`
               <advanced-camera-card-live
                 .hass=${this.hass}
                 .viewManagerEpoch=${this.viewManagerEpoch}
-                .nonOverriddenLiveConfig=${this.nonOverriddenConfig.live}
-                .overriddenLiveConfig=${this.overriddenConfig.live}
-                .conditionsManagerEpoch=${this.conditionsManagerEpoch}
-                .overrides=${this.overriddenConfig.overrides}
+                .liveConfig=${this.config.live}
                 .cameraManager=${this.cameraManager}
                 .cardWideConfig=${this.cardWideConfig}
                 .microphoneState=${this.microphoneState}

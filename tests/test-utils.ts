@@ -19,7 +19,7 @@ import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import { CardElementManager } from '../src/card-controller/card-element-manager';
-import { ConditionsManager } from '../src/card-controller/conditions-manager';
+import { ConditionStateManager } from '../src/conditions/state-manager';
 import { ConfigManager } from '../src/card-controller/config/config-manager';
 import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';
@@ -75,12 +75,6 @@ export const createAction = (
 
 export const createCameraConfig = (config?: unknown): CameraConfig => {
   return cameraConfigSchema.parse(config ?? {});
-};
-
-export const createCondition = (
-  condition?: Partial<AdvancedCameraCardCondition>,
-): AdvancedCameraCardCondition => {
-  return advancedCameraCardConditionSchema.parse(condition ?? {});
 };
 
 export const createRawConfig = (
@@ -487,7 +481,7 @@ export const createCardAPI = (): CardController => {
   api.getCameraManager.mockReturnValue(mock<CameraManager>());
   api.getCameraURLManager.mockReturnValue(mock<CameraURLManager>());
   api.getCardElementManager.mockReturnValue(mock<CardElementManager>());
-  api.getConditionsManager.mockReturnValue(mock<ConditionsManager>());
+  api.getConditionStateManager.mockReturnValue(mock<ConditionStateManager>());
   api.getConfigManager.mockReturnValue(mock<ConfigManager>());
   api.getDownloadManager.mockReturnValue(mock<DownloadManager>());
   api.getEntityRegistryManager.mockReturnValue(mock<EntityRegistryManager>());

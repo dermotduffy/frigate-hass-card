@@ -685,7 +685,7 @@ export type StatusBarItem = z.infer<typeof statusBarItemSchema>;
 
 const viewConditionSchema = z.object({
   condition: z.literal('view'),
-  views: z.string().array(),
+  views: z.string().array().optional(),
 });
 const fullscreenConditionSchema = z.object({
   condition: z.literal('fullscreen'),
@@ -697,7 +697,7 @@ const expandConditionSchema = z.object({
 });
 const cameraConditionSchema = z.object({
   condition: z.literal('camera'),
-  cameras: z.string().array(),
+  cameras: z.string().array().optional(),
 });
 const mediaLoadedConditionSchema = z.object({
   condition: z.literal('media_loaded'),
@@ -773,7 +773,7 @@ export type AdvancedCameraCardCondition = z.infer<
   typeof advancedCameraCardConditionSchema
 >;
 
-export const advancedCameraCardConditionalSchema = z.object({
+const advancedCameraCardConditionalSchema = z.object({
   type: z.literal('custom:advanced-camera-card-conditional'),
   conditions: advancedCameraCardConditionSchema.array(),
   elements: z.lazy(() => pictureElementsSchema),
@@ -1327,16 +1327,6 @@ const liveConfigSchema = z
   .merge(actionsSchema)
   .default(liveConfigDefault);
 export type LiveConfig = z.infer<typeof liveConfigSchema>;
-
-// This schema is used when the live config needs to be overridden (see
-// `live.ts`). Overrides will always be "relative" to the config root, so this
-// schema maintains that 'depth' from the root but without the other
-// requirements that advancedCameraCardConfigSchema has. Without this, overrides
-// calculated in `live.ts` would fail since cameras/type are not provided (as
-// these are mandatory parameters in the full config).
-export const liveConfigAbsoluteRootSchema = z.object({
-  live: liveConfigSchema,
-});
 
 // *************************************************************************
 //                       Cast Configuration

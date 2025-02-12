@@ -7,7 +7,6 @@ import { Ref, createRef, ref } from 'lit/directives/ref.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import 'web-dialog';
 import { actionHandler } from './action-handler-directive.js';
-import { ConditionsEvaluateRequestEvent } from './card-controller/conditions-manager.js';
 import { CardController } from './card-controller/controller';
 import { MenuButtonController } from './components-lib/menu-button-controller';
 import './components/elements.js';
@@ -23,6 +22,7 @@ import './components/status-bar';
 import './components/thumbnail-carousel.js';
 import './components/views.js';
 import { AdvancedCameraCardViews } from './components/views.js';
+import { ConditionStateManagerGetEvent } from './conditions/state-manager-via-event.js';
 import {
   AdvancedCameraCardConfig,
   MenuItem,
@@ -95,7 +95,6 @@ class AdvancedCameraCard extends LitElement {
     // diagnostics starting at the top).
     () => this._refMain.value?.scroll({ top: 0 }),
     () => this._refMenu.value?.toggleMenu(),
-    this._requestUpdateForComponentsThatUseConditions.bind(this),
   );
 
   protected _menuButtonController = new MenuButtonController();
@@ -141,21 +140,6 @@ class AdvancedCameraCard extends LitElement {
     entities: string[],
   ): AdvancedCameraCardConfig {
     return CardController.getStubConfig(entities);
-  }
-
-  protected _requestUpdateForComponentsThatUseConditions(): void {
-    // Update the components that need to know about condition changes. Trigger
-    // updates directly on them to them to avoid the performance hit of a entire
-    // card re-render (esp. when using card-mod).
-    // https://github.com/dermotduffy/advanced-camera-card/issues/678
-    if (this._refViews.value) {
-      this._refViews.value.conditionsManagerEpoch =
-        this._controller.getConditionsManager().getEpoch() ?? undefined;
-    }
-    if (this._refElements.value) {
-      this._refElements.value.conditionsManagerEpoch =
-        this._controller.getConditionsManager().getEpoch() ?? undefined;
-    }
   }
 
   public setConfig(config: RawAdvancedCameraCardConfig): void {
@@ -390,16 +374,10 @@ class AdvancedCameraCard extends LitElement {
             .viewManagerEpoch=${this._controller.getViewManager().getEpoch()}
             .cameraManager=${cameraManager}
             .resolvedMediaCache=${this._controller.getResolvedMediaCache()}
-            .nonOverriddenConfig=${this._controller
-              .getConfigManager()
-              .getNonOverriddenConfig()}
-            .overriddenConfig=${this._controller.getConfigManager().getConfig()}
+            .config=${this._controller.getConfigManager().getConfig()}
             .cardWideConfig=${this._controller.getConfigManager().getCardWideConfig()}
             .rawConfig=${this._controller.getConfigManager().getRawConfig()}
             .configManager=${this._controller.getConfigManager()}
-            .conditionsManagerEpoch=${this._controller
-              .getConditionsManager()
-              ?.getEpoch()}
             .hide=${!!this._controller.getMessageManager().hasMessage()}
             .microphoneState=${this._controller.getMicrophoneManager().getState()}
             .triggeredCameraIDs=${this._config?.view.triggers.show_trigger_status
@@ -421,9 +399,6 @@ class AdvancedCameraCard extends LitElement {
               ${ref(this._refElements)}
               .hass=${this._hass}
               .elements=${this._config?.elements}
-              .conditionsManagerEpoch=${this._controller
-                .getConditionsManager()
-                ?.getEpoch()}
               @advanced-camera-card:menu:add=${(ev: CustomEvent<MenuItem>) => {
                 this._menuButtonController.addDynamicMenuButton(ev.detail);
                 this.requestUpdate();
@@ -446,12 +421,10 @@ class AdvancedCameraCard extends LitElement {
                   .getStatusBarItemManager()
                   .removeDynamicStatusBarItem(ev.detail);
               }}
-              @advanced-camera-card:conditions:evaluate=${(
-                ev: ConditionsEvaluateRequestEvent,
+              @advanced-camera-card:condition-state-manager:get=${(
+                ev: ConditionStateManagerGetEvent,
               ) => {
-                ev.evaluation = this._controller
-                  .getConditionsManager()
-                  ?.evaluateConditions(ev.conditions);
+                ev.conditionStateManager = this._controller.getConditionStateManager();
               }}
             >
             </advanced-camera-card-elements>`
