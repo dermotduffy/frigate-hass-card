@@ -1,6 +1,6 @@
+import { ConditionStateChange } from '../../../conditions/types';
 import { WebkitHTMLVideoElement } from '../../../types';
 import { Timer } from '../../../utils/timer';
-import { ConditionStateChange } from '../../conditions/types';
 import { FullscreenProviderBase } from '../provider';
 import { FullscreenProvider } from '../types';
 

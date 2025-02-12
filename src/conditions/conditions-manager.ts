@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash-es';
-import { AdvancedCameraCardCondition } from '../../config/types';
-import { isCompanionApp } from '../../utils/companion';
+import { AdvancedCameraCardCondition } from '../config/types';
+import { isCompanionApp } from '../utils/companion';
 import {
   ConditionsEvaluationData,
   ConditionsEvaluationResult,

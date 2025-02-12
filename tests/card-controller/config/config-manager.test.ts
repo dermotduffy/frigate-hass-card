@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-import { ConditionStateManager } from '../../../src/card-controller/conditions/state-manager';
 import { ConfigManager } from '../../../src/card-controller/config/config-manager';
 import { InitializationAspect } from '../../../src/card-controller/initialization-manager';
+import { ConditionStateManager } from '../../../src/conditions/state-manager';
 import { advancedCameraCardConfigSchema } from '../../../src/config/types';
 import { createCardAPI, flushPromises } from '../../test-utils';
 

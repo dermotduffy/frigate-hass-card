@@ -8,8 +8,8 @@ import {
   unsafeCSS,
 } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { ConditionsManager } from '../card-controller/conditions/conditions-manager.js';
-import { getConditionStateManagerViaEvent } from '../card-controller/conditions/state-manager-via-event.js';
+import { ConditionsManager } from '../conditions/conditions-manager.js';
+import { getConditionStateManagerViaEvent } from '../conditions/state-manager-via-event.js';
 import { dispatchAdvancedCameraCardErrorEvent } from '../components-lib/message/dispatch.js';
 import {
   AdvancedCameraCardConditional,

@@ -1,6 +1,10 @@
 import { merge } from 'lodash-es';
 import { ZodType as ZodSchema } from 'zod';
 import {
+  ConditionsManagerReadonlyInterface,
+  ConditionState,
+} from '../../conditions/types';
+import {
   copyConfig,
   deleteConfigValue,
   getConfigValue,
@@ -10,7 +14,6 @@ import { Overrides, RawAdvancedCameraCardConfig } from '../../config/types';
 import { localize } from '../../localize/localize';
 import { AdvancedCameraCardError } from '../../types';
 import { desparsifyArrays } from '../../utils/basic';
-import { ConditionsManagerReadonlyInterface, ConditionState } from '../conditions/types';
 
 class OverrideConfigurationError extends AdvancedCameraCardError {}
 

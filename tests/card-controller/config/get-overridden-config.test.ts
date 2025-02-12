@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { mock } from 'vitest-mock-extended';
 import { z } from 'zod';
-import { ConditionsManagerReadonlyInterface } from '../../../src/card-controller/conditions/types';
 import { getOverriddenConfig } from '../../../src/card-controller/config/get-overridden-config';
+import { ConditionsManagerReadonlyInterface } from '../../../src/conditions/types';
 
 describe('getOverriddenConfig', () => {
   const config = {

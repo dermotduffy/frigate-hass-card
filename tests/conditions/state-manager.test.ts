@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ConditionStateManager } from '../../../src/card-controller/conditions/state-manager';
-import { createStateEntity } from '../../test-utils';
+import { ConditionStateManager } from '../../src/conditions/state-manager';
+import { createStateEntity } from '../test-utils';
 
 describe('ConditionStateManager', () => {
   afterEach(() => {

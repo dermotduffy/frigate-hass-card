@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { ConditionStateManager } from '../../../../src/card-controller/conditions/state-manager';
 import { CardController } from '../../../../src/card-controller/controller';
 import { WebkitFullScreenProvider } from '../../../../src/card-controller/fullscreen/webkit';
+import { ConditionStateManager } from '../../../../src/conditions/state-manager';
 import {
   AdvancedCameraCardMediaPlayer,
   WebkitHTMLVideoElement,

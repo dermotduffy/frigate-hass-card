@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ConditionsManager } from '../../../src/card-controller/conditions/conditions-manager';
-import { ConditionStateManager } from '../../../src/card-controller/conditions/state-manager';
-import { MicrophoneState } from '../../../src/card-controller/types';
-import { createMediaLoadedInfo, createStateEntity, createUser } from '../../test-utils';
+import { MicrophoneState } from '../../src/card-controller/types';
+import { ConditionsManager } from '../../src/conditions/conditions-manager';
+import { ConditionStateManager } from '../../src/conditions/state-manager';
+import { createMediaLoadedInfo, createStateEntity, createUser } from '../test-utils';
 
 // @vitest-environment jsdom
 describe('ConditionsManager', () => {

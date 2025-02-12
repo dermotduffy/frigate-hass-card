@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuxillaryActionConfig } from '../../src/card-controller/actions/types.js';
 import { AutomationsManager } from '../../src/card-controller/automations-manager.js';
-import { ConditionStateManager } from '../../src/card-controller/conditions/state-manager.js';
+import { ConditionStateManager } from '../../src/conditions/state-manager.js';
 import { ActionType } from '../../src/config/types.js';
 import { createCardAPI } from '../test-utils.js';
 

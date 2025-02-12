@@ -1,7 +1,7 @@
+import { ConditionsManager } from '../conditions/conditions-manager.js';
+import { ConditionsEvaluationResult } from '../conditions/types.js';
 import { Automation, AutomationActions } from '../config/types.js';
 import { localize } from '../localize/localize.js';
-import { ConditionsManager } from './conditions/conditions-manager.js';
-import { ConditionsEvaluationResult } from './conditions/types.js';
 import { CardAutomationsAPI, TaggedAutomation } from './types.js';
 
 const MAX_NESTED_AUTOMATION_EXECUTIONS = 10;

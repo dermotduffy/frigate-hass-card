@@ -1,6 +1,7 @@
 import { LovelaceCardEditor } from '@dermotduffy/custom-card-helpers';
 import { ReactiveController } from 'lit';
 import { CameraManager } from '../camera-manager/manager';
+import { ConditionStateManager } from '../conditions/state-manager';
 import { AdvancedCameraCardConfig } from '../config/types';
 import {
   createDeviceRegistryCache,
@@ -20,7 +21,6 @@ import {
   MenuToggleCallback,
   ScrollCallback,
 } from './card-element-manager';
-import { ConditionStateManager } from './conditions/state-manager';
 import { ConfigManager } from './config/config-manager';
 import { DefaultManager } from './default-manager';
 import { DownloadManager } from './download-manager';

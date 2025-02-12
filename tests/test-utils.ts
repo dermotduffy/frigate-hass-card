@@ -19,7 +19,7 @@ import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import { CardElementManager } from '../src/card-controller/card-element-manager';
-import { ConditionStateManager } from '../src/card-controller/conditions/state-manager';
+import { ConditionStateManager } from '../src/conditions/state-manager';
 import { ConfigManager } from '../src/card-controller/config/config-manager';
 import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';

@@ -1,4 +1,5 @@
 import isEqual from 'lodash-es/isEqual';
+import { ConditionsManager } from '../../conditions/conditions-manager.js';
 import { isConfigUpgradeable } from '../../config/management.js';
 import { setProfiles } from '../../config/profiles/index.js';
 import {
@@ -9,7 +10,6 @@ import {
 } from '../../config/types.js';
 import { localize } from '../../localize/localize.js';
 import { getParseErrorPaths } from '../../utils/zod.js';
-import { ConditionsManager } from '../conditions/conditions-manager.js';
 import { InitializationAspect } from '../initialization-manager.js';
 import { CardConfigAPI } from '../types.js';
 import { getOverriddenConfig } from './get-overridden-config.js';

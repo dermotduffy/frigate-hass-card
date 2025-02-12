@@ -7,7 +7,6 @@ import {
   CardElementManager,
   CardHTMLElement,
 } from '../../src/card-controller/card-element-manager';
-import { ConditionStateManager } from '../../src/card-controller/conditions/state-manager';
 import { ConfigManager } from '../../src/card-controller/config/config-manager';
 import { CardController } from '../../src/card-controller/controller';
 import { DefaultManager } from '../../src/card-controller/default-manager';
@@ -27,6 +26,7 @@ import { StatusBarItemManager } from '../../src/card-controller/status-bar-item-
 import { StyleManager } from '../../src/card-controller/style-manager';
 import { TriggersManager } from '../../src/card-controller/triggers-manager';
 import { ViewManager } from '../../src/card-controller/view/view-manager';
+import { ConditionStateManager } from '../../src/conditions/state-manager';
 import { AdvancedCameraCardEditor } from '../../src/editor';
 import { DeviceRegistryManager } from '../../src/utils/ha/registry/device';
 import { EntityRegistryManager } from '../../src/utils/ha/registry/entity';
@@ -37,7 +37,6 @@ vi.mock('../../src/card-controller/actions/actions-manager');
 vi.mock('../../src/card-controller/automations-manager');
 vi.mock('../../src/card-controller/camera-url-manager');
 vi.mock('../../src/card-controller/card-element-manager');
-vi.mock('../../src/card-controller/conditions/state-manager');
 vi.mock('../../src/card-controller/config/config-manager');
 vi.mock('../../src/card-controller/default-manager');
 vi.mock('../../src/card-controller/download-manager');
@@ -56,6 +55,7 @@ vi.mock('../../src/card-controller/status-bar-item-manager');
 vi.mock('../../src/card-controller/style-manager');
 vi.mock('../../src/card-controller/triggers-manager');
 vi.mock('../../src/card-controller/view/view-manager');
+vi.mock('../../src/conditions/state-manager');
 vi.mock('../../src/utils/ha/registry/device');
 vi.mock('../../src/utils/ha/registry/entity');
 vi.mock('../../src/utils/ha/resolved-media');

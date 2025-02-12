@@ -1,8 +1,8 @@
 import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities } from 'home-assistant-js-websocket';
-import { ViewDisplayMode } from '../../config/types';
-import { MediaLoadedInfo } from '../../types';
-import { KeysState, MicrophoneState } from '../types';
+import { ViewDisplayMode } from '../config/types';
+import { MediaLoadedInfo } from '../types';
+import { KeysState, MicrophoneState } from '../card-controller/types';
 
 export interface ConditionState {
   camera?: string;
