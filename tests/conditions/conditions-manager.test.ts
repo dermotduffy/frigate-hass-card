@@ -930,27 +930,4 @@ describe('ConditionsManager', () => {
       expect(listener).toBeCalledTimes(3);
     });
   });
-
-  // TODO clean
-  // it('should clone', () => {
-  //   const stateManager = new ConditionStateManager();
-  //   const manager = new ConditionsManager(
-  //     [{ condition: 'view' as const, views: ['foo'] }],
-  //     stateManager,
-  //   );
-
-  //   const listener = vi.fn();
-  //   const clone = manager.clone();
-
-  //   stateManager.setState({ view: 'foo' });
-
-  //   // Listeners are not cloned.
-  //   expect(listener).not.toBeCalled();
-
-  //   clone.addListener(listener);
-
-  //   stateManager.setState({ view: 'bar' });
-
-  //   expect(listener).toBeCalled();
-  // });
 });

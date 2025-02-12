@@ -2,7 +2,6 @@ import { merge } from 'lodash-es';
 import { ZodType as ZodSchema } from 'zod';
 import {
   ConditionsManagerReadonlyInterface,
-  ConditionState,
 } from '../../conditions/types';
 import {
   copyConfig,
@@ -22,8 +21,6 @@ export function getOverriddenConfig<RT extends RawAdvancedCameraCardConfig>(
   config: Readonly<RT>,
   options?: {
     configOverrides?: Readonly<Overrides>;
-    // TODO: remove
-    stateOverrides?: Partial<ConditionState>;
     schema?: ZodSchema;
   },
 ): RT {
