@@ -72,6 +72,13 @@ const calculateFullCoverageThresholds = (): Record<string, Threshold> => {
 // ts-prune-ignore-next
 export default defineConfig({
   test: {
+    server: {
+      deps: {
+        // These dependencies import without extensions.
+        // Related: https://github.com/vitest-dev/vitest/issues/2313
+        inline: ['ha-nunjucks', 'ts-py-datetime'],
+      },
+    },
     include: ['tests/**/*.test.ts'],
     coverage: {
       exclude: ['docs/**', 'tests/**', '.eslintrc.cjs'],

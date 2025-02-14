@@ -947,6 +947,61 @@ menu:
       icon: mdi:high-definition
 ```
 
+## Templates in actions
+
+### Accessing Home Assistant state
+
+Perhaps the most common usage of templates is to access Home Assistant state
+values. In the below example a fictitious service `homeassistant.service` is
+called with data that refers to the current state of the `light.sunroom_ceiling`
+entity.
+
+```yaml
+tap_action:
+  action: perform-action
+  perform_action: homeassistant.service
+  data:
+    key: '{{ hass.states["light.sunroom_ceiling"].state }}'
+```
+
+See [Stock Templates](./configuration/actions/templates.md?id=stock-templates).
+
+### Accessing Advanced Camera Card state
+
+In this example, the currently selected camera and
+[view](./configuration/view.md) are passed as data to a fictitious service
+`homeassistant.service`.
+
+```yaml
+tap_action:
+  action: perform-action
+  perform_action: homeassistant.service
+  data:
+    camera: '{{ advanced_camera_card.camera }}'
+    view: '{{ advanced_camera_card.view }}'
+```
+
+See [Custom Templates](./configuration/actions/templates.md?id=custom-templates).
+
+### Accessing Trigger state
+
+In this example, an [automation](./configuration/automations.md) is triggered,
+and values associated with the triggering are included in the action.
+
+```yaml
+automations:
+  - conditions:
+      - condition: camera
+    actions:
+      - action: perform-action
+        perform_action: homeassistant.service
+        data:
+          from_camera: '{{ acc.trigger.camera.from }}'
+          to_camera: '{{ acc.trigger.camera.to }}'
+```
+
+See [Trigger Templates](./configuration/actions/templates.md?id=triggers).
+
 ## Trigger actions
 
 You can control the card itself with the `custom:advanced-camera-card-action` action.

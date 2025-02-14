@@ -89,6 +89,8 @@ const outputEntryTemplate = {
   sourcemap: dev,
 };
 
+const CIRCULAR_DEPENDENCY_IGNORE_REGEXP = /(ha-nunjucks|ts-py-datetime)/;
+
 /**
  * @type {import('rollup').RollupOptions}
  */
@@ -115,6 +117,16 @@ const config = {
   moduleContext: {
     './node_modules/@formatjs/intl-utils/lib/src/diff.js': 'window',
     './node_modules/@formatjs/intl-utils/lib/src/resolve-locale.js': 'window',
+  },
+  // Ignore circular dependencies from underlying libraries.
+  onwarn: (warning, defaultHandler) => {
+    if (
+      warning.code === 'CIRCULAR_DEPENDENCY' &&
+      warning.ids.some((id) => id.match(CIRCULAR_DEPENDENCY_IGNORE_REGEXP))
+    ) {
+      return;
+    }
+    defaultHandler(warning);
   },
 };
 

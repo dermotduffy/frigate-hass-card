@@ -37,6 +37,7 @@ import { MicrophoneManager } from './microphone-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
+import { TemplateRenderer } from './templates';
 import { TriggersManager } from './triggers-manager';
 import {
   CardActionsManagerAPI,
@@ -104,7 +105,7 @@ export class CardController
   );
   protected _resolvedMediaCache = new ResolvedMediaCache();
 
-  protected _actionsManager = new ActionsManager(this);
+  protected _actionsManager = new ActionsManager(this, new TemplateRenderer());
   protected _automationsManager = new AutomationsManager(this);
   protected _cameraManager = new CameraManager(this);
   protected _cameraURLManager = new CameraURLManager(this);

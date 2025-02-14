@@ -3,6 +3,7 @@
   - [`actions`](README.md)
     - [Custom Actions](./custom/README.md)
     - [Stock Actions](./stock/README.md)
+    - [Templates](./templates.md)
   - [`automations`](../automations.md)
   - [`cameras`](../cameras/README.md)
   - [`conditions`](../conditions.md)

@@ -64,6 +64,7 @@ export class AutomationsManager {
 
     const runActions = async (actions: AutomationActions): Promise<void> => {
       ++this._nestedAutomationExecutions;
+
       if (this._nestedAutomationExecutions > MAX_NESTED_AUTOMATION_EXECUTIONS) {
         this._api.getMessageManager().setMessageIfHigherPriority({
           type: 'error',
@@ -72,7 +73,10 @@ export class AutomationsManager {
         return;
       }
 
-      await this._api.getActionsManager().executeActions(actions);
+      await this._api
+        .getActionsManager()
+        .executeActions(actions, { triggerData: result.data });
+
       --this._nestedAutomationExecutions;
     };
     runActions(actions);

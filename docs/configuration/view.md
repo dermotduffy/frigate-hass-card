@@ -143,7 +143,7 @@ This card supports several different views.
 | `clip`       | Shows a viewer for the most recent clip for this camera. Can also be accessed by holding down the `clips` menu icon.                               |
 | `clips`      | Shows a gallery of clips for this camera.                                                                                                          |
 | `image`      | Shows a static image specified by the `image` parameter, can be used as a discrete default view or a screensaver (via `view.interaction_seconds`). |
-| `live`       | Shows the live camera view with the configured [live provider]().                                                                                  |
+| `live`       | Shows the live camera view with the configured [live provider](./cameras/live-provider.md).                                                        |
 | `recording`  | Shows a viewer for the most recent recording for this camera. Can also be accessed by holding down the `recordings` menu icon.                     |
 | `recordings` | Shows a gallery of recent (last day) recordings for this camera and its dependents.                                                                |
 | `snapshot`   | Shows a viewer for the most recent snapshot for this camera. Can also be accessed by holding down the `snapshots` menu icon.                       |

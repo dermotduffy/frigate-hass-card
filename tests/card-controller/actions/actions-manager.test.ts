@@ -1,9 +1,11 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mock } from 'vitest-mock-extended';
 import {
   ActionsManager,
   Interaction,
   InteractionName,
 } from '../../../src/card-controller/actions/actions-manager';
+import { TemplateRenderer } from '../../../src/card-controller/templates';
 import { AdvancedCameraCardView } from '../../../src/config/types';
 import { createLogAction } from '../../../src/utils/action';
 import {
@@ -284,6 +286,36 @@ describe('ActionsManager', () => {
 
       // Action set will not continue.
       expect(consoleSpy).not.toBeCalled();
+    });
+  });
+
+  it('should render templates', async () => {
+    const action = createLogAction('{{ acc.camera }}');
+
+    const templateRenderer = mock<TemplateRenderer>();
+    templateRenderer.renderRecursively.mockReturnValue(action);
+
+    const api = createCardAPI();
+    const hass = createHASS();
+    vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
+
+    const conditionState = {
+      camera: 'camera',
+    };
+    vi.mocked(api.getConditionStateManager().getState).mockReturnValue(conditionState);
+
+    const manager = new ActionsManager(api, templateRenderer);
+    const config = { camera_image: 'camera-image' };
+    const triggerData = { view: { from: 'previous-view', to: 'view' } };
+
+    await manager.executeActions(action, {
+      config,
+      triggerData,
+    });
+
+    expect(templateRenderer.renderRecursively).toBeCalledWith(hass, action, {
+      conditionState,
+      triggerData,
     });
   });
 });

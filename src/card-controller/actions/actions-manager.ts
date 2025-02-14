@@ -1,10 +1,12 @@
+import { ActionContext } from 'action';
 import { z } from 'zod';
+import { ConditionsEvaluationData } from '../../conditions/types.js';
 import { Actions, ActionsConfig, ActionType } from '../../config/types.js';
 import { getActionConfigGivenAction } from '../../utils/action.js';
-import { ActionSet } from './actions/set.js';
+import { TemplateRenderer } from '../templates/index.js';
 import { CardActionsManagerAPI } from '../types.js';
+import { ActionSet } from './actions/set.js';
 import { ActionExecutionRequest, AuxillaryActionConfig } from './types.js';
-import { ActionContext } from 'action';
 
 const INTERACTIONS = ['tap', 'double_tap', 'hold', 'start_tap', 'end_tap'] as const;
 export type InteractionName = (typeof INTERACTIONS)[number];
@@ -22,9 +24,11 @@ export class ActionsManager {
   protected _api: CardActionsManagerAPI;
   protected _actionsInFlight: ActionSet[] = [];
   protected _actionContext: ActionContext = {};
+  protected _templateRenderer: TemplateRenderer | null;
 
-  constructor(api: CardActionsManagerAPI) {
+  constructor(api: CardActionsManagerAPI, templateRenderer?: TemplateRenderer) {
     this._api = api;
+    this._templateRenderer = templateRenderer ?? null;
   }
 
   /**
@@ -72,7 +76,7 @@ export class ActionsManager {
       // actions).
       actionConfig
     ) {
-      this.executeActions(actionConfig, config);
+      this.executeActions(actionConfig, { config });
     }
   };
 
@@ -97,7 +101,9 @@ export class ActionsManager {
   public handleActionExecutionRequestEvent = async (
     ev: CustomEvent<ActionExecutionRequest>,
   ): Promise<void> => {
-    await this.executeActions(ev.detail.action, ev.detail.config);
+    await this.executeActions(ev.detail.action, {
+      config: ev.detail.config,
+    });
   };
 
   public uninitialize(): void {
@@ -107,10 +113,22 @@ export class ActionsManager {
 
   public async executeActions(
     action: ActionType | ActionType[],
-    config?: AuxillaryActionConfig,
+    options?: {
+      config?: AuxillaryActionConfig;
+      triggerData?: ConditionsEvaluationData;
+    },
   ): Promise<void> {
-    const actionSet = new ActionSet(this._actionContext, action, {
-      config: config,
+    const hass = this._api.getHASSManager().getHASS();
+    const renderedAction =
+      hass && this._templateRenderer
+        ? this._templateRenderer.renderRecursively(hass, action, {
+            conditionState: this._api.getConditionStateManager().getState(),
+            triggerData: options?.triggerData,
+          })
+        : action;
+
+    const actionSet = new ActionSet(this._actionContext, renderedAction, {
+      config: options?.config,
       cardID: this._api.getConfigManager().getConfig()?.card_id,
     });
 
