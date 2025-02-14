@@ -73,13 +73,13 @@ elements:
       action: toggle
   - type: icon
     icon: mdi:numeric-3-box
-    title: Call Service action
+    title: Perform Action / Call Service action
     style:
       left: 200px
       top: 150px
     tap_action:
-      action: call-service
-      service: homeassistant.toggle
+      action: perform-action
+      perform_action: homeassistant.toggle
       data:
         entity_id: light.office_main_lights
   - type: icon

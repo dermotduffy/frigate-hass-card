@@ -48,17 +48,10 @@ export interface ConditionsEvaluationData {
   view?: ConditionsEvaluationDataFromTo;
   state?: ConditionsEvaluationDataState;
 }
-interface ConditionsEvaluationResultTrue {
-  result: true;
+export interface ConditionsEvaluationResult {
+  result: boolean;
   data?: ConditionsEvaluationData;
 }
-interface ConditionsEvaluationResultFalse {
-  result: false;
-}
-
-export type ConditionsEvaluationResult =
-  | ConditionsEvaluationResultTrue
-  | ConditionsEvaluationResultFalse;
 
 export type ConditionsListener = (result: ConditionsEvaluationResult) => void;
 

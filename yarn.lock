@@ -2394,6 +2394,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"a-sync-waterfall@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "a-sync-waterfall@npm:1.0.1"
+  checksum: 10c0/1c7b258da2c77eb1447dcc683afb10ca3dc8880de990562ccbb7b282538aba01e910345ce9e8500c1458272c7866b85fcfa5ca8159e33550b011ab5c586ec5a4
+  languageName: node
+  linkType: hard
+
 "abab@npm:^2.0.6":
   version: 2.0.6
   resolution: "abab@npm:2.0.6"
@@ -2504,6 +2511,7 @@ __metadata:
     eslint-config-airbnb-base: "npm:^15.0.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-import: "npm:^2.29.1"
+    ha-nunjucks: "npm:^1.3.0"
     home-assistant-js-websocket: "npm:^9.4.0"
     js-yaml: "npm:^4.1.0"
     jsdom: "npm:^21.1.2"
@@ -2832,6 +2840,13 @@ __metadata:
     is-array-buffer: "npm:^3.0.4"
     is-shared-array-buffer: "npm:^1.0.2"
   checksum: 10c0/d32754045bcb2294ade881d45140a5e52bda2321b9e98fa514797b7f0d252c4c5ab0d1edb34112652c62fa6a9398def568da63a4d7544672229afea283358c36
+  languageName: node
+  linkType: hard
+
+"asap@npm:^2.0.3":
+  version: 2.0.6
+  resolution: "asap@npm:2.0.6"
+  checksum: 10c0/c6d5e39fe1f15e4b87677460bd66b66050cd14c772269cee6688824c1410a08ab20254bb6784f9afb75af9144a9f9a7692d49547f4d19d715aeb7c0318f3136d
   languageName: node
   linkType: hard
 
@@ -3485,6 +3500,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "commander@npm:5.1.0"
+  checksum: 10c0/da9d71dbe4ce039faf1fe9eac3771dca8c11d66963341f62602f7b66e36d2a3f8883407af4f9a37b1db1a55c59c0c1325f186425764c2e963dc1d67aec2a4b6d
+  languageName: node
+  linkType: hard
+
 "commander@npm:^6.2.1":
   version: 6.2.1
   resolution: "commander@npm:6.2.1"
@@ -3946,6 +3968,33 @@ __metadata:
   dependencies:
     rrweb-cssom: "npm:^0.6.0"
   checksum: 10c0/23acee092c1cec670fb7b8110e48abd740dc4e574d3b74848743067cb3377a86a1f64cf02606aabd7bb153785e68c2c1e09ce53295ddf7a4b470b3c7c55ec807
+  languageName: node
+  linkType: hard
+
+"d3-array@npm:2 - 3":
+  version: 3.2.4
+  resolution: "d3-array@npm:3.2.4"
+  dependencies:
+    internmap: "npm:1 - 2"
+  checksum: 10c0/08b95e91130f98c1375db0e0af718f4371ccacef7d5d257727fe74f79a24383e79aba280b9ffae655483ffbbad4fd1dec4ade0119d88c4749f388641c8bf8c50
+  languageName: node
+  linkType: hard
+
+"d3-time-format@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "d3-time-format@npm:4.1.0"
+  dependencies:
+    d3-time: "npm:1 - 3"
+  checksum: 10c0/735e00fb25a7fd5d418fac350018713ae394eefddb0d745fab12bbff0517f9cdb5f807c7bbe87bb6eeb06249662f8ea84fec075f7d0cd68609735b2ceb29d206
+  languageName: node
+  linkType: hard
+
+"d3-time@npm:1 - 3":
+  version: 3.1.0
+  resolution: "d3-time@npm:3.1.0"
+  dependencies:
+    d3-array: "npm:2 - 3"
+  checksum: 10c0/a984f77e1aaeaa182679b46fbf57eceb6ebdb5f67d7578d6f68ef933f8eeb63737c0949991618a8d29472dbf43736c7d7f17c452b2770f8c1271191cba724ca1
   languageName: node
   linkType: hard
 
@@ -5714,6 +5763,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ha-nunjucks@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "ha-nunjucks@npm:1.3.0"
+  dependencies:
+    home-assistant-js-websocket: "npm:latest"
+    nunjucks: "npm:latest"
+    ts-py-datetime: "npm:latest"
+  checksum: 10c0/9c346ee9866f748b41d98dbefefd46ddb0a43f7d563e4456e000047e273e5441e5a15321ba8684325a81d746a9e9c32c5c0f4f1a58637291babebcae45329442
+  languageName: node
+  linkType: hard
+
 "handlebars@npm:^4.7.7":
   version: 4.7.8
   resolution: "handlebars@npm:4.7.8"
@@ -5817,7 +5877,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"home-assistant-js-websocket@npm:^9.4.0":
+"home-assistant-js-websocket@npm:^9.4.0, home-assistant-js-websocket@npm:latest":
   version: 9.4.0
   resolution: "home-assistant-js-websocket@npm:9.4.0"
   checksum: 10c0/9c8a5ff903648ebe7856f62a58af53e3d89dd24a30c600a2145ed518cd5f5f2218345048cfc42bdc3ee5d6f2994da3948765c77b6012ed56cf4546173a1a1de1
@@ -6142,6 +6202,13 @@ __metadata:
     hasown: "npm:^2.0.0"
     side-channel: "npm:^1.0.4"
   checksum: 10c0/f8b294a4e6ea3855fc59551bbf35f2b832cf01fd5e6e2a97f5c201a071cc09b49048f856e484b67a6c721da5e55736c5b6ddafaf19e2dbeb4a3ff1821680de6c
+  languageName: node
+  linkType: hard
+
+"internmap@npm:1 - 2":
+  version: 2.0.3
+  resolution: "internmap@npm:2.0.3"
+  checksum: 10c0/8cedd57f07bbc22501516fbfc70447f0c6812871d471096fad9ea603516eacc2137b633633daf432c029712df0baefd793686388ddf5737e3ea15074b877f7ed
   languageName: node
   linkType: hard
 
@@ -8236,6 +8303,24 @@ __metadata:
   dependencies:
     boolbase: "npm:^1.0.0"
   checksum: 10c0/5fee7ff309727763689cfad844d979aedd2204a817fbaaf0e1603794a7c20db28548d7b024692f953557df6ce4a0ee4ae46cd8ebd9b36cfb300b9226b567c479
+  languageName: node
+  linkType: hard
+
+"nunjucks@npm:latest":
+  version: 3.2.4
+  resolution: "nunjucks@npm:3.2.4"
+  dependencies:
+    a-sync-waterfall: "npm:^1.0.0"
+    asap: "npm:^2.0.3"
+    commander: "npm:^5.1.0"
+  peerDependencies:
+    chokidar: ^3.3.0
+  peerDependenciesMeta:
+    chokidar:
+      optional: true
+  bin:
+    nunjucks-precompile: bin/precompile
+  checksum: 10c0/7fe5197559b7c09972c79e2a86f9c093459b9075bc9b41134cd2bc599ae93567b53bd09d472a748edc736192d9ccd2998aa8c20cfcbe6a3fffd281f91897c888
   languageName: node
   linkType: hard
 
@@ -11195,6 +11280,15 @@ __metadata:
   bin:
     ts-prune: lib/index.js
   checksum: 10c0/fecb609e4c1f207a23f8d82946cd654242a818ca28d078cebf7b8408f0b20c2245e1482019745117b7ae0e015b76aaba8d7382cd5429ee9fa48829253981b448
+  languageName: node
+  linkType: hard
+
+"ts-py-datetime@npm:latest":
+  version: 0.10.0
+  resolution: "ts-py-datetime@npm:0.10.0"
+  dependencies:
+    d3-time-format: "npm:^4.1.0"
+  checksum: 10c0/2e82ba1b02edd566600052a6c90ea06d1eeeff7557e75cfba6c80bc3898b8ecbd825b7b51e9690c68ab97dc8c12d362e3e509896c617c6a556f4d6cfe9cf3579
   languageName: node
   linkType: hard
 
