@@ -1,14 +1,16 @@
 import { CurrentUser } from '@dermotduffy/custom-card-helpers';
 import { HassEntities } from 'home-assistant-js-websocket';
-import { ViewDisplayMode } from '../config/types';
+import { AdvancedCameraCardConfig, ViewDisplayMode } from '../config/types';
 import { MediaLoadedInfo } from '../types';
 import { KeysState, MicrophoneState } from '../card-controller/types';
 
 export interface ConditionState {
   camera?: string;
+  config?: AdvancedCameraCardConfig;
   displayMode?: ViewDisplayMode;
   expand?: boolean;
   fullscreen?: boolean;
+  initialized?: boolean;
   interaction?: boolean;
   keys?: KeysState;
   mediaLoadedInfo?: MediaLoadedInfo | null;
@@ -43,10 +45,16 @@ interface ConditionsEvaluationDataState extends ConditionsEvaluationDataFromTo {
   entity: string;
 }
 
+interface ConditionsEvaluationDataConfig {
+  from?: AdvancedCameraCardConfig;
+  to?: AdvancedCameraCardConfig;
+}
+
 export interface ConditionsEvaluationData {
   camera?: ConditionsEvaluationDataFromTo;
   view?: ConditionsEvaluationDataFromTo;
   state?: ConditionsEvaluationDataState;
+  config?: ConditionsEvaluationDataConfig;
 }
 export interface ConditionsEvaluationResult {
   result: boolean;

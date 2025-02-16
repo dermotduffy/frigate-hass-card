@@ -4,6 +4,7 @@ import {
   InitializationAspect,
   InitializationManager,
 } from '../../src/card-controller/initialization-manager';
+import { ConditionStateManager } from '../../src/conditions/state-manager';
 import { loadLanguages } from '../../src/localize/localize';
 import { sideLoadHomeAssistantElements } from '../../src/utils/ha';
 import { Initializer } from '../../src/utils/initializer/initializer';
@@ -67,9 +68,15 @@ describe('InitializationManager', () => {
     });
 
     it('successfully', async () => {
+      const stateListener = vi.fn();
+      const stateMananger = new ConditionStateManager();
+      stateMananger.addListener(stateListener);
+
       const api = createCardAPI();
+      vi.mocked(api.getConditionStateManager).mockReturnValue(stateMananger);
       vi.mocked(api.getHASSManager().getHASS).mockReturnValue(createHASS());
-      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
+      const config = createConfig();
+      vi.mocked(api.getConfigManager().getConfig).mockReturnValue(config);
       vi.mocked(api.getMessageManager().hasMessage).mockReturnValue(false);
       vi.mocked(api.getQueryStringManager().hasViewRelatedActionsToRun).mockReturnValue(
         false,
@@ -93,6 +100,15 @@ describe('InitializationManager', () => {
       expect(api.getCardElementManager().update).toBeCalled();
 
       expect(manager.wasEverInitialized()).toBeTruthy();
+
+      expect(stateListener).toBeCalledWith(
+        expect.objectContaining({
+          change: {
+            initialized: true,
+            config,
+          },
+        }),
+      );
     });
 
     it('successfully with microphone if configured', async () => {

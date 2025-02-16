@@ -176,6 +176,7 @@ export interface CardInitializerAPI {
   getMicrophoneManager(): MicrophoneManager;
 
   getCardElementManager(): CardElementManager;
+  getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
   getEntityRegistryManager(): EntityRegistryManager;

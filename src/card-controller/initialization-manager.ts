@@ -128,6 +128,18 @@ export class InitializationManager {
     }
 
     this._everInitialized = true;
+
+    // When the card is initialized, both the initialization state (will never
+    // change again), and the config are set in the condition state. The
+    // config is set here, rather than in the ConfigManager, in order to
+    // ensure actions (that trigger on config change) are not run before hass
+    // is available and the card is initialzied (the first config is set in
+    // the card *before* hass is set in the card).
+    this._api.getConditionStateManager().setState({
+      config: config,
+      initialized: this._everInitialized,
+    });
+
     this._api.getCardElementManager().update();
   }
 

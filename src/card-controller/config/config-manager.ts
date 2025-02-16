@@ -184,6 +184,18 @@ export class ConfigManager {
     await this._api.getDefaultManager().initializeIfNecessary(previousConfig);
     await this._api.getMediaPlayerManager().initializeIfNecessary(previousConfig);
 
+    // The config is only set in the state if the card is already fully
+    // initialized. If not, the config will be set post initialization in the
+    // InitializationManager.
+    if (
+      this._overriddenConfig &&
+      this._api.getInitializationManager().isInitializedMandatory()
+    ) {
+      this._api.getConditionStateManager().setState({
+        config: this._overriddenConfig,
+      });
+    }
+
     this._api.getCardElementManager().update();
   }
 }

@@ -2,7 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MicrophoneState } from '../../src/card-controller/types';
 import { ConditionsManager } from '../../src/conditions/conditions-manager';
 import { ConditionStateManager } from '../../src/conditions/state-manager';
-import { createMediaLoadedInfo, createStateEntity, createUser } from '../test-utils';
+import {
+  createConfig,
+  createMediaLoadedInfo,
+  createStateEntity,
+  createUser,
+} from '../test-utils';
 
 // @vitest-environment jsdom
 describe('ConditionsManager', () => {
@@ -840,6 +845,146 @@ describe('ConditionsManager', () => {
         });
         expect(manager.getEvaluation().result).toBeFalsy();
       });
+    });
+
+    describe('with config condition', () => {
+      const config_1 = createConfig({
+        // Default is:
+        //
+        // view: {
+        //   default: live,
+        // },
+      });
+      const config_2 = createConfig({
+        view: {
+          default: 'clips',
+        },
+      });
+      const config_3 = createConfig({
+        view: {
+          default: 'clips',
+          default_cycle_camera: true,
+        },
+      });
+      const config_4 = createConfig({
+        view: {
+          default: 'clips',
+          default_cycle_camera: true,
+          dim: true,
+        },
+      });
+
+      it('should match any config change', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'config' as const }],
+          stateManager,
+        );
+
+        const listener = vi.fn();
+        manager.addListener(listener);
+
+        stateManager.setState({ config: config_1 });
+        expect(listener).toHaveBeenLastCalledWith({
+          result: true,
+          data: {
+            config: {
+              to: config_1,
+            },
+          },
+        });
+
+        stateManager.setState({ config: config_2 });
+        expect(listener).toHaveBeenLastCalledWith({
+          result: true,
+          data: {
+            config: {
+              from: config_1,
+              to: config_2,
+            },
+          },
+        });
+
+        expect(listener).toBeCalledTimes(2);
+      });
+
+      it('should match specific config change', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'config' as const, paths: ['view.default'] }],
+          stateManager,
+        );
+
+        expect(manager.getEvaluation().result).toBeFalsy();
+        stateManager.setState({ config: config_1 });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({ config: config_2 });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({ config: config_3 });
+        expect(manager.getEvaluation().result).toBeFalsy();
+      });
+
+      it('should match multiple config change', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [
+            {
+              condition: 'config' as const,
+              paths: ['view.default', 'view.default_cycle_camera'],
+            },
+          ],
+          stateManager,
+        );
+
+        expect(manager.getEvaluation().result).toBeFalsy();
+        stateManager.setState({ config: config_1 });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({ config: config_2 });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({ config: config_3 });
+        expect(manager.getEvaluation().result).toBeTruthy();
+        stateManager.setState({ config: config_4 });
+        expect(manager.getEvaluation().result).toBeFalsy();
+      });
+
+      it('should not match unrelated changes', () => {
+        const stateManager = new ConditionStateManager();
+        const manager = new ConditionsManager(
+          [{ condition: 'config' as const }],
+          stateManager,
+        );
+
+        const listener = vi.fn();
+        manager.addListener(listener);
+
+        stateManager.setState({ config: config_1 });
+        expect(listener).toBeCalledTimes(1);
+
+        // On the next state set, the condition won't match anymore (as the
+        // config is the same), the listener will still be called to indicate
+        // the condition evaluation has changed.
+        stateManager.setState({ expand: true });
+        expect(listener).toBeCalledTimes(2);
+        expect(listener).toHaveBeenLastCalledWith({ result: false });
+
+        // Future unrelated state changes won't call the listener.
+        stateManager.setState({ fullscreen: true });
+        expect(listener).toBeCalledTimes(2);
+      });
+    });
+
+    it('with initialized condition', () => {
+      const stateManager = new ConditionStateManager();
+      const manager = new ConditionsManager(
+        [{ condition: 'initialized' as const }],
+        stateManager,
+      );
+
+      expect(manager.getEvaluation().result).toBeFalsy();
+      stateManager.setState({ initialized: true });
+      expect(manager.getEvaluation().result).toBeTruthy();
+      stateManager.setState({ initialized: false });
+      expect(manager.getEvaluation().result).toBeFalsy();
     });
   });
 
