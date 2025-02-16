@@ -30,6 +30,21 @@ conditions:
 | `condition` | Must be `camera`.                                                                                                                                                                     |
 | `cameras`   | An optional list of camera IDs in which this condition is satisfied. If not specified, any camera change will satisy the condition. See the camera [id](cameras/README.md) parameter. |
 
+## `config`
+
+Matches when card configuration changes (e.g. on startup, or when [Configuration Overrides](./overrides.md) are applied).
+
+```yaml
+conditions:
+  - condition: config
+    # [...]
+```
+
+| Parameter   | Description                                                                                                                                           |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `condition` | Must be `config`.                                                                                                                                     |
+| `paths`     | An optional array of configuration paths (e.g. `menu.style`). If provided condition matches if _ANY_ of the provided configuration paths has changed. |
+
 ## `expand`
 
 Matches based on whether the card is in "expanded" mode.
@@ -59,6 +74,21 @@ conditions:
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `condition`  | Must be `fullscreen`.                                                                                                                                    |
 | `fullscreen` | If `true` the condition is satisfied if the card is in fullscreen mode. If `false` the condition is satisfied if the card is **NOT** in fullscreen mode. |
+
+## `initialized`
+
+Matches when the card is first initialized.
+
+```yaml
+conditions:
+  - condition: initialized
+```
+
+| Parameter   | Description            |
+| ----------- | ---------------------- |
+| `condition` | Must be `initialized`. |
+
+?> This is exclusively useful for running [automations](./automations.md) on card start.
 
 ## `interaction`
 
@@ -258,10 +288,14 @@ conditions:
  - condition: camera
    cameras:
      - camera.office
+  - condition: config
+    paths:
+      - "menu.style"
   - condition: expand
     expand: true
   - condition: fullscreen
     fullscreen: true
+  - condition: initialized
   - condition: interaction
     interaction: true
   - condition: key

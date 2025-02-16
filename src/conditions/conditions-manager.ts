@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+import { getConfigValue } from '../config/management';
 import { AdvancedCameraCardCondition } from '../config/types';
 import { isCompanionApp } from '../utils/companion';
 import {
@@ -146,8 +147,12 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
         return {
           result:
             !!newState?.state &&
-            ((!condition.state && !condition.state_not) ||
-              (condition.entity in newState.state &&
+            ((!condition.state &&
+              !condition.state_not &&
+              newState.state[condition.entity]?.state !==
+                oldState?.state?.[condition.entity]?.state) ||
+              ((!!condition.state || !!condition.state_not) &&
+                condition.entity in newState.state &&
                 (!condition.state ||
                   (Array.isArray(condition.state)
                     ? condition.state.includes(newState.state[condition.entity].state)
@@ -281,6 +286,29 @@ export class ConditionsManager implements ConditionsManagerReadonlyInterface {
             (condition.user_agent_re === undefined ||
               new RegExp(condition.user_agent_re).test(newState.userAgent)),
         };
+      case 'config': {
+        return {
+          result:
+            !!newState?.config &&
+            newState.config !== oldState?.config &&
+            (!condition.paths?.length ||
+              condition.paths.some(
+                (key) =>
+                  getConfigValue(newState.config!, key) !==
+                  (oldState?.config ? getConfigValue(oldState?.config, key) : undefined),
+              )),
+          data: {
+            config: {
+              ...((oldState?.config || newState?.config) && {
+                ...(oldState?.config && { from: oldState?.config }),
+                ...(newState?.config && { to: newState?.config }),
+              }),
+            },
+          },
+        };
+      }
+      case 'initialized':
+        return { result: !!newState?.initialized };
     }
   }
 }

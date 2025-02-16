@@ -683,42 +683,32 @@ export type StatusBarItem = z.infer<typeof statusBarItemSchema>;
 //                  Custom Element Configuration: Conditions
 // *************************************************************************
 
-const viewConditionSchema = z.object({
-  condition: z.literal('view'),
-  views: z.string().array().optional(),
-});
-const fullscreenConditionSchema = z.object({
-  condition: z.literal('fullscreen'),
-  fullscreen: z.boolean(),
-});
-const expandConditionSchema = z.object({
-  condition: z.literal('expand'),
-  expand: z.boolean(),
-});
 const cameraConditionSchema = z.object({
   condition: z.literal('camera'),
   cameras: z.string().array().optional(),
 });
-const mediaLoadedConditionSchema = z.object({
-  condition: z.literal('media_loaded'),
-  media_loaded: z.boolean(),
+const configConditionSchema = z.object({
+  condition: z.literal('config'),
+  paths: z.string().array().optional(),
 });
 const displayModeConditionSchema = z.object({
   condition: z.literal('display_mode'),
   display_mode: viewDisplayModeSchema,
 });
-const triggeredConditionSchema = z.object({
-  condition: z.literal('triggered'),
-  triggered: z.string().array(),
+const expandConditionSchema = z.object({
+  condition: z.literal('expand'),
+  expand: z.boolean(),
+});
+const fullscreenConditionSchema = z.object({
+  condition: z.literal('fullscreen'),
+  fullscreen: z.boolean(),
+});
+const initializedConditionSchema = z.object({
+  condition: z.literal('initialized'),
 });
 const interactionConditionSchema = z.object({
   condition: z.literal('interaction'),
   interaction: z.boolean(),
-});
-const microphoneConditionSchema = z.object({
-  condition: z.literal('microphone'),
-  connected: z.boolean().optional(),
-  muted: z.boolean().optional(),
 });
 const keyConditionSchema = z.object({
   condition: z.literal('key'),
@@ -728,6 +718,19 @@ const keyConditionSchema = z.object({
   shift: z.boolean().optional(),
   alt: z.boolean().optional(),
   meta: z.boolean().optional(),
+});
+const mediaLoadedConditionSchema = z.object({
+  condition: z.literal('media_loaded'),
+  media_loaded: z.boolean(),
+});
+const microphoneConditionSchema = z.object({
+  condition: z.literal('microphone'),
+  connected: z.boolean().optional(),
+  muted: z.boolean().optional(),
+});
+const triggeredConditionSchema = z.object({
+  condition: z.literal('triggered'),
+  triggered: z.string().array(),
 });
 const userAgentConditionSchema = z.object({
   condition: z.literal('user_agent'),
@@ -748,26 +751,32 @@ const userAgentConditionSchema = z.object({
     .optional(),
   companion: z.boolean().optional(),
 });
+const viewConditionSchema = z.object({
+  condition: z.literal('view'),
+  views: z.string().array().optional(),
+});
 
 export const advancedCameraCardConditionSchema = z.discriminatedUnion('condition', [
   // Stock conditions:
-  stateConditionSchema,
   numericStateConditionSchema,
   screenConditionSchema,
+  stateConditionSchema,
   usersConditionSchema,
 
   // Custom conditions:
-  viewConditionSchema,
-  fullscreenConditionSchema,
-  expandConditionSchema,
   cameraConditionSchema,
-  mediaLoadedConditionSchema,
+  configConditionSchema,
   displayModeConditionSchema,
-  triggeredConditionSchema,
+  expandConditionSchema,
+  fullscreenConditionSchema,
+  initializedConditionSchema,
   interactionConditionSchema,
-  microphoneConditionSchema,
   keyConditionSchema,
+  mediaLoadedConditionSchema,
+  microphoneConditionSchema,
+  triggeredConditionSchema,
   userAgentConditionSchema,
+  viewConditionSchema,
 ]);
 export type AdvancedCameraCardCondition = z.infer<
   typeof advancedCameraCardConditionSchema

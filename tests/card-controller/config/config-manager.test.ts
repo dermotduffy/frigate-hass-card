@@ -349,6 +349,8 @@ describe('ConfigManager', () => {
     it('should initialize background items', async () => {
       const api = createCardAPI();
       const stateManager = new ConditionStateManager();
+      const listener = vi.fn();
+      stateManager.addListener(listener);
       vi.mocked(api.getConditionStateManager).mockReturnValue(stateManager);
 
       const manager = new ConfigManager(api);
@@ -371,13 +373,24 @@ describe('ConfigManager', () => {
 
       expect(api.getDefaultManager().initializeIfNecessary).toBeCalledTimes(1);
       expect(api.getMediaPlayerManager().initializeIfNecessary).toBeCalledTimes(1);
+      expect(listener).not.toBeCalledWith(
+        expect.objectContaining({ change: { config: expect.anything() } }),
+      );
 
+      vi.mocked(api.getInitializationManager().isInitializedMandatory).mockReturnValue(
+        true,
+      );
       stateManager.setState({ fullscreen: true });
 
       await flushPromises();
 
       expect(api.getDefaultManager().initializeIfNecessary).toBeCalledTimes(2);
       expect(api.getMediaPlayerManager().initializeIfNecessary).toBeCalledTimes(2);
+
+      // Should set the config condition state.
+      expect(listener).toBeCalledWith(
+        expect.objectContaining({ change: { config: expect.anything() } }),
+      );
     });
   });
 });
