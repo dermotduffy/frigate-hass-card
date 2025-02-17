@@ -1,5 +1,9 @@
 import { AdvancedCameraCardCustomAction, ViewActionConfig } from '../config/types';
-import { createCameraAction, createGeneralAction } from '../utils/action.js';
+import {
+  createCameraAction,
+  createGeneralAction,
+  createViewAction,
+} from '../utils/action.js';
 import { ViewParameters } from '../view/view';
 import { CardQueryStringAPI } from './types';
 import { SubstreamSelectViewModifier } from './view/modifiers/substream-select';
@@ -113,21 +117,25 @@ export class QueryStringManager {
           }
           break;
         case 'camera_ui':
-        case 'clip':
-        case 'clips':
         case 'default':
-        case 'diagnostics':
         case 'download':
         case 'expand':
+        case 'menu_toggle':
+          customAction = createGeneralAction(action, {
+            cardID: cardID,
+          });
+          break;
+        case 'clip':
+        case 'clips':
+        case 'diagnostics':
         case 'image':
         case 'live':
-        case 'menu_toggle':
         case 'recording':
         case 'recordings':
         case 'snapshot':
         case 'snapshots':
         case 'timeline':
-          customAction = createGeneralAction(action, {
+          customAction = createViewAction(action, {
             cardID: cardID,
           });
           break;

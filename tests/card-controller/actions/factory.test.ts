@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CameraSelectAction } from '../../../src/card-controller/actions/actions/camera-select';
 import { CameraUIAction } from '../../../src/card-controller/actions/actions/camera-ui';
 import { DefaultAction } from '../../../src/card-controller/actions/actions/default';
@@ -7,6 +7,7 @@ import { DownloadAction } from '../../../src/card-controller/actions/actions/dow
 import { ExpandAction } from '../../../src/card-controller/actions/actions/expand';
 import { FullscreenAction } from '../../../src/card-controller/actions/actions/fullscreen';
 import { GenericAction } from '../../../src/card-controller/actions/actions/generic';
+import { InternalCallbackAction } from '../../../src/card-controller/actions/actions/internal-callback';
 import { LogAction } from '../../../src/card-controller/actions/actions/log';
 import { MediaPlayerAction } from '../../../src/card-controller/actions/actions/media-player';
 import { MenuToggleAction } from '../../../src/card-controller/actions/actions/menu-toggle';
@@ -30,7 +31,10 @@ import { SubstreamSelectAction } from '../../../src/card-controller/actions/acti
 import { UnmuteAction } from '../../../src/card-controller/actions/actions/unmute';
 import { ViewAction } from '../../../src/card-controller/actions/actions/view';
 import { ActionFactory } from '../../../src/card-controller/actions/factory';
-import { AdvancedCameraCardCustomAction } from '../../../src/config/types';
+import {
+  AdvancedCameraCardCustomAction,
+  INTERNAL_CALLBACK_ACTION,
+} from '../../../src/config/types';
 
 // @vitest-environment jsdom
 describe('ActionFactory', () => {
@@ -164,6 +168,13 @@ describe('ActionFactory', () => {
           status_bar_action: 'reset',
         },
         StatusBarAction,
+      ],
+      [
+        {
+          advanced_camera_card_action: INTERNAL_CALLBACK_ACTION,
+          callback: vi.fn(),
+        },
+        InternalCallbackAction,
       ],
     ])(
       'advanced_camera_card_action: $advanced_camera_card_action',

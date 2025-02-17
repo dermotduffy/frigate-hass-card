@@ -20,6 +20,7 @@ import {
   createMediaPlayerAction,
   createPTZControlsAction,
   createPTZMultiAction,
+  createViewAction,
 } from '../utils/action';
 import { isTruthy } from '../utils/basic';
 import { isBeingCasted } from '../utils/casting';
@@ -119,7 +120,7 @@ export class MenuButtonController {
         config.menu?.style === 'hidden'
           ? (createGeneralAction('menu_toggle') as AdvancedCameraCardCustomAction)
           : (createGeneralAction('default') as AdvancedCameraCardCustomAction),
-      hold_action: createGeneralAction('diagnostics') as AdvancedCameraCardCustomAction,
+      hold_action: createViewAction('diagnostics') as AdvancedCameraCardCustomAction,
     };
   }
 
@@ -233,7 +234,7 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.live'),
           style: view.is('live') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('live') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('live') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
@@ -250,8 +251,8 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.clips'),
           style: view?.is('clips') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('clips') as AdvancedCameraCardCustomAction,
-          hold_action: createGeneralAction('clip') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('clips') as AdvancedCameraCardCustomAction,
+          hold_action: createViewAction('clip') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
@@ -268,8 +269,8 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.snapshots'),
           style: view?.is('snapshots') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('snapshots') as AdvancedCameraCardCustomAction,
-          hold_action: createGeneralAction('snapshot') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('snapshots') as AdvancedCameraCardCustomAction,
+          hold_action: createViewAction('snapshot') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
@@ -286,12 +287,8 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.recordings'),
           style: view.is('recordings') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction(
-            'recordings',
-          ) as AdvancedCameraCardCustomAction,
-          hold_action: createGeneralAction(
-            'recording',
-          ) as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('recordings') as AdvancedCameraCardCustomAction,
+          hold_action: createViewAction('recording') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
@@ -308,7 +305,7 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.image'),
           style: view?.is('image') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('image') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('image') as AdvancedCameraCardCustomAction,
         }
       : null;
   }
@@ -325,7 +322,7 @@ export class MenuButtonController {
           type: 'custom:advanced-camera-card-menu-icon',
           title: localize('config.view.views.timeline'),
           style: view.is('timeline') ? this._getEmphasizedStyle() : {},
-          tap_action: createGeneralAction('timeline') as AdvancedCameraCardCustomAction,
+          tap_action: createViewAction('timeline') as AdvancedCameraCardCustomAction,
         }
       : null;
   }

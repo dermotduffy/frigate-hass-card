@@ -190,6 +190,7 @@ import {
   CONF_PERFORMANCE_STYLE_BORDER_RADIUS,
   CONF_PERFORMANCE_STYLE_BOX_SHADOW,
   CONF_PROFILES,
+  CONF_REMOTE_CONTROL_ENTITIES_CAMERA,
   CONF_STATUS_BAR_HEIGHT,
   CONF_STATUS_BAR_ITEMS,
   CONF_STATUS_BAR_POPUP_SECONDS,
@@ -281,6 +282,7 @@ const MENU_MENU_BUTTONS = 'menu.buttons';
 const MENU_OPTIONS = 'options';
 const MENU_PERFORMANCE_FEATURES = 'performance.features';
 const MENU_PERFORMANCE_STYLE = 'performance.style';
+const MENU_REMOTE_CONTROL_ENTITIES = 'remote_control.entities';
 const MENU_STATUS_BAR_ITEMS = 'status_bar.items';
 const MENU_TIMELINE_FORMAT = 'timeline.format';
 const MENU_TIMELINE_CONTROLS_THUMBNAILS = 'timeline.controls.thumbnails';
@@ -368,6 +370,11 @@ const options: EditorOptions = {
     icon: 'folder-wrench-outline',
     name: localize('editor.profiles'),
     secondary: localize('editor.profiles_secondary'),
+  },
+  remote_control: {
+    icon: 'remote',
+    name: localize('editor.remote_control'),
+    secondary: localize('editor.remote_control_secondary'),
   },
   overrides: {
     icon: 'file-replace',
@@ -3046,6 +3053,23 @@ export class AdvancedCameraCardEditor extends LitElement implements LovelaceCard
                   ${this._renderSwitch(
                     CONF_PERFORMANCE_STYLE_BOX_SHADOW,
                     this._defaults.performance.style.box_shadow,
+                  )}
+                `,
+              )}
+            </div>`
+          : ''}
+        ${this._renderOptionSetHeader('remote_control')}
+        ${this._expandedMenus[MENU_OPTIONS] === 'remote_control'
+          ? html` <div class="values">
+              ${this._putInSubmenu(
+                MENU_REMOTE_CONTROL_ENTITIES,
+                true,
+                'config.remote_control.entities.editor_label',
+                'mdi:devices',
+                html`
+                  ${this._renderEntitySelector(
+                    CONF_REMOTE_CONTROL_ENTITIES_CAMERA,
+                    'input_select',
                   )}
                 `,
               )}

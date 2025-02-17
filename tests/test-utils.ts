@@ -19,7 +19,6 @@ import { ActionsManager } from '../src/card-controller/actions/actions-manager';
 import { AutomationsManager } from '../src/card-controller/automations-manager';
 import { CameraURLManager } from '../src/card-controller/camera-url-manager';
 import { CardElementManager } from '../src/card-controller/card-element-manager';
-import { ConditionStateManager } from '../src/conditions/state-manager';
 import { ConfigManager } from '../src/card-controller/config/config-manager';
 import { CardController } from '../src/card-controller/controller';
 import { DefaultManager } from '../src/card-controller/default-manager';
@@ -40,18 +39,17 @@ import { StatusBarItemManager } from '../src/card-controller/status-bar-item-man
 import { StyleManager } from '../src/card-controller/style-manager';
 import { TriggersManager } from '../src/card-controller/triggers-manager';
 import { ViewManager } from '../src/card-controller/view/view-manager';
+import { ConditionStateManager } from '../src/conditions/state-manager';
 import {
   ActionsConfig,
-  AdvancedCameraCardCondition,
   AdvancedCameraCardConfig,
-  AdvancedCameraCardCustomAction,
   CameraConfig,
+  InternalAdvancedCameraCardCustomAction,
   PerformanceConfig,
   RawAdvancedCameraCardConfig,
-  advancedCameraCardConditionSchema,
   advancedCameraCardConfigSchema,
-  advancedCameraCardCustomActionSchema,
   cameraConfigSchema,
+  internalAdvancedCameraCardCustomActionSchema,
   performanceConfigSchema,
 } from '../src/config/types';
 import { CapabilitiesRaw, ExtendedHomeAssistant, MediaLoadedInfo } from '../src/types';
@@ -65,8 +63,8 @@ import { View, ViewParameters } from '../src/view/view';
 
 export const createAction = (
   action: Record<string, unknown>,
-): AdvancedCameraCardCustomAction | null => {
-  const result = advancedCameraCardCustomActionSchema.safeParse({
+): InternalAdvancedCameraCardCustomAction | null => {
+  const result = internalAdvancedCameraCardCustomActionSchema.safeParse({
     action: 'custom:advanced-camera-card-action',
     ...action,
   });
@@ -260,6 +258,7 @@ export const createCapabilities = (capabilities?: CapabilitiesRaw): Capabilities
   return new Capabilities({
     'favorite-events': false,
     'favorite-recordings': false,
+    'remote-control-entity': true,
     clips: false,
     live: false,
     recordings: false,

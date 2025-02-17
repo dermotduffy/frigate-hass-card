@@ -1,22 +1,33 @@
 import {
   ActionConfig,
+  ServiceCallRequest,
   hasAction as customCardHasAction,
 } from '@dermotduffy/custom-card-helpers';
+import { CardActionsAPI } from '../card-controller/types.js';
 import { ZoomSettingsBase } from '../components-lib/zoom/types.js';
 import { PTZAction } from '../config/ptz.js';
 import {
   ActionPhase,
   ActionType,
   Actions,
-  AdvancedCameraCardCustomAction,
   AdvancedCameraCardGeneralAction,
   AdvancedCameraCardUserSpecifiedView,
+  CameraSelectActionConfig,
+  DisplayModeActionConfig,
+  GeneralActionConfig,
+  INTERNAL_CALLBACK_ACTION,
+  InternalAdvancedCameraCardCustomAction,
+  InternalCallbackActionConfig,
   LogActionConfig,
   LogActionLevel,
+  MediaPlayerActionConfig,
   PTZActionConfig,
+  PTZControlsActionConfig,
   PTZDigitialActionConfig,
   PTZMultiActionConfig,
-  advancedCameraCardCustomActionSchema,
+  SubstreamSelectActionConfig,
+  ViewActionConfig,
+  internalAdvancedCameraCardCustomActionSchema,
 } from '../config/types.js';
 import { arrayify } from './basic.js';
 
@@ -27,22 +38,35 @@ import { arrayify } from './basic.js';
  */
 export function convertActionToCardCustomAction(
   action: unknown,
-): AdvancedCameraCardCustomAction | null {
+): InternalAdvancedCameraCardCustomAction | null {
   if (!action) {
     return null;
   }
   // Parse a custom event as other things could generate ll-custom events that
   // are not related to Advanced Camera Card.
-  const parseResult = advancedCameraCardCustomActionSchema.safeParse(action);
+  const parseResult = internalAdvancedCameraCardCustomActionSchema.safeParse(action);
   return parseResult.success ? parseResult.data : null;
 }
 
 export function createGeneralAction(
-  action: AdvancedCameraCardGeneralAction | AdvancedCameraCardUserSpecifiedView,
+  action: AdvancedCameraCardGeneralAction,
   options?: {
     cardID?: string;
   },
-): AdvancedCameraCardCustomAction {
+): GeneralActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: action,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createViewAction(
+  action: AdvancedCameraCardUserSpecifiedView,
+  options?: {
+    cardID?: string;
+  },
+): ViewActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: action,
@@ -56,7 +80,7 @@ export function createCameraAction(
   options?: {
     cardID?: string;
   },
-): AdvancedCameraCardCustomAction {
+): CameraSelectActionConfig | SubstreamSelectActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: action,
@@ -71,7 +95,7 @@ export function createMediaPlayerAction(
   options?: {
     cardID?: string;
   },
-): AdvancedCameraCardCustomAction {
+): MediaPlayerActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: 'media_player',
@@ -86,7 +110,7 @@ export function createDisplayModeAction(
   options?: {
     cardID?: string;
   },
-): AdvancedCameraCardCustomAction {
+): DisplayModeActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: 'display_mode_select',
@@ -100,7 +124,7 @@ export function createPTZControlsAction(
   options?: {
     cardID?: string;
   },
-): AdvancedCameraCardCustomAction {
+): PTZControlsActionConfig {
   return {
     action: 'fire-dom-event',
     advanced_camera_card_action: 'ptz_controls',
@@ -176,6 +200,35 @@ export function createLogAction(
     message: message,
     level: options?.level ?? 'info',
     ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createInternalCallbackAction(
+  callback: (api: CardActionsAPI) => Promise<void>,
+  options?: {
+    cardID?: string;
+  },
+): InternalCallbackActionConfig {
+  return {
+    action: 'fire-dom-event',
+    advanced_camera_card_action: INTERNAL_CALLBACK_ACTION,
+    callback: callback,
+    ...(options?.cardID && { card_id: options.cardID }),
+  };
+}
+
+export function createPerformAction(
+  perform_action: string,
+  options?: {
+    data?: ServiceCallRequest['serviceData'];
+    target?: ServiceCallRequest['target'];
+  },
+): ActionType {
+  return {
+    action: 'perform-action' as const,
+    perform_action: perform_action,
+    ...(options?.target && { target: options.target }),
+    ...(options?.data && { data: options.data }),
   };
 }
 

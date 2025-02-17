@@ -459,6 +459,12 @@
       "low-performance": "Basse performance",
       "scrubbing": "Balayage vidéo"
     },
+    "remote_control": {
+      "entities": {
+        "camera": "",
+        "editor_label": ""
+      }
+    },
     "status_bar": {
       "height": "Hauteur de la barre d'état en pixels",
       "items": {
@@ -596,6 +602,8 @@
     "performance_secondary": "Options de performances de la carte",
     "profiles": "Profils de configuration",
     "profiles_secondary": "Choisir des ensembles de paramètres par défaut pré-configurés",
+    "remote_control": "",
+    "remote_control_secondary": "",
     "status_bar": "Barre d'état",
     "status_bar_secondary": "Options d'apparence et de comportement de la barre d'état",
     "timeline": "Chronologie",

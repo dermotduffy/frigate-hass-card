@@ -7,9 +7,11 @@ import { PTZAction } from '../../../src/config/ptz';
 describe('setKeyboardShortcutsFromConfig', () => {
   it('without shortcuts', () => {
     const api = createCardAPI();
-    setKeyboardShortcutsFromConfig(api, 'tag');
+    setKeyboardShortcutsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith('tag');
+    expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+      setKeyboardShortcutsFromConfig,
+    );
     expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
   });
 
@@ -24,9 +26,11 @@ describe('setKeyboardShortcutsFromConfig', () => {
         },
       }),
     );
-    setKeyboardShortcutsFromConfig(api, 'tag');
+    setKeyboardShortcutsFromConfig(api);
 
-    expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith('tag');
+    expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+      setKeyboardShortcutsFromConfig,
+    );
     expect(api.getAutomationsManager().addAutomations).not.toBeCalled();
   });
 
@@ -59,9 +63,11 @@ describe('setKeyboardShortcutsFromConfig', () => {
           }),
         );
 
-        setKeyboardShortcutsFromConfig(api, 'tag');
+        setKeyboardShortcutsFromConfig(api);
 
-        expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith('tag');
+        expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+          setKeyboardShortcutsFromConfig,
+        );
         expect(api.getAutomationsManager().addAutomations).toBeCalledWith([
           {
             actions: [
@@ -83,7 +89,7 @@ describe('setKeyboardShortcutsFromConfig', () => {
                 state: 'down',
               },
             ],
-            tag: 'tag',
+            tag: setKeyboardShortcutsFromConfig,
           },
           {
             actions: [
@@ -101,7 +107,7 @@ describe('setKeyboardShortcutsFromConfig', () => {
                 state: 'up',
               },
             ],
-            tag: 'tag',
+            tag: setKeyboardShortcutsFromConfig,
           },
         ]);
       });
@@ -110,9 +116,11 @@ describe('setKeyboardShortcutsFromConfig', () => {
         const api = createCardAPI();
         vi.mocked(api.getConfigManager().getConfig).mockReturnValue(createConfig());
 
-        setKeyboardShortcutsFromConfig(api, 'tag');
+        setKeyboardShortcutsFromConfig(api);
 
-        expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith('tag');
+        expect(api.getAutomationsManager().deleteAutomations).toBeCalledWith(
+          setKeyboardShortcutsFromConfig,
+        );
         expect(api.getAutomationsManager().addAutomations).toBeCalledWith(
           expect.arrayContaining([
             {
@@ -133,7 +141,7 @@ describe('setKeyboardShortcutsFromConfig', () => {
                   state: 'down',
                 },
               ],
-              tag: 'tag',
+              tag: setKeyboardShortcutsFromConfig,
             },
           ]),
         );

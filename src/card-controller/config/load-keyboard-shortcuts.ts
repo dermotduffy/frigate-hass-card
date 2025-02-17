@@ -6,18 +6,16 @@ import { PTZAction } from '../../config/ptz';
 import { createPTZMultiAction } from '../../utils/action';
 import { CardConfigLoaderAPI, TaggedAutomation } from '../types';
 
-export const setKeyboardShortcutsFromConfig = (
-  api: CardConfigLoaderAPI,
-  tag: unknown,
-) => {
-  api.getAutomationsManager().deleteAutomations(tag);
+export const setKeyboardShortcutsFromConfig = (api: CardConfigLoaderAPI) => {
+  const automationTag = setKeyboardShortcutsFromConfig;
+  api.getAutomationsManager().deleteAutomations(automationTag);
 
   const shortcuts = api.getConfigManager().getConfig()?.view.keyboard_shortcuts;
   if (!shortcuts) {
     return;
   }
 
-  const automations = convertKeyboardShortcutsToAutomations(tag, shortcuts);
+  const automations = convertKeyboardShortcutsToAutomations(automationTag, shortcuts);
   if (automations.length) {
     api.getAutomationsManager().addAutomations(automations);
   }
