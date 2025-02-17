@@ -68,9 +68,12 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
       return null;
     }
 
-    // Title of the form "21:47:03 0:00:44"
+    // Titles may be of the form:
+    //  - "21:47:03 0:00:44"
+    //  - "21:47:03 0:00:44 Person" (https://github.com/dermotduffy/advanced-camera-card/issues/1870)
+    //  - "21:47:03 0:00:44 Vehicle Person" (https://github.com/dermotduffy/advanced-camera-card/issues/1870)
     const parts = media.title.split(/ +/);
-    if (parts.length !== 2) {
+    if (parts.length < 2) {
       return null;
     }
 
@@ -90,10 +93,18 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
         }
       : null;
 
+    const what =
+      parts.length > 2
+        ? parts
+            .splice(2)
+            .map((l) => l.toLowerCase())
+            .sort()
+        : null;
     return {
       cameraID: cameraID,
       startDate: startDate,
       endDate: duration ? add(startDate, duration) : startDate,
+      ...(what && { what: what }),
     };
   }
 

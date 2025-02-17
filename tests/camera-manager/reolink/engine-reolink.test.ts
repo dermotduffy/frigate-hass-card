@@ -144,6 +144,17 @@ const TEST_FILES: BrowseMedia = {
       thumbnail: null,
     },
     {
+      title: '21:35:05 0:00:41 Zebra Person Vehicle',
+      media_class: 'video',
+      media_content_type: 'video',
+      media_content_id:
+        'media-source://reolink/FILE|01J8XHYTNH77WE3C654K03KX1F|0|sub|Rec_20241105_052905_211_S.mp4',
+      children_media_class: null,
+      can_play: true,
+      can_expand: false,
+      thumbnail: null,
+    },
+    {
       title: '22:04:49 0:00:35',
       media_class: 'video',
       media_content_type: 'video',
@@ -363,6 +374,23 @@ describe('ReolinkCameraManagerEngine', () => {
             },
             {
               browseMedia: [
+                {
+                  _metadata: {
+                    cameraID: 'office',
+                    endDate: new Date('2024-11-04T21:35:46.000Z'),
+                    startDate: new Date('2024-11-04T21:35:05.000Z'),
+                    what: ['person', 'vehicle', 'zebra'],
+                  },
+                  can_expand: false,
+                  can_play: true,
+                  children_media_class: null,
+                  media_class: 'video',
+                  media_content_id:
+                    'media-source://reolink/FILE|01J8XHYTNH77WE3C654K03KX1F|0|sub|Rec_20241105_052905_211_S.mp4',
+                  media_content_type: 'video',
+                  thumbnail: null,
+                  title: '21:35:05 0:00:41 Zebra Person Vehicle',
+                },
                 {
                   _metadata: {
                     cameraID: 'office',

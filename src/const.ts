@@ -382,7 +382,7 @@ export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.b
 
 export const CONF_PROFILES = 'profiles' as const;
 
-export const CONF_REMOTE_CONTROL = 'remote_control' as const;
+const CONF_REMOTE_CONTROL = 'remote_control' as const;
 export const CONF_REMOTE_CONTROL_ENTITIES_CAMERA =
   `${CONF_REMOTE_CONTROL}.entities.camera` as const;
 

@@ -57,7 +57,7 @@ class BrowseMediaEventViewMedia extends ViewMedia implements EventViewMedia {
     return this._browseMedia.thumbnail;
   }
   public getWhat(): string[] | null {
-    return null;
+    return this._browseMedia._metadata?.what ?? null;
   }
   public getScore(): number | null {
     return null;
