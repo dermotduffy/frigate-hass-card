@@ -1656,11 +1656,6 @@ const viewConfigSchema = z
     keyboard_shortcuts: keyboardShortcutsSchema.default(
       viewConfigDefault.keyboard_shortcuts,
     ),
-    control_entities: z
-      .object({
-        camera: z.string().startsWith('input_select.').optional(),
-      })
-      .optional(),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);
@@ -2103,6 +2098,20 @@ export type ProfileType = (typeof PROFILES)[number];
 export const profilesSchema = z.enum(PROFILES).array().optional();
 
 // *************************************************************************
+//                  *** Remote Control Configuration ***
+// *************************************************************************
+
+const remoteControlConfigSchema = z
+  .object({
+    entities: z
+      .object({
+        camera: z.string().startsWith('input_select.').optional(),
+      })
+      .optional(),
+  })
+  .optional();
+
+// *************************************************************************
 //                      *** Card Configuration ***
 // *************************************************************************
 
@@ -2140,6 +2149,8 @@ export const advancedCameraCardConfigSchema = z.object({
   // Card ID (used for query string commands). Restrict contents to only values
   // that be easily used in a URL.
   card_id: z.string().regex(cardIDRegex).optional(),
+
+  remote_control: remoteControlConfigSchema,
 
   // Stock lovelace card config.
   type: z.string(),

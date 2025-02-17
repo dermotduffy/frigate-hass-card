@@ -16,8 +16,8 @@ describe('setRemoteControlEntityFromConfig', () => {
     const api = createCardAPI();
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
-        view: {
-          control_entities: {
+        remote_control: {
+          entities: {
             camera: 'input_select.camera',
           },
         },
@@ -49,7 +49,7 @@ describe('setRemoteControlEntityFromConfig', () => {
         conditions: [
           {
             condition: 'config',
-            paths: ['view.control_entities.camera'],
+            paths: ['remote_control.entities.camera'],
           },
         ],
         tag: setRemoteControlEntityFromConfig,
@@ -99,8 +99,8 @@ describe('setRemoteControlEntityFromConfig', () => {
     vi.mocked(api.getHASSManager().getHASS).mockReturnValue(hass);
     vi.mocked(api.getConfigManager().getConfig).mockReturnValue(
       createConfig({
-        view: {
-          control_entities: {
+        remote_control: {
+          entities: {
             camera: 'input_select.camera',
           },
         },

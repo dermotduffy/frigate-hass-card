@@ -83,7 +83,7 @@ export class MotionEyeCameraManagerEngine extends BrowseMediaCameraManagerEngine
         {
           'favorite-events': false,
           'favorite-recordings': false,
-          'control-entity': true,
+          'remote-control-entity': true,
           clips: true,
           live: true,
           menu: true,

@@ -459,6 +459,12 @@
       "low-performance": "",
       "scrubbing": ""
     },
+    "remote_control": {
+      "entities": {
+        "camera": "",
+        "editor_label": ""
+      }
+    },
     "status_bar": {
       "height": "",
       "items": {
@@ -596,6 +602,8 @@
     "performance_secondary": "Opcions de rendiment de la targeta",
     "profiles": "",
     "profiles_secondary": "",
+    "remote_control": "",
+    "remote_control_secondary": "",
     "status_bar": "",
     "status_bar_secondary": "",
     "timeline": "Cronologia",

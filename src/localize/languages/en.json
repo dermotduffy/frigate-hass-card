@@ -459,6 +459,12 @@
       "low-performance": "Low performance",
       "scrubbing": "Video scrubbing"
     },
+    "remote_control": {
+      "entities": {
+        "editor_label": "Remote Control Entities",
+        "camera": "Input Select entity to control camera"
+      }
+    },
     "status_bar": {
       "height": "Status bar height in pixels",
       "items": {
@@ -596,6 +602,8 @@
     "performance_secondary": "Card performance options",
     "profiles": "Configuration profiles",
     "profiles_secondary": "Choose pre-configured sets of defaults",
+    "remote_control": "Remote Control",
+    "remote_control_secondary": "Options for remote controlling the card",
     "status_bar": "Status bar",
     "status_bar_secondary": "Status bar look & feel options",
     "timeline": "Timeline",

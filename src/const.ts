@@ -382,6 +382,10 @@ export const CONF_PERFORMANCE_STYLE_BORDER_RADIUS = `${CONF_PERFORMANCE}.style.b
 
 export const CONF_PROFILES = 'profiles' as const;
 
+export const CONF_REMOTE_CONTROL = 'remote_control' as const;
+export const CONF_REMOTE_CONTROL_ENTITIES_CAMERA =
+  `${CONF_REMOTE_CONTROL}.entities.camera` as const;
+
 // Taken from https://github.com/home-assistant/frontend/blob/a759767d794f02527d127802831e68d3caf0cb7a/src/data/media-player.ts#L82
 export const MEDIA_PLAYER_SUPPORT_TURN_OFF = 256;
 export const MEDIA_PLAYER_SUPPORT_STOP = 4096;

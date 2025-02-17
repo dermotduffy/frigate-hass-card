@@ -22,27 +22,6 @@ view:
 | `triggers`                |                                                           | How to react when a camera is [triggered](cameras/README.md?id=triggers).                                                                                                                                                                                                                                                                                                                       |
 | `default_cycle_camera`    | `false`                                                   | When set to `true` the selected camera is cycled on each default view change.                                                                                                                                                                                                                                                                                                                   |
 
-## `control_entities`
-
-Configured entities which may be used to bidirectionally control the card.
-
-```yaml
-view:
-  control_entities:
-    # [...]
-```
-
-| Option   | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                              |
-| -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `camera` |         | An `input_select` entity that the card will use for bidirectional control. When the selected camera on the card changes the entity will be updated to match. Likewise, when the entity state changes, the selected camera on the card will be updated to match. When the card is first started, the `input_select` entity will be updated to only have valid camera IDs from this card. Must start with `input_select.`. |
-
-?> To create an `input_select` entity to use in this manner, open `Settings ->
-Devices & Services -> Helpers (tab) -> Create Helper` and select `Dropdown`.
-Give the new entity an entity name (e.g. `my_card_selected_camera`) and an
-optional icon. You must specify at least one option -- you can use any
-placeholder value (e.g. `camera`) then choose `Add` (the card will
-automatically set the allowable options on start). Finally, click `Create`.
-
 ## `default_reset`
 
 Configure the circumstances and behavior that cause the card to reset to the default view. All configuration is under:
@@ -181,8 +160,6 @@ The default view is `live`, but can be configured by the `view.default` paramete
 view:
   default: live
   camera_select: current
-  control_entities:
-    camera: input_select.my_selected_camera
   interaction_seconds: 300
   default_cycle_camera: false
   default_reset:

@@ -111,7 +111,7 @@ export interface CapabilitiesRaw {
   'favorite-events'?: boolean;
   'favorite-recordings'?: boolean;
 
-  'control-entity'?: boolean;
+  'remote-control-entity'?: boolean;
 
   seek?: boolean;
 
@@ -125,7 +125,7 @@ export interface CapabilitiesRaw {
 export type CapabilityKey = keyof CapabilitiesRaw;
 export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   'clips',
-  'control-entity',
+  'remote-control-entity',
   'favorite-events',
   'favorite-recordings',
   'live',

@@ -16,6 +16,7 @@
   - [`overrides`](../../overrides.md)
   - [`performance`](../../performance.md)
   - [`profiles`](../../profiles.md)
+  - [`remote_control`](../../remote-control.md)
   - [`status_bar`](../../status-bar.md)
   - [`timeline`](../../timeline.md)
   - [`view`](../../view.md)

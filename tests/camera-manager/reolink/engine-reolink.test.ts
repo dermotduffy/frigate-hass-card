@@ -242,7 +242,7 @@ describe('ReolinkCameraManagerEngine', () => {
       'favorite-events': false,
       'favorite-recordings': false,
       clips: true,
-      'control-entity': true,
+      'remote-control-entity': true,
       live: true,
       menu: true,
       recordings: false,

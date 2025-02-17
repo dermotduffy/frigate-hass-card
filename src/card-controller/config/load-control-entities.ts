@@ -10,8 +10,8 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
 
   api.getAutomationsManager().deleteAutomations(automationTag);
 
-  const cameraControlEntity = api.getConfigManager().getConfig()?.view
-    .control_entities?.camera;
+  const cameraControlEntity = api.getConfigManager().getConfig()?.remote_control
+    ?.entities?.camera;
   if (!cameraControlEntity) {
     return;
   }
@@ -34,7 +34,7 @@ export const setRemoteControlEntityFromConfig = (api: CardConfigLoaderAPI) => {
       conditions: [
         {
           condition: 'config' as const,
-          paths: ['view.control_entities.camera'],
+          paths: ['remote_control.entities.camera'],
         },
       ],
       actions: [

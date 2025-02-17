@@ -258,7 +258,7 @@ export const createCapabilities = (capabilities?: CapabilitiesRaw): Capabilities
   return new Capabilities({
     'favorite-events': false,
     'favorite-recordings': false,
-    'control-entity': true,
+    'remote-control-entity': true,
     clips: false,
     live: false,
     recordings: false,
