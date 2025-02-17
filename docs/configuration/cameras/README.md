@@ -52,19 +52,20 @@ cameras:
 
 ### Capabilities
 
-| Capability            | Purpose                                                  |
-| --------------------- | -------------------------------------------------------- |
-| `clips`               | Clips can be fetched from the camera.                    |
-| `favorite-events`     | Events can be favorited.                                 |
-| `favorite-recordings` | Recordings can be favorited.                             |
-| `live`                | Live video can be received from the camera.              |
-| `menu`                | The camera should show up in the card camera menu.       |
-| `ptz`                 | The camera can be PTZ controlled.                        |
-| `recordings`          | Recordings can be fetched from the camera.               |
-| `seek`                | Clips can be seeked / scrubbed by the timeline.          |
-| `snapshots`           | Snapshots can be fetched from the camera.                |
-| `substream`           | The camera can be used as a substream on another camera. |
-| `trigger`             | The camera can be triggered.                             |
+| Capability            | Purpose                                                                                  |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| `clips`               | Clips can be fetched from the camera.                                                    |
+| `control-entity`      | The camera can be selected by a [Camera Control Entity](../view.md?id=control_entities). |
+| `favorite-events`     | Events can be favorited.                                                                 |
+| `favorite-recordings` | Recordings can be favorited.                                                             |
+| `live`                | Live video can be received from the camera.                                              |
+| `menu`                | The camera should show up in the card camera menu.                                       |
+| `ptz`                 | The camera can be PTZ controlled.                                                        |
+| `recordings`          | Recordings can be fetched from the camera.                                               |
+| `seek`                | Clips can be seeked / scrubbed by the timeline.                                          |
+| `snapshots`           | Snapshots can be fetched from the camera.                                                |
+| `substream`           | The camera can be used as a substream on another camera.                                 |
+| `trigger`             | The camera can be triggered.                                                             |
 
 ## `cast`
 

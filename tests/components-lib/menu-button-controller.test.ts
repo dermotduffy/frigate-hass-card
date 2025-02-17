@@ -20,7 +20,7 @@ import {
   ViewDisplayMode,
 } from '../../src/config/types';
 import { AdvancedCameraCardMediaPlayer } from '../../src/types';
-import { createGeneralAction } from '../../src/utils/action';
+import { createGeneralAction, createViewAction } from '../../src/utils/action';
 import { ViewMedia } from '../../src/view/media';
 import { MediaQueriesResults } from '../../src/view/media-queries-results';
 import { View } from '../../src/view/view';
@@ -94,7 +94,7 @@ describe('MenuButtonController', () => {
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Iris / Default View / Unhide menu',
         tap_action: createGeneralAction('menu_toggle'),
-        hold_action: createGeneralAction('diagnostics'),
+        hold_action: createViewAction('diagnostics'),
       });
     });
 
@@ -111,7 +111,7 @@ describe('MenuButtonController', () => {
         type: 'custom:advanced-camera-card-menu-icon',
         title: 'Iris / Default View / Unhide menu',
         tap_action: createGeneralAction('default'),
-        hold_action: createGeneralAction('diagnostics'),
+        hold_action: createViewAction('diagnostics'),
       });
     });
   });

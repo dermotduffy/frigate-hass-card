@@ -14,6 +14,12 @@ A dashboard with the card can be cast onto a suitable device (such as the Nest H
 
 ![](images/card-on-nest-hub.jpg 'Card casting :size=400')
 
+## Control via Entities
+
+Bidirectional control of camera selection via an entity.
+
+![](images/control-entities.gif 'Control via Entities :size=400')
+
 ## Dark mode
 
 ![](images/dark-mode.gif 'Dark mode :size=400')

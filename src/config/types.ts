@@ -397,7 +397,7 @@ const logActionConfigSchema = advancedCameraCardCustomActionsBaseSchema.extend({
 });
 export type LogActionConfig = z.infer<typeof logActionConfigSchema>;
 
-export const advancedCameraCardCustomActionSchema = z.union([
+const advancedCameraCardCustomActionSchema = z.union([
   cameraSelectActionConfigSchema,
   generalActionConfigSchema,
   substreamSelectActionConfigSchema,
@@ -416,6 +416,26 @@ export type AdvancedCameraCardCustomAction = z.infer<
   typeof advancedCameraCardCustomActionSchema
 >;
 
+// An action that can be used internally to call a callback.
+// Note: The internal callback action is kept out of schemas that can be user-specified.
+export const INTERNAL_CALLBACK_ACTION = '__INTERNAL_CALLBACK_ACTION__';
+const internalCallbackActionConfigSchema =
+  advancedCameraCardCustomActionsBaseSchema.extend({
+    advanced_camera_card_action: z.literal(INTERNAL_CALLBACK_ACTION),
+
+    // The callback is expected to be called with a CardController API object.
+    callback: z.function().args(z.any()).returns(z.promise(z.void())),
+  });
+export type InternalCallbackActionConfig = z.infer<
+  typeof internalCallbackActionConfigSchema
+>;
+
+export const internalAdvancedCameraCardCustomActionSchema =
+  advancedCameraCardCustomActionSchema.or(internalCallbackActionConfigSchema);
+export type InternalAdvancedCameraCardCustomAction = z.infer<
+  typeof internalAdvancedCameraCardCustomActionSchema
+>;
+
 // Cannot use discriminatedUnion since advancedCameraCardCustomActionSchema uses
 // a transform on the discriminated union key.
 export const actionSchema = z.union([
@@ -429,7 +449,9 @@ export const actionSchema = z.union([
   customActionSchema,
   advancedCameraCardCustomActionSchema,
 ]);
-export type ActionType = z.infer<typeof actionSchema>;
+
+const internalActionSchema = actionSchema.or(internalCallbackActionConfigSchema);
+export type ActionType = z.infer<typeof internalActionSchema>;
 
 const actionsBaseSchema = z
   .object({
@@ -1634,6 +1656,11 @@ const viewConfigSchema = z
     keyboard_shortcuts: keyboardShortcutsSchema.default(
       viewConfigDefault.keyboard_shortcuts,
     ),
+    control_entities: z
+      .object({
+        camera: z.string().startsWith('input_select.').optional(),
+      })
+      .optional(),
   })
   .merge(actionsSchema)
   .default(viewConfigDefault);

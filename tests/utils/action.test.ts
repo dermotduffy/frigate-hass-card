@@ -1,18 +1,20 @@
 import { hasAction as customCardHasAction } from '@dermotduffy/custom-card-helpers';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { actionSchema } from '../../src/config/types';
+import { actionSchema, INTERNAL_CALLBACK_ACTION } from '../../src/config/types';
 import {
   convertActionToCardCustomAction,
   createCameraAction,
   createDisplayModeAction,
   createGeneralAction,
+  createInternalCallbackAction,
   createLogAction,
   createMediaPlayerAction,
   createPTZAction,
   createPTZControlsAction,
   createPTZDigitalAction,
   createPTZMultiAction,
+  createViewAction,
   getActionConfigGivenAction,
   hasAction,
   stopEventFromActivatingCardWideActions,
@@ -45,7 +47,21 @@ describe('convertActionToAdvancedCameraCardCustomAction', () => {
 describe('createGeneralAction', () => {
   it('should create general action', () => {
     expect(
-      createGeneralAction('clips', {
+      createGeneralAction('camera_ui', {
+        cardID: 'card_id',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: 'camera_ui',
+      card_id: 'card_id',
+    });
+  });
+});
+
+describe('createViewAction', () => {
+  it('should create view action', () => {
+    expect(
+      createViewAction('clips', {
         cardID: 'card_id',
       }),
     ).toEqual({
@@ -237,6 +253,22 @@ describe('createLogAction', () => {
       message: 'Hello, world!',
       card_id: 'card_id',
       level: 'info',
+    });
+  });
+});
+
+describe('createInternalCallbackAction', () => {
+  it('should create internal callback action', () => {
+    const callback = vi.fn();
+    expect(
+      createInternalCallbackAction(callback, {
+        cardID: 'card_id',
+      }),
+    ).toEqual({
+      action: 'fire-dom-event',
+      advanced_camera_card_action: INTERNAL_CALLBACK_ACTION,
+      callback: callback,
+      card_id: 'card_id',
     });
   });
 });

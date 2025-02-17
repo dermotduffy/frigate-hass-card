@@ -1,6 +1,6 @@
 import { ActionConfig } from '@dermotduffy/custom-card-helpers';
 import { ActionContext } from 'action';
-import { ActionType } from '../../config/types';
+import { ActionType, INTERNAL_CALLBACK_ACTION } from '../../config/types';
 import { convertActionToCardCustomAction } from '../../utils/action';
 import { CameraSelectAction } from './actions/camera-select';
 import { CameraUIAction } from './actions/camera-ui';
@@ -10,6 +10,7 @@ import { DownloadAction } from './actions/download';
 import { ExpandAction } from './actions/expand';
 import { FullscreenAction } from './actions/fullscreen';
 import { GenericAction } from './actions/generic';
+import { InternalCallbackAction } from './actions/internal-callback';
 import { LogAction } from './actions/log';
 import { MediaPlayerAction } from './actions/media-player';
 import { MenuToggleAction } from './actions/menu-toggle';
@@ -132,6 +133,8 @@ export class ActionFactory {
         return new LogAction(context, cardCustomAction, options?.config);
       case 'status_bar':
         return new StatusBarAction(context, cardCustomAction, options?.config);
+      case INTERNAL_CALLBACK_ACTION:
+        return new InternalCallbackAction(context, cardCustomAction, options?.config);
     }
 
     /* istanbul ignore next: this path cannot be reached -- @preserve */

@@ -111,6 +111,8 @@ export interface CapabilitiesRaw {
   'favorite-events'?: boolean;
   'favorite-recordings'?: boolean;
 
+  'control-entity'?: boolean;
+
   seek?: boolean;
 
   ptz?: PTZCapabilities;
@@ -123,6 +125,7 @@ export interface CapabilitiesRaw {
 export type CapabilityKey = keyof CapabilitiesRaw;
 export const capabilityKeys: readonly [CapabilityKey, ...CapabilityKey[]] = [
   'clips',
+  'control-entity',
   'favorite-events',
   'favorite-recordings',
   'live',

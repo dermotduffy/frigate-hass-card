@@ -139,6 +139,7 @@ export class FrigateCamera extends Camera {
       {
         'favorite-events': !birdseye,
         'favorite-recordings': false,
+        'control-entity': true,
         seek: !birdseye,
         clips: !birdseye,
         snapshots: !birdseye,

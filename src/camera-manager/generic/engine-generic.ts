@@ -63,6 +63,7 @@ export class GenericCameraManagerEngine implements CameraManagerEngine {
         {
           'favorite-events': false,
           'favorite-recordings': false,
+          'control-entity': true,
           clips: false,
           live: true,
           menu: true,

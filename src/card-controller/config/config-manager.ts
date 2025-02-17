@@ -14,6 +14,7 @@ import { InitializationAspect } from '../initialization-manager.js';
 import { CardConfigAPI } from '../types.js';
 import { getOverriddenConfig } from './get-overridden-config.js';
 import { setAutomationsFromConfig } from './load-automations.js';
+import { setRemoteControlEntityFromConfig } from './load-control-entities.js';
 import { setKeyboardShortcutsFromConfig } from './load-keyboard-shortcuts.js';
 
 export class ConfigManager {
@@ -109,7 +110,8 @@ export class ConfigManager {
     this._api.getMessageManager().reset();
     this._api.getStatusBarItemManager().removeAllDynamicStatusBarItems();
 
-    setKeyboardShortcutsFromConfig(this._api, this);
+    setKeyboardShortcutsFromConfig(this._api);
+    setRemoteControlEntityFromConfig(this._api);
     setAutomationsFromConfig(this._api);
 
     this._processOverrideConfig();

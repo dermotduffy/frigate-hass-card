@@ -90,6 +90,7 @@ export interface CardConfigAPI {
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
   getDefaultManager(): DefaultManager;
+  getHASSManager(): HASSManager;
   getInitializationManager(): InitializationManager;
   getMediaLoadedInfoManager(): MediaLoadedInfoManager;
   getMediaPlayerManager(): MediaPlayerManager;
@@ -101,8 +102,9 @@ export interface CardConfigAPI {
 }
 
 export interface CardConfigLoaderAPI {
-  getConfigManager(): ConfigManager;
   getAutomationsManager(): AutomationsManager;
+  getConfigManager(): ConfigManager;
+  getHASSManager(): HASSManager;
 }
 
 export interface CardDefaultManagerAPI {
@@ -178,6 +180,7 @@ export interface CardInitializerAPI {
   getCardElementManager(): CardElementManager;
   getConditionStateManager(): ConditionStateManager;
   getConfigManager(): ConfigManager;
+  getConditionStateManager(): ConditionStateManager;
   getDefaultManager(): DefaultManager;
   getEntityRegistryManager(): EntityRegistryManager;
   getHASSManager(): HASSManager;

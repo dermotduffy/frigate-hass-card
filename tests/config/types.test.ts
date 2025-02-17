@@ -6,7 +6,7 @@ import {
   dimensionsConfigSchema,
   advancedCameraCardConditionSchema,
   advancedCameraCardCustomActionsBaseSchema,
-  advancedCameraCardCustomActionSchema,
+  internalAdvancedCameraCardCustomActionSchema,
 } from '../../src/config/types';
 import { createConfig } from '../test-utils';
 
@@ -641,7 +641,7 @@ describe('should lazy evaluate schemas', () => {
         },
       ],
     };
-    expect(advancedCameraCardCustomActionSchema.parse(input)).toEqual(input);
+    expect(internalAdvancedCameraCardCustomActionSchema.parse(input)).toEqual(input);
   });
 });
 
