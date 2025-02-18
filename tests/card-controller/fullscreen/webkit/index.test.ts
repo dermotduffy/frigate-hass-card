@@ -1,6 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { mock } from 'vitest-mock-extended';
-import { CardController } from '../../../../src/card-controller/controller';
 import { WebkitFullScreenProvider } from '../../../../src/card-controller/fullscreen/webkit';
 import { ConditionStateManager } from '../../../../src/conditions/state-manager';
 import {
@@ -14,21 +13,19 @@ const createWebkitVideoElement = (): HTMLVideoElement &
   return document.createElement('video');
 };
 
-const setElement = (api: CardController, element: HTMLElement): void => {
+const createPlayer = (element: HTMLElement): AdvancedCameraCardMediaPlayer => {
   const player = mock<AdvancedCameraCardMediaPlayer>();
   player.getFullscreenElement.mockReturnValue(element);
-
-  vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
-    createMediaLoadedInfo({
-      player: player,
-    }),
-  );
+  return player;
 };
 
 // @vitest-environment jsdom
 describe('WebkitFullScreenProvider', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
+  beforeAll(() => {
+    vi.useFakeTimers();
+  });
+
+  afterAll(() => {
     vi.useRealTimers();
   });
 
@@ -60,7 +57,12 @@ describe('WebkitFullScreenProvider', () => {
       const element = createWebkitVideoElement();
       element.webkitDisplayingFullscreen = fullscreen;
 
-      setElement(api, element);
+      const player = createPlayer(element);
+      vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+        createMediaLoadedInfo({
+          player: player,
+        }),
+      );
 
       expect(provider.isInFullscreen()).toBe(fullscreen);
     });
@@ -74,7 +76,12 @@ describe('WebkitFullScreenProvider', () => {
       const element = createWebkitVideoElement();
       element.webkitSupportsFullscreen = supported;
 
-      setElement(api, element);
+      const player = createPlayer(element);
+      vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+        createMediaLoadedInfo({
+          player: player,
+        }),
+      );
 
       expect(provider.isSupported()).toBe(supported);
     });
@@ -89,7 +96,12 @@ describe('WebkitFullScreenProvider', () => {
       element.webkitEnterFullscreen = vi.fn();
       element.webkitSupportsFullscreen = true;
 
-      setElement(api, element);
+      const player = createPlayer(element);
+      vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+        createMediaLoadedInfo({
+          player: player,
+        }),
+      );
 
       provider.setFullscreen(true);
 
@@ -104,7 +116,12 @@ describe('WebkitFullScreenProvider', () => {
       element.webkitExitFullscreen = vi.fn();
       element.webkitSupportsFullscreen = true;
 
-      setElement(api, element);
+      const player = createPlayer(element);
+      vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+        createMediaLoadedInfo({
+          player: player,
+        }),
+      );
 
       provider.setFullscreen(false);
 
@@ -120,7 +137,12 @@ describe('WebkitFullScreenProvider', () => {
       element.webkitExitFullscreen = vi.fn();
       element.webkitSupportsFullscreen = false;
 
-      setElement(api, element);
+      const player = createPlayer(element);
+      vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+        createMediaLoadedInfo({
+          player: player,
+        }),
+      );
 
       provider.setFullscreen(true);
       provider.setFullscreen(false);
@@ -138,7 +160,12 @@ describe('WebkitFullScreenProvider', () => {
       element.webkitEnterFullscreen = vi.fn();
       element.webkitExitFullscreen = vi.fn();
 
-      setElement(api, element);
+      const player = createPlayer(element);
+      vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+        createMediaLoadedInfo({
+          player: player,
+        }),
+      );
 
       provider.setFullscreen(true);
       provider.setFullscreen(false);
@@ -204,8 +231,6 @@ describe('WebkitFullScreenProvider', () => {
   });
 
   it('should play the video after fullscreen ends', () => {
-    vi.useFakeTimers();
-
     const handler = vi.fn();
     const api = createCardAPI();
     const stateManager = new ConditionStateManager();
@@ -218,10 +243,13 @@ describe('WebkitFullScreenProvider', () => {
     const element = createWebkitVideoElement();
     element.play = vi.fn();
 
-    setElement(api, element);
+    const player = createPlayer(element);
+    vi.mocked(api.getMediaLoadedInfoManager().get).mockReturnValue(
+      createMediaLoadedInfo({
+        player: player,
+      }),
+    );
 
-    const player = mock<AdvancedCameraCardMediaPlayer>();
-    player.getFullscreenElement.mockReturnValue(element);
     const mediaLoadedInfo = createMediaLoadedInfo({ player });
 
     stateManager.setState({ mediaLoadedInfo });
