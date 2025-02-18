@@ -73,18 +73,17 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
     //  - "21:47:03 0:00:44 Person" (https://github.com/dermotduffy/advanced-camera-card/issues/1870)
     //  - "21:47:03 0:00:44 Vehicle Person" (https://github.com/dermotduffy/advanced-camera-card/issues/1870)
     const parts = media.title.split(/ +/);
-    if (parts.length < 2) {
-      return null;
-    }
 
     const startDate = parse(parts[0], 'HH:mm:ss', parent._metadata.startDate);
     if (!isValidDate(startDate)) {
       return null;
     }
 
-    const durationMatch = parts[1].match(
-      /(?<hours>\d+):(?<minutes>\d+):(?<seconds>\d+)/,
-    );
+    const durationMatch =
+      parts.length > 1
+        ? parts[1].match(/(?<hours>\d+):(?<minutes>\d+):(?<seconds>\d+)/)
+        : null;
+
     const duration = durationMatch?.groups
       ? {
           hours: Number(durationMatch.groups.hours),
@@ -100,6 +99,7 @@ export class ReolinkCameraManagerEngine extends BrowseMediaCameraManagerEngine {
             .map((l) => l.toLowerCase())
             .sort()
         : null;
+
     return {
       cameraID: cameraID,
       startDate: startDate,
