@@ -116,18 +116,11 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
   // Only HLS media is given a start position: the HLS player is the one that
   // can start loading part way through.
-  private _mediaStartPositionController = new MediaStartPositionController(
-    this,
-    () => ({
-      cameraManager: this.cameraManager,
-      view: this.viewManagerEpoch?.manager.getView(),
-      media:
-        this._shouldLoad() &&
-        classifyMimeType(this._resolvedMediaController.getValue()?.mime_type).isHLS
-          ? this.media
-          : null,
-    }),
-  );
+  private _mediaStartPositionController = new MediaStartPositionController(this, () => ({
+    cameraManager: this.cameraManager,
+    view: this.viewManagerEpoch?.manager.getView(),
+    media: this._shouldLoad() && this._classifyMedia().isHLS ? this.media : null,
+  }));
 
   constructor() {
     super();
@@ -191,6 +184,10 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
 
   private _shouldLoad(): boolean {
     return this._lazyLoadController.isLoaded();
+  }
+
+  private _classifyMedia(): ReturnType<typeof classifyMimeType> {
+    return classifyMimeType(this._resolvedMediaController.getValue()?.mime_type);
   }
 
   private _getRelevantCameraConfig(): CameraConfig | null {
@@ -261,9 +258,7 @@ export class AdvancedCameraCardViewerProvider extends LitElement implements Medi
       });
     }
 
-    const { isHLS, isVideo } = classifyMimeType(
-      this._resolvedMediaController.getValue()?.mime_type,
-    );
+    const { isHLS, isVideo } = this._classifyMedia();
 
     // The HLS player waits for its start position, since hls.js starts loading
     // as soon as the player is created.
