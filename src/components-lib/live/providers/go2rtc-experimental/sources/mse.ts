@@ -340,9 +340,41 @@ export class MSEStreamSource implements StreamSource {
     const retainedStart = end - RETAINED_BUFFER_SECONDS;
     const bufferedStart = sourceBuffer.buffered.start(0);
 
-    if (retainedStart > bufferedStart) {
+    if (retainedStart <= bufferedStart) {
+      return;
+    }
+
+    try {
+      // WebKit throws TypeError from SourceBuffer.remove() while duration is
+      // still NaN. A go2rtc live stream never sets one, so Safari and the iOS
+      // app hit this on every updateend once the buffer passes 15s. Chromium
+      // allows the call, which is why Edge stays quiet. The throw escapes
+      // updateend and Home Assistant records it about once a second per open
+      // camera, and the old media is never dropped. Infinity makes remove()
+      // legal without giving the element a finite end. A value ahead of the
+      // buffer is the fallback when Infinity is rejected.
+      this._ensureDurationAllowsRemoval(mediaSource, end);
       sourceBuffer.remove(bufferedStart, retainedStart);
       mediaSource.setLiveSeekableRange(retainedStart, end);
+    } catch {
+      // Trim is best-effort. The append that just finished still plays; only
+      // the old-buffer cleanup is skipped, and the next updateend tries again.
+    }
+  }
+
+  private _ensureDurationAllowsRemoval(
+    mediaSource: MediaSourceInterface,
+    end: number,
+  ): void {
+    const duration = mediaSource.duration;
+    if (!Number.isNaN(duration) && duration >= end) {
+      return;
+    }
+
+    try {
+      mediaSource.duration = Number.POSITIVE_INFINITY;
+    } catch {
+      mediaSource.duration = end + RETAINED_BUFFER_SECONDS;
     }
   }
 }
