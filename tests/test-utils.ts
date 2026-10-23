@@ -502,10 +502,25 @@ export const stubConnectedHomeAssistant = (): void => {
       connected: true,
       connection: {
         connected: true,
-        // Awaited by the engine's label-registry fetch during init.
-        sendMessagePromise: () => Promise.resolve([]),
+        // Init fetches three registries and then subscribes. The repairs
+        // response is an object; the other two are arrays. A single empty
+        // array makes the repairs fetch throw and the engine delete itself.
+        sendMessagePromise: (message?: { type?: string }) =>
+          Promise.resolve(
+            message?.type === 'repairs/list_issues' ? { issues: [] } : [],
+          ),
+        subscribeEvents: () => () => undefined,
+        subscribeMessage: () => Promise.resolve(() => undefined),
       },
       language: 'en',
+      // Number and time formatters read `locale` during init. `time_zone:
+      // local` keeps that path off `hass.config`.
+      locale: {
+        language: 'en',
+        number_format: 'language',
+        time_format: 'language',
+        time_zone: 'local',
+      },
       states: {},
     },
   });

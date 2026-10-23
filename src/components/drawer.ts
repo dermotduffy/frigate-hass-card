@@ -53,7 +53,7 @@ export class AdvancedCameraCardDrawer extends LitElement {
   @property({ type: Boolean, reflect: true, attribute: true })
   public empty = true;
 
-  private _refDrawer: Ref<HTMLElement & { open: boolean }> = createRef();
+  private _refDrawer: Ref<SideDrawer> = createRef();
   private _refSlot: Ref<HTMLSlotElement> = createRef();
 
   private _resizeObserver = new ResizeObserver(() => this._hideDrawerIfNecessary());
@@ -67,12 +67,38 @@ export class AdvancedCameraCardDrawer extends LitElement {
   protected firstUpdated(changedProps: PropertyValues): void {
     super.firstUpdated(changedProps);
 
-    // The `side-drawer` component (and the material drawer for that matter)
-    // only do fixed drawers (i.e. a drawer for the whole viewport). Hackily
-    // override the style to customize the drawer to be absolute within the div.
+    const root = this._refDrawer.value?.shadowRoot;
+    if (!root) {
+      return;
+    }
+
+    // side-drawer 4 only ships a viewport-fixed dialog. The injected sheet
+    // makes that dialog absolute within the card. `show()` (not `showModal()`,
+    // which is what the library's `open` attribute calls) keeps it in the card
+    // instead of covering the viewport, and leaves the handle visible.
     const style = document.createElement('style');
     style.innerHTML = drawerInjectStyle;
-    this._refDrawer.value?.shadowRoot?.appendChild(style);
+    root.appendChild(style);
+    this._syncDialogOpenState();
+  }
+
+  protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
+    if (changedProps.has('empty')) {
+      this._syncDialogOpenState();
+    }
+  }
+
+  private _syncDialogOpenState(): void {
+    const dialog = this._refDrawer.value?.shadowRoot?.querySelector('dialog');
+    if (!dialog) {
+      return;
+    }
+    if (this.empty) {
+      dialog.close();
+    } else if (!dialog.open) {
+      dialog.show();
+    }
   }
 
   protected willUpdate(): void {
@@ -115,49 +141,52 @@ export class AdvancedCameraCardDrawer extends LitElement {
     return html`
       <side-drawer
         ${ref(this._refDrawer)}
-        location="${this.location}"
-        ?open=${this.open}
+        ?right=${this.location === 'right'}
+        ?data-open=${this.open}
+        ?data-empty=${this.empty}
         @mouseleave=${() => {
           this.open = false;
         }}
       >
-        ${this.control
-          ? html`
-              <div
-                class="control-surround"
-                @click=${(ev: Event) => {
-                  // While locked the drawer must not open. Return before
-                  // `stopEventFromActivatingCardWideActions` so a click on the
-                  // padded control wrapper is not swallowed and can still fall
-                  // through to card-wide actions.
-                  if (this.locked) {
-                    return;
-                  }
-                  stopEventFromActivatingCardWideActions(ev);
-                  this.open = !this.open;
-                }}
-              >
-                <advanced-camera-card-icon
-                  class="control"
-                  .icon="${{
-                    icon: this.open
-                      ? this.icons?.open ?? 'mdi:menu-open'
-                      : this.icons?.closed ?? 'mdi:menu',
-                  }}"
-                  @mouseenter=${() => {
-                    // Only open the drawer on mousenter when the device
-                    // supports hover (otherwise iOS may end up passing on
-                    // subsequent click events to a different element, see:
-                    // https://github.com/dermotduffy/advanced-camera-card/issues/801
-                    if (this._isHoverableDevice && !this.open) {
-                      this.open = true;
+        ${
+          this.control
+            ? html`
+                <div
+                  class="control-surround"
+                  @click=${(ev: Event) => {
+                    // While locked the drawer must not open. Return before
+                    // `stopEventFromActivatingCardWideActions` so a click on the
+                    // padded control wrapper is not swallowed and can still fall
+                    // through to card-wide actions.
+                    if (this.locked) {
+                      return;
                     }
+                    stopEventFromActivatingCardWideActions(ev);
+                    this.open = !this.open;
                   }}
                 >
-                </advanced-camera-card-icon>
-              </div>
-            `
-          : ''}
+                  <advanced-camera-card-icon
+                    class="control"
+                    .icon="${{
+                      icon: this.open
+                        ? (this.icons?.open ?? 'mdi:menu-open')
+                        : (this.icons?.closed ?? 'mdi:menu'),
+                    }}"
+                    @mouseenter=${() => {
+                      // Only open the drawer on mousenter when the device
+                      // supports hover (otherwise iOS may end up passing on
+                      // subsequent click events to a different element, see:
+                      // https://github.com/dermotduffy/advanced-camera-card/issues/801
+                      if (this._isHoverableDevice && !this.open) {
+                        this.open = true;
+                      }
+                    }}
+                  >
+                  </advanced-camera-card-icon>
+                </div>
+              `
+            : ''
+        }
         <slot ${ref(this._refSlot)} @slotchange=${() => this._slotChanged()}></slot>
       </side-drawer>
     `;
