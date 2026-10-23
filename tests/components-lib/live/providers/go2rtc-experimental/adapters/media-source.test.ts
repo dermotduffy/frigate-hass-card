@@ -218,7 +218,10 @@ describe('media-source', () => {
       assert(mediaSource instanceof FakeManagedMediaSource);
       expect(instance?.duration).toBeNaN();
 
-      instance!.duration = Number.POSITIVE_INFINITY;
+      if (!instance) {
+        throw new Error('Instance is null');
+      }
+      instance.duration = Number.POSITIVE_INFINITY;
       expect(mediaSource.duration).toBe(Number.POSITIVE_INFINITY);
       expect(instance?.duration).toBe(Number.POSITIVE_INFINITY);
     });
