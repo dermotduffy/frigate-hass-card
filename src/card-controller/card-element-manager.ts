@@ -7,6 +7,7 @@ import { isBeingCasted } from '../utils/casting';
 import { isAncestorInEventPath } from '../utils/event-ancestor';
 import type { CardMediaReviewEventTarget } from '../utils/review';
 import type { ViewItem } from '../view/item';
+import { getViewTargetID } from '../view/target-id';
 import type { ActionExecutionRequestEventTarget } from './actions/utils/execution-request';
 import { InitializationAspect } from './initialization/initialization-manager';
 import type { CardElementAPI } from './types';
@@ -72,6 +73,14 @@ export class CardElementManager {
     this._api.getFullscreenManager().initialize();
     this._api.getExpandManager().initialize();
     this._api.getMediaLoadedInfoManager().initialize();
+    // A dashboard tab change keeps the view but `initialize()` drops the
+    // selected target. Restore it, or a stream that loads again is stored
+    // without becoming the media the menu reads, and buttons such as mute and
+    // picture-in-picture stay hidden.
+    const view = this._api.getViewManager().getView();
+    this._api
+      .getMediaLoadedInfoManager()
+      .setSelected(view ? getViewTargetID(view) : null);
     this._api.getMicrophoneManager().initialize();
     this._api.getPIPManager().initialize();
     this._api.getKeyboardStateManager().initialize();
